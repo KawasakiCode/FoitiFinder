@@ -1,0 +1,184 @@
+Account Management
+user logs in
+user signs up
+user logs out
+user changes password
+user changes email
+user changes phone number
+user changes settings
+user deletes account
+user recovers account
+user enables 2fa
+user disables 2fa
+
+Profile Management
+user edits pfp
+user edits username
+user edits bio
+user edits name
+user sets profile to private
+user sets profile to public
+
+Post 
+user posts
+user comments on posts
+user edits posts
+user deletes posts
+user likes posts
+user reverts likes
+user shares posts
+user saves posts
+user reverts saves
+user forwards posts
+user reports posts
+user mutes posts audio
+
+Comments 
+user deletes comments
+user deletes comment replies
+user edits comments
+user replies to comments
+user edits comment replies
+user likes comment replies
+user likes comments
+user reports comments
+user reports comment replies
+
+Reels 
+user posts reels
+user likes reels
+user comments on reels
+user reports reels
+user shares reels
+user saves reels
+user forwards reels
+user mutes reels
+
+Stories
+user uploads story
+user reacts on stories
+user views stories
+user reports stories
+user forwards stories
+user mutes stories
+user deletes stories
+user hides stories from users
+user views story viewers
+
+Highlights 
+user makes highlights
+user edits highlights
+user deletes highlights
+
+Messages 
+user sends messages
+user reacts to messages
+user edits messages
+user deletes messages
+user creates groups
+user leaves groups
+user mutes groups
+user unmutes groups
+user disables message requests
+user accepts message requests
+user declines message requests
+
+User Moderation
+user blocks users
+user restricts users
+user unblocks users
+user unrestricts users
+user reports users
+user follows users
+
+Classes
+User
+Post
+Comment
+Reel
+Story
+Message
+
+Databases
+Users 
+Posts 
+Comments 
+Reels 
+Stories
+Messages 
+
+Users 
+user_id (primary key)
+username (unique)
+email (unique)
+password_hash
+bio (text)
+profile_picture (url)
+followers_count (int)
+following_count (int)
+is_private (boolean)
+created_at (timestamp)
+followers (array of user_ids)
+following (array of user_ids)
+saved (array of post_ids, reel_ids)
+search_history (array of search_terms)
+blocked_users (array of user_ids)
+restricted_users (array of user_ids)
+highlights (array of story_ids) 
+
+Posts 
+post_id (primary key)
+user_id (foreign key)
+media_url (url)
+caption (text)
+timestamp (timestamp)
+likes_count (int)
+comments_count (int)
+media_type (enum: image, video, audio)
+is_private (boolean)
+
+Comments 
+comment_id (primary key)
+post_id (foreign key)
+reel_id (foreign key)
+user_id (foreign key)
+content (text)
+timestamp (timestamp)
+parent_comment_id (foreign key)
+likes_count (int)
+parent_type (enum: post, reel)
+
+Reels 
+reel_id (primary key)
+user_id (foreign key)
+video_url (url)
+caption (text)
+timestamp (timestamp)
+likes_count (int)
+comments_count (int)
+extra_audio_used (boolean)
+extra_audio_url (url)
+views_count (int)
+is_private (boolean)
+
+Stories 
+story_id (primary key)
+user_id (foreign key)
+media_url (url)
+timestamp (timestamp)
+views_count (int)
+expires_at (timestamp)
+is_highlight (boolean)
+media_type (enum: image, video)
+spectators (array of user_ids)
+likes_count (int)
+
+Messages 
+message_id (primary key)
+sender_id (foreign key)
+receiver_id (foreign key)
+content (text)
+has_media (boolean)
+media_url (url)
+timestamp (timestamp)
+is_read (boolean)
