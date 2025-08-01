@@ -14,6 +14,7 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
+  bool _isPasswordVisible = false;
   late TapGestureRecognizer _tapGestureRecognizer;
   late final TextEditingController _email;
   late final TextEditingController _password;
@@ -120,7 +121,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                           height: 25,
                                         ),
                                         Text(
-                                          '  Log in with Facebook',
+                                          '  Sign up with Facebook',
                                           style: TextStyle(
                                             color: Colors.blue,
                                             fontSize: 15,
@@ -181,20 +182,48 @@ class _SignUpPageState extends State<SignUpPage> {
                                 ),
                                 Padding(
                                   padding: const EdgeInsets.only(top: 8),
-                                  child: TextFormField(
-                                    decoration: const InputDecoration(
+                                  child: StatefulBuilder(
+                                builder: (context, setState) {
+                                  return TextFormField(
+                                    decoration: InputDecoration(
                                       hintText: 'Password',
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.all(
                                           Radius.circular(12),
                                         ),
                                       ),
+                                      suffixIcon: Padding(
+                                        padding: EdgeInsets.only(right: 8.0),
+                                        child: Material(
+                                          color: Colors.transparent,
+                                          child: InkWell(
+                                            borderRadius: BorderRadius.circular(20),
+                                            onTap: () {
+                                              setState(() {
+                                                _isPasswordVisible = !_isPasswordVisible;
+                                              });
+                                            },
+                                            child: Padding(
+                                              padding: EdgeInsets.all(8.0),
+                                              child: Image.asset(
+                                                _isPasswordVisible 
+                                                  ? 'assets/icons/hide.png'
+                                                  : 'assets/icons/view.png',
+                                                width: 10,
+                                                height: 10,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                    obscureText: true,
+                                    controller: _password,
+                                    obscureText: !_isPasswordVisible,
                                     autocorrect: false,
                                     enableSuggestions: false,
-                                    controller: _password,
-                                  ),
+                                  );
+                                }
+                              ),
                                 ),
                                 Padding(
                                   padding: const EdgeInsets.only(top: 8),
@@ -258,18 +287,71 @@ class _SignUpPageState extends State<SignUpPage> {
                                         final email = _email.text;
                                         final password = _password.text;
 
+                                        // Client-side validation for password length
+                                        if (password.length < 8) {
+                                          if(!mounted) return;
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text('Password must be at least 8 characters long.'),
+                                              backgroundColor: Colors.red,
+                                              duration: Duration(seconds: 3),
+                                            ),
+                                          );
+                                          return;
+                                        }
+
                                         try {
                                           await FirebaseAuth.instance
                                             .createUserWithEmailAndPassword(
                                               email: email,
                                               password: password,
                                             );
+                                          // If successful, navigate to verify email page
+                                          if(!mounted) return;
+                                          Navigator.push(context, MaterialPageRoute(builder: (context) => VerifyEmail()));
+                                        } on FirebaseAuthException catch (e) {
+                                          String errorMessage;
+                                          
+                                          switch (e.code) {
+                                            case 'email-already-in-use':
+                                              errorMessage = 'An account with this email already exists. Please try logging in instead.';
+                                              break;
+                                            case 'weak-password':
+                                              errorMessage = 'Password is too weak. Please choose a stronger password (at least 8 characters).';
+                                              break;
+                                            case 'invalid-email':
+                                              errorMessage = 'Please enter a valid email address.';
+                                              break;
+                                            case 'operation-not-allowed':
+                                              errorMessage = 'Email/password accounts are not enabled. Please contact support.';
+                                              break;
+                                            case 'too-many-requests':
+                                              errorMessage = 'Too many failed attempts. Please try again later.';
+                                              break;
+                                            default:
+                                              errorMessage = 'An error occurred during signup. Please try again.';
+                                          }
+                                          
+                                          // Show error message to user
+                                          if(!mounted) return;
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text(errorMessage),
+                                              backgroundColor: Colors.red,
+                                              duration: Duration(seconds: 3),
+                                            ),
+                                          );
                                         } catch (e) {
-                                          //error handling
+                                          // Handle other types of errors
+                                          if(!mounted) return;
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text('An unexpected error occurred. Please try again.'),
+                                              backgroundColor: Colors.red,
+                                              duration: Duration(seconds: 3),
+                                            ),
+                                          );
                                         }
-                                        //ignore warning
-                                        if(!mounted) return;
-                                        Navigator.push(context, MaterialPageRoute(builder: (context) => VerifyEmail()));
                                         
                                       },
                                       style: TextButton.styleFrom(

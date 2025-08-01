@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'signup.dart';
+import '../home_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -14,6 +15,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   late final TextEditingController _email;
   late final TextEditingController _password;
+  bool _isPasswordVisible = false;
 
   @override
   void initState() {
@@ -85,19 +87,49 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             Padding(
                               padding: const EdgeInsets.only(top: 8, bottom: 8),
-                              child: TextFormField(
-                                decoration: const InputDecoration(
-                                  hintText: 'Password',
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(
-                                      Radius.circular(12),
+                              //Stateful builder forces only the textformfield to rebuild when you press the eye button instead
+                              //of the whole page. Only use it for small widgets and parts of the ui
+                              child: StatefulBuilder(
+                                builder: (context, setState) {
+                                  return TextFormField(
+                                    decoration: InputDecoration(
+                                      hintText: 'Password',
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.all(
+                                          Radius.circular(12),
+                                        ),
+                                      ),
+                                      suffixIcon: Padding(
+                                        padding: EdgeInsets.only(right: 8.0),
+                                        child: Material(
+                                          color: Colors.transparent,
+                                          child: InkWell(
+                                            borderRadius: BorderRadius.circular(20),
+                                            onTap: () {
+                                              setState(() {
+                                                _isPasswordVisible = !_isPasswordVisible;
+                                              });
+                                            },
+                                            child: Padding(
+                                              padding: EdgeInsets.all(8.0),
+                                              child: Image.asset(
+                                                _isPasswordVisible 
+                                                  ? 'assets/icons/hide.png'
+                                                  : 'assets/icons/view.png',
+                                                width: 10,
+                                                height: 10,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ),
-                                controller: _password,
-                                obscureText: true,
-                                autocorrect: false,
-                                enableSuggestions: false,
+                                    controller: _password,
+                                    obscureText: !_isPasswordVisible,
+                                    autocorrect: false,
+                                    enableSuggestions: false,
+                                  );
+                                }
                               ),
                             ),
                             SizedBox(
@@ -108,14 +140,73 @@ class _LoginPageState extends State<LoginPage> {
                                   final password = _password.text;
 
                                   try {
-                                    await FirebaseAuth.instance
+                                    final userCredential = await FirebaseAuth.instance
                                     .signInWithEmailAndPassword(
                                       email: email,
                                       password: password,
                                     );
-                                  } catch (e) {
-                                    //Error handling
                                     
+                                    // Check if email is verified
+                                    if (userCredential.user != null && !userCredential.user!.emailVerified) {
+                                      // Delete the unverified account
+                                      await userCredential.user!.delete();
+                                      
+                                      if(!mounted) return;
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Account deleted. Please sign up again and verify your email.'),
+                                          backgroundColor: Colors.orange,
+                                          duration: Duration(seconds: 4),
+                                        ),
+                                      );
+                                      return;
+                                    }                                    
+                                    // Clear navigation stack and navigate to home page
+                                    Navigator.pushAndRemoveUntil(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => MyHomePage()),
+                                      (route) => false, // This removes all previous routes
+                                    );
+                                    
+                                  } on FirebaseAuthException catch (e) {
+                                    String errorMessage;
+                                    
+                                    switch (e.code) {
+                                      case 'invalid-credential':
+                                        errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+                                        break;
+                                      case 'invalid-email':
+                                        errorMessage = 'Please enter a valid email address.';
+                                        break;
+                                      case 'user-disabled':
+                                        errorMessage = 'This account has been disabled.';
+                                        break;
+                                      case 'too-many-requests':
+                                        errorMessage = 'Too many failed attempts. Please try again later.';
+                                        break;
+                                      default:
+                                        errorMessage = 'An error occurred. Please try again.';
+                                    }
+                                    
+                                    // Show error message to user
+                                    if(!mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(errorMessage),
+                                        backgroundColor: Colors.red,
+                                        duration: Duration(seconds: 3),
+                                      ),
+                                    );
+                                  } catch (e) {
+                                    // Handle other types of errors
+                                    if(!mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('An unexpected error occurred. Please try again.'),
+                                        backgroundColor: Colors.red,
+                                        duration: Duration(seconds: 3),
+                                      ),
+                                    );
                                   }
                                   
                                 },
@@ -137,6 +228,7 @@ class _LoginPageState extends State<LoginPage> {
                                 child: Text('Login'),
                               ),
                             ),
+                            SizedBox(height: 10),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -204,7 +296,30 @@ class _LoginPageState extends State<LoginPage> {
                                 Align(
                                   alignment: Alignment.center,
                                   child: TextButton(
-                                    onPressed: () {},
+                                    onPressed: () async{
+                                      try {
+                                        await FirebaseAuth.instance.sendPasswordResetEmail(
+                                          email: _email.text,
+                                        );
+                                        if(!mounted) return;
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Password reset email sent. Please check your email.'),
+                                            backgroundColor: Colors.green,
+                                            duration: Duration(seconds: 3),
+                                          ),
+                                        );
+                                      } catch (e) {
+                                        if(!mounted) return;
+                                        ScaffoldMessenger.of(context).showSnackBar(  
+                                          SnackBar(  
+                                            content: Text('An error occured. Please try again later.'),
+                                            backgroundColor: Colors.red,
+                                            duration: Duration(seconds: 3),
+                                          ),
+                                        );
+                                      }
+                                    },
                                     style: TextButton.styleFrom(
                                       padding: EdgeInsets.only(bottom: 5, top: 0),
                                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
