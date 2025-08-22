@@ -36,7 +36,6 @@ class MyApp extends StatelessWidget {
                     final user = snapshot.data!;
                     if (user.emailVerified) {
                       // User is logged in and email is verified
-                      // TODO: Navigate to main app/home page
                       return LoginPage(); // Temporary, replace with home page
                     } else {
                       // User is logged in but email is not verified
