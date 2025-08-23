@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../widgets/bottom_navigation_bar.dart' as custom_bottom_nav;
-import 'dm_page.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -13,9 +12,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   List<CardData> cards = [];
   int currentIndex = 0;
   late AnimationController _animationController;
-  late Animation<double> _animation;
   Offset _dragOffset = Offset.zero;
-  bool _isDragging = false;
   
   // Track swiped cards for rewind functionality
   List<CardData> swipedCards = [];
@@ -61,10 +58,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    
-    _animation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
-    );
   }
 
   @override
@@ -76,7 +69,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   void _onPanUpdate(DragUpdateDetails details) {
     setState(() {
       _dragOffset += details.delta;
-      _isDragging = true;
     });
   }
 
@@ -117,7 +109,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       setState(() {
         currentIndex++;
         _dragOffset = Offset.zero;
-        _isDragging = false;
       });
       _animationController.reset();
       _showSwipeFeedback(isLike, cardName, isSuperLike: isSuperLike); // Pass the correct name and super like status
@@ -127,7 +118,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   void _resetCard() {
     setState(() {
       _dragOffset = Offset.zero;
-      _isDragging = false;
     });
   }
 
@@ -142,7 +132,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         
         // Reset drag offset
         _dragOffset = Offset.zero;
-        _isDragging = false;
       });
     }
   }
@@ -211,7 +200,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           _buildActionButtons(),
         ],
       ),
-      bottomNavigationBar: custom_bottom_nav.BottomNavigationBar(),
+      bottomNavigationBar: SafeArea(
+        child: custom_bottom_nav.BottomNavigationBar(),
+      ),
     );
   }
 
@@ -253,7 +244,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   Widget _buildCard(CardData card, bool isTop) {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.65,
+      height: MediaQuery.of(context).size.height * 0.6,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         boxShadow: [

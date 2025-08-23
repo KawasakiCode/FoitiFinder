@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../widgets/bottom_navigation_bar.dart' as custom_bottom_nav;
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -88,7 +87,9 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ],
       ),
-      bottomNavigationBar: custom_bottom_nav.BottomNavigationBar(),
+      bottomNavigationBar: SafeArea(
+        child: custom_bottom_nav.BottomNavigationBar(),
+      ),
     );
   }
 }

@@ -151,7 +151,9 @@ class _DMPageState extends State<DMPage> {
           ),
         ],
       ),
-      bottomNavigationBar: custom_bottom_nav.BottomNavigationBar(),
+      bottomNavigationBar: SafeArea(
+        child: custom_bottom_nav.BottomNavigationBar(),
+      ),
     );
   }
 }
