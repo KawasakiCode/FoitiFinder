@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 import 'pages/auth_pages/login.dart';
 import 'pages/auth_pages/verify_email.dart';
+import 'pages/home_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,7 +37,7 @@ class MyApp extends StatelessWidget {
                     final user = snapshot.data!;
                     if (user.emailVerified) {
                       // User is logged in and email is verified
-                      return LoginPage(); // Temporary, replace with home page
+                      return MyHomePage(); // Now returns the home page with swipe cards
                     } else {
                       // User is logged in but email is not verified
                       return VerifyEmail();

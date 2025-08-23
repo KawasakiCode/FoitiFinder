@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import '../pages/dm_page.dart';
 import '../pages/search_page.dart';
 import '../pages/home_page.dart';
-import '../pages/reels_page.dart';
 import '../pages/profile_page.dart';
 
 class BottomNavigationBar extends StatelessWidget {
@@ -55,24 +55,24 @@ class BottomNavigationBar extends StatelessWidget {
             ),
             IconButton(
               icon: Image.asset(
-                'assets/icons/create_post.png',
-                width: 30,
-                height: 30,
+                'assets/icons/like.png',
+                width: 35,
+                height: 35,
                 key: UniqueKey(),
               ),
               onPressed: () {},
             ),
             IconButton(
               icon: Image.asset(
-                'assets/icons/reel.png',
-                width: 35,
-                height: 35,
+                'assets/icons/comment.png',
+                width: 32,
+                height: 32,
                 key: UniqueKey(),
               ),
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ReelsPage()),
+                  MaterialPageRoute(builder: (context) => DMPage()),
                 );
               },
             ),

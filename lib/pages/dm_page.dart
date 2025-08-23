@@ -28,7 +28,7 @@ class _DMPageState extends State<DMPage> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(18, 10, 15, 0),
+            padding: const EdgeInsets.fromLTRB(18, 10, 15, 10),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -53,16 +53,46 @@ class _DMPageState extends State<DMPage> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(18, 15, 15, 0),
+            padding: const EdgeInsets.fromLTRB(18, 5, 15, 0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'New Matches',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            margin: EdgeInsets.all(0),
+            width: MediaQuery.of(context).size.width,
+            height: 85,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: 20, // Number of story circles
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 5, 15, 0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   'Messages',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  'Requests',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
@@ -111,11 +141,6 @@ class _DMPageState extends State<DMPage> {
                               ],
                             ),
                           ),
-                        ),
-                        Image.asset(
-                          'assets/icons/camera.png',
-                          width: 30,
-                          height: 30,
                         ),
                       ],
                     ),
