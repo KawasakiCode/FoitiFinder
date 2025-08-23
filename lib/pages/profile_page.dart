@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../widgets/bottom_navigation_bar.dart' as custom_bottom_nav;
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
