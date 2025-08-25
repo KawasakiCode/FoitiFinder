@@ -130,8 +130,9 @@ class _SearchPageState extends State<SearchPage> {
           ],
         ),
       ),
-      //bottom bar (home, search, create post, reel, profile)
-      bottomNavigationBar: custom_bottom_nav.BottomNavigationBar(),
+      bottomNavigationBar: SafeArea(
+        child: custom_bottom_nav.BottomNavigationBar(),
+      ),
     );
   }
 }
