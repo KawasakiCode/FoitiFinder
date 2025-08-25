@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../widgets/bottom_navigation_bar.dart' as custom_bottom_nav;
 
 class SearchPage extends StatefulWidget {
@@ -16,92 +15,120 @@ class _SearchPageState extends State<SearchPage> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         //search bar
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        title: Text("FoitiFinder"),
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: SearchBar(
-                constraints: BoxConstraints(maxHeight: 40, minHeight: 40),
-                shape: WidgetStateProperty.all(
-                  RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+            Padding(
+              padding: const EdgeInsets.only(left: 15, top: 5),
+              child: Text(
+                "Welcome to Explore",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+            ),
+            Center(
+              child: Container(
+                margin: EdgeInsets.only(top: 5),
+                width: MediaQuery.of(context).size.width * 0.95,
+                height: MediaQuery.of(context).size.height * 0.25,
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(15),
                 ),
-                leading: Image.asset(
-                  'assets/icons/search.png',
-                  width: 17,
-                  height: 17,
-                  key: UniqueKey(),
-                ),
-                hintText: 'Search',
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.only(top: 5, left: 15),
+              child: Text(
+                "Get photo verified",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
             Padding(
               padding: const EdgeInsets.only(left: 15),
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: Image.asset(
-                  'assets/icons/more.png',
-                  width: 20,
-                  height: 20,
-                  key: UniqueKey(),
+              child: Text(
+                "Photo verification helps your visibility",
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
+              ),
+            ),
+            Center(
+              child: Container(
+                margin: EdgeInsets.only(top: 5),
+                width: MediaQuery.of(context).size.width * 0.95,
+                height: MediaQuery.of(context).size.height * 0.25,
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(15),
+                ),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.only(top: 5, left: 15),
+              child: Text(
+                "Similar plans and lifestyles",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 15, bottom: 5),
+              child: Text(
+                "Find people with similar life goals and hobbies",
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
+              ),
+            ),
+            GridView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 5),
+              itemCount: 16,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                childAspectRatio: 0.75,
+              ),
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemBuilder: (_, i) => Material(
+                color: Colors.red,
+                borderRadius: BorderRadius.circular(15),
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(15),
+                  splashColor: Colors.white24,
+                  highlightColor: Colors.white10,
+                  onTap: () {
+                    switch (i) {
+                      case 0: break;
+                      case 1: break;
+                      case 2: break;
+                      case 3: break;
+                      case 4: break;
+                      case 5: break;
+                      case 6: break;
+                      case 7: break;
+                      case 8: break;
+                      case 9: break;
+                      case 10: break;
+                      case 11: break;
+                      case 12: break;
+                      case 13: break;
+                      case 14: break;
+                      case 15: break;
+                      default: break;
+                    }
+                  },
+                  child: Column(  
+                    children: 
+                    [
+
+                    ]
+                  ),
                 ),
               ),
             ),
           ],
         ),
-        backgroundColor: const Color.fromARGB(255, 238, 238, 238),
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(1.5),
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: const Color.fromARGB(255, 209, 209, 209),
-                  width: 1.5,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-      body: Column(
-        children: [
-          //fy page captures all remaining space
-          Expanded( 
-            child: Container(
-              color: const Color.fromARGB(255, 209, 209, 209),
-              //custom grid view 
-              child: GridView.custom(
-                gridDelegate: SliverQuiltedGridDelegate(
-                  crossAxisCount: 3,
-                  mainAxisSpacing: 1,
-                  crossAxisSpacing: 1,
-                  repeatPattern: QuiltedGridRepeatPattern.inverted,
-                  //the pattern that the grid view follows
-                  pattern: [
-                    QuiltedGridTile(1, 1),
-                    QuiltedGridTile(1, 1),
-                    QuiltedGridTile(2, 1),
-                    QuiltedGridTile(1, 1),
-                    QuiltedGridTile(1, 1),
-                    QuiltedGridTile(2, 1),
-                    QuiltedGridTile(1, 1),
-                    QuiltedGridTile(1, 1),
-                    QuiltedGridTile(1, 1),
-                    QuiltedGridTile(1, 1),
-                  ],
-                ),
-                //what each tile of the grid view will be
-                childrenDelegate: SliverChildBuilderDelegate(
-                  (context, index) => Container(
-                    color: const Color.fromARGB(255, 255, 255, 255),
-                    ),
-                  ),
-                ),
-            ),
-            ),
-        ],
       ),
       //bottom bar (home, search, create post, reel, profile)
       bottomNavigationBar: custom_bottom_nav.BottomNavigationBar(),

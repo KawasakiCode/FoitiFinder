@@ -164,6 +164,7 @@ class _LoginPageState extends State<LoginPage> {
                                           return;
                                         }                                    
                                         // Clear navigation stack and navigate to home page
+                                        if(!mounted) return;
                                         Navigator.pushAndRemoveUntil(
                                           context,
                                           MaterialPageRoute(builder: (context) => MyHomePage()),
