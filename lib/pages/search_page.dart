@@ -29,38 +29,62 @@ class _SearchPageState extends State<SearchPage> {
               ),
             ),
             Center(
-              child: Container(
-                margin: EdgeInsets.only(top: 5),
-                width: MediaQuery.of(context).size.width * 0.95,
-                height: MediaQuery.of(context).size.height * 0.25,
-                decoration: BoxDecoration(
-                  color: Colors.black,
-                  borderRadius: BorderRadius.circular(15),
-                ),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(top: 5, left: 15),
-              child: Text(
-                "Get photo verified",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 15),
-              child: Text(
-                "Photo verification helps your visibility",
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
-              ),
-            ),
-            Center(
-              child: Container(
-                margin: EdgeInsets.only(top: 5),
-                width: MediaQuery.of(context).size.width * 0.95,
-                height: MediaQuery.of(context).size.height * 0.25,
-                decoration: BoxDecoration(
-                  color: Colors.black,
-                  borderRadius: BorderRadius.circular(15),
+              child: Material(
+                color: const Color.fromARGB(255, 150, 31, 247),
+                borderRadius: BorderRadius.circular(15),
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  splashColor: Colors.white24,
+                  highlightColor: Colors.white10,
+                  onTap: () {},
+                  child: Container(
+                    margin: EdgeInsets.only(top: 5),
+                    width: MediaQuery.of(context).size.width * 0.95,
+                    height: MediaQuery.of(context).size.height * 0.25,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(right: 15, top: 7),
+                          child: Align(
+                            alignment: Alignment.topRight,
+                            child: Text(
+                              "100",
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 20, bottom: 20),
+                          child: Image.asset(
+                            "assets/icons/like.png",
+                            width: 90,
+                            height: 90,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 15, bottom: 10),
+                          child: Align(
+                            alignment: Alignment.bottomLeft,
+                            child: Text(
+                              "Place later",
+                              style: TextStyle(
+                                fontSize: 19,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -98,31 +122,83 @@ class _SearchPageState extends State<SearchPage> {
                   splashColor: Colors.white24,
                   highlightColor: Colors.white10,
                   onTap: () {
+                    //what each button do
                     switch (i) {
-                      case 0: break;
-                      case 1: break;
-                      case 2: break;
-                      case 3: break;
-                      case 4: break;
-                      case 5: break;
-                      case 6: break;
-                      case 7: break;
-                      case 8: break;
-                      case 9: break;
-                      case 10: break;
-                      case 11: break;
-                      case 12: break;
-                      case 13: break;
-                      case 14: break;
-                      case 15: break;
-                      default: break;
+                      case 0:
+                        break;
+                      case 1:
+                        break;
+                      case 2:
+                        break;
+                      case 3:
+                        break;
+                      case 4:
+                        break;
+                      case 5:
+                        break;
+                      case 6:
+                        break;
+                      case 7:
+                        break;
+                      case 8:
+                        break;
+                      case 9:
+                        break;
+                      case 10:
+                        break;
+                      case 11:
+                        break;
+                      case 12:
+                        break;
+                      case 13:
+                        break;
+                      case 14:
+                        break;
+                      case 15:
+                        break;
+                      default:
+                        break;
                     }
                   },
-                  child: Column(  
-                    children: 
-                    [
-
-                    ]
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 10, top: 7),
+                        child: Align(
+                          alignment: Alignment.topRight,
+                          child: Text(
+                            "${tiles[i].userCount}",
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 20, bottom: 20),
+                        child: Image.asset(
+                          tiles[i].imagePath,
+                          width: 140,
+                          height: 140,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 5, bottom: 5),
+                        child: Align(
+                          alignment: Alignment.bottomLeft,
+                          child: Text(
+                            tiles[i].caption,
+                            style: TextStyle(
+                              fontSize: 19,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -136,3 +212,31 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 }
+
+//Tile class to make each tile independent
+class TileData{
+  final int userCount;
+  final String imagePath;
+  final String caption;
+
+  const TileData({required this.userCount, required this.imagePath, required this.caption});
+}
+
+final List<TileData> tiles = [
+  TileData(userCount: 100, imagePath: "assets/icons/like.png", caption: "Place later"),
+  TileData(userCount: 150, imagePath: "assets/icons/dm.png", caption: "Place later 2"),
+  TileData(userCount: 130, imagePath: "assets/icons/comment.png", caption: "Place later 3"),
+  TileData(userCount: 120, imagePath: "assets/icons/like.png", caption: "Place later 4"),
+  TileData(userCount: 200, imagePath: "assets/icons/save.png", caption: "Place later 5"),
+  TileData(userCount: 210, imagePath: "assets/icons/like.png", caption: "Place later 6"),
+  TileData(userCount: 50, imagePath: "assets/icons/like.png", caption: "Place later 7"),
+  TileData(userCount: 78, imagePath: "assets/icons/like.png", caption: "Place later 8"),
+  TileData(userCount: 40, imagePath: "assets/icons/like.png", caption: "Place later 9"),
+  TileData(userCount: 140, imagePath: "assets/icons/like.png", caption: "Place later 10"),
+  TileData(userCount: 180, imagePath: "assets/icons/like.png", caption: "Place later 11"),
+  TileData(userCount: 90, imagePath: "assets/icons/save.png", caption: "Place later 12"),
+  TileData(userCount: 10, imagePath: "assets/icons/like.png", caption: "Place later 13"),
+  TileData(userCount: 20, imagePath: "assets/icons/like.png", caption: "Place later 14"),
+  TileData(userCount: 220, imagePath: "assets/icons/like.png", caption: "Place later 15"),
+  TileData(userCount: 230, imagePath: "assets/icons/like.png", caption: "Place later 16"),
+];

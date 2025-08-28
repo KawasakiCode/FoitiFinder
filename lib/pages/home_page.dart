@@ -17,6 +17,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   // Track swiped cards for rewind functionality
   List<CardData> swipedCards = [];
 
+//card creation
   @override
   void initState() {
     super.initState();
@@ -60,12 +61,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
   }
 
+//dispose function
   @override
   void dispose() {
     _animationController.dispose();
     super.dispose();
   }
 
+//gesture detector functions
   void _onPanUpdate(DragUpdateDetails details) {
     setState(() {
       _dragOffset += details.delta;
@@ -91,6 +94,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
   }
 
+//swiping functions
   void _swipeRight() {
     final cardName = cards[currentIndex].name; // Store name before animation
     _animateCardOut(1.0, cardName, true);
@@ -101,6 +105,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     _animateCardOut(-1.0, cardName, false);
   }
 
+//swiping animation
   void _animateCardOut(
     double direction,
     String cardName,
@@ -124,12 +129,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     });
   }
 
+//reset card
   void _resetCard() {
     setState(() {
       _dragOffset = Offset.zero;
     });
   }
 
+//rewind function
   void _rewindCard() {
     if (swipedCards.isNotEmpty && currentIndex > 0) {
       setState(() {
@@ -145,6 +152,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
   }
 
+//show feedback (to be deleted)
   void _showSwipeFeedback(
     bool isLike,
     String cardName, {
@@ -167,6 +175,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
   }
 
+//main build function (appbar here)
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -221,13 +230,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
   }
 
+//build cards function (to be changed to reduce loading time)
   Widget _buildSwipeCards() {
     return Stack(
       children: [
         // Background cards (stacked behind)
         for (
           int i = currentIndex + 1;
-          i < cards.length && i < currentIndex + 3;
+          i < cards.length && i < currentIndex + 2;
           i++
         )
           Positioned(
@@ -263,6 +273,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
   }
 
+//build top card
   Widget _buildCard(CardData card, bool isTop) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.6,
@@ -403,6 +414,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
   }
 
+//when cards run out show this function
   Widget _buildNoMoreCards() {
     return const Center(
       child: Column(
@@ -424,6 +436,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
   }
 
+//build the buttons under the cards
   Widget _buildActionButtons() {
     // Show rewind button even when no more cards if we have swiped cards
     if (currentIndex >= cards.length && swipedCards.isEmpty) {
@@ -524,6 +537,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 }
 
+//declaration of card class
 class CardData {
   final int id;
   final String name;
