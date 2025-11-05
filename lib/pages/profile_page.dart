@@ -19,7 +19,6 @@ class _ProfilePageState extends State<ProfilePage> {
           children: [
             Text(
               'FoitiFinder',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
             ),
             Align(
               alignment: Alignment.centerRight,
@@ -29,8 +28,8 @@ class _ProfilePageState extends State<ProfilePage> {
                     padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
                     child: Image.asset(
                       'assets/icons/settings.png',
-                      width: 35,
-                      height: 35,
+                      width: 30,
+                      height: 30,
                     ),
                   ),
                 ],
