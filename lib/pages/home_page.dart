@@ -1,8 +1,18 @@
 import 'package:flutter/material.dart';
 import '../widgets/bottom_navigation_bar.dart' as custom_bottom_nav;
+import 'settings.dart';
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
+  const MyHomePage({
+    super.key,
+    this.showSettings = true,
+    this.showBottomNav = true,
+    this.title = 'FoitiFinder',
+  });
+
+  final bool showSettings;
+  final bool showBottomNav;
+  final String title;
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -181,13 +191,15 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 2,
+        automaticallyImplyLeading: false,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Padding(
               padding: const EdgeInsets.only(left: 10),
-              child: Text('FoitiFinder'),
+              child: Text(widget.title),
             ),
+            if (widget.showSettings)
             IconButton(
               icon: Image.asset(
                 'assets/icons/settings.png',
@@ -195,7 +207,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 height: 25,
                 key: UniqueKey(),
               ),
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(  
+                  context, 
+                  MaterialPageRoute(builder: (context) => SettingsPage())
+                );
+              },
             ),
           ],
         ),
@@ -224,9 +241,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           _buildActionButtons(),
         ],
       ),
-      bottomNavigationBar: SafeArea(
+      bottomNavigationBar: widget.showBottomNav ? SafeArea(
         child: custom_bottom_nav.BottomNavigationBar(),
-      ),
+      ) : null,
     );
   }
 

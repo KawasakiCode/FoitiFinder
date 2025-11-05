@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/bottom_navigation_bar.dart' as custom_bottom_nav;
+import 'home_page.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -122,43 +123,10 @@ class _SearchPageState extends State<SearchPage> {
                   splashColor: Colors.white24,
                   highlightColor: Colors.white10,
                   onTap: () {
-                    //what each button do
-                    switch (i) {
-                      case 0:
-                        break;
-                      case 1:
-                        break;
-                      case 2:
-                        break;
-                      case 3:
-                        break;
-                      case 4:
-                        break;
-                      case 5:
-                        break;
-                      case 6:
-                        break;
-                      case 7:
-                        break;
-                      case 8:
-                        break;
-                      case 9:
-                        break;
-                      case 10:
-                        break;
-                      case 11:
-                        break;
-                      case 12:
-                        break;
-                      case 13:
-                        break;
-                      case 14:
-                        break;
-                      case 15:
-                        break;
-                      default:
-                        break;
-                    }
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => MyHomePage(showBottomNav: false, showSettings: false, title: tiles[i].caption)),
+                    );
                   },
                   child: Column(
                     children: [
