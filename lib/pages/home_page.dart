@@ -8,11 +8,13 @@ class MyHomePage extends StatefulWidget {
     this.showSettings = true,
     this.showBottomNav = true,
     this.title = 'FoitiFinder',
+    this.automaticallyImplyLeading = false,
   });
 
   final bool showSettings;
   final bool showBottomNav;
   final String title;
+  final bool automaticallyImplyLeading;
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -191,7 +193,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 2,
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading: widget.automaticallyImplyLeading,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
