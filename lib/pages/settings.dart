@@ -725,6 +725,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   child: Text('Logout', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black))
                 )
             ),
+            //Delete account button
             Padding(  
               padding: const EdgeInsets.only(left: 15, right: 15, bottom: 15),
               child: TextButton(  
