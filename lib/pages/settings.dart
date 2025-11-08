@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'auth_pages/login.dart';
+import 'delete_account_page.dart';
 
 enum RecommendationPreference { balanced, recentlyActive }
 
@@ -721,7 +724,14 @@ class _SettingsPageState extends State<SettingsPage> {
             Padding(  
               padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
               child: TextButton(  
-                  onPressed: () {},
+                  onPressed: () async {
+                    await FirebaseAuth.instance.signOut();
+                    Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (context) => LoginPage()),
+                          (route) => false, // This removes all previous routes
+                        );
+                  },
                   child: Text('Logout', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black))
                 )
             ),
@@ -729,7 +739,11 @@ class _SettingsPageState extends State<SettingsPage> {
             Padding(  
               padding: const EdgeInsets.only(left: 15, right: 15, bottom: 15),
               child: TextButton(  
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context, MaterialPageRoute(builder: (context) => DeleteAccountPage())
+                    );
+                  },
                   child: Text('Delete Account', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black))
                 )
             )
