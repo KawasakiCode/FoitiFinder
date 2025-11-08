@@ -44,7 +44,23 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Firebase configuration files (contain API keys)
 lib/firebase_options.dart
-
 firebase.json
 android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+
+# Android local properties (machine-specific paths)
+android/local.properties
+
+# Keystore files (for signing apps - contains private keys)
+*.keystore
+*.jks
+*.key
+*.p12
+*.p8
+
+# Environment files (may contain secrets)
+.env
+.env.local
+.env.*.local

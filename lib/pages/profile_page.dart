@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/bottom_navigation_bar.dart' as custom_bottom_nav;
+import './settings.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -14,26 +15,27 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
+        titleSpacing: 2,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'FoitiFinder',
+
+            Padding(
+              padding: const EdgeInsets.only(left: 10),
+              child: Text('FoitiFinder'),
             ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                    child: Image.asset(
-                      'assets/icons/settings.png',
-                      width: 30,
-                      height: 30,
-                    ),
-                  ),
-                ],
+            IconButton(
+              icon: Image.asset(
+                'assets/icons/settings.png',
+                width: 25,
+                height: 25,
               ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SettingsPage()),
+                );
+              },
             ),
           ],
         ),
@@ -53,13 +55,25 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
               ),
-              Column(  
+              Column(
                 children: [
-                  Row(  
+                  Row(
                     children: [
-                      Text("Username, ", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                      Text("Age", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                    ]
+                      Text(
+                        "Username, ",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        "Age",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 5),
@@ -70,18 +84,19 @@ class _ProfilePageState extends State<ProfilePage> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15),
                         ),
-                        child: 
-                            Text("Edit Profile", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400)
+                        child: Text(
+                          "Edit Profile",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                          ),
                         ),
-                        onPressed: () {
-                      
-                        },
+                        onPressed: () {},
                       ),
                     ),
                   ),
                 ],
-              )
-              
+              ),
             ],
           ),
         ],
