@@ -4,8 +4,29 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'auth_pages/login.dart';
 
-class DeleteAccountPage extends StatelessWidget {
+class DeleteAccountPage extends StatefulWidget {
   const DeleteAccountPage({super.key});
+  
+  @override
+  State<DeleteAccountPage> createState() => _DeleteAccountPageState();
+}
+
+class _DeleteAccountPageState extends State<DeleteAccountPage> {
+  late final TextEditingController _passwordController;
+  bool _isPasswordVisible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _passwordController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -13,15 +34,16 @@ class DeleteAccountPage extends StatelessWidget {
         title: Text('Delete Account'),
         automaticallyImplyLeading: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.only(
-          left: 25,
-          right: 25,
-          top: 120,
-        ),
-        child: SizedBox(
-          height: 330,
-          child: Container(
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.only(
+              left: 25,
+              right: 25,
+              top: 120,
+            ),
+            child: Container(
             decoration: BoxDecoration(
               border: Border.all(color: Colors.grey, width: 1),
               borderRadius: BorderRadius.circular(10),
@@ -81,6 +103,53 @@ class DeleteAccountPage extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                 ),
+                //Password field
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: 15,
+                    right: 15,
+                    top: 10,
+                    bottom: 10,
+                  ),
+                  child: TextFormField(
+                    decoration: InputDecoration(
+                      hintText: 'Enter your password to confirm',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(12),
+                        ),
+                      ),
+                      suffixIcon: Padding(
+                        padding: EdgeInsets.only(right: 8.0),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(20),
+                            onTap: () {
+                              setState(() {
+                                _isPasswordVisible = !_isPasswordVisible;
+                              });
+                            },
+                            child: Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Image.asset(
+                                _isPasswordVisible 
+                                  ? 'assets/icons/hide.png'
+                                  : 'assets/icons/view.png',
+                                width: 10,
+                                height: 10,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    controller: _passwordController,
+                    obscureText: !_isPasswordVisible,
+                    autocorrect: false,
+                    enableSuggestions: false,
+                  ),
+                ),
                 //Delete button
                 Padding(
                   padding: EdgeInsets.only(
@@ -92,6 +161,19 @@ class DeleteAccountPage extends StatelessWidget {
                   child: TextButton(  
                     onPressed: () async {
                       final user = FirebaseAuth.instance.currentUser!;
+                      final password = _passwordController.text.trim();
+
+                      // Validate password
+                      if (password.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Please enter your password to confirm.'),
+                            backgroundColor: Colors.orange,
+                            duration: Duration(seconds: 3),
+                          ),
+                        );
+                        return;
+                      }
 
                       try {
                         // Show loading indicator
@@ -103,6 +185,13 @@ class DeleteAccountPage extends StatelessWidget {
                             child: CircularProgressIndicator(),
                           ),
                         );
+
+                        // Re-authenticate the user with their password
+                        final credential = EmailAuthProvider.credential(
+                          email: user.email!,
+                          password: password,
+                        );
+                        await user.reauthenticateWithCredential(credential);
 
                         // Get user data before deletion (if needed for Firestore deletion or logging)
                         // You can add Firestore deletion here if needed:
@@ -139,11 +228,20 @@ class DeleteAccountPage extends StatelessWidget {
 
                         String errorMessage;
                         switch (e.code) {
+                          case 'wrong-password':
+                            errorMessage = 'Incorrect password. Please try again.';
+                            break;
+                          case 'invalid-credential':
+                            errorMessage = 'Invalid password. Please try again.';
+                            break;
                           case 'requires-recent-login':
                             errorMessage = 'For security reasons, please log out and log back in before deleting your account.';
                             break;
                           case 'user-not-found':
                             errorMessage = 'User account not found.';
+                            break;
+                          case 'user-mismatch':
+                            errorMessage = 'The provided credentials do not match the current user.';
                             break;
                           default:
                             errorMessage = 'An error occurred while deleting your account: ${e.message}';
@@ -179,6 +277,7 @@ class DeleteAccountPage extends StatelessWidget {
             ),
           ),
         ),
+      ),
       ),
     );
   }

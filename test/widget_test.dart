@@ -7,13 +7,24 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 import 'package:foitifinder/main.dart';
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+    // Create a mock Firebase initialization Future for testing
+    final mockFirebaseInit = Firebase.initializeApp(
+      options: const FirebaseOptions(
+        apiKey: 'test-api-key',
+        appId: 'test-app-id',
+        messagingSenderId: 'test-sender-id',
+        projectId: 'test-project-id',
+      ),
+    );
+    
+    await tester.pumpWidget(MyApp(firebaseInitialized: mockFirebaseInit));
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);

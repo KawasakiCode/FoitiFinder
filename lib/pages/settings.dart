@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'auth_pages/login.dart';
 import 'delete_account_page.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 enum RecommendationPreference { balanced, recentlyActive }
 
@@ -16,6 +17,7 @@ class _SettingsPageState extends State<SettingsPage> {
   RangeValues _values = RangeValues(20, 80);
   bool _showOutOfRangeEnabled = false;
   bool _darkModeEnabled = false;
+  bool _pushNotificationsEnabled = false;
   RecommendationPreference _recommendationPreference =
       RecommendationPreference.balanced;
 
@@ -427,40 +429,31 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             Padding(
               padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
-              child: Material(
-                color: Colors.transparent,
-                shape: RoundedRectangleBorder(
-                  side: const BorderSide(color: Colors.grey, width: 1),
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey, width: 1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(10),
-                  splashColor: const Color.fromARGB(59, 70, 70, 70),
-                  highlightColor: const Color.fromARGB(26, 31, 31, 31),
-                  onTap: () {
-                    // TODO: handle notifications-in tap
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                      top: 10,
-                      left: 10,
-                      right: 10,
-                      bottom: 8,
+                padding: const EdgeInsets.only(left: 10, right: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Push Notifications',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Push Notifications',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
+                    Transform.scale(
+                      scale: 1,
+                      child: Switch(
+                        value: _pushNotificationsEnabled,
+                        onChanged: (enabled) =>
+                            setState(() => _pushNotificationsEnabled = enabled),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ),
             ),
@@ -493,8 +486,11 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                       splashColor: const Color.fromARGB(59, 70, 70, 70),
                       highlightColor: const Color.fromARGB(26, 31, 31, 31),
-                      onTap: () {
-                        //TODO on tap help sup
+                      onTap: () async {
+                        final url = Uri.parse('https://google.com');
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url);
+                        }
                       },
                       child: Padding(
                         padding: const EdgeInsets.only(
@@ -528,8 +524,11 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                       splashColor: const Color.fromARGB(59, 70, 70, 70),
                       highlightColor: const Color.fromARGB(26, 31, 31, 31),
-                      onTap: () {
-                        //TODO: on tap report a bug
+                      onTap: () async {
+                        final url = Uri.parse('https://google.com');
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url);
+                        }
                       },
                       child: Padding(
                         padding: const EdgeInsets.only(
@@ -590,8 +589,11 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                       splashColor: const Color.fromARGB(59, 70, 70, 70),
                       highlightColor: const Color.fromARGB(26, 31, 31, 31),
-                      onTap: () {
-                        //TODO on tap help sup
+                      onTap: () async {
+                        final url = Uri.parse('https://google.com');
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url);
+                        }
                       },
                       child: Padding(
                         padding: const EdgeInsets.only(
@@ -625,8 +627,11 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                       splashColor: const Color.fromARGB(59, 70, 70, 70),
                       highlightColor: const Color.fromARGB(26, 31, 31, 31),
-                      onTap: () {
-                        //TODO: on tap report a bug
+                      onTap: () async {
+                        final url = Uri.parse('https://google.com');
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url);
+                        }
                       },
                       child: Padding(
                         padding: const EdgeInsets.only(
@@ -687,8 +692,11 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                       splashColor: const Color.fromARGB(59, 70, 70, 70),
                       highlightColor: const Color.fromARGB(26, 31, 31, 31),
-                      onTap: () {
-                        //TODO on tap help sup
+                      onTap: () async {
+                        final url = Uri.parse('https://google.com');
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url);
+                        }
                       },
                       child: Padding(
                         padding: const EdgeInsets.only(
@@ -721,32 +729,49 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
             //Logout Button
-            Padding(  
+            Padding(
               padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
-              child: TextButton(  
-                  onPressed: () async {
-                    await FirebaseAuth.instance.signOut();
-                    Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(builder: (context) => LoginPage()),
-                          (route) => false, // This removes all previous routes
-                        );
-                  },
-                  child: Text('Logout', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black))
-                )
+              child: TextButton(
+                onPressed: () async {
+                  await FirebaseAuth.instance.signOut();
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => LoginPage()),
+                    (route) => false, // This removes all previous routes
+                  );
+                },
+                child: Text(
+                  'Logout',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
             ),
             //Delete account button
-            Padding(  
+            Padding(
               padding: const EdgeInsets.only(left: 15, right: 15, bottom: 15),
-              child: TextButton(  
-                  onPressed: () {
-                    Navigator.push(
-                      context, MaterialPageRoute(builder: (context) => DeleteAccountPage())
-                    );
-                  },
-                  child: Text('Delete Account', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black))
-                )
-            )
+              child: TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => DeleteAccountPage(),
+                    ),
+                  );
+                },
+                child: Text(
+                  'Delete Account',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),

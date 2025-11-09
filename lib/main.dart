@@ -8,14 +8,17 @@ import 'pages/home_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
+  // Initialize Firebase asynchronously without blocking UI
+  final firebaseInitialized = Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MyApp());
+  runApp(MyApp(firebaseInitialized: firebaseInitialized));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final Future<FirebaseApp> firebaseInitialized;
+  
+  const MyApp({super.key, required this.firebaseInitialized});
 
   // This widget is the root of your application.
   @override
@@ -24,9 +27,7 @@ class MyApp extends StatelessWidget {
       title: 'My app',
       theme: ThemeData(primarySwatch: Colors.blue),
       home: FutureBuilder(
-        future: Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform,
-        ),
+        future: firebaseInitialized,
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.done:
