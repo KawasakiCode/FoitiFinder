@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:foitifinder/pages/phone_number_page.dart';
 import 'auth_pages/login.dart';
 import 'delete_account_page.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -53,7 +54,9 @@ class _SettingsPageState extends State<SettingsPage> {
                   splashColor: const Color.fromARGB(59, 70, 70, 70),
                   highlightColor: const Color.fromARGB(26, 31, 31, 31),
                   onTap: () {
-                    // TODO: handle phone number tap
+                    Navigator.push(   
+                      context, MaterialPageRoute(builder: (context) => PhoneNumberPage())
+                    );
                   },
                   child: Padding(
                     padding: const EdgeInsets.only(
