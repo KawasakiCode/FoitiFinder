@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:foitifinder/pages/otp_verification_page.dart';
 
 class PhoneNumberPage extends StatefulWidget {
   const PhoneNumberPage({super.key});
@@ -11,20 +12,22 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
   final TextEditingController _phoneNumberController = TextEditingController();
 
   void _validateAndVerifyNumber() {
-    final input  = _phoneNumberController.text.trim();
+    final input = _phoneNumberController.text.trim();
 
     //Check for correct format
     final phoneRegex = RegExp(r'^69\d{8}$');
     if (!phoneRegex.hasMatch(input)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a valid phone number 69xxxxxxxx'), backgroundColor: Colors.red, duration: Duration(seconds: 2)),
+        const SnackBar(
+          content: Text('Enter a valid phone number 69xxxxxxxx'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 2),
+        ),
       );
       return;
     }
 
     final phoneNumber = '+30$input';
-    print(phoneNumber);
-
   }
 
   @override
@@ -58,8 +61,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
                       controller: _phoneNumberController,
                       keyboardType: TextInputType.phone,
                       decoration: const InputDecoration(
-                        border: InputBorder
-                            .none,
+                        border: InputBorder.none,
                         hintText: 'Enter phone number',
                         hintStyle: TextStyle(
                           fontSize: 15,
@@ -84,6 +86,12 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
                 onPressed: () {
                   FocusScope.of(context).unfocus();
                   _validateAndVerifyNumber();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => OtpVerificationPage(),
+                    ),
+                  );
                 },
                 child: Text(
                   'Update My Phone Number',
@@ -97,4 +105,3 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
     );
   }
 }
-
