@@ -99,8 +99,6 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
   //phone_number_page ui
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Phone Number Settings'),
@@ -146,16 +144,6 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
                 ],
               ),
             ),
-            if (user?.phoneNumber != null)
-              Text(
-                'Unverified Phone Number',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
-              )
-            else
-              Text(
-                'Verified Phone Number',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
-              ),
             Center(
               child: TextButton(
                 //onpress call validate number and redirect to otp page

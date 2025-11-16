@@ -22,18 +22,18 @@ class _SettingsPageState extends State<SettingsPage> {
   RecommendationPreference _recommendationPreference =
       RecommendationPreference.balanced;
 
-void _navigateToAddPhone() async {
-  final bool? verified = await Navigator.push(  
-    context,
-    MaterialPageRoute(builder:(context) => const PhoneNumberPage(),)
-  );
+  void _navigateToAddPhone() async {
+    final bool? verified = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const PhoneNumberPage()),
+    );
 
-  if (verified == true) {
-    setState(() {},);
+    if (verified == true) {
+      setState(() {});
+    }
   }
-}
 
-//settings page ui
+  //settings page ui
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
@@ -67,11 +67,7 @@ void _navigateToAddPhone() async {
                   borderRadius: BorderRadius.circular(10),
                   splashColor: const Color.fromARGB(59, 70, 70, 70),
                   highlightColor: const Color.fromARGB(26, 31, 31, 31),
-                  onTap: () {
-                    Navigator.push(   
-                      context, MaterialPageRoute(builder: (context) => PhoneNumberPage())
-                    );
-                  },
+                  onTap: _navigateToAddPhone,
                   child: Padding(
                     padding: const EdgeInsets.only(
                       top: 8,
@@ -102,6 +98,29 @@ void _navigateToAddPhone() async {
                 ),
               ),
             ),
+            Padding(
+              padding: const EdgeInsets.only(left: 15, right: 15, top: 5),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: (user?.phoneNumber == null)
+                    ? Text(
+                        'Unverified Phone Number',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      )
+                    : Text(
+                        // Widget to show if FALSE
+                        'Verified Phone Number',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+              ),
+            ),
+
             //Discovery Settings (Interests)
             Align(
               alignment: Alignment.centerLeft,
