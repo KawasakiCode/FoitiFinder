@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:foitifinder/pages/otp_verification_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class PhoneNumberPage extends StatefulWidget {
   const PhoneNumberPage({super.key});
@@ -10,8 +11,12 @@ class PhoneNumberPage extends StatefulWidget {
 
 class _PhoneNumberPageState extends State<PhoneNumberPage> {
   final TextEditingController _phoneNumberController = TextEditingController();
+  bool _isVerificationComplete = false;
+  bool _isValid = false;
 
-  void _validateAndVerifyNumber() {
+  //validate phone number and return it to sent to otp page
+  String _validateNumber() {
+    final String phoneNumber;
     final input = _phoneNumberController.text.trim();
 
     //Check for correct format
@@ -24,14 +29,78 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
           duration: Duration(seconds: 2),
         ),
       );
-      return;
+      return "";
     }
-
-    final phoneNumber = '+30$input';
+    _isValid = true;
+    phoneNumber = '+30$input';
+    return phoneNumber;
   }
 
+  Future<void> _verifyNumber() async {
+    FocusScope.of(context).unfocus();
+    String? phoneNumber = _validateNumber();
+    //if phone number is valid
+    if (_isValid && phoneNumber != "") {
+      await FirebaseAuth.instance.verifyPhoneNumber(
+        phoneNumber: phoneNumber,
+        verificationCompleted: (phoneAuthCredential) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Phone Verified'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        },
+        codeSent: (String verificationId, int? resendToken) async {
+          final bool? success = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => OtpVerificationPage(
+                verificationId: verificationId,
+                phoneNumber: phoneNumber,
+              ),
+            ),
+          );
+
+          // If OtpPage popped with "true"
+          if (success == true) {
+            _isVerificationComplete = true;
+
+            // Now pop this page AND send "true" back to SettingsPage
+            if (!mounted) return;
+            Navigator.pop(context, true);
+          }
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to verify phone number'),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        },
+        codeAutoRetrievalTimeout: (verificationId) {
+          if (!_isVerificationComplete) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Code expired'),
+                backgroundColor: Colors.red,
+                duration: Duration(seconds: 2),
+              ),
+            );
+          }
+        },
+      );
+    }
+  }
+
+  //phone_number_page ui
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Phone Number Settings'),
@@ -77,22 +146,20 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
                 ],
               ),
             ),
-            Text(
-              'Unverified Phone Number',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
-            ),
+            if (user?.phoneNumber != null)
+              Text(
+                'Unverified Phone Number',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+              )
+            else
+              Text(
+                'Verified Phone Number',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+              ),
             Center(
               child: TextButton(
-                onPressed: () {
-                  FocusScope.of(context).unfocus();
-                  _validateAndVerifyNumber();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => OtpVerificationPage(),
-                    ),
-                  );
-                },
+                //onpress call validate number and redirect to otp page
+                onPressed: _verifyNumber,
                 child: Text(
                   'Update My Phone Number',
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),

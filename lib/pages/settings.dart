@@ -22,8 +22,22 @@ class _SettingsPageState extends State<SettingsPage> {
   RecommendationPreference _recommendationPreference =
       RecommendationPreference.balanced;
 
+void _navigateToAddPhone() async {
+  final bool? verified = await Navigator.push(  
+    context,
+    MaterialPageRoute(builder:(context) => const PhoneNumberPage(),)
+  );
+
+  if (verified == true) {
+    setState(() {},);
+  }
+}
+
+//settings page ui
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       appBar: AppBar(title: Text('Settings'), automaticallyImplyLeading: true),
       body: SingleChildScrollView(
@@ -76,7 +90,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                         ),
                         Text(
-                          '69xxxxxxxx',
+                          user?.phoneNumber ?? '69xxxxxxxx',
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w500,
