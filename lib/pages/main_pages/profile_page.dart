@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../widgets/bottom_navigation_bar.dart' as custom_bottom_nav;
-import './settings.dart';
+import '../../widgets/bottom_navigation_bar.dart' as custom_bottom_nav;
+import '../settings/settings.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});

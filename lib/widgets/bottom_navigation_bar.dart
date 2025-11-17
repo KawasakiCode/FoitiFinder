@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../pages/dm_page.dart';
-import '../pages/search_page.dart';
-import '../pages/home_page.dart';
-import '../pages/profile_page.dart';
+import '../pages/main_pages/dm_page.dart';
+import '../pages/main_pages/search_page.dart';
+import '../pages/main_pages/home_page.dart';
+import '../pages/main_pages/profile_page.dart';
 
 class BottomNavigationBar extends StatelessWidget {
   const BottomNavigationBar({super.key});

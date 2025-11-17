@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 import 'pages/auth_pages/login.dart';
 import 'pages/auth_pages/verify_email.dart';
-import 'pages/home_page.dart';
+import 'pages/main_pages/home_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

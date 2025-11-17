@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/bottom_navigation_bar.dart' as custom_bottom_nav;
+import '../../widgets/bottom_navigation_bar.dart' as custom_bottom_nav;
 
 class DMPage extends StatefulWidget {
   const DMPage({super.key});
