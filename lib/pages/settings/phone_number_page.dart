@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:foitifinder/pages/otp_verification_page.dart';
+import 'package:foitifinder/pages/settings/otp_verification_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class PhoneNumberPage extends StatefulWidget {

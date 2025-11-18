@@ -22,6 +22,7 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _pushNotificationsEnabled = false;
   RecommendationPreference _recommendationPreference =
       RecommendationPreference.balanced;
+  Set<String> _selectedInterests = {};
 
   void _navigateToAddPhone() async {
     final bool? verified = await Navigator.push(
@@ -31,6 +32,27 @@ class _SettingsPageState extends State<SettingsPage> {
 
     if (verified == true) {
       setState(() {});
+    }
+  }
+
+  //Waits to receive set with interests from interest page
+  void _navigateToInterests() async {
+    // 1. We wait for the result
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        // Pass the current selection so the next page knows what to show
+        builder: (context) => InterestPage(
+          initialSelection: _selectedInterests, 
+        ),
+      ),
+    );
+
+    // 2. Check if we got data back (result might be null if they crash/force quit)
+    if (result != null && result is Set<String>) {
+      setState(() {
+        _selectedInterests = result;
+      });
     }
   }
 
@@ -146,12 +168,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   borderRadius: BorderRadius.circular(10),
                   splashColor: const Color.fromARGB(59, 70, 70, 70),
                   highlightColor: const Color.fromARGB(26, 31, 31, 31),
-                  onTap: () {
-                    Navigator.push(  
-                      context,
-                      MaterialPageRoute(builder: (context) => InterestPage())
-                    );
-                  },
+                  onTap: _navigateToInterests,
                   child: Padding(
                     padding: const EdgeInsets.only(
                       top: 10,
@@ -173,7 +190,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'dynamically added text here',
+                              _selectedInterests.isEmpty ? 'Interests show here' : _selectedInterests.join(', '),
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w500,
