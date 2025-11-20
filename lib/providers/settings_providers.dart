@@ -9,6 +9,6 @@ class ThemeProvider extends ChangeNotifier {
   // Function to toggle mode
   void toggleTheme(bool isDark) {
     _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
-    notifyListeners(); // <--- This tells the app to rebuild!
+    notifyListeners();
   }
 }
