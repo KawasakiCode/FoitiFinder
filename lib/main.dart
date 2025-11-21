@@ -5,6 +5,8 @@ import 'firebase_options.dart';
 import 'pages/auth_pages/login.dart';
 import 'pages/auth_pages/verify_email.dart';
 import 'pages/main_pages/home_page.dart';
+import 'package:foitifinder/providers/settings_providers.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,7 +14,12 @@ void main() async {
   final firebaseInitialized = Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(MyApp(firebaseInitialized: firebaseInitialized));
+  runApp(
+    MultiProvider(  
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+      ],
+      child: MyApp(firebaseInitialized: firebaseInitialized)));
 }
 
 class MyApp extends StatelessWidget {
@@ -23,9 +30,19 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    final theme = Provider.of<ThemeProvider>(context);
     return MaterialApp(
       title: 'My app',
-      theme: ThemeData(primarySwatch: Colors.blue),
+      theme: ThemeData(
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: Colors.white,
+        primarySwatch: Colors.blue,
+      ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: Colors.grey[900],
+        primarySwatch: Colors.teal,
+      ),
       home: FutureBuilder(
         future: firebaseInitialized,
         builder: (context, snapshot) {

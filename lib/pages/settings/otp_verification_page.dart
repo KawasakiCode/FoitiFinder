@@ -158,13 +158,10 @@ class _OtpVerificationPage extends State<OtpVerificationPage> {
                 await FirebaseAuth.instance.currentUser?.unlink(
                   PhoneAuthProvider.PROVIDER_ID,
                 );
-
-                print("Phone provider unlinked!");
                 ScaffoldMessenger.of(
                   context,
                 ).showSnackBar(SnackBar(content: Text("Phone unlinked!")));
               } catch (e) {
-                print("Error unlinking: $e");
                 ScaffoldMessenger.of(
                   context,
                 ).showSnackBar(SnackBar(content: Text("Error unlinking: $e")));

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/pages/settings/interest_page.dart';
 import 'package:foitifinder/pages/settings/phone_number_page.dart';
+import 'package:foitifinder/providers/settings_providers.dart';
+import 'package:provider/provider.dart';
 import '../auth_pages/login.dart';
 import 'delete_account_page.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -60,6 +62,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
+    final theme = Provider.of<ThemeProvider>(context);
 
     return Scaffold(
       appBar: AppBar(title: Text('Settings'), automaticallyImplyLeading: true),
@@ -134,7 +137,6 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                       )
                     : Text(
-                        // Widget to show if FALSE
                         'Verified Phone Number',
                         style: TextStyle(
                           fontSize: 15,
@@ -143,7 +145,6 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
               ),
             ),
-
             //Discovery Settings (Interests)
             Align(
               alignment: Alignment.centerLeft,
@@ -460,9 +461,9 @@ class _SettingsPageState extends State<SettingsPage> {
                             Transform.scale(
                               scale: 1,
                               child: Switch(
-                                value: _darkModeEnabled,
-                                onChanged: (dark) =>
-                                    setState(() => _darkModeEnabled = dark),
+                                value: theme.themeMode == ThemeMode.dark,
+                                onChanged: (bool value) =>
+                                    theme.toggleTheme(value),
                               ),
                             ),
                           ],
