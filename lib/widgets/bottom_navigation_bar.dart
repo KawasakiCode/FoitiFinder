@@ -8,16 +8,7 @@ class BottomNavigationBar extends StatelessWidget {
   const BottomNavigationBar({super.key});
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(
-            color: const Color.fromARGB(255, 209, 209, 209),
-            width: 1.7,
-          ),
-        ),
-        color: const Color.fromARGB(255, 255, 255, 255),
-      ),
+    return SizedBox(
       width: MediaQuery.of(context).size.width,
       height: 60,
       child: Padding(

@@ -218,14 +218,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             ),
           ],
         ),
-        backgroundColor: const Color.fromARGB(255, 238, 238, 238),
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(1.5),
           child: Container(
             decoration: BoxDecoration(
               border: Border(
                 bottom: BorderSide(
-                  color: const Color.fromARGB(255, 209, 209, 209),
+                  color: const Color.fromARGB(255, 88, 88, 88),
                   width: 1.5,
                 ),
               ),
@@ -477,12 +476,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(30),
               ),
-              backgroundColor: Colors.white,
               child: Icon(
                 Icons.replay,
                 color: swipedCards.isNotEmpty
                     ? Colors.orange
-                    : Color.fromARGB(255, 78, 78, 78),
+                    : Color.fromARGB(255, 49, 49, 49),
                 size: 25,
               ),
             ),
@@ -493,7 +491,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             // Pass button
             FloatingActionButton(
               onPressed: () => _swipeLeft(),
-              backgroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(30),
               ),
@@ -510,7 +507,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   final cardName = cards[currentIndex].name;
                   _animateCardOut(1.0, cardName, true, isSuperLike: true);
                 },
-                backgroundColor: const Color.fromARGB(255, 255, 255, 255),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
                 ),
@@ -525,7 +521,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             // Like button
             FloatingActionButton(
               onPressed: () => _swipeRight(),
-              backgroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(30),
               ),
@@ -538,7 +533,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               height: 45,
               child: FloatingActionButton(
                 onPressed: () {},
-                backgroundColor: const Color.fromARGB(255, 255, 255, 255),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
                 ),

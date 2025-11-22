@@ -20,8 +20,6 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   RangeValues _values = RangeValues(20, 80);
   bool _showOutOfRangeEnabled = false;
-  bool _darkModeEnabled = false;
-  bool _pushNotificationsEnabled = false;
   RecommendationPreference _recommendationPreference =
       RecommendationPreference.balanced;
   Set<String> _selectedInterests = {};
@@ -63,6 +61,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
     final theme = Provider.of<ThemeProvider>(context);
+    final notificationProvider = Provider.of<PushNotificationsProvider>(context);
 
     return Scaffold(
       appBar: AppBar(title: Text('Settings'), automaticallyImplyLeading: true),
@@ -506,9 +505,10 @@ class _SettingsPageState extends State<SettingsPage> {
                     Transform.scale(
                       scale: 1,
                       child: Switch(
-                        value: _pushNotificationsEnabled,
-                        onChanged: (enabled) =>
-                            setState(() => _pushNotificationsEnabled = enabled),
+                        value: notificationProvider.notificationsEnabled,
+                        onChanged: (bool enabled) async {
+                            await notificationProvider.toggleNotifications(enabled);
+                        }
                       ),
                     ),
                   ],

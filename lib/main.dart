@@ -18,6 +18,7 @@ void main() async {
     MultiProvider(  
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => PushNotificationsProvider())
       ],
       child: MyApp(firebaseInitialized: firebaseInitialized)));
 }
@@ -36,13 +37,15 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         brightness: Brightness.light,
         scaffoldBackgroundColor: Colors.white,
-        primarySwatch: Colors.blue,
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
         scaffoldBackgroundColor: Colors.grey[900],
-        primarySwatch: Colors.teal,
+        floatingActionButtonTheme: FloatingActionButtonThemeData(
+          backgroundColor: Color.fromARGB(255, 88, 88, 88),
+        ),
       ),
+      themeMode: theme.themeMode,
       home: FutureBuilder(
         future: firebaseInitialized,
         builder: (context, snapshot) {
