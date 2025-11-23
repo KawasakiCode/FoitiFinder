@@ -17,8 +17,7 @@ void main() async {
   runApp(
     MultiProvider(  
       providers: [
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => PushNotificationsProvider())
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
       ],
       child: MyApp(firebaseInitialized: firebaseInitialized)));
 }
@@ -31,7 +30,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    final theme = Provider.of<ThemeProvider>(context);
+    final theme = Provider.of<SettingsProvider>(context);
     return MaterialApp(
       title: 'My app',
       theme: ThemeData(

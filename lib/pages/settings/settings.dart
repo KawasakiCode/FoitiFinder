@@ -60,8 +60,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    final theme = Provider.of<ThemeProvider>(context);
-    final notificationProvider = Provider.of<PushNotificationsProvider>(context);
+    final settings = Provider.of<SettingsProvider>(context);
 
     return Scaffold(
       appBar: AppBar(title: Text('Settings'), automaticallyImplyLeading: true),
@@ -127,7 +126,7 @@ class _SettingsPageState extends State<SettingsPage> {
               padding: const EdgeInsets.only(left: 15, right: 15, top: 5),
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: (user?.phoneNumber == null)
+                child: (!settings.isPhoneVerified)
                     ? Text(
                         'Unverified Phone Number',
                         style: TextStyle(
@@ -460,9 +459,9 @@ class _SettingsPageState extends State<SettingsPage> {
                             Transform.scale(
                               scale: 1,
                               child: Switch(
-                                value: theme.themeMode == ThemeMode.dark,
+                                value: settings.themeMode == ThemeMode.dark,
                                 onChanged: (bool value) =>
-                                    theme.toggleTheme(value),
+                                    settings.toggleTheme(value),
                               ),
                             ),
                           ],
@@ -505,9 +504,9 @@ class _SettingsPageState extends State<SettingsPage> {
                     Transform.scale(
                       scale: 1,
                       child: Switch(
-                        value: notificationProvider.notificationsEnabled,
+                        value: settings.notificationsEnabled,
                         onChanged: (bool enabled) async {
-                            await notificationProvider.toggleNotifications(enabled);
+                            await settings.toggleNotifications(enabled);
                         }
                       ),
                     ),

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:foitifinder/pages/settings/otp_verification_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
+import 'package:foitifinder/providers/settings_providers.dart';
+
 
 class PhoneNumberPage extends StatefulWidget {
   const PhoneNumberPage({super.key});
@@ -11,7 +14,6 @@ class PhoneNumberPage extends StatefulWidget {
 
 class _PhoneNumberPageState extends State<PhoneNumberPage> {
   final TextEditingController _phoneNumberController = TextEditingController();
-  bool _isVerificationComplete = false;
   bool _isValid = false;
 
   //validate phone number and return it to sent to otp page
@@ -43,35 +45,38 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
     if (_isValid && phoneNumber != "") {
       await FirebaseAuth.instance.verifyPhoneNumber(
         phoneNumber: phoneNumber,
-        verificationCompleted: (phoneAuthCredential) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Phone Verified'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 2),
-            ),
-          );
-        },
-        codeSent: (String verificationId, int? resendToken) async {
-          final bool? success = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => OtpVerificationPage(
-                verificationId: verificationId,
-                phoneNumber: phoneNumber,
-              ),
-            ),
-          );
+        verificationCompleted: (phoneAuthCredential) async {
+        Provider.of<SettingsProvider>(context, listen: false).verifyPhone();
 
-          // If OtpPage popped with "true"
-          if (success == true) {
-            _isVerificationComplete = true;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Phone Verified Automatically!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        
+        if (!mounted) return;
+        Navigator.pop(context); // Just close the page!
+      },
+      codeSent: (String verificationId, int? resendToken) async {
+        // Wait for the user to finish on the OTP page
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OtpVerificationPage(
+              verificationId: verificationId,
+              phoneNumber: phoneNumber!,
+            ),
+          ),
+        );
 
-            // Now pop this page AND send "true" back to SettingsPage
-            if (!mounted) return;
-            Navigator.pop(context, true);
-          }
-        },
+        if (!mounted) return;
+        final isVerified = Provider.of<SettingsProvider>(context, listen: false).isPhoneVerified;
+
+        if (isVerified) {
+          Navigator.pop(context); 
+        }
+      },
         verificationFailed: (FirebaseAuthException e) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -82,15 +87,13 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
           );
         },
         codeAutoRetrievalTimeout: (verificationId) {
-          if (!_isVerificationComplete) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Code expired'),
-                backgroundColor: Colors.red,
-                duration: Duration(seconds: 2),
-              ),
-            );
-          }
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Code expired'),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 2),
+            ),
+          );
         },
       );
     }

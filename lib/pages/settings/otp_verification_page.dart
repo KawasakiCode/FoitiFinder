@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:foitifinder/providers/settings_providers.dart';
+import 'package:provider/provider.dart';
 
 class OtpVerificationPage extends StatefulWidget {
   final String verificationId;
@@ -99,9 +101,11 @@ class _OtpVerificationPage extends State<OtpVerificationPage> {
 
       //link phone number to user
       await currentUser.linkWithCredential(credential);
+      final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+      settingsProvider.verifyPhone();
       if(!mounted)return;
       //return to phoneNumberPage and sent success true
-      Navigator.pop(context, true);
+      Navigator.pop(context);
 
     } on FirebaseAuthException {
       if (!mounted) return;

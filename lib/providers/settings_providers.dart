@@ -1,23 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class ThemeProvider extends ChangeNotifier {
+class SettingsProvider extends ChangeNotifier {
+  //State variables (private)
   ThemeMode _themeMode = ThemeMode.light;
+  bool _pushNotificationsEnabled = false;
+  bool _isPhoneVerified = false;
 
-  // Getter to see current mode
+  //Getters
   ThemeMode get themeMode => _themeMode;
+  bool get notificationsEnabled => _pushNotificationsEnabled;
+  bool get isPhoneVerified => _isPhoneVerified;
 
-  // Function to toggle mode
-  void toggleTheme(bool isDark) {
+  SettingsProvider() {
+    _loadAllSettings();
+  }
+
+  Future<void> _loadAllSettings() async {
+    final preferences = await SharedPreferences.getInstance();
+
+    bool isDark = preferences.getBool('isDark') ?? false;
     _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
+
+    _isPhoneVerified = preferences.getBool('isPhoneVerified') ?? false;
     notifyListeners();
   }
-}
 
-class PushNotificationsProvider extends ChangeNotifier {
-  bool _pushNotificationsEnabled = false;
-  bool get notificationsEnabled => _pushNotificationsEnabled;
+  //Theme change function
+  void toggleTheme(bool isDark) async {
+    _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
+    notifyListeners();
 
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setBool('isDark', isDark);
+  }
+
+  //Push notifications logic
   Future<void> toggleNotifications(bool value) async {
     //when user first turns the switch to on the app asks for permissions
     if (value == true) {
@@ -32,6 +51,7 @@ class PushNotificationsProvider extends ChangeNotifier {
       if(settings.authorizationStatus == AuthorizationStatus.authorized) {
         _pushNotificationsEnabled = true;
         String? token = await messaging.getToken();
+        //for test purposes only
         print(token);
       }
       //if user declines then switch stays off and no notifications can be sent
@@ -44,5 +64,22 @@ class PushNotificationsProvider extends ChangeNotifier {
       _pushNotificationsEnabled = false;
     }
     notifyListeners();
+  }
+
+  //Phone number logic
+  void verifyPhone() async {
+    _isPhoneVerified = true;
+    notifyListeners();
+
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setBool('isPhoneVerified', true);
+  }
+
+  void resetPhone() async {
+    _isPhoneVerified = false;
+    notifyListeners();
+    
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isPhoneVerified', false);
   }
 }
