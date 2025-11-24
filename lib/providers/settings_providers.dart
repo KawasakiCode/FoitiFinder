@@ -3,6 +3,16 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsProvider extends ChangeNotifier {
+  final SharedPreferences _prefs; 
+
+  SettingsProvider(this._prefs) {
+    bool isDark = _prefs.getBool('isDark') ?? false;
+    _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
+
+    _isPhoneVerified = _prefs.getBool('isPhoneVerified') ?? false;
+    _loadNotifications();
+  }
+
   //State variables (private)
   ThemeMode _themeMode = ThemeMode.light;
   bool _pushNotificationsEnabled = false;
@@ -13,18 +23,22 @@ class SettingsProvider extends ChangeNotifier {
   bool get notificationsEnabled => _pushNotificationsEnabled;
   bool get isPhoneVerified => _isPhoneVerified;
 
-  SettingsProvider() {
-    _loadAllSettings();
-  }
+  Future<void> _loadNotifications() async {
+    bool pushNotifications = _prefs.getBool('notifications_enabled') ?? false;
+    try{
+      FirebaseMessaging messaging = FirebaseMessaging.instance;
+      NotificationSettings settings = await messaging.getNotificationSettings();
 
-  Future<void> _loadAllSettings() async {
-    final preferences = await SharedPreferences.getInstance();
-
-    bool isDark = preferences.getBool('isDark') ?? false;
-    _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
-
-    _isPhoneVerified = preferences.getBool('isPhoneVerified') ?? false;
-    notifyListeners();
+      if(settings.authorizationStatus == AuthorizationStatus.authorized && pushNotifications) {
+        _pushNotificationsEnabled = true;
+      }
+      else {
+        _pushNotificationsEnabled = false;
+      }
+       notifyListeners();
+    } catch (e) {
+      print("Firebase Delay");
+    }
   }
 
   //Theme change function

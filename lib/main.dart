@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 import 'pages/auth_pages/login.dart';
 import 'pages/auth_pages/verify_email.dart';
@@ -8,16 +9,19 @@ import 'pages/main_pages/home_page.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:provider/provider.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Initialize Firebase asynchronously without blocking UI
   final firebaseInitialized = Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  //Load user preferences and settings
+  final prefs = await SharedPreferences.getInstance();
   runApp(
     MultiProvider(  
       providers: [
-        ChangeNotifierProvider(create: (_) => SettingsProvider()),
+        ChangeNotifierProvider(create: (_) => SettingsProvider(prefs)),
       ],
       child: MyApp(firebaseInitialized: firebaseInitialized)));
 }

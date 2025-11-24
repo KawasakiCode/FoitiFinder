@@ -65,7 +65,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
           MaterialPageRoute(
             builder: (context) => OtpVerificationPage(
               verificationId: verificationId,
-              phoneNumber: phoneNumber!,
+              phoneNumber: phoneNumber,
             ),
           ),
         );
