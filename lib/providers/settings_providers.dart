@@ -6,24 +6,46 @@ class SettingsProvider extends ChangeNotifier {
   final SharedPreferences _prefs; 
 
   SettingsProvider(this._prefs) {
-    bool isDark = _prefs.getBool('isDark') ?? false;
-    _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
-
-    _isPhoneVerified = _prefs.getBool('isPhoneVerified') ?? false;
-    _loadNotifications();
+    _loadInstantSettings();
+    _loadAsyncSettings();
   }
 
   //State variables (private)
   ThemeMode _themeMode = ThemeMode.light;
   bool _pushNotificationsEnabled = false;
   bool _isPhoneVerified = false;
+  Set<String> _interests = {};
+  RangeValues _ageRange = RangeValues(0, 0);
+
 
   //Getters
   ThemeMode get themeMode => _themeMode;
   bool get notificationsEnabled => _pushNotificationsEnabled;
   bool get isPhoneVerified => _isPhoneVerified;
+  Set<String> get interests => _interests;
+  RangeValues get ageRange {
+    int min = _prefs.getInt('min_age') ?? 18;
+    int max = _prefs.getInt('max_age') ?? 60;
+    return RangeValues(min.toDouble(), max.toDouble());
+  }
 
-  Future<void> _loadNotifications() async {
+  void _loadInstantSettings() {
+    //theme  
+    _themeMode = _prefs.getBool('isDark') ?? false ? ThemeMode.dark : ThemeMode.light;
+    //is phone verified
+    _isPhoneVerified = _prefs.getBool('isPhoneVerified') ?? false;
+    //interests
+    List<String>? savedList = _prefs.getStringList('user_interests');
+    if(savedList != null) {
+      _interests = savedList.toSet();
+    }
+    //age range
+    int min = _prefs.getInt('min_age') ?? 18;
+    int max = _prefs.getInt('max_age') ?? 60;
+    _ageRange = RangeValues(min.toDouble(), max.toDouble());
+  }
+
+  Future<void> _loadAsyncSettings() async {
     bool pushNotifications = _prefs.getBool('notifications_enabled') ?? false;
     try{
       FirebaseMessaging messaging = FirebaseMessaging.instance;
@@ -37,7 +59,9 @@ class SettingsProvider extends ChangeNotifier {
       }
        notifyListeners();
     } catch (e) {
-      print("Firebase Delay");
+      //for test purposes only
+      print("firebase delay");
+      print(e);
     }
   }
 
@@ -67,6 +91,8 @@ class SettingsProvider extends ChangeNotifier {
         String? token = await messaging.getToken();
         //for test purposes only
         print(token);
+        final preferences = await SharedPreferences.getInstance();
+        await preferences.setBool('notifications_enabled', value);
       }
       //if user declines then switch stays off and no notifications can be sent
       else {
@@ -89,11 +115,29 @@ class SettingsProvider extends ChangeNotifier {
     await preferences.setBool('isPhoneVerified', true);
   }
 
-  void resetPhone() async {
-    _isPhoneVerified = false;
+  //add or remove interests
+  void addRemoveInterests(String interest) {
+    if(_interests.contains(interest)) {
+      _interests.remove(interest);
+    }
+    else {
+      _interests.add(interest);
+    }
     notifyListeners();
-    
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isPhoneVerified', false);
+    _saveInterests();
   }
+
+  //store interests into disk
+  void _saveInterests() {
+    _prefs.setStringList('user_interests', _interests.toList());
+  }
+
+  //split range values to save them to disk
+  void saveAgeRange(RangeValues values) {
+    _prefs.setInt('min_age', values.start.round());
+    _prefs.setInt('max_age', values.end.round());
+    notifyListeners();
+  }
+
+  //
 }

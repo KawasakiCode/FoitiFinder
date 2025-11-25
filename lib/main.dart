@@ -12,7 +12,7 @@ import 'package:provider/provider.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Initialize Firebase asynchronously without blocking UI
-  final firebaseInitialized = Firebase.initializeApp(
+  await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
@@ -23,13 +23,11 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => SettingsProvider(prefs)),
       ],
-      child: MyApp(firebaseInitialized: firebaseInitialized)));
+      child: const MyApp()));
 }
 
 class MyApp extends StatelessWidget {
-  final Future<FirebaseApp> firebaseInitialized;
-  
-  const MyApp({super.key, required this.firebaseInitialized});
+  const MyApp({super.key});
 
   // This widget is the root of your application.
   @override
@@ -49,35 +47,28 @@ class MyApp extends StatelessWidget {
         ),
       ),
       themeMode: theme.themeMode,
-      home: FutureBuilder(
-        future: firebaseInitialized,
+      home: StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
-          switch (snapshot.connectionState) {
-            case ConnectionState.done:
-              return StreamBuilder<User?>(
-                stream: FirebaseAuth.instance.authStateChanges(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    final user = snapshot.data!;
-                    if (user.emailVerified) {
-                      // User is logged in and email is verified
-                      return MyHomePage(); // Now returns the home page with swipe cards
-                    } else {
-                      // User is logged in but email is not verified
-                      return VerifyEmail();
-                    }
-                  } else {
-                    // User is not logged in
-                    return LoginPage();
-                  }
-                },
-              );
-            default:
-              return const Scaffold(
-                body: Center(
-                  child: CircularProgressIndicator(),
-                ),
-              );
+          if(snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(  
+              body: Center(  
+                child: CircularProgressIndicator(),
+              )
+            );
+          }
+
+          if(snapshot.hasData) {
+            final user = snapshot.data!;
+
+            if(user.emailVerified)  {
+              return const MyHomePage();
+            } else {
+              return const VerifyEmail();
+            }
+          } 
+          else {
+            return const LoginPage();
           }
         },
       ),

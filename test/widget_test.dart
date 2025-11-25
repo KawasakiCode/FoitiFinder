@@ -15,7 +15,7 @@ void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     // Create a mock Firebase initialization Future for testing
-    final mockFirebaseInit = Firebase.initializeApp(
+    await Firebase.initializeApp(
       options: const FirebaseOptions(
         apiKey: 'test-api-key',
         appId: 'test-app-id',
@@ -24,7 +24,7 @@ void main() {
       ),
     );
     
-    await tester.pumpWidget(MyApp(firebaseInitialized: mockFirebaseInit));
+    await tester.pumpWidget(MyApp());
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);

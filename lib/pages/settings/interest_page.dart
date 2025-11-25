@@ -1,35 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:foitifinder/providers/settings_providers.dart';
+import 'package:provider/provider.dart';
 
 Set<String> _selectedInterests = {};
 
 class InterestPage extends StatefulWidget {
-  final Set<String> initialSelection;
-
-  const InterestPage({super.key, required this.initialSelection});
+  const InterestPage({super.key});
 
   @override
   State<InterestPage> createState() => _InterestPageState();
 }
 
 class _InterestPageState extends State<InterestPage> {
-  void _toggleInterest(String interest) {
-    setState(() {
-      if (_selectedInterests.contains(interest)) {
-        _selectedInterests.remove(interest);
-      } else {
-        _selectedInterests.add(interest);
-      }
-    });
-  } 
-
   @override
   void initState() {
     super.initState();
-    _selectedInterests = Set.from(widget.initialSelection);
   }
 
   @override
   Widget build(BuildContext buildContext) {
+    final settings = Provider.of<SettingsProvider>(context);
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, dynamic result) async {
@@ -59,7 +49,7 @@ class _InterestPageState extends State<InterestPage> {
                     borderRadius: BorderRadius.circular(10),
                     splashColor: const Color.fromARGB(59, 70, 70, 70),
                     highlightColor: const Color.fromARGB(26, 31, 31, 31),
-                    onTap: () => _toggleInterest("Men"),
+                    onTap: () => settings.addRemoveInterests("Men"),
                     child: Padding(
                       padding: const EdgeInsets.only(
                         top: 8,
@@ -77,7 +67,7 @@ class _InterestPageState extends State<InterestPage> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          if (_selectedInterests.contains("Men"))
+                          if (settings.interests.contains("Men"))
                                 Image.asset(
                                   'assets/icons/check.png',
                                   width: 20,
@@ -104,7 +94,7 @@ class _InterestPageState extends State<InterestPage> {
                     borderRadius: BorderRadius.circular(10),
                     splashColor: const Color.fromARGB(59, 70, 70, 70),
                     highlightColor: const Color.fromARGB(26, 31, 31, 31),
-                    onTap: () => _toggleInterest("Women"),
+                    onTap: () => settings.addRemoveInterests("Women"),
                     child: Padding(
                       padding: const EdgeInsets.only(
                         top: 8,
@@ -122,7 +112,7 @@ class _InterestPageState extends State<InterestPage> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          if (_selectedInterests.contains("Women"))
+                          if (settings.interests.contains("Women"))
                                 Image.asset(
                                   'assets/icons/check.png',
                                   width: 20,
@@ -149,7 +139,7 @@ class _InterestPageState extends State<InterestPage> {
                     borderRadius: BorderRadius.circular(10),
                     splashColor: const Color.fromARGB(59, 70, 70, 70),
                     highlightColor: const Color.fromARGB(26, 31, 31, 31),
-                    onTap: () => _toggleInterest("Everyone"),
+                    onTap: () => settings.addRemoveInterests("Everyone"),
                     child: Padding(
                       padding: const EdgeInsets.only(
                         top: 8,
@@ -167,7 +157,7 @@ class _InterestPageState extends State<InterestPage> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          if (_selectedInterests.contains("Everyone"))
+                          if (settings.interests.contains("Everyone"))
                                 Image.asset(
                                   'assets/icons/check.png',
                                   width: 20,

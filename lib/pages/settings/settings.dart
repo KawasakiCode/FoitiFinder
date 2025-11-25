@@ -4,9 +4,9 @@ import 'package:foitifinder/pages/settings/interest_page.dart';
 import 'package:foitifinder/pages/settings/phone_number_page.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:provider/provider.dart';
-import '../auth_pages/login.dart';
 import 'delete_account_page.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 
 enum RecommendationPreference { balanced, recentlyActive }
 
@@ -18,11 +18,8 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  RangeValues _values = RangeValues(20, 80);
   bool _showOutOfRangeEnabled = false;
-  RecommendationPreference _recommendationPreference =
-      RecommendationPreference.balanced;
-  Set<String> _selectedInterests = {};
+  RecommendationPreference _recommendationPreference = RecommendationPreference.balanced;
 
   void _navigateToAddPhone() async {
     final bool? verified = await Navigator.push(
@@ -32,27 +29,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
     if (verified == true) {
       setState(() {});
-    }
-  }
-
-  //Waits to receive set with interests from interest page
-  void _navigateToInterests() async {
-    // 1. We wait for the result
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        // Pass the current selection so the next page knows what to show
-        builder: (context) => InterestPage(
-          initialSelection: _selectedInterests, 
-        ),
-      ),
-    );
-
-    // 2. Check if we got data back (result might be null if they crash/force quit)
-    if (result != null && result is Set<String>) {
-      setState(() {
-        _selectedInterests = result;
-      });
     }
   }
 
@@ -167,7 +143,14 @@ class _SettingsPageState extends State<SettingsPage> {
                   borderRadius: BorderRadius.circular(10),
                   splashColor: const Color.fromARGB(59, 70, 70, 70),
                   highlightColor: const Color.fromARGB(26, 31, 31, 31),
-                  onTap: _navigateToInterests,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => InterestPage(),
+                      ),
+                    );
+                  },
                   child: Padding(
                     padding: const EdgeInsets.only(
                       top: 10,
@@ -189,7 +172,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              _selectedInterests.isEmpty ? 'Interests show here' : _selectedInterests.join(', '),
+                              settings.interests.isEmpty ? 'Interests show here' : settings.interests.join(', '),
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w500,
@@ -235,7 +218,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                         ),
                         Text(
-                          '${_values.start.round()} - ${_values.end.round()}',
+                          '${settings.ageRange.start.toInt()} - ${settings.ageRange.end.toInt()}',
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w500,
@@ -244,11 +227,11 @@ class _SettingsPageState extends State<SettingsPage> {
                       ],
                     ),
                     RangeSlider(
-                      values: _values,
+                      values: settings.ageRange,
                       min: 18,
                       max: 100,
                       divisions: 82,
-                      onChanged: (v) => setState(() => _values = v),
+                      onChanged: (v) => settings.saveAgeRange(v),
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -791,11 +774,8 @@ class _SettingsPageState extends State<SettingsPage> {
               child: TextButton(
                 onPressed: () async {
                   await FirebaseAuth.instance.signOut();
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) => LoginPage()),
-                    (route) => false, // This removes all previous routes
-                  );
+                  if(!context.mounted)return;
+                  Navigator.of(context).popUntil((route) => route.isFirst);
                 },
                 child: Text(
                   'Logout',

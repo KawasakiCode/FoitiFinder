@@ -206,11 +206,7 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
 
                         // Navigate to login page and clear navigation stack
                         if (!context.mounted) return;
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(builder: (context) => LoginPage()),
-                          (route) => false, // This removes all previous routes
-                        );
+                        Navigator.of(context).popUntil((route) => route.isFirst);
 
                         // Show success message
                         if (!context.mounted) return;
