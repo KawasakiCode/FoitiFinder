@@ -307,7 +307,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                               password: password,
                                             );
                                           // If successful, navigate to verify email page
-                                          if(!mounted) return;
+                                          if(!context.mounted) return;
                                           Navigator.push(context, MaterialPageRoute(builder: (context) => VerifyEmail()));
                                         } on FirebaseAuthException catch (e) {
                                           String errorMessage;

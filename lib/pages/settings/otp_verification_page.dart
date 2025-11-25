@@ -101,9 +101,10 @@ class _OtpVerificationPage extends State<OtpVerificationPage> {
 
       //link phone number to user
       await currentUser.linkWithCredential(credential);
+      if(!mounted)return;
       final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
       settingsProvider.verifyPhone();
-      if(!mounted)return;
+      if(!context.mounted)return;
       //return to phoneNumberPage and sent success true
       Navigator.pop(context);
 
@@ -162,6 +163,7 @@ class _OtpVerificationPage extends State<OtpVerificationPage> {
                 await FirebaseAuth.instance.currentUser?.unlink(
                   PhoneAuthProvider.PROVIDER_ID,
                 );
+                if(!context.mounted)return;
                 ScaffoldMessenger.of(
                   context,
                 ).showSnackBar(SnackBar(content: Text("Phone unlinked!")));

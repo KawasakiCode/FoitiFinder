@@ -58,7 +58,7 @@ class _VerifyEmailState extends State<VerifyEmail> {
                       _isEmailSent = true;
                     });
                     
-                    if(!mounted) return;
+                    if(!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('Verification email sent successfully!'),
@@ -67,8 +67,7 @@ class _VerifyEmailState extends State<VerifyEmail> {
                       ),
                     );
                   } catch (e) {
-                    print(e);
-                    if(!mounted) return;
+                    if(!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('Failed to send verification email. Please try again.'),

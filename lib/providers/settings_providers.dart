@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+enum RecommendationPreference {balanced, recentlyActive}
+
 class SettingsProvider extends ChangeNotifier {
   final SharedPreferences _prefs; 
 
@@ -16,33 +18,47 @@ class SettingsProvider extends ChangeNotifier {
   bool _isPhoneVerified = false;
   Set<String> _interests = {};
   RangeValues _ageRange = RangeValues(0, 0);
-
+  bool _showOutOfRange = false;
+  RecommendationPreference _currentOpt = RecommendationPreference.balanced;
 
   //Getters
   ThemeMode get themeMode => _themeMode;
   bool get notificationsEnabled => _pushNotificationsEnabled;
   bool get isPhoneVerified => _isPhoneVerified;
   Set<String> get interests => _interests;
-  RangeValues get ageRange {
-    int min = _prefs.getInt('min_age') ?? 18;
-    int max = _prefs.getInt('max_age') ?? 60;
-    return RangeValues(min.toDouble(), max.toDouble());
-  }
+  RangeValues get ageRange => _ageRange;
+  bool get showOutOfRange => _showOutOfRange;
+  RecommendationPreference get currentOpt => _currentOpt;
 
   void _loadInstantSettings() {
     //theme  
     _themeMode = _prefs.getBool('isDark') ?? false ? ThemeMode.dark : ThemeMode.light;
+
     //is phone verified
     _isPhoneVerified = _prefs.getBool('isPhoneVerified') ?? false;
+
     //interests
     List<String>? savedList = _prefs.getStringList('user_interests');
     if(savedList != null) {
       _interests = savedList.toSet();
     }
+
     //age range
     int min = _prefs.getInt('min_age') ?? 18;
     int max = _prefs.getInt('max_age') ?? 60;
     _ageRange = RangeValues(min.toDouble(), max.toDouble());
+
+    //show out of age range
+    _showOutOfRange = _prefs.getBool('outOfRange') ?? false;
+
+    //recommendation preference
+    String? savedValue = _prefs.getString('recommendationOpt');
+    if(savedValue != null) {
+      _currentOpt = RecommendationPreference.values.firstWhere(
+        (e) => e.name == savedValue,
+        orElse: () => RecommendationPreference.balanced
+      );
+    }
   }
 
   Future<void> _loadAsyncSettings() async {
@@ -59,9 +75,7 @@ class SettingsProvider extends ChangeNotifier {
       }
        notifyListeners();
     } catch (e) {
-      //for test purposes only
-      print("firebase delay");
-      print(e);
+      _pushNotificationsEnabled = false;
     }
   }
 
@@ -88,9 +102,8 @@ class SettingsProvider extends ChangeNotifier {
       //if user accepts permissions they are enabled and switch stays on
       if(settings.authorizationStatus == AuthorizationStatus.authorized) {
         _pushNotificationsEnabled = true;
-        String? token = await messaging.getToken();
-        //for test purposes only
-        print(token);
+        //token to identify specific user to send push notifications
+        //String? token = await messaging.getToken();
         final preferences = await SharedPreferences.getInstance();
         await preferences.setBool('notifications_enabled', value);
       }
@@ -139,5 +152,17 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  //
+  //store out of range switch state
+  void storeShowOutOfRange(bool outOfRange) {
+    _showOutOfRange = outOfRange;
+    _prefs.setBool('outOfRange', outOfRange);
+    notifyListeners();
+  }
+
+  //recommendation preference
+  void changeRecommendationPreference(RecommendationPreference opt) {
+    _currentOpt = opt;
+    notifyListeners();
+    _prefs.setString('recommendationOpt', opt.name);
+  }
 }

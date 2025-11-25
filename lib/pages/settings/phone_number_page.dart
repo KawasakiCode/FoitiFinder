@@ -56,7 +56,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
         );
         
         if (!mounted) return;
-        Navigator.pop(context); // Just close the page!
+        Navigator.pop(context);
       },
       codeSent: (String verificationId, int? resendToken) async {
         // Wait for the user to finish on the OTP page

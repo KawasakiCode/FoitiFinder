@@ -7,9 +7,6 @@ import 'package:provider/provider.dart';
 import 'delete_account_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-
-enum RecommendationPreference { balanced, recentlyActive }
-
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
 
@@ -18,18 +15,11 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  bool _showOutOfRangeEnabled = false;
-  RecommendationPreference _recommendationPreference = RecommendationPreference.balanced;
-
   void _navigateToAddPhone() async {
-    final bool? verified = await Navigator.push(
+    Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const PhoneNumberPage()),
     );
-
-    if (verified == true) {
-      setState(() {});
-    }
   }
 
   //settings page ui
@@ -258,9 +248,9 @@ class _SettingsPageState extends State<SettingsPage> {
                         Transform.scale(
                           scale: 1,
                           child: Switch(
-                            value: _showOutOfRangeEnabled,
+                            value: settings.showOutOfRange,
                             onChanged: (v) =>
-                                setState(() => _showOutOfRangeEnabled = v),
+                                setState(() => settings.storeShowOutOfRange(v)),
                           ),
                         ),
                       ],
@@ -288,12 +278,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                       splashColor: const Color.fromARGB(59, 70, 70, 70),
                       highlightColor: const Color.fromARGB(26, 31, 31, 31),
-                      onTap: () {
-                        setState(() {
-                          _recommendationPreference =
-                              RecommendationPreference.balanced;
-                        });
-                      },
+                      onTap: () {settings.changeRecommendationPreference(RecommendationPreference.balanced);},
                       child: Padding(
                         padding: const EdgeInsets.only(
                           top: 10,
@@ -324,7 +309,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                 ),
                               ],
                             ),
-                            if (_recommendationPreference ==
+                            if (settings.currentOpt ==
                                 RecommendationPreference.balanced)
                               Image.asset(
                                 'assets/icons/check.png',
@@ -344,12 +329,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                       splashColor: const Color.fromARGB(59, 70, 70, 70),
                       highlightColor: const Color.fromARGB(26, 31, 31, 31),
-                      onTap: () {
-                        setState(() {
-                          _recommendationPreference =
-                              RecommendationPreference.recentlyActive;
-                        });
-                      },
+                      onTap: () {settings.changeRecommendationPreference(RecommendationPreference.recentlyActive);},
                       child: Padding(
                         padding: const EdgeInsets.only(
                           top: 12,
@@ -380,7 +360,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                 ),
                               ],
                             ),
-                            if (_recommendationPreference ==
+                            if (settings.currentOpt ==
                                 RecommendationPreference.recentlyActive)
                               Image.asset(
                                 'assets/icons/check.png',

@@ -153,7 +153,7 @@ class _LoginPageState extends State<LoginPage> {
                                           // Delete the unverified account
                                           await userCredential.user!.delete();
                                           
-                                          if(!mounted) return;
+                                          if(!context.mounted) return;
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
                                               content: Text('Account deleted. Please sign up again and verify your email.'),
@@ -164,7 +164,7 @@ class _LoginPageState extends State<LoginPage> {
                                           return;
                                         }                                    
                                         // Clear navigation stack and navigate to home page
-                                        if(!mounted) return;
+                                        if(!context.mounted) return;
                                         Navigator.pushAndRemoveUntil(
                                           context,
                                           MaterialPageRoute(builder: (context) => MyHomePage()),
@@ -304,7 +304,7 @@ class _LoginPageState extends State<LoginPage> {
                                             await FirebaseAuth.instance.sendPasswordResetEmail(
                                               email: _email.text,
                                             );
-                                            if(!mounted) return;
+                                            if(!context.mounted) return;
                                             ScaffoldMessenger.of(context).showSnackBar(
                                               SnackBar(
                                                 content: Text('Password reset email sent. Please check your email.'),
@@ -313,7 +313,7 @@ class _LoginPageState extends State<LoginPage> {
                                               ),
                                             );
                                           } catch (e) {
-                                            if(!mounted) return;
+                                            if(!context.mounted) return;
                                             ScaffoldMessenger.of(context).showSnackBar(  
                                               SnackBar(  
                                                 content: Text('An error occured. Please try again later.'),
