@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/pages/settings/interest_page.dart';
 import 'package:foitifinder/pages/settings/phone_number_page.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
@@ -27,9 +28,18 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
     final settings = Provider.of<SettingsProvider>(context);
+    final text = AppLocalizations.of(context)!;
+    final Map<String, String> interestsMap = {
+      'Women': text.women,
+      'Men': text.men,
+      'Everyone': text.everybody,
+    };
+    String displayInterests = settings.interests.map((rawKey) {
+      return interestsMap[rawKey] ?? rawKey;
+    }).join(', ');
 
     return Scaffold(
-      appBar: AppBar(title: Text('Settings'), automaticallyImplyLeading: true),
+      appBar: AppBar(title: Text(text.settingsTitle), automaticallyImplyLeading: true),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -38,9 +48,7 @@ class _SettingsPageState extends State<SettingsPage> {
               alignment: Alignment.centerLeft,
               child: Padding(
                 padding: const EdgeInsets.only(left: 15, top: 10),
-                child: Text(
-                  'Account Settings',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+                child: Text(text.account, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
                 ),
               ),
             ),
@@ -69,7 +77,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Phone Number',
+                          text.phoneNumber,
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w500,
@@ -94,14 +102,14 @@ class _SettingsPageState extends State<SettingsPage> {
                 alignment: Alignment.centerLeft,
                 child: (!settings.isPhoneVerified)
                     ? Text(
-                        'Unverified Phone Number',
+                        text.phoneNotVerified,
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
                         ),
                       )
                     : Text(
-                        'Verified Phone Number',
+                        text.phoneVerified,
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
@@ -115,7 +123,7 @@ class _SettingsPageState extends State<SettingsPage> {
               child: Padding(
                 padding: const EdgeInsets.only(left: 15, top: 10),
                 child: Text(
-                  'Discovery Settings',
+                  text.discovery,
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
                 ),
               ),
@@ -152,7 +160,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Interested In',
+                          text.interests,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
@@ -162,7 +170,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              settings.interests.isEmpty ? 'Interests show here' : settings.interests.join(', '),
+                              settings.interests.isEmpty ? text.emptyInterests : displayInterests,
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w500,
@@ -201,7 +209,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Age Range',
+                          text.ageRange,
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w500,
@@ -230,14 +238,14 @@ class _SettingsPageState extends State<SettingsPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Show people out of range if',
+                              text.outOfRange1,
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
                             Text(
-                              'I run out of profiles to see',
+                              text.outOfRange2,
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w500,
@@ -291,9 +299,9 @@ class _SettingsPageState extends State<SettingsPage> {
                           children: [
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
+                              children: [
                                 Text(
-                                  'Balanced Recommendations',
+                                  text.balanced,
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w500,
@@ -301,7 +309,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                 ),
                                 SizedBox(height: 4),
                                 Text(
-                                  'See the most relevant people to you',
+                                  text.balancedText,
                                   style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w500,
@@ -342,9 +350,9 @@ class _SettingsPageState extends State<SettingsPage> {
                           children: [
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
+                              children: [
                                 Text(
-                                  'Recently Active',
+                                  text.recentlyActive,
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w500,
@@ -352,7 +360,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                 ),
                                 SizedBox(height: 4),
                                 Text(
-                                  'See the most recently active people first',
+                                  text.recentlyActiveText,
                                   style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w500,
@@ -403,7 +411,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Appearance',
+                          text.appearance,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
@@ -413,7 +421,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Dark Mode',
+                              text.darkMode,
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w500,
@@ -441,7 +449,7 @@ class _SettingsPageState extends State<SettingsPage> {
               child: Padding(
                 padding: const EdgeInsets.only(left: 15, top: 10),
                 child: Text(
-                  'Notifications',
+                  text.notifications,
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
                 ),
               ),
@@ -458,7 +466,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Push Notifications',
+                      text.pushNotifications,
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
@@ -477,13 +485,125 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ),
             ),
+            //Language
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 15, top: 10),
+                child: Text(
+                  text.language,
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
+              child: Material(
+                color: Colors.transparent,
+                shape: RoundedRectangleBorder(
+                  side: const BorderSide(color: Colors.grey, width: 1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    InkWell(
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(10),
+                      ),
+                      splashColor: const Color.fromARGB(59, 70, 70, 70),
+                      highlightColor: const Color.fromARGB(26, 31, 31, 31),
+                      onTap: () {settings.changeLanguage('el');},
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          top: 10,
+                          left: 10,
+                          right: 15,
+                          bottom: 12,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  text.greek,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (settings.locale ==
+                                Locale('el'))
+                              Image.asset(
+                                'assets/icons/check.png',
+                                width: 20,
+                                height: 20,
+                              )
+                            else
+                              const SizedBox(width: 20, height: 20),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const Divider(height: 1, thickness: 1, color: Colors.grey),
+                    InkWell(
+                      borderRadius: const BorderRadius.vertical(
+                        bottom: Radius.circular(10),
+                      ),
+                      splashColor: const Color.fromARGB(59, 70, 70, 70),
+                      highlightColor: const Color.fromARGB(26, 31, 31, 31),
+                      onTap: () {settings.changeLanguage('en');},
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          top: 12,
+                          left: 10,
+                          right: 15,
+                          bottom: 8,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  text.english,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (settings.locale == 
+                              Locale('en'))
+                              Image.asset(
+                                'assets/icons/check.png',
+                                width: 20,
+                                height: 20,
+                              )
+                            else
+                              const SizedBox(width: 20, height: 20),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             //Contact Us
             Align(
               alignment: Alignment.centerLeft,
               child: Padding(
                 padding: const EdgeInsets.only(left: 15, top: 10),
                 child: Text(
-                  'Contact Us',
+                  text.contact,
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
                 ),
               ),
@@ -524,9 +644,9 @@ class _SettingsPageState extends State<SettingsPage> {
                           children: [
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
+                              children: [
                                 Text(
-                                  'Help & Support',
+                                  text.help,
                                   style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w500,
@@ -562,9 +682,9 @@ class _SettingsPageState extends State<SettingsPage> {
                           children: [
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
+                              children: [
                                 Text(
-                                  'Report a bug',
+                                  text.report,
                                   style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w500,
@@ -586,7 +706,7 @@ class _SettingsPageState extends State<SettingsPage> {
               child: Padding(
                 padding: const EdgeInsets.only(left: 15, top: 10),
                 child: Text(
-                  'Privacy',
+                  text.privacy,
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
                 ),
               ),
@@ -627,9 +747,9 @@ class _SettingsPageState extends State<SettingsPage> {
                           children: [
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
+                              children: [
                                 Text(
-                                  'Cookie Policy',
+                                  text.cookie,
                                   style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w500,
@@ -665,9 +785,9 @@ class _SettingsPageState extends State<SettingsPage> {
                           children: [
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
+                              children: [
                                 Text(
-                                  'Privacy Policy',
+                                  text.privacyPolicy,
                                   style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w500,
@@ -689,7 +809,7 @@ class _SettingsPageState extends State<SettingsPage> {
               child: Padding(
                 padding: const EdgeInsets.only(left: 15, top: 10),
                 child: Text(
-                  'Privacy',
+                  text.legal,
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
                 ),
               ),
@@ -730,9 +850,9 @@ class _SettingsPageState extends State<SettingsPage> {
                           children: [
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
+                              children: [
                                 Text(
-                                  'Terms of Service',
+                                  text.terms,
                                   style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w500,
@@ -758,7 +878,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   Navigator.of(context).popUntil((route) => route.isFirst);
                 },
                 child: Text(
-                  'Logout',
+                  text.logout,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -780,7 +900,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   );
                 },
                 child: Text(
-                  'Delete Account',
+                  text.deleteAccount,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,

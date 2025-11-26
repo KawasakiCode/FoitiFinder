@@ -20,6 +20,7 @@ class SettingsProvider extends ChangeNotifier {
   RangeValues _ageRange = RangeValues(0, 0);
   bool _showOutOfRange = false;
   RecommendationPreference _currentOpt = RecommendationPreference.balanced;
+  Locale _locale = const Locale('en');
 
   //Getters
   ThemeMode get themeMode => _themeMode;
@@ -29,6 +30,7 @@ class SettingsProvider extends ChangeNotifier {
   RangeValues get ageRange => _ageRange;
   bool get showOutOfRange => _showOutOfRange;
   RecommendationPreference get currentOpt => _currentOpt;
+  Locale get locale => _locale;
 
   void _loadInstantSettings() {
     //theme  
@@ -59,6 +61,9 @@ class SettingsProvider extends ChangeNotifier {
         orElse: () => RecommendationPreference.balanced
       );
     }
+
+    String langCode = _prefs.getString('language_code') ?? 'en';
+    _locale = Locale(langCode);
   }
 
   Future<void> _loadAsyncSettings() async {
@@ -164,5 +169,11 @@ class SettingsProvider extends ChangeNotifier {
     _currentOpt = opt;
     notifyListeners();
     _prefs.setString('recommendationOpt', opt.name);
+  }
+
+  void changeLanguage(String languageCode) {
+    _locale = Locale(languageCode);
+    notifyListeners();
+    _prefs.setString('language_code', languageCode);
   }
 }

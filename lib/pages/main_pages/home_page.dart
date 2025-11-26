@@ -472,6 +472,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             width: 45,
             height: 45,
             child: FloatingActionButton(
+              heroTag: null,
               onPressed: swipedCards.isNotEmpty ? _rewindCard : null,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(30),
@@ -490,6 +491,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           if (currentIndex < cards.length) ...[
             // Pass button
             FloatingActionButton(
+              heroTag: null,
               onPressed: () => _swipeLeft(),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(30),
@@ -502,6 +504,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               width: 45,
               height: 45,
               child: FloatingActionButton(
+                heroTag: null,
                 onPressed: () {
                   // Super like acts as a like but with special feedback
                   final cardName = cards[currentIndex].name;
@@ -520,6 +523,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
             // Like button
             FloatingActionButton(
+              heroTag: null,
               onPressed: () => _swipeRight(),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(30),
@@ -532,6 +536,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               width: 45,
               height: 45,
               child: FloatingActionButton(
+                heroTag: null,
                 onPressed: () {},
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),

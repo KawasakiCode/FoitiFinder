@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 import 'pages/auth_pages/login.dart';
@@ -8,6 +9,7 @@ import 'pages/auth_pages/verify_email.dart';
 import 'pages/main_pages/home_page.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,7 +34,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    final theme = Provider.of<SettingsProvider>(context);
+    final settings = Provider.of<SettingsProvider>(context);
     return MaterialApp(
       title: 'My app',
       theme: ThemeData(
@@ -46,7 +48,18 @@ class MyApp extends StatelessWidget {
           backgroundColor: Color.fromARGB(255, 88, 88, 88),
         ),
       ),
-      themeMode: theme.themeMode,
+      themeMode: settings.themeMode,
+      locale: settings.locale,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en'),
+        Locale('el'),
+      ],
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
