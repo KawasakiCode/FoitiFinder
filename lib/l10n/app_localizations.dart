@@ -161,7 +161,7 @@ abstract class AppLocalizations {
   /// No description provided for @everybody.
   ///
   /// In en, this message translates to:
-  /// **'Everybody'**
+  /// **'Everyone'**
   String get everybody;
 
   /// No description provided for @ageRange.
@@ -307,6 +307,204 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete Account'**
   String get deleteAccount;
+
+  /// No description provided for @exploreText.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Explore'**
+  String get exploreText;
+
+  /// No description provided for @similarPlans.
+  ///
+  /// In en, this message translates to:
+  /// **'Similar plans and lifestyles'**
+  String get similarPlans;
+
+  /// No description provided for @similarPlansText.
+  ///
+  /// In en, this message translates to:
+  /// **'Find people with similar life goals and hobbies'**
+  String get similarPlansText;
+
+  /// No description provided for @newMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'New Matches'**
+  String get newMatches;
+
+  /// No description provided for @messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get messages;
+
+  /// No description provided for @editProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Profile'**
+  String get editProfile;
+
+  /// No description provided for @phoneNumberSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone Number Settings'**
+  String get phoneNumberSettings;
+
+  /// No description provided for @phoneNumberPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Phone Number'**
+  String get phoneNumberPlaceholder;
+
+  /// No description provided for @updatePhoneNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Update My Phone Number'**
+  String get updatePhoneNumber;
+
+  /// No description provided for @snackbarNonValidPhoneNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid phone number 69xxxxxxxx'**
+  String get snackbarNonValidPhoneNumber;
+
+  /// No description provided for @snackbarVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone Verified'**
+  String get snackbarVerified;
+
+  /// No description provided for @snackbarCodeExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Code expired'**
+  String get snackbarCodeExpired;
+
+  /// No description provided for @snackbarVerifyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to verify phone number'**
+  String get snackbarVerifyFailed;
+
+  /// No description provided for @verifyPhoneNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify Phone Number'**
+  String get verifyPhoneNumber;
+
+  /// No description provided for @enterCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the verification code sent to your phone number'**
+  String get enterCode;
+
+  /// No description provided for @verify.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify'**
+  String get verify;
+
+  /// No description provided for @codeLessThan6.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the full 6-digit code'**
+  String get codeLessThan6;
+
+  /// No description provided for @invalidCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid code or an error occured. Please try again'**
+  String get invalidCode;
+
+  /// No description provided for @interestedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Interested In'**
+  String get interestedIn;
+
+  /// No description provided for @selectInterests.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all that apply for you'**
+  String get selectInterests;
+
+  /// No description provided for @sureDeleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete your account?'**
+  String get sureDeleteAccount;
+
+  /// No description provided for @deleteAccountLongText.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile will be removed from FoitiFinder and won\'t be visible to other members. If you change your mind within 10 days, you can sign in to recover your account. After 10 days we will delete your data in accordance with our Privacy Policy and you will no longer be able to recover your profile.'**
+  String get deleteAccountLongText;
+
+  /// No description provided for @readPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Read our '**
+  String get readPolicy;
+
+  /// No description provided for @snackbarEnterPasswordToConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your password to confirm.'**
+  String get snackbarEnterPasswordToConfirm;
+
+  /// No description provided for @snackbarSuccessDeletion.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account has been successfully deleted.'**
+  String get snackbarSuccessDeletion;
+
+  /// No description provided for @incorrectPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect password. Please try again.'**
+  String get incorrectPassword;
+
+  /// No description provided for @invalidPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid password. Please try again.'**
+  String get invalidPassword;
+
+  /// No description provided for @requiresRecentLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'For security reasons, please log out and log back in before deleting your account.'**
+  String get requiresRecentLogin;
+
+  /// No description provided for @userNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'User account not found.'**
+  String get userNotFound;
+
+  /// No description provided for @credentialsDontMatchUser.
+  ///
+  /// In en, this message translates to:
+  /// **'The provided credentials do not match the current user.'**
+  String get credentialsDontMatchUser;
+
+  /// No description provided for @generalError.
+  ///
+  /// In en, this message translates to:
+  /// **'An error occurred while deleting your account'**
+  String get generalError;
+
+  /// No description provided for @unexpectedError.
+  ///
+  /// In en, this message translates to:
+  /// **'An unexpected error occurred:'**
+  String get unexpectedError;
+
+  /// No description provided for @deleteMyAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete My Account'**
+  String get deleteMyAccount;
 }
 
 class _AppLocalizationsDelegate

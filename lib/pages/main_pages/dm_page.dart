@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../widgets/bottom_navigation_bar.dart' as custom_bottom_nav;
+import 'package:foitifinder/widgets/bottom_navigation_bar.dart' as custom_bottom_nav;
+import 'package:foitifinder/l10n/app_localizations.dart';
 
 class DMPage extends StatefulWidget {
   const DMPage({super.key});
@@ -11,6 +12,7 @@ class DMPage extends StatefulWidget {
 class _DMPageState extends State<DMPage> {
   @override
   Widget build(BuildContext context) {
+    final text = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -58,7 +60,7 @@ class _DMPageState extends State<DMPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'New Matches',
+                  text.newMatches,
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
@@ -92,7 +94,7 @@ class _DMPageState extends State<DMPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Messages',
+                  text.messages,
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],

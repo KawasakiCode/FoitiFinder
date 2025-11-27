@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:provider/provider.dart';
+import 'package:foitifinder/l10n/app_localizations.dart';
 
 class OtpVerificationPage extends StatefulWidget {
   final String verificationId;
@@ -18,6 +19,7 @@ class OtpVerificationPage extends StatefulWidget {
 }
 
 class _OtpVerificationPage extends State<OtpVerificationPage> {
+  AppLocalizations get  text => AppLocalizations.of(context)!;
   final List<TextEditingController> controllers = List.generate(
     6,
     (_) => TextEditingController(),
@@ -125,7 +127,7 @@ class _OtpVerificationPage extends State<OtpVerificationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Verify Phone Number'),
+        title: Text(text.verifyPhoneNumber),
         automaticallyImplyLeading: true,
       ),
       body: Column(
@@ -133,7 +135,7 @@ class _OtpVerificationPage extends State<OtpVerificationPage> {
           Padding(
             padding: const EdgeInsets.only(left: 10, right: 10, top: 30),
             child: Text(
-              'Enter the verification code sent to you phone number',
+              text.enterCode,
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               textAlign: TextAlign.center,
             ),
@@ -149,30 +151,11 @@ class _OtpVerificationPage extends State<OtpVerificationPage> {
             padding: const EdgeInsets.only(top: 15),
             child: TextButton(
               onPressed: _submitOtp,
-              child: const Text(
-                'Verify',
+              child: Text(
+                text.verify,
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
             ),
-          ),
-          TextButton(
-            child: Text("TEMP: Unlink Phone"),
-            onPressed: () async {
-              try {
-                // This is the magic line
-                await FirebaseAuth.instance.currentUser?.unlink(
-                  PhoneAuthProvider.PROVIDER_ID,
-                );
-                if(!context.mounted)return;
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text("Phone unlinked!")));
-              } catch (e) {
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text("Error unlinking: $e")));
-              }
-            },
           ),
         ],
       ),

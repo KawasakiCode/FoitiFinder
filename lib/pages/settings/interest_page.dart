@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:provider/provider.dart';
+import 'package:foitifinder/l10n/app_localizations.dart';
 
 Set<String> _selectedInterests = {};
 
@@ -19,6 +20,7 @@ class _InterestPageState extends State<InterestPage> {
 
   @override
   Widget build(BuildContext buildContext) {
+    final text = AppLocalizations.of(context)!;
     final settings = Provider.of<SettingsProvider>(context);
     return PopScope(
       canPop: false,
@@ -27,14 +29,14 @@ class _InterestPageState extends State<InterestPage> {
           Navigator.pop(context, _selectedInterests);
       },
       child: Scaffold(
-        appBar: AppBar(title: Text('Interested In'),
+        appBar: AppBar(title: Text(text.interestedIn),
         automaticallyImplyLeading: true),
         body: Column(  
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
               padding: const EdgeInsets.only(left: 15),
-              child: Text('Select all that apply for you', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+              child: Text(text.selectInterests, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
             ),
             Padding(
                 padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
@@ -61,7 +63,7 @@ class _InterestPageState extends State<InterestPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Men',
+                            text.men,
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w500,
@@ -106,7 +108,7 @@ class _InterestPageState extends State<InterestPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Women',
+                            text.women,
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w500,
@@ -151,7 +153,7 @@ class _InterestPageState extends State<InterestPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Everyone',
+                            text.everybody,
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w500,

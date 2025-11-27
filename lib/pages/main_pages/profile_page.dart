@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../widgets/bottom_navigation_bar.dart' as custom_bottom_nav;
-import '../settings/settings.dart';
+import 'package:foitifinder/widgets/bottom_navigation_bar.dart' as custom_bottom_nav;
+import 'package:foitifinder/pages/settings/settings.dart';
+import 'package:foitifinder/l10n/app_localizations.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -12,6 +13,7 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
+    final text = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -56,6 +58,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
               Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
@@ -77,15 +80,12 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 5),
-                    child: SizedBox(
-                      width: 145,
-                      height: 35,
-                      child: FloatingActionButton(
+                    child: FloatingActionButton.extended(
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15),
                         ),
-                        child: Text(
-                          "Edit Profile",
+                        label: Text(
+                          text.editProfile,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w400,
@@ -93,7 +93,6 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                         onPressed: () {},
                       ),
-                    ),
                   ),
                 ],
               ),

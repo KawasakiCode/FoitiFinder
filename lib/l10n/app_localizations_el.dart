@@ -112,4 +112,116 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get deleteAccount => 'Διαγραφή Λογαριασμού';
+
+  @override
+  String get exploreText => 'Καλώς ήρθατε στην Εξερεύνηση';
+
+  @override
+  String get similarPlans => 'Παρόμοια σχέδια και τρόπος ζωής';
+
+  @override
+  String get similarPlansText =>
+      'Βρείτε άτομα με παρόμοιους στόχους ζωής και χόμπι';
+
+  @override
+  String get newMatches => 'Νέα Ταιριάσματα';
+
+  @override
+  String get messages => 'Μηνύματα';
+
+  @override
+  String get editProfile => 'Επεξεργασία Προφίλ';
+
+  @override
+  String get phoneNumberSettings => 'Ρυθμίσεις Αριθμού Τηλεφώνου';
+
+  @override
+  String get phoneNumberPlaceholder => 'Εισάγετε Αριθμό Τηλεφώνου';
+
+  @override
+  String get updatePhoneNumber => 'Ενημέρωση Αριθμού Τηλεφώνου';
+
+  @override
+  String get snackbarNonValidPhoneNumber =>
+      'Εισάγετε έναν έγκυρο τηλεφωνικό αριθμό 69xxxxxxxx';
+
+  @override
+  String get snackbarVerified => 'Το τηλέφωνο επαληθεύτηκε';
+
+  @override
+  String get snackbarCodeExpired => 'Ο κωδικός έληξε';
+
+  @override
+  String get snackbarVerifyFailed => 'Απέτυχε η επαλήθευση του αριθμού';
+
+  @override
+  String get verifyPhoneNumber => 'Επαλήθευση Αριθμού';
+
+  @override
+  String get enterCode =>
+      'Εισάγετε τον κωδικό επαλήθευσης που στάλθηκε στο κινητό σας';
+
+  @override
+  String get verify => 'Επαλήθευση';
+
+  @override
+  String get codeLessThan6 => 'Εισάγετε τον πλήρη 6ψήφιο κωδικό';
+
+  @override
+  String get invalidCode =>
+      'Μη έγκυρος κωδικός ή παρουσιάστηκε σφάλμα. Παρακαλώ δοκιμάστε ξανά';
+
+  @override
+  String get interestedIn => 'Ενδιαφέρομαι για';
+
+  @override
+  String get selectInterests => 'Επιλέξτε όσα σας ταιριάζουν';
+
+  @override
+  String get sureDeleteAccount =>
+      'Είστε βέβαιοι ότι θέλετε να διαγράψετε τον λογαριασμό σας;';
+
+  @override
+  String get deleteAccountLongText =>
+      'Το προφίλ σας θα αφαιρεθεί από το FoitiFinder και δεν θα είναι ορατό σε άλλα μέλη. Εάν αλλάξετε γνώμη εντός 10 ημερών, μπορείτε να συνδεθείτε για να ανακτήσετε τον λογαριασμό σας. Μετά από 10 ημέρες, θα διαγράψουμε τα δεδομένα σας σύμφωνα με την Πολιτική Απορρήτου μας και δεν θα μπορείτε πλέον να ανακτήσετε το προφίλ σας.';
+
+  @override
+  String get readPolicy => 'Διαβάστε την ';
+
+  @override
+  String get snackbarEnterPasswordToConfirm =>
+      'Παρακαλώ εισάγετε τον κωδικό πρόσβασής σας για επιβεβαίωση.';
+
+  @override
+  String get snackbarSuccessDeletion =>
+      'Ο λογαριασμός σας διαγράφηκε με επιτυχία.';
+
+  @override
+  String get incorrectPassword =>
+      'Λανθασμένος κωδικός πρόσβασης. Παρακαλώ δοκιμάστε ξανά.';
+
+  @override
+  String get invalidPassword =>
+      'Μη έγκυρος κωδικός πρόσβασης. Παρακαλώ δοκιμάστε ξανά.';
+
+  @override
+  String get requiresRecentLogin =>
+      'Για λόγους ασφαλείας, παρακαλώ αποσυνδεθείτε και συνδεθείτε ξανά πριν διαγράψετε τον λογαριασμό σας.';
+
+  @override
+  String get userNotFound => 'Ο λογαριασμός χρήστη δεν βρέθηκε.';
+
+  @override
+  String get credentialsDontMatchUser =>
+      'Τα διαπιστευτήρια δεν αντιστοιχούν στον τρέχοντα χρήστη.';
+
+  @override
+  String get generalError =>
+      'Παρουσιάστηκε σφάλμα κατά τη διαγραφή του λογαριασμού σας';
+
+  @override
+  String get unexpectedError => 'Παρουσιάστηκε μη αναμενόμενο σφάλμα:';
+
+  @override
+  String get deleteMyAccount => 'Διαγραφή του Λογαριασμού Μου';
 }

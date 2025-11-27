@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../widgets/bottom_navigation_bar.dart' as custom_bottom_nav;
+import 'package:foitifinder/widgets/bottom_navigation_bar.dart' as custom_bottom_nav;
+import 'package:foitifinder/l10n/app_localizations.dart';
 import 'home_page.dart';
 
 class SearchPage extends StatefulWidget {
@@ -12,6 +13,7 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
+    final text = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -25,7 +27,7 @@ class _SearchPageState extends State<SearchPage> {
             Padding(
               padding: const EdgeInsets.only(left: 15, top: 5),
               child: Text(
-                "Welcome to Explore",
+                text.exploreText,
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
             ),
@@ -92,14 +94,14 @@ class _SearchPageState extends State<SearchPage> {
             Padding(
               padding: EdgeInsets.only(top: 5, left: 15),
               child: Text(
-                "Similar plans and lifestyles",
+                text.similarPlans,
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
             Padding(
               padding: const EdgeInsets.only(left: 15, bottom: 5),
               child: Text(
-                "Find people with similar life goals and hobbies",
+                text.similarPlansText,
                 style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
               ),
             ),
