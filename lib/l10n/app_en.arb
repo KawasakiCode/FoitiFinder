@@ -92,5 +92,11 @@
   "emailAlreadyInUse": "An account with this email already exists. Please try logging in instead.",
   "weakPassword": "Password is too weak. Please choose a stronger password (at least 8 characters)",
   "operationNotAllowed": "Email/password accounts are not enabled. Please contact support.",
-  "signUpError": "An error occurred during signup. Please try again."
+  "signUpError": "An error occurred during signup. Please try again.",
+  "verifyEmail": "Please verify your email address",
+  "verificationEmailSent": "Verification email sent! Please check your inbox.",
+  "snackbarSuccessVerifyEmail": "Verification email sent successfully!",
+  "snackbarFailedVerifyEmail": "Failed to send verification email. Please try again.",
+  "sentVerificationEmail": "Sent Verification Email",
+  "backToLogin": "Back to login"
 }

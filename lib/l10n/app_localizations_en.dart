@@ -308,4 +308,25 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get signUpError =>
       'An error occurred during signup. Please try again.';
+
+  @override
+  String get verifyEmail => 'Please verify your email address';
+
+  @override
+  String get verificationEmailSent =>
+      'Verification email sent! Please check your inbox.';
+
+  @override
+  String get snackbarSuccessVerifyEmail =>
+      'Verification email sent successfully!';
+
+  @override
+  String get snackbarFailedVerifyEmail =>
+      'Failed to send verification email. Please try again.';
+
+  @override
+  String get sentVerificationEmail => 'Sent Verification Email';
+
+  @override
+  String get backToLogin => 'Back to login';
 }

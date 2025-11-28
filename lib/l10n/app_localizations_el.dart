@@ -313,4 +313,25 @@ class AppLocalizationsEl extends AppLocalizations {
   @override
   String get signUpError =>
       'Παρουσιάστηκε σφάλμα κατά την εγγραφή. Παρακαλώ δοκιμάστε ξανά.';
+
+  @override
+  String get verifyEmail => 'Παρακαλώ επαληθεύστε τη διεύθυνση email σας';
+
+  @override
+  String get verificationEmailSent =>
+      'Το email επαλήθευσης στάλθηκε! Παρακαλώ ελέγξτε τα εισερχόμενά σας.';
+
+  @override
+  String get snackbarSuccessVerifyEmail =>
+      'Το email επαλήθευσης στάλθηκε με επιτυχία!';
+
+  @override
+  String get snackbarFailedVerifyEmail =>
+      'Απέτυχε η αποστολή του email επαλήθευσης. Παρακαλώ δοκιμάστε ξανά.';
+
+  @override
+  String get sentVerificationEmail => 'Στάλθηκε Email Επαλήθευσης';
+
+  @override
+  String get backToLogin => 'Επιστροφή στη σύνδεση';
 }

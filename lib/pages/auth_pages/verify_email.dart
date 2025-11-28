@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'login.dart';
+import 'package:foitifinder/pages/auth_pages/login.dart';
+import 'package:foitifinder/l10n/app_localizations.dart';
 
 class VerifyEmail extends StatefulWidget {
   const VerifyEmail({super.key});
@@ -15,6 +16,7 @@ class _VerifyEmailState extends State<VerifyEmail> {
 
   @override
   Widget build(BuildContext context) {
+    final text = AppLocalizations.of(context)!;
     return Scaffold(
       body: Center(
         child: Column(
@@ -22,7 +24,7 @@ class _VerifyEmailState extends State<VerifyEmail> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
-              "Please verify your email address",
+              text.verifyEmail,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 5),
@@ -39,7 +41,7 @@ class _VerifyEmailState extends State<VerifyEmail> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  'Verification email sent! Please check your inbox.',
+                  text.verificationEmailSent,
                   style: TextStyle(color: Colors.green[800]),
                 ),
               ),
@@ -61,7 +63,7 @@ class _VerifyEmailState extends State<VerifyEmail> {
                     if(!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Verification email sent successfully!'),
+                        content: Text(text.snackbarSuccessVerifyEmail),
                         backgroundColor: Colors.green,
                         duration: Duration(seconds: 3),
                       ),
@@ -70,7 +72,7 @@ class _VerifyEmailState extends State<VerifyEmail> {
                     if(!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Failed to send verification email. Please try again.'),
+                        content: Text(text.snackbarFailedVerifyEmail),
                         backgroundColor: Colors.red,
                         duration: Duration(seconds: 3),
                       ),
@@ -107,7 +109,7 @@ class _VerifyEmailState extends State<VerifyEmail> {
                       ),
                     )
                   : Text(
-                      'Send Verification Email',
+                      text.sentVerificationEmail,
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                     ),
               ),
@@ -127,7 +129,7 @@ class _VerifyEmailState extends State<VerifyEmail> {
                 foregroundColor: Colors.grey[600],
                 textStyle: TextStyle(fontSize: 14),
               ),
-              child: Text('Back to Login'),
+              child: Text(text.backToLogin),
             ),
           ],
         ),

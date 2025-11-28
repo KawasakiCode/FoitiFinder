@@ -661,6 +661,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'An error occurred during signup. Please try again.'**
   String get signUpError;
+
+  /// No description provided for @verifyEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Please verify your email address'**
+  String get verifyEmail;
+
+  /// No description provided for @verificationEmailSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification email sent! Please check your inbox.'**
+  String get verificationEmailSent;
+
+  /// No description provided for @snackbarSuccessVerifyEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification email sent successfully!'**
+  String get snackbarSuccessVerifyEmail;
+
+  /// No description provided for @snackbarFailedVerifyEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to send verification email. Please try again.'**
+  String get snackbarFailedVerifyEmail;
+
+  /// No description provided for @sentVerificationEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent Verification Email'**
+  String get sentVerificationEmail;
+
+  /// No description provided for @backToLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to login'**
+  String get backToLogin;
 }
 
 class _AppLocalizationsDelegate
