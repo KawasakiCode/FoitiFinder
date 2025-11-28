@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../firebase_options.dart';
-import 'verify_email.dart';
+import 'package:foitifinder/firebase_options.dart';
+import 'package:foitifinder/pages/auth_pages/verify_email.dart';
+import 'package:foitifinder/l10n/app_localizations.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -51,6 +52,7 @@ class _SignUpPageState extends State<SignUpPage> {
   Widget build(BuildContext context) {
     //future builder waits for firebaze initialization to finish when the page gets loaded. If the connection is done the main 
     //body of the app shows. Else a throbber appears to notify the user that the app is loading.
+    final text = AppLocalizations.of(context)!;
     return FutureBuilder(
       future: Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
@@ -87,7 +89,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 20),
                                   child: Text(
-                                    'My App',
+                                    'FoitiFinder',
                                     style: TextStyle(
                                       fontSize: 24,
                                       fontWeight: FontWeight.bold,
@@ -100,36 +102,6 @@ class _SignUpPageState extends State<SignUpPage> {
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.grey,
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 0),
-                                  child: TextButton(
-                                    onPressed: () {},
-                                    style: TextButton.styleFrom(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Image.asset(
-                                          'assets/icons/facebookicon.png',
-                                          width: 25,
-                                          height: 25,
-                                        ),
-                                        Text(
-                                          '  Sign up with Facebook',
-                                          style: TextStyle(
-                                            color: Colors.blue,
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
                                   ),
                                 ),
                                 Row(
@@ -150,7 +122,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                         10,
                                       ),
                                       child: Text(
-                                        'OR',
+                                        text.or,
                                         style: TextStyle(
                                           fontSize: 15,
                                           fontWeight: FontWeight.w400,
@@ -167,8 +139,8 @@ class _SignUpPageState extends State<SignUpPage> {
                                   ],
                                 ),
                                 TextFormField(
-                                  decoration: const InputDecoration(
-                                    hintText: 'Email',
+                                  decoration: InputDecoration(
+                                    hintText: text.email,
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.all(
                                         Radius.circular(12),
@@ -186,7 +158,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                 builder: (context, setState) {
                                   return TextFormField(
                                     decoration: InputDecoration(
-                                      hintText: 'Password',
+                                      hintText: text.password,
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.all(
                                           Radius.circular(12),
@@ -228,8 +200,8 @@ class _SignUpPageState extends State<SignUpPage> {
                                 Padding(
                                   padding: const EdgeInsets.only(top: 8),
                                   child: TextFormField(
-                                    decoration: const InputDecoration(
-                                      hintText: 'Full Name',
+                                    decoration: InputDecoration(
+                                      hintText: text.fullName,
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.all(
                                           Radius.circular(12),
@@ -245,8 +217,8 @@ class _SignUpPageState extends State<SignUpPage> {
                                     bottom: 8,
                                   ),
                                   child: TextFormField(
-                                    decoration: const InputDecoration(
-                                      hintText: 'Username',
+                                    decoration: InputDecoration(
+                                      hintText: text.username,
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.all(
                                           Radius.circular(12),
@@ -265,10 +237,10 @@ class _SignUpPageState extends State<SignUpPage> {
                                     children: [
                                       TextSpan(
                                         text:
-                                            'By signing up, you agree to our AI generated terms of service and Privacy Policy. Learn how we steal your data and sell them to shady multibillion dollar companies ',
+                                            text.signUpLongText,
                                       ),
                                       TextSpan(
-                                        text: 'here',
+                                        text: text.here,
                                         style: TextStyle(
                                           color: Colors.blue,
                                           decoration: TextDecoration.underline,
@@ -292,7 +264,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                           if(!mounted) return;
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
-                                              content: Text('Password must be at least 8 characters long.'),
+                                              content: Text(text.smallPassword),
                                               backgroundColor: Colors.red,
                                               duration: Duration(seconds: 3),
                                             ),
@@ -314,22 +286,22 @@ class _SignUpPageState extends State<SignUpPage> {
                                           
                                           switch (e.code) {
                                             case 'email-already-in-use':
-                                              errorMessage = 'An account with this email already exists. Please try logging in instead.';
+                                              errorMessage = text.emailAlreadyInUse;
                                               break;
                                             case 'weak-password':
-                                              errorMessage = 'Password is too weak. Please choose a stronger password (at least 8 characters).';
+                                              errorMessage = text.weakPassword;
                                               break;
                                             case 'invalid-email':
-                                              errorMessage = 'Please enter a valid email address.';
+                                              errorMessage = text.invalidEmail;
                                               break;
                                             case 'operation-not-allowed':
-                                              errorMessage = 'Email/password accounts are not enabled. Please contact support.';
+                                              errorMessage = text.operationNotAllowed;
                                               break;
                                             case 'too-many-requests':
-                                              errorMessage = 'Too many failed attempts. Please try again later.';
+                                              errorMessage = text.tooManyRequests;
                                               break;
                                             default:
-                                              errorMessage = 'An error occurred during signup. Please try again.';
+                                              errorMessage = text.signUpError;
                                           }
                                           
                                           // Show error message to user
@@ -346,7 +318,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                           if(!mounted) return;
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
-                                              content: Text('An unexpected error occurred. Please try again.'),
+                                              content: Text(text.errorOccured),
                                               backgroundColor: Colors.red,
                                               duration: Duration(seconds: 3),
                                             ),
@@ -371,7 +343,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                           ),
                                         ),
                                       ),
-                                      child: Text('Sign up'),
+                                      child: Text(text.signUp),
                                     ),
                                   ),
                                 ),
@@ -391,7 +363,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text("Have an account?"),
+                                  Text(text.haveAccount),
                                   TextButton(
                                     onPressed: () {
                                       Navigator.pop(context);
@@ -404,7 +376,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                       ),
                                     ),
                                     child: Text(
-                                      'Log in',
+                                      text.login,
                                       style: TextStyle(
                                         color: const Color.fromARGB(
                                           255,

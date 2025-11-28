@@ -491,7 +491,7 @@ abstract class AppLocalizations {
   /// No description provided for @generalError.
   ///
   /// In en, this message translates to:
-  /// **'An error occurred while deleting your account'**
+  /// **'An error occurred while deleting your account:'**
   String get generalError;
 
   /// No description provided for @unexpectedError.
@@ -505,6 +505,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete My Account'**
   String get deleteMyAccount;
+
+  /// No description provided for @enterPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password to confirm'**
+  String get enterPassword;
+
+  /// No description provided for @email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get email;
+
+  /// No description provided for @password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get password;
+
+  /// No description provided for @login.
+  ///
+  /// In en, this message translates to:
+  /// **'Login'**
+  String get login;
+
+  /// No description provided for @or.
+  ///
+  /// In en, this message translates to:
+  /// **'OR'**
+  String get or;
+
+  /// No description provided for @forgotPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot Password?'**
+  String get forgotPassword;
+
+  /// No description provided for @noAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have an account?'**
+  String get noAccount;
+
+  /// No description provided for @signUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Up'**
+  String get signUp;
+
+  /// No description provided for @accountDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Account deleted. Please sign up again and verify your email.'**
+  String get accountDeleted;
+
+  /// No description provided for @invalidCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid email or password. Please check your credentials and try again.'**
+  String get invalidCredentials;
+
+  /// No description provided for @invalidEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid email address.'**
+  String get invalidEmail;
+
+  /// No description provided for @disabledAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'This account has been disabled.'**
+  String get disabledAccount;
+
+  /// No description provided for @tooManyRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many failed attempts. Please try again later.'**
+  String get tooManyRequests;
+
+  /// No description provided for @errorOccured.
+  ///
+  /// In en, this message translates to:
+  /// **'An error occurred. Please try again.'**
+  String get errorOccured;
+
+  /// No description provided for @passwordResetEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Password reset email sent. Please check your email.'**
+  String get passwordResetEmail;
+
+  /// No description provided for @fullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name'**
+  String get fullName;
+
+  /// No description provided for @username.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get username;
+
+  /// No description provided for @signUpLongText.
+  ///
+  /// In en, this message translates to:
+  /// **'By signing up, you agree to our AI generated terms of service and Privacy Policy. Learn how we steal your data and sell them to shady multibillion dollar companies '**
+  String get signUpLongText;
+
+  /// No description provided for @here.
+  ///
+  /// In en, this message translates to:
+  /// **'here'**
+  String get here;
+
+  /// No description provided for @haveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Have an account?'**
+  String get haveAccount;
+
+  /// No description provided for @signUpToContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Up to continue'**
+  String get signUpToContinue;
+
+  /// No description provided for @smallPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 8 characters long.'**
+  String get smallPassword;
+
+  /// No description provided for @emailAlreadyInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'An account with this email already exists. Please try logging in instead.'**
+  String get emailAlreadyInUse;
+
+  /// No description provided for @weakPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Password is too weak. Please choose a stronger password (at least 8 characters)'**
+  String get weakPassword;
+
+  /// No description provided for @operationNotAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'Email/password accounts are not enabled. Please contact support.'**
+  String get operationNotAllowed;
+
+  /// No description provided for @signUpError.
+  ///
+  /// In en, this message translates to:
+  /// **'An error occurred during signup. Please try again.'**
+  String get signUpError;
 }
 
 class _AppLocalizationsDelegate

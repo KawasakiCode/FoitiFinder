@@ -1,9 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import '../../firebase_options.dart';
-import 'signup.dart';
-import '../main_pages/home_page.dart';
+import 'package:foitifinder/firebase_options.dart';
+import 'package:foitifinder/pages/auth_pages/signup.dart';
+import 'package:foitifinder/pages/main_pages/home_page.dart';
+import 'package:foitifinder/l10n/app_localizations.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -33,6 +34,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final text = AppLocalizations.of(context)!;
     return FutureBuilder(
       future: Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
@@ -68,7 +70,7 @@ class _LoginPageState extends State<LoginPage> {
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 25),
                                   child: Text(
-                                    'My App',
+                                    'FoitiFinder',
                                     style: TextStyle(
                                       fontSize: 24,
                                       fontWeight: FontWeight.bold,
@@ -76,8 +78,8 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                 ),
                                 TextFormField(
-                                  decoration: const InputDecoration(
-                                    hintText: 'Email',
+                                  decoration: InputDecoration(
+                                    hintText: text.email,
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.all(
                                         Radius.circular(12),
@@ -95,7 +97,7 @@ class _LoginPageState extends State<LoginPage> {
                                     builder: (context, setState) {
                                       return TextFormField(
                                         decoration: InputDecoration(
-                                          hintText: 'Password',
+                                          hintText: text.password,
                                           border: OutlineInputBorder(
                                             borderRadius: BorderRadius.all(
                                               Radius.circular(12),
@@ -156,7 +158,7 @@ class _LoginPageState extends State<LoginPage> {
                                           if(!context.mounted) return;
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
-                                              content: Text('Account deleted. Please sign up again and verify your email.'),
+                                              content: Text(text.accountDeleted),
                                               backgroundColor: Colors.orange,
                                               duration: Duration(seconds: 4),
                                             ),
@@ -176,19 +178,19 @@ class _LoginPageState extends State<LoginPage> {
                                         
                                         switch (e.code) {
                                           case 'invalid-credential':
-                                            errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+                                            errorMessage = text.invalidCredentials;
                                             break;
                                           case 'invalid-email':
-                                            errorMessage = 'Please enter a valid email address.';
+                                            errorMessage = text.invalidEmail;
                                             break;
                                           case 'user-disabled':
-                                            errorMessage = 'This account has been disabled.';
+                                            errorMessage = text.disabledAccount;
                                             break;
                                           case 'too-many-requests':
-                                            errorMessage = 'Too many failed attempts. Please try again later.';
+                                            errorMessage = text.tooManyRequests;
                                             break;
                                           default:
-                                            errorMessage = 'An error occurred. Please try again.';
+                                            errorMessage = text.errorOccured;
                                         }
                                         
                                         // Show error message to user
@@ -205,7 +207,7 @@ class _LoginPageState extends State<LoginPage> {
                                         if(!mounted) return;
                                         ScaffoldMessenger.of(context).showSnackBar(
                                           SnackBar(
-                                            content: Text('An unexpected error occurred. Please try again.'),
+                                            content: Text(text.unexpectedError),
                                             backgroundColor: Colors.red,
                                             duration: Duration(seconds: 3),
                                           ),
@@ -228,7 +230,7 @@ class _LoginPageState extends State<LoginPage> {
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                     ),
-                                    child: Text('Login'),
+                                    child: Text(text.login),
                                   ),
                                 ),
                                 SizedBox(height: 10),
@@ -249,7 +251,7 @@ class _LoginPageState extends State<LoginPage> {
                                         10,
                                       ),
                                       child: Text(
-                                        'OR',
+                                        text.or,
                                         style: TextStyle(
                                           fontSize: 15,
                                           fontWeight: FontWeight.w400,
@@ -268,34 +270,6 @@ class _LoginPageState extends State<LoginPage> {
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.stretch,
                                   children: [
-                                    TextButton(
-                                      onPressed: () {},
-                                      style: TextButton.styleFrom(
-                                        padding: EdgeInsets.only(bottom: 0, top: 10),
-                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Image.asset(
-                                            'assets/icons/facebookicon.png',
-                                            width: 25,
-                                            height: 25,
-                                          ),
-                                          Text(
-                                            '  Log in with Facebook',
-                                            style: TextStyle(
-                                              color: Colors.blue,
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
                                     Align(
                                       alignment: Alignment.center,
                                       child: TextButton(
@@ -307,7 +281,7 @@ class _LoginPageState extends State<LoginPage> {
                                             if(!context.mounted) return;
                                             ScaffoldMessenger.of(context).showSnackBar(
                                               SnackBar(
-                                                content: Text('Password reset email sent. Please check your email.'),
+                                                content: Text(text.passwordResetEmail),
                                                 backgroundColor: Colors.green,
                                                 duration: Duration(seconds: 3),
                                               ),
@@ -316,7 +290,7 @@ class _LoginPageState extends State<LoginPage> {
                                             if(!context.mounted) return;
                                             ScaffoldMessenger.of(context).showSnackBar(  
                                               SnackBar(  
-                                                content: Text('An error occured. Please try again later.'),
+                                                content: Text(text.errorOccured),
                                                 backgroundColor: Colors.red,
                                                 duration: Duration(seconds: 3),
                                               ),
@@ -332,7 +306,7 @@ class _LoginPageState extends State<LoginPage> {
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
-                                        child: Text('Forgot password?'),
+                                        child: Text(text.forgotPassword),
                                       ),
                                     ),
                                   ],
@@ -350,7 +324,7 @@ class _LoginPageState extends State<LoginPage> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text("Don't have an account?"),
+                                  Text(text.noAccount),
                                   TextButton(
                                     onPressed: () {
                                       Navigator.push(
@@ -368,7 +342,7 @@ class _LoginPageState extends State<LoginPage> {
                                       ),
                                     ),
                                     child: Text(
-                                      'Sign up',
+                                      text.signUp,
                                       style: TextStyle(
                                         color: const Color.fromARGB(
                                           255,

@@ -32,7 +32,7 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
     final text = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: Text('Delete Account'),
+        title: Text(text.deleteAccount),
         automaticallyImplyLeading: true,
       ),
       body: GestureDetector(
@@ -55,7 +55,7 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                 Padding(
                   padding: EdgeInsets.only(left: 15, right: 15, top: 10),
                   child: Text(
-                    "Are you sure you want to delete your account?",
+                    text.sureDeleteAccount,
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                   ),
@@ -65,7 +65,7 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                 Padding(
                   padding: EdgeInsets.only(left: 15, right: 15, top: 10),
                   child: Text(
-                    '''Your profile will be removed from FoitiFinder and won't be visible to other members. If you change your mind within 10 days, you can sign in to recover your account. After 10 days we will delete your data in accordance with our Privacy Policy and you will no longer be able to recover your profile.''',
+                    text.deleteAccountLongText,
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                   ),
@@ -80,11 +80,11 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                   ),
                   child: Text.rich(
                     TextSpan(
-                      text: 'Read our ',
+                      text: text.readPolicy,
                       style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                       children: [
                         TextSpan(
-                          text: 'Privacy Policy',
+                          text: text.privacyPolicy,
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -114,7 +114,7 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                   ),
                   child: TextFormField(
                     decoration: InputDecoration(
-                      hintText: 'Enter your password to confirm',
+                      hintText: text.enterPassword,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(
                           Radius.circular(12),
@@ -168,7 +168,7 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                       if (password.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Please enter your password to confirm.'),
+                            content: Text(text.snackbarEnterPasswordToConfirm),
                             backgroundColor: Colors.orange,
                             duration: Duration(seconds: 3),
                           ),
@@ -213,7 +213,7 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                         if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Your account has been successfully deleted.'),
+                            content: Text(text.snackbarSuccessDeletion),
                             backgroundColor: Colors.green,
                             duration: Duration(seconds: 3),
                           ),
@@ -226,22 +226,22 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                         String errorMessage;
                         switch (e.code) {
                           case 'wrong-password':
-                            errorMessage = 'Incorrect password. Please try again.';
+                            errorMessage = text.incorrectPassword;
                             break;
                           case 'invalid-credential':
-                            errorMessage = 'Invalid password. Please try again.';
+                            errorMessage = text.invalidPassword;
                             break;
                           case 'requires-recent-login':
-                            errorMessage = 'For security reasons, please log out and log back in before deleting your account.';
+                            errorMessage = text.requiresRecentLogin;
                             break;
                           case 'user-not-found':
-                            errorMessage = 'User account not found.';
+                            errorMessage = text.userNotFound;
                             break;
                           case 'user-mismatch':
-                            errorMessage = 'The provided credentials do not match the current user.';
+                            errorMessage = text.credentialsDontMatchUser;
                             break;
                           default:
-                            errorMessage = 'An error occurred while deleting your account: ${e.message}';
+                            errorMessage = '${text.generalError} ${e.message}';
                         }
 
                         if (!context.mounted) return;
@@ -260,14 +260,14 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                         if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('An unexpected error occurred: $e'),
+                            content: Text('${text.unexpectedError} $e'),
                             backgroundColor: Colors.red,
                             duration: Duration(seconds: 4),
                           ),
                         );
                       }
                     },
-                    child: Text('Delete My Account', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.red)),
+                    child: Text(text.deleteMyAccount, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.red)),
                   ),
                 )
               ],

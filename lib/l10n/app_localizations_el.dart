@@ -217,11 +217,100 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get generalError =>
-      'Παρουσιάστηκε σφάλμα κατά τη διαγραφή του λογαριασμού σας';
+      'Παρουσιάστηκε σφάλμα κατά τη διαγραφή του λογαριασμού σας:';
 
   @override
   String get unexpectedError => 'Παρουσιάστηκε μη αναμενόμενο σφάλμα:';
 
   @override
   String get deleteMyAccount => 'Διαγραφή του Λογαριασμού Μου';
+
+  @override
+  String get enterPassword =>
+      'Εισάγετε τον κωδικό πρόσβασής σας για επιβεβαίωση';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get password => 'Κωδικός Πρόσβασης';
+
+  @override
+  String get login => 'Σύνδεση';
+
+  @override
+  String get or => 'Ή';
+
+  @override
+  String get forgotPassword => 'Ξεχάσατε τον κωδικό;';
+
+  @override
+  String get noAccount => 'Δεν έχετε λογαριασμό;';
+
+  @override
+  String get signUp => 'Εγγραφή';
+
+  @override
+  String get accountDeleted =>
+      'Ο λογαριασμός διαγράφηκε. Παρακαλώ εγγραφείτε ξανά και επαληθεύστε το email σας.';
+
+  @override
+  String get invalidCredentials =>
+      'Λανθασμένο email ή κωδικός πρόσβασης. Παρακαλώ ελέγξτε τα στοιχεία σας και δοκιμάστε ξανά.';
+
+  @override
+  String get invalidEmail => 'Παρακαλώ εισάγετε μια έγκυρη διεύθυνση email.';
+
+  @override
+  String get disabledAccount => 'Αυτός ο λογαριασμός έχει απενεργοποιηθεί.';
+
+  @override
+  String get tooManyRequests =>
+      'Πάρα πολλές αποτυχημένες προσπάθειες. Παρακαλώ δοκιμάστε ξανά αργότερα.';
+
+  @override
+  String get errorOccured => 'Παρουσιάστηκε σφάλμα. Παρακαλώ δοκιμάστε ξανά.';
+
+  @override
+  String get passwordResetEmail =>
+      'Στάλθηκε email επαναφοράς κωδικού. Παρακαλώ ελέγξτε το email σας.';
+
+  @override
+  String get fullName => 'Ονοματεπώνυμο';
+
+  @override
+  String get username => 'Όνομα Χρήστη';
+
+  @override
+  String get signUpLongText =>
+      'Με την εγγραφή σας, συμφωνείτε με τους όρους χρήσης και την Πολιτική Απορρήτου που δημιουργήθηκαν από AI. Μάθετε πώς κλέβουμε τα δεδομένα σας και τα πουλάμε σε ύποπτες εταιρείες πολλών δισεκατομμυρίων ';
+
+  @override
+  String get here => 'εδώ';
+
+  @override
+  String get haveAccount => 'Έχετε ήδη λογαριασμό;';
+
+  @override
+  String get signUpToContinue => 'Εγγραφείτε για να συνεχίσετε';
+
+  @override
+  String get smallPassword =>
+      'Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες.';
+
+  @override
+  String get emailAlreadyInUse =>
+      'Υπάρχει ήδη λογαριασμός με αυτό το email. Παρακαλώ προσπαθήστε να συνδεθείτε.';
+
+  @override
+  String get weakPassword =>
+      'Ο κωδικός είναι πολύ αδύναμος. Παρακαλώ επιλέξτε έναν ισχυρότερο κωδικό (τουλάχιστον 8 χαρακτήρες).';
+
+  @override
+  String get operationNotAllowed =>
+      'Οι λογαριασμοί email/κωδικού δεν είναι ενεργοποιημένοι. Επικοινωνήστε με την υποστήριξη.';
+
+  @override
+  String get signUpError =>
+      'Παρουσιάστηκε σφάλμα κατά την εγγραφή. Παρακαλώ δοκιμάστε ξανά.';
 }

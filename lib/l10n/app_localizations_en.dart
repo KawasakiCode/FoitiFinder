@@ -214,11 +214,98 @@ class AppLocalizationsEn extends AppLocalizations {
       'The provided credentials do not match the current user.';
 
   @override
-  String get generalError => 'An error occurred while deleting your account';
+  String get generalError => 'An error occurred while deleting your account:';
 
   @override
   String get unexpectedError => 'An unexpected error occurred:';
 
   @override
   String get deleteMyAccount => 'Delete My Account';
+
+  @override
+  String get enterPassword => 'Enter your password to confirm';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get password => 'Password';
+
+  @override
+  String get login => 'Login';
+
+  @override
+  String get or => 'OR';
+
+  @override
+  String get forgotPassword => 'Forgot Password?';
+
+  @override
+  String get noAccount => 'Don\'t have an account?';
+
+  @override
+  String get signUp => 'Sign Up';
+
+  @override
+  String get accountDeleted =>
+      'Account deleted. Please sign up again and verify your email.';
+
+  @override
+  String get invalidCredentials =>
+      'Invalid email or password. Please check your credentials and try again.';
+
+  @override
+  String get invalidEmail => 'Please enter a valid email address.';
+
+  @override
+  String get disabledAccount => 'This account has been disabled.';
+
+  @override
+  String get tooManyRequests =>
+      'Too many failed attempts. Please try again later.';
+
+  @override
+  String get errorOccured => 'An error occurred. Please try again.';
+
+  @override
+  String get passwordResetEmail =>
+      'Password reset email sent. Please check your email.';
+
+  @override
+  String get fullName => 'Full Name';
+
+  @override
+  String get username => 'Username';
+
+  @override
+  String get signUpLongText =>
+      'By signing up, you agree to our AI generated terms of service and Privacy Policy. Learn how we steal your data and sell them to shady multibillion dollar companies ';
+
+  @override
+  String get here => 'here';
+
+  @override
+  String get haveAccount => 'Have an account?';
+
+  @override
+  String get signUpToContinue => 'Sign Up to continue';
+
+  @override
+  String get smallPassword => 'Password must be at least 8 characters long.';
+
+  @override
+  String get emailAlreadyInUse =>
+      'An account with this email already exists. Please try logging in instead.';
+
+  @override
+  String get weakPassword =>
+      'Password is too weak. Please choose a stronger password (at least 8 characters)';
+
+  @override
+  String get operationNotAllowed =>
+      'Email/password accounts are not enabled. Please contact support.';
+
+  @override
+  String get signUpError =>
+      'An error occurred during signup. Please try again.';
 }

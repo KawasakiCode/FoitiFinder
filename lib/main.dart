@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final settings = Provider.of<SettingsProvider>(context);
     return MaterialApp(
-      title: 'My app',
+      title: 'FoitiFinder',
       theme: ThemeData(
         brightness: Brightness.light,
         scaffoldBackgroundColor: Colors.white,
@@ -70,7 +70,6 @@ class MyApp extends StatelessWidget {
               )
             );
           }
-
           if(snapshot.hasData) {
             final user = snapshot.data!;
 
