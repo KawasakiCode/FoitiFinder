@@ -12,14 +12,20 @@ import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 Future<void> main() async {
+  final stopwatch = Stopwatch()..start();
+  print("0ms");
   WidgetsFlutterBinding.ensureInitialized();
+  
   // Initialize Firebase asynchronously without blocking UI
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  final results = await Future.wait([
+    Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    ),
+    SharedPreferences.getInstance(),
+  ]);
+  print("future finished: ${stopwatch.elapsedMilliseconds}");
+  final prefs = results[1] as SharedPreferences;
 
-  //Load user preferences and settings
-  final prefs = await SharedPreferences.getInstance();
   runApp(
     MultiProvider(  
       providers: [

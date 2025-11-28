@@ -24,7 +24,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   List<CardData> cards = [];
   int currentIndex = 0;
   late AnimationController _animationController;
-  Offset _dragOffset = Offset.zero;
+  //Offset _dragOffset = Offset.zero;
+  final ValueNotifier<Offset> _swipeNotifier = ValueNotifier(Offset.zero);
 
   // Track swiped cards for rewind functionality
   List<CardData> swipedCards = [];
@@ -67,6 +68,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     ];
     currentIndex = 0;
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (cards.isNotEmpty) {
+          precacheImage(NetworkImage(cards[0].imageUrl), context);
+        }
+      }
+    );
+
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -82,18 +90,18 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
 //gesture detector functions
   void _onPanUpdate(DragUpdateDetails details) {
-    setState(() {
-      _dragOffset += details.delta;
-    });
+    //setState(() {
+      _swipeNotifier.value += details.delta;
+   //});
   }
 
   void _onPanEnd(DragEndDetails details) {
     final double screenWidth = MediaQuery.of(context).size.width;
-    final double threshold = screenWidth * 0.3; // 30% of screen width
+    final offset = _swipeNotifier.value;
 
-    if (_dragOffset.dx.abs() > threshold) {
+    if (offset.dx.abs() > screenWidth * 0.3) {
       // Swipe threshold met
-      if (_dragOffset.dx > 0) {
+      if (offset.dx > 0) {
         // Swipe right (like)
         _swipeRight();
       } else {
@@ -105,6 +113,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       _resetCard();
     }
   }
+
+//cache image 
+void _precacheNextImage() {
+  if (currentIndex + 1 < cards.length) {
+    precacheImage(NetworkImage(cards[currentIndex + 1].imageUrl), context);
+  }
+}
 
 //swiping functions
   void _swipeRight() {
@@ -130,21 +145,17 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     _animationController.forward().then((_) {
       setState(() {
         currentIndex++;
-        _dragOffset = Offset.zero;
+        _swipeNotifier.value = Offset.zero;
       });
+      _precacheNextImage();
       _animationController.reset();
-      _showSwipeFeedback(
-        isLike,
-        cardName,
-        isSuperLike: isSuperLike,
-      ); // Pass the correct name and super like status
     });
   }
 
 //reset card
   void _resetCard() {
     setState(() {
-      _dragOffset = Offset.zero;
+      _swipeNotifier.value = Offset.zero;
     });
   }
 
@@ -159,32 +170,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         cards.insert(currentIndex, lastSwipedCard);
 
         // Reset drag offset
-        _dragOffset = Offset.zero;
+        _swipeNotifier.value = Offset.zero;
       });
     }
-  }
-
-//show feedback (to be deleted)
-  void _showSwipeFeedback(
-    bool isLike,
-    String cardName, {
-    bool isSuperLike = false,
-  }) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          isSuperLike
-              ? "💙 You super liked $cardName!"
-              : (isLike
-                    ? "❤️ You liked $cardName!"
-                    : "👎 You passed on $cardName"),
-        ),
-        duration: const Duration(seconds: 1),
-        backgroundColor: isSuperLike
-            ? Colors.blue
-            : (isLike ? Colors.green : Colors.red),
-      ),
-    );
   }
 
 //main build function (appbar here)
@@ -259,6 +247,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           i++
         )
           Positioned(
+            key: ValueKey(cards[i].id),
             top: 20 + (i - currentIndex) * 10.0,
             left: 20 + (i - currentIndex) * 5.0,
             right: 20 - (i - currentIndex) * 5.0,
@@ -276,14 +265,18 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           child: GestureDetector(
             onPanUpdate: _onPanUpdate,
             onPanEnd: _onPanEnd,
-            child: Transform.translate(
-              offset: _dragOffset,
-              child: Transform.rotate(
-                angle:
-                    _dragOffset.dx *
-                    0.0025, // Reduced rotation for smoother feel
-                child: _buildCard(cards[currentIndex], true),
-              ),
+            child: ValueListenableBuilder<Offset>(
+              valueListenable: _swipeNotifier,
+              builder: (context, offset, child) {
+                return Transform.translate(
+                offset: offset,
+                child: Transform.rotate(
+                  angle:
+                      offset.dx * 0.0025, // Reduced rotation for smoother feel
+                  child: _buildCard(cards[currentIndex], true),
+                ),
+              );
+              }
             ),
           ),
         ),
@@ -371,7 +364,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             // Swipe indicators (only on top card)
             if (isTop) ...[
               // Like indicator (right swipe) - positioned on LEFT for better visibility
-              if (_dragOffset.dx > 50)
+              if (_swipeNotifier.value.dx > 50)
                 Positioned(
                   top: 50,
                   left: 50,
@@ -399,7 +392,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 ),
 
               // Pass indicator (left swipe) - positioned on RIGHT for better visibility
-              if (_dragOffset.dx < -50)
+              if (_swipeNotifier.value.dx < -50)
                 Positioned(
                   top: 50,
                   right: 50,
