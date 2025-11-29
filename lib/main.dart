@@ -12,8 +12,6 @@ import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 Future<void> main() async {
-  final stopwatch = Stopwatch()..start();
-  print("0ms");
   WidgetsFlutterBinding.ensureInitialized();
   
   // Initialize Firebase asynchronously without blocking UI
@@ -23,7 +21,6 @@ Future<void> main() async {
     ),
     SharedPreferences.getInstance(),
   ]);
-  print("future finished: ${stopwatch.elapsedMilliseconds}");
   final prefs = results[1] as SharedPreferences;
 
   runApp(
