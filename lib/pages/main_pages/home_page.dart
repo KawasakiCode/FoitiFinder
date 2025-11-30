@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../widgets/bottom_navigation_bar.dart' as custom_bottom_nav;
-import '../settings/settings.dart';
+import 'package:foitifinder/widgets/bottom_navigation_bar.dart'
+    as custom_bottom_nav;
+import 'package:foitifinder/pages/settings/settings.dart';
+import 'dart:math';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({
@@ -23,6 +25,10 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   List<CardData> cards = [];
   int currentIndex = 0;
+  final int maxHistory = 5; //how many rewinds until no more
+  final int fetchThreshold = 10; //when 10 cards remain load more
+  final int batchSize = 20; // how many to load at a time
+  bool _isFetching = false;
   late AnimationController _animationController;
   //Offset _dragOffset = Offset.zero;
   final ValueNotifier<Offset> _swipeNotifier = ValueNotifier(Offset.zero);
@@ -30,50 +36,23 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   // Track swiped cards for rewind functionality
   List<CardData> swipedCards = [];
 
-//card creation
+  //card creation
   @override
   void initState() {
     super.initState();
 
     // Initialize sample data
-    cards = [
-      CardData(
-        id: 1,
-        name: "Sarah",
-        age: 25,
-        bio: "Love hiking and coffee ☕",
-        imageUrl: "https://picsum.photos/300/400?random=1",
-      ),
-      CardData(
-        id: 2,
-        name: "Mike",
-        age: 28,
-        bio: "Photography enthusiast 📸",
-        imageUrl: "https://picsum.photos/300/400?random=2",
-      ),
-      CardData(
-        id: 3,
-        name: "Emma",
-        age: 23,
-        bio: "Foodie and traveler ✈️",
-        imageUrl: "https://picsum.photos/300/400?random=3",
-      ),
-      CardData(
-        id: 4,
-        name: "Alex",
-        age: 26,
-        bio: "Music lover 🎵",
-        imageUrl: "https://picsum.photos/300/400?random=4",
-      ),
-    ];
+    cards = _generateMockCards(1, 15);
     currentIndex = 0;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (cards.isNotEmpty) {
-          precacheImage(NetworkImage(cards[0].imageUrl), context);
+      if (cards.isNotEmpty) {
+        precacheImage(NetworkImage(cards[0].imageUrl), context);
+        if (cards.length > 1) {
+          precacheImage(NetworkImage(cards[1].imageUrl), context);
         }
       }
-    );
+    });
 
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 300),
@@ -81,47 +60,87 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
   }
 
-//dispose function
+  //dispose function
   @override
   void dispose() {
     _animationController.dispose();
     super.dispose();
   }
 
-//gesture detector functions
+  //generate infinte random cards to test swipe logic
+  List<CardData> _generateMockCards(int startId, int count) {
+    final Random random = Random();
+    final List<String> names = [
+      "Alex",
+      "Sarah",
+      "Mike",
+      "Emma",
+      "John",
+      "Lisa",
+      "Tom",
+      "Anna",
+    ];
+
+    return List.generate(count, (index) {
+      int id = startId + index;
+      return CardData(
+        id: id,
+        name: names[random.nextInt(names.length)], // e.g. "Sarah #15"
+        age: 18 + random.nextInt(10), // Random age 18-28
+        bio: "This is a bio for user $id generated locally.",
+        // Use random seed to get different images
+        imageUrl: "https://picsum.photos/300/400?random=$id",
+      );
+    });
+  }
+
+  //gesture detector functions
   void _onPanUpdate(DragUpdateDetails details) {
     //setState(() {
-      _swipeNotifier.value += details.delta;
-   //});
+    _swipeNotifier.value += details.delta;
+    //});
   }
 
   void _onPanEnd(DragEndDetails details) {
     final double screenWidth = MediaQuery.of(context).size.width;
     final offset = _swipeNotifier.value;
 
-    if (offset.dx.abs() > screenWidth * 0.3) {
-      // Swipe threshold met
-      if (offset.dx > 0) {
-        // Swipe right (like)
-        _swipeRight();
-      } else {
-        // Swipe left (pass)
-        _swipeLeft();
-      }
+    //get how fast user dragged
+    final velocity = details.velocity.pixelsPerSecond.dx;
+
+    //Distance and speed thresholds for activating swipe left or right
+    final distanceThreshold = screenWidth * 0.2;
+    final velocityThreshold = 1000.0;
+
+    //when to swipe left and right or reset
+    bool isSwipeRight = offset.dx > distanceThreshold;
+    bool isFlickRight = velocity > velocityThreshold && offset.dx > 0;
+    bool isSwipeLeft = offset.dx < -distanceThreshold;
+    bool isFlickLeft = velocity < -velocityThreshold && offset.dx < 0;
+
+    if (isSwipeRight || isFlickRight) {
+      // Swipe threshold or speed threshold met
+      _swipeRight();
+    } else if (isSwipeLeft || isFlickLeft) {
+      // Swipe left
+      _swipeLeft();
     } else {
       // Return to center
       _resetCard();
     }
   }
 
-//cache image 
-void _precacheNextImage() {
-  if (currentIndex + 1 < cards.length) {
-    precacheImage(NetworkImage(cards[currentIndex + 1].imageUrl), context);
+  //cache image
+  void _precacheNextImage() {
+    if (currentIndex + 1 < cards.length) {
+      precacheImage(NetworkImage(cards[currentIndex + 1].imageUrl), context);
+      if (currentIndex + 2 < cards.length) {
+        precacheImage(NetworkImage(cards[currentIndex + 1].imageUrl), context);
+      }
+    }
   }
-}
 
-//swiping functions
+  //swiping functions
   void _swipeRight() {
     final cardName = cards[currentIndex].name; // Store name before animation
     _animateCardOut(1.0, cardName, true);
@@ -132,50 +151,114 @@ void _precacheNextImage() {
     _animateCardOut(-1.0, cardName, false);
   }
 
-//swiping animation
+  //swiping animation
   void _animateCardOut(
     double direction,
     String cardName,
     bool isLike, {
     bool isSuperLike = false,
   }) {
-    // Store the current card in swiped cards list for rewind functionality
-    swipedCards.add(cards[currentIndex]);
+    final startOffset = _swipeNotifier.value;
+    final endOffset = Offset(
+      MediaQuery.of(context).size.width * 1.5 * direction,
+      0,
+    );
 
+    final animation = Tween<Offset>(begin: startOffset, end: endOffset).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+
+    void listener() {
+      _swipeNotifier.value = animation.value;
+    }
+
+    _animationController.addListener(listener);
     _animationController.forward().then((_) {
+      _animationController.removeListener(listener);
+
       setState(() {
         currentIndex++;
         _swipeNotifier.value = Offset.zero;
+
+        //if more than 5 cards are behind delete the first
+        if (currentIndex > maxHistory) {
+          cards.removeAt(0);
+          currentIndex--;
+        }
+
+        //if less than 10 cards are remaining ahead make new
+        int remainingCards = cards.length - currentIndex;
+        if (remainingCards <= fetchThreshold) {
+          _fetchMoreCards();
+        }
       });
       _precacheNextImage();
       _animationController.reset();
     });
   }
 
-//reset card
+  //reset card
   void _resetCard() {
+    final startOffset = _swipeNotifier.value;
+
+    final animation = Tween<Offset>(begin: startOffset, end: Offset.zero)
+        .animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeOutBack,
+          ),
+        );
+
+    void listener() {
+      _swipeNotifier.value = animation.value;
+    }
+
+    _animationController.addListener(listener);
+    _animationController.forward().then((_) {
+      _animationController.removeListener(listener);
+      _animationController.reset();
+    });
+
     setState(() {
       _swipeNotifier.value = Offset.zero;
     });
   }
 
-//rewind function
+  //rewind function
   void _rewindCard() {
-    if (swipedCards.isNotEmpty && currentIndex > 0) {
+    if (currentIndex > 0) {
       setState(() {
         // Get the last swiped card
-        final lastSwipedCard = swipedCards.removeLast();
-
-        // Insert it back at the current position
-        cards.insert(currentIndex, lastSwipedCard);
+        currentIndex--;
 
         // Reset drag offset
         _swipeNotifier.value = Offset.zero;
+        _animationController.reset();
       });
     }
   }
 
-//main build function (appbar here)
+  Future<void> _fetchMoreCards() async {
+    //if the user swipes fast this prevents multiple function calls
+    if (_isFetching) return;
+    _isFetching = true;
+
+    //simulate network delay for test purposes
+    await Future.delayed(const Duration(seconds: 1));
+
+    int lastId = cards.last.id;
+    List<CardData> newBatch = _generateMockCards(lastId + 1, batchSize);
+
+    if (mounted) {
+      setState(() {
+        cards.addAll(newBatch);
+      });
+    }
+
+    _isFetching = false;
+  }
+
+  //main build function (appbar here)
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -190,20 +273,20 @@ void _precacheNextImage() {
               child: Text(widget.title),
             ),
             if (widget.showSettings)
-            IconButton(
-              icon: Image.asset(
-                'assets/icons/settings.png',
-                width: 25,
-                height: 25,
-                key: UniqueKey(),
+              IconButton(
+                icon: Image.asset(
+                  'assets/icons/settings.png',
+                  width: 25,
+                  height: 25,
+                  key: UniqueKey(),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => SettingsPage()),
+                  );
+                },
               ),
-              onPressed: () {
-                Navigator.push(  
-                  context, 
-                  MaterialPageRoute(builder: (context) => SettingsPage())
-                );
-              },
-            ),
           ],
         ),
         bottom: PreferredSize(
@@ -230,13 +313,13 @@ void _precacheNextImage() {
           _buildActionButtons(),
         ],
       ),
-      bottomNavigationBar: widget.showBottomNav ? SafeArea(
-        child: custom_bottom_nav.BottomNavigationBar(),
-      ) : null,
+      bottomNavigationBar: widget.showBottomNav
+          ? SafeArea(child: custom_bottom_nav.BottomNavigationBar())
+          : null,
     );
   }
 
-//build cards function (to be changed to reduce loading time)
+  //build cards function (to be changed to reduce loading time)
   Widget _buildSwipeCards() {
     return Stack(
       children: [
@@ -269,14 +352,15 @@ void _precacheNextImage() {
               valueListenable: _swipeNotifier,
               builder: (context, offset, child) {
                 return Transform.translate(
-                offset: offset,
-                child: Transform.rotate(
-                  angle:
-                      offset.dx * 0.0025, // Reduced rotation for smoother feel
-                  child: _buildCard(cards[currentIndex], true),
-                ),
-              );
-              }
+                  offset: offset,
+                  child: Transform.rotate(
+                    angle:
+                        offset.dx *
+                        0.0025, // Reduced rotation for smoother feel
+                    child: _buildCard(cards[currentIndex], true),
+                  ),
+                );
+              },
             ),
           ),
         ),
@@ -284,7 +368,7 @@ void _precacheNextImage() {
     );
   }
 
-//build top card
+  //build top card
   Widget _buildCard(CardData card, bool isTop) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.6,
@@ -425,7 +509,7 @@ void _precacheNextImage() {
     );
   }
 
-//when cards run out show this function
+  //when cards run out show this function
   Widget _buildNoMoreCards() {
     return const Center(
       child: Column(
@@ -447,7 +531,7 @@ void _precacheNextImage() {
     );
   }
 
-//build the buttons under the cards
+  //build the buttons under the cards
   Widget _buildActionButtons() {
     // Show rewind button even when no more cards if we have swiped cards
     if (currentIndex >= cards.length && swipedCards.isEmpty) {
@@ -466,13 +550,20 @@ void _precacheNextImage() {
             height: 45,
             child: FloatingActionButton(
               heroTag: null,
-              onPressed: swipedCards.isNotEmpty ? _rewindCard : null,
+              onPressed: (currentIndex > 0)
+                  ? _rewindCard
+                  : () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Cannot rewind further"),
+                        duration: Duration(seconds: 1)),
+                      );
+                    },
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(30),
               ),
               child: Icon(
                 Icons.replay,
-                color: swipedCards.isNotEmpty
+                color: (currentIndex > 0)
                     ? Colors.orange
                     : Color.fromARGB(255, 49, 49, 49),
                 size: 25,

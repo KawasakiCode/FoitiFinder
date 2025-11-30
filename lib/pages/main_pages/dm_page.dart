@@ -23,7 +23,6 @@ class _DMPageState extends State<DMPage> {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ),
-            Image.asset('assets/icons/edit.png', width: 25, height: 25),
           ],
         ),
       ),

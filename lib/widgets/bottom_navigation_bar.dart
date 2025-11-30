@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import '../pages/main_pages/dm_page.dart';
-import '../pages/main_pages/search_page.dart';
-import '../pages/main_pages/home_page.dart';
-import '../pages/main_pages/profile_page.dart';
+import 'package:foitifinder/pages/main_pages/dm_page.dart';
+import 'package:foitifinder/pages/main_pages/search_page.dart';
+import 'package:foitifinder/pages/main_pages/home_page.dart';
+import 'package:foitifinder/pages/main_pages/profile_page.dart';
+import 'package:foitifinder/pages/main_pages/likes.dart';
 
 class BottomNavigationBar extends StatelessWidget {
   const BottomNavigationBar({super.key});
@@ -51,7 +52,12 @@ class BottomNavigationBar extends StatelessWidget {
                 height: 35,
                 key: UniqueKey(),
               ),
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => LikesPage()),
+                );
+              },
             ),
             IconButton(
               icon: Image.asset(
