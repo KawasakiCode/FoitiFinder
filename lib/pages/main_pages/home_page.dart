@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:foitifinder/widgets/bottom_navigation_bar.dart'
-    as custom_bottom_nav;
+import 'package:foitifinder/widgets/bottom_navigation_bar.dart' as custom_bottom_nav;
 import 'package:foitifinder/pages/settings/settings.dart';
 import 'dart:math';
+import 'package:foitifinder/l10n/app_localizations.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({
@@ -533,6 +533,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   //build the buttons under the cards
   Widget _buildActionButtons() {
+    final text = AppLocalizations.of(context)!;
     // Show rewind button even when no more cards if we have swiped cards
     if (currentIndex >= cards.length && swipedCards.isEmpty) {
       //aka render nothing so there are no buttons
@@ -554,7 +555,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   ? _rewindCard
                   : () {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Cannot rewind further"),
+                        SnackBar(content: Text(text.cannotRewind),
                         duration: Duration(seconds: 1)),
                       );
                     },

@@ -329,4 +329,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get backToLogin => 'Back to login';
+
+  @override
+  String get cannotRewind => 'Cannot rewind further';
 }

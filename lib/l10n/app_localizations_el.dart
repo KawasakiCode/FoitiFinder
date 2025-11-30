@@ -334,4 +334,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get backToLogin => 'Επιστροφή στη σύνδεση';
+
+  @override
+  String get cannotRewind => 'Αδυναμία επαναφοράς';
 }

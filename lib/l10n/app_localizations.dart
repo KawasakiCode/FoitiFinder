@@ -697,6 +697,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back to login'**
   String get backToLogin;
+
+  /// No description provided for @cannotRewind.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot rewind further'**
+  String get cannotRewind;
 }
 
 class _AppLocalizationsDelegate

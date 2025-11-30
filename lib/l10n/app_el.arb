@@ -98,5 +98,6 @@
   "snackbarSuccessVerifyEmail": "Το email επαλήθευσης στάλθηκε με επιτυχία!",
   "snackbarFailedVerifyEmail": "Απέτυχε η αποστολή του email επαλήθευσης. Παρακαλώ δοκιμάστε ξανά.",
   "sentVerificationEmail": "Στάλθηκε Email Επαλήθευσης",
-  "backToLogin": "Επιστροφή στη σύνδεση"
+  "backToLogin": "Επιστροφή στη σύνδεση",
+  "cannotRewind": "Αδυναμία επαναφοράς"
 }
