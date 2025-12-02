@@ -319,52 +319,63 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
   }
 
-  //build cards function (to be changed to reduce loading time)
+  //build cards function
   Widget _buildSwipeCards() {
-    return Stack(
-      children: [
-        // Background cards (stacked behind)
-        for (
-          int i = currentIndex + 1;
-          i < cards.length && i < currentIndex + 2;
-          i++
-        )
-          Positioned(
-            key: ValueKey(cards[i].id),
-            top: 20 + (i - currentIndex) * 10.0,
-            left: 20 + (i - currentIndex) * 5.0,
-            right: 20 - (i - currentIndex) * 5.0,
-            child: Transform.scale(
-              scale: 1.0 - (i - currentIndex) * 0.05,
-              child: _buildCard(cards[i], false),
+    return ValueListenableBuilder<Offset>(
+      valueListenable: _swipeNotifier,
+      builder: (context, offset, child) {
+        final double screenWidth = MediaQuery.of(context).size.width;
+        final double dragDistance = offset.dx.abs();
+        final double ratio = (dragDistance / screenWidth).clamp(0.0, 1.0);
+        int relativeIndex = currentIndex - 1;
+        double verticalOffset = relativeIndex * 10.0;
+        double horizontalOffset = relativeIndex * 5.0;
+        return Stack(
+          children: [
+            // Background cards (stacked behind)
+            for (
+              int i = currentIndex + 1;
+              i < cards.length && i < currentIndex + 2;
+              i++
+            )
+              Positioned(
+                key: ValueKey(cards[i].id),
+                top: 20 + verticalOffset - (ratio * 10.0),
+                left: 20 + horizontalOffset - (ratio * 5.0),
+                right: 20 + horizontalOffset - (ratio * 5.0),
+                child: Transform.scale(
+                  scale: (1.0 - (relativeIndex * 0.05)) + (ratio * 0.05),
+                  child: _buildCard(cards[i], false),
+                ),
+              ),
+        
+            // Current card (top)
+            Positioned(
+              top: 20,
+              left: 20,
+              right: 20,
+              child: GestureDetector(
+                onPanUpdate: _onPanUpdate,
+                onPanEnd: _onPanEnd,
+                child: ValueListenableBuilder<Offset>(
+                  valueListenable: _swipeNotifier,
+                  builder: (context, offset, child) {
+                    return Transform.translate(
+                      offset: offset,
+                      child: Transform.rotate(
+                        angle:
+                            offset.dx *
+                            0.0025, // Reduced rotation for smoother feel
+                        child: _buildCard(cards[currentIndex], true),
+                      ),
+                    );
+                  },
+                ),
+              ),
             ),
-          ),
-
-        // Current card (top)
-        Positioned(
-          top: 20,
-          left: 20,
-          right: 20,
-          child: GestureDetector(
-            onPanUpdate: _onPanUpdate,
-            onPanEnd: _onPanEnd,
-            child: ValueListenableBuilder<Offset>(
-              valueListenable: _swipeNotifier,
-              builder: (context, offset, child) {
-                return Transform.translate(
-                  offset: offset,
-                  child: Transform.rotate(
-                    angle:
-                        offset.dx *
-                        0.0025, // Reduced rotation for smoother feel
-                    child: _buildCard(cards[currentIndex], true),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-      ],
+          ],
+        );
+      }
     );
   }
 
