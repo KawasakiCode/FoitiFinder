@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:foitifinder/widgets/bottom_navigation_bar.dart' as custom_bottom_nav;
+import 'package:foitifinder/widgets/bottom_navigation_bar.dart'
+    as custom_bottom_nav;
 import 'package:foitifinder/pages/settings/settings.dart';
 import 'dart:math';
 import 'package:foitifinder/l10n/app_localizations.dart';
@@ -289,28 +290,32 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               ),
           ],
         ),
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(1.5),
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: const Color.fromARGB(255, 88, 88, 88),
-                  width: 1.5,
-                ),
-              ),
-            ),
-          ),
-        ),
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: cards.isNotEmpty && currentIndex < cards.length
-                ? _buildSwipeCards()
-                : _buildNoMoreCards(),
+          Column(children: [
+            Expanded(  
+              flex: 1,
+              child: Container(color: Theme.of(context).appBarTheme.backgroundColor ?? Theme.of(context).colorScheme.surface),
+              ),
+              Expanded(
+                flex: 1,  
+                child: Container(  
+                color: Colors.grey[900]!,
+                )
+              )
+          ]
           ),
-          _buildActionButtons(),
+          Column(
+            children: [
+              Expanded(
+                child: cards.isNotEmpty && currentIndex < cards.length
+                    ? _buildSwipeCards()
+                    : _buildNoMoreCards(),
+              ),
+              _buildActionButtons(),
+            ],
+          ),
         ],
       ),
       bottomNavigationBar: widget.showBottomNav
@@ -327,9 +332,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         final double screenWidth = MediaQuery.of(context).size.width;
         final double dragDistance = offset.dx.abs();
         final double ratio = (dragDistance / screenWidth).clamp(0.0, 1.0);
-        int relativeIndex = currentIndex - 1;
-        double verticalOffset = relativeIndex * 10.0;
-        double horizontalOffset = relativeIndex * 5.0;
+        final double bgRatio = (ratio * 5.0).clamp(0.0, 1.0);
         return Stack(
           children: [
             // Background cards (stacked behind)
@@ -337,23 +340,25 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               int i = currentIndex + 1;
               i < cards.length && i < currentIndex + 2;
               i++
-            )
+            ) ...[
               Positioned(
                 key: ValueKey(cards[i].id),
-                top: 20 + verticalOffset - (ratio * 10.0),
-                left: 20 + horizontalOffset - (ratio * 5.0),
-                right: 20 + horizontalOffset - (ratio * 5.0),
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
                 child: Transform.scale(
-                  scale: (1.0 - (relativeIndex * 0.05)) + (ratio * 0.05),
+                  scale: (1.0 - (((i - currentIndex)) * 0.05)) + (bgRatio * 0.05),
                   child: _buildCard(cards[i], false),
                 ),
               ),
-        
+            ],
             // Current card (top)
             Positioned(
-              top: 20,
-              left: 20,
-              right: 20,
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
               child: GestureDetector(
                 onPanUpdate: _onPanUpdate,
                 onPanEnd: _onPanEnd,
@@ -375,23 +380,15 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             ),
           ],
         );
-      }
+      },
     );
   }
 
   //build top card
   Widget _buildCard(CardData card, bool isTop) {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.6,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
@@ -566,8 +563,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   ? _rewindCard
                   : () {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(text.cannotRewind),
-                        duration: Duration(seconds: 1)),
+                        SnackBar(
+                          content: Text(text.cannotRewind),
+                          duration: Duration(seconds: 1),
+                        ),
                       );
                     },
               shape: RoundedRectangleBorder(
