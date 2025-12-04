@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:foitifinder/widgets/bottom_navigation_bar.dart' as custom_bottom_nav;
 
 class LikesPage extends StatefulWidget{
   const LikesPage({super.key});
@@ -16,9 +15,6 @@ class _LikesPage extends State<LikesPage>{
         automaticallyImplyLeading: true,
         title: Text("FoitiFinder"),
       ),
-      bottomNavigationBar: SafeArea(
-        child: custom_bottom_nav.BottomNavigationBar(),
-      )
     );
   }
 }

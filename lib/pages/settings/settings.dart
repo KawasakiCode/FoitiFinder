@@ -7,6 +7,7 @@ import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:provider/provider.dart';
 import 'delete_account_page.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:foitifinder/widgets/delayed_inkwell.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -53,7 +54,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
+              padding: const EdgeInsets.only(left: 15, right: 15, top:20),
               child: Material(
                 color: Colors.transparent,
                 shape: RoundedRectangleBorder(
@@ -63,8 +64,6 @@ class _SettingsPageState extends State<SettingsPage> {
                 clipBehavior: Clip.antiAlias,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(10),
-                  splashColor: const Color.fromARGB(59, 70, 70, 70),
-                  highlightColor: const Color.fromARGB(26, 31, 31, 31),
                   onTap: _navigateToAddPhone,
                   child: Padding(
                     padding: const EdgeInsets.only(
@@ -139,8 +138,6 @@ class _SettingsPageState extends State<SettingsPage> {
                 clipBehavior: Clip.antiAlias,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(10),
-                  splashColor: const Color.fromARGB(59, 70, 70, 70),
-                  highlightColor: const Color.fromARGB(26, 31, 31, 31),
                   onTap: () {
                     Navigator.push(
                       context,
@@ -280,13 +277,13 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    InkWell(
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(10),
-                      ),
-                      splashColor: const Color.fromARGB(59, 70, 70, 70),
-                      highlightColor: const Color.fromARGB(26, 31, 31, 31),
-                      onTap: () {settings.changeRecommendationPreference(RecommendationPreference.balanced);},
+                    DelayedInkWell(
+                      //borderRadius: const BorderRadius.vertical(
+                        //top: Radius.circular(10),
+                      //),
+                      delayMs: 170,
+                      onTap: () async {
+                        settings.changeRecommendationPreference(RecommendationPreference.balanced);},
                       child: Padding(
                         padding: const EdgeInsets.only(
                           top: 10,
@@ -331,12 +328,8 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                     ),
                     const Divider(height: 1, thickness: 1, color: Colors.grey),
-                    InkWell(
-                      borderRadius: const BorderRadius.vertical(
-                        bottom: Radius.circular(10),
-                      ),
-                      splashColor: const Color.fromARGB(59, 70, 70, 70),
-                      highlightColor: const Color.fromARGB(26, 31, 31, 31),
+                    DelayedInkWell(
+                      delayMs: 170,
                       onTap: () {settings.changeRecommendationPreference(RecommendationPreference.recentlyActive);},
                       child: Padding(
                         padding: const EdgeInsets.only(
@@ -508,12 +501,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    InkWell(
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(10),
-                      ),
-                      splashColor: const Color.fromARGB(59, 70, 70, 70),
-                      highlightColor: const Color.fromARGB(26, 31, 31, 31),
+                    DelayedInkWell(
+                      delayMs: 170,
                       onTap: () {settings.changeLanguage('el');},
                       child: Padding(
                         padding: const EdgeInsets.only(
@@ -551,12 +540,8 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                     ),
                     const Divider(height: 1, thickness: 1, color: Colors.grey),
-                    InkWell(
-                      borderRadius: const BorderRadius.vertical(
-                        bottom: Radius.circular(10),
-                      ),
-                      splashColor: const Color.fromARGB(59, 70, 70, 70),
-                      highlightColor: const Color.fromARGB(26, 31, 31, 31),
+                    DelayedInkWell(
+                      delayMs: 170,
                       onTap: () {settings.changeLanguage('en');},
                       child: Padding(
                         padding: const EdgeInsets.only(
@@ -620,12 +605,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    InkWell(
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(10),
-                      ),
-                      splashColor: const Color.fromARGB(59, 70, 70, 70),
-                      highlightColor: const Color.fromARGB(26, 31, 31, 31),
+                    DelayedInkWell(
+                      delayMs: 150,
                       onTap: () async {
                         final url = Uri.parse('https://google.com');
                         if (await canLaunchUrl(url)) {
@@ -658,12 +639,9 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                       ),
                     ),
-                    InkWell(
-                      borderRadius: const BorderRadius.vertical(
-                        bottom: Radius.circular(10),
-                      ),
-                      splashColor: const Color.fromARGB(59, 70, 70, 70),
-                      highlightColor: const Color.fromARGB(26, 31, 31, 31),
+                    const Divider(height: 1, thickness: 1, color: Colors.grey),
+                    DelayedInkWell(
+                      delayMs: 150,
                       onTap: () async {
                         final url = Uri.parse('https://google.com');
                         if (await canLaunchUrl(url)) {
@@ -723,12 +701,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    InkWell(
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(10),
-                      ),
-                      splashColor: const Color.fromARGB(59, 70, 70, 70),
-                      highlightColor: const Color.fromARGB(26, 31, 31, 31),
+                    DelayedInkWell(
+                      delayMs: 150,
                       onTap: () async {
                         final url = Uri.parse('https://google.com');
                         if (await canLaunchUrl(url)) {
@@ -761,12 +735,9 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                       ),
                     ),
-                    InkWell(
-                      borderRadius: const BorderRadius.vertical(
-                        bottom: Radius.circular(10),
-                      ),
-                      splashColor: const Color.fromARGB(59, 70, 70, 70),
-                      highlightColor: const Color.fromARGB(26, 31, 31, 31),
+                    const Divider(height: 1, thickness: 1, color: Colors.grey),
+                    DelayedInkWell(
+                      delayMs: 150,
                       onTap: () async {
                         final url = Uri.parse('https://google.com');
                         if (await canLaunchUrl(url)) {
@@ -817,7 +788,7 @@ class _SettingsPageState extends State<SettingsPage> {
             Padding(
               padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
               child: Material(
-                color: Colors.transparent,
+                color: Theme.of(context).scaffoldBackgroundColor,
                 shape: RoundedRectangleBorder(
                   side: const BorderSide(color: Colors.grey, width: 1),
                   borderRadius: BorderRadius.circular(10),
@@ -830,8 +801,6 @@ class _SettingsPageState extends State<SettingsPage> {
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(10),
                       ),
-                      splashColor: const Color.fromARGB(59, 70, 70, 70),
-                      highlightColor: const Color.fromARGB(26, 31, 31, 31),
                       onTap: () async {
                         final url = Uri.parse('https://google.com');
                         if (await canLaunchUrl(url)) {

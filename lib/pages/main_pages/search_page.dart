@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:foitifinder/widgets/bottom_navigation_bar.dart' as custom_bottom_nav;
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'home_page.dart';
 
@@ -175,9 +174,6 @@ class _SearchPageState extends State<SearchPage> {
             ),
           ],
         ),
-      ),
-      bottomNavigationBar: SafeArea(
-        child: custom_bottom_nav.BottomNavigationBar(),
       ),
     );
   }

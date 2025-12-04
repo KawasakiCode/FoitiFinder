@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:foitifinder/widgets/bottom_navigation_bar.dart' as custom_bottom_nav;
 import 'package:foitifinder/l10n/app_localizations.dart';
 
 class DMPage extends StatefulWidget {
@@ -151,9 +150,6 @@ class _DMPageState extends State<DMPage> {
             ),
           ),
         ],
-      ),
-      bottomNavigationBar: SafeArea(
-        child: custom_bottom_nav.BottomNavigationBar(),
       ),
     );
   }

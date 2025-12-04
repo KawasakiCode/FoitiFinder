@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:foitifinder/widgets/bottom_navigation_bar.dart'
-    as custom_bottom_nav;
 import 'package:foitifinder/pages/settings/settings.dart';
 import 'dart:math';
 import 'package:foitifinder/l10n/app_localizations.dart';
@@ -318,9 +316,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           ),
         ],
       ),
-      bottomNavigationBar: widget.showBottomNav
-          ? SafeArea(child: custom_bottom_nav.BottomNavigationBar())
-          : null,
     );
   }
 

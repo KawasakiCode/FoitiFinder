@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/main_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 import 'pages/auth_pages/login.dart';
 import 'pages/auth_pages/verify_email.dart';
-import 'pages/main_pages/home_page.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -42,11 +42,17 @@ class MyApp extends StatelessWidget {
       title: 'FoitiFinder',
       theme: ThemeData(
         brightness: Brightness.light,
+        splashFactory: InkRipple.splashFactory,
         scaffoldBackgroundColor: Colors.white,
+        splashColor: const Color.fromARGB(59, 70, 70, 70),
+        highlightColor: const Color.fromARGB(26, 31, 31, 31),
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
         scaffoldBackgroundColor: Colors.grey[900],
+        splashFactory: InkRipple.splashFactory,
+        highlightColor: Colors.white.withValues(alpha: 0.1),
+        splashColor: Colors.white.withValues(alpha: 0.1),
         floatingActionButtonTheme: FloatingActionButtonThemeData(
           backgroundColor: Color.fromARGB(255, 88, 88, 88),
         ),
@@ -77,7 +83,7 @@ class MyApp extends StatelessWidget {
             final user = snapshot.data!;
 
             if(user.emailVerified)  {
-              return const MyHomePage();
+              return const MainScreen();
             } else {
               return const VerifyEmail();
             }

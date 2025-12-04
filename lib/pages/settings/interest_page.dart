@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:provider/provider.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/widgets/delayed_inkwell.dart';
 
 Set<String> _selectedInterests = {};
 
@@ -38,7 +39,7 @@ class _InterestPageState extends State<InterestPage> {
               padding: const EdgeInsets.only(left: 15),
               child: Text(text.selectInterests, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
             ),
-            Padding(
+              Padding(
                 padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
                 child: Material(
                   color: Colors.transparent,
@@ -47,10 +48,8 @@ class _InterestPageState extends State<InterestPage> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   clipBehavior: Clip.antiAlias,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(10),
-                    splashColor: const Color.fromARGB(59, 70, 70, 70),
-                    highlightColor: const Color.fromARGB(26, 31, 31, 31),
+                  child: DelayedInkWell(
+                    delayMs: 170,
                     onTap: () => settings.addRemoveInterests("Men"),
                     child: Padding(
                       padding: const EdgeInsets.only(
@@ -92,10 +91,8 @@ class _InterestPageState extends State<InterestPage> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   clipBehavior: Clip.antiAlias,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(10),
-                    splashColor: const Color.fromARGB(59, 70, 70, 70),
-                    highlightColor: const Color.fromARGB(26, 31, 31, 31),
+                  child: DelayedInkWell(
+                    delayMs: 170,
                     onTap: () => settings.addRemoveInterests("Women"),
                     child: Padding(
                       padding: const EdgeInsets.only(
@@ -137,10 +134,8 @@ class _InterestPageState extends State<InterestPage> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   clipBehavior: Clip.antiAlias,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(10),
-                    splashColor: const Color.fromARGB(59, 70, 70, 70),
-                    highlightColor: const Color.fromARGB(26, 31, 31, 31),
+                  child: DelayedInkWell(
+                    delayMs: 170,
                     onTap: () => settings.addRemoveInterests("Everyone"),
                     child: Padding(
                       padding: const EdgeInsets.only(

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -67,6 +68,17 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   Future<void> _loadAsyncSettings() async {
+    bool diskVerified = _prefs.getBool('isPhoneVerified') ?? false;
+    final user = FirebaseAuth.instance.currentUser;
+    bool cloudVerified = user?.phoneNumber != null && user!.phoneNumber!.isNotEmpty;
+
+    if(cloudVerified) {
+      _isPhoneVerified = true;
+      if(!diskVerified) {
+        await _prefs.setBool('isPhoneVerified', true);
+      }
+    }
+
     bool pushNotifications = _prefs.getBool('notifications_enabled') ?? false;
     try{
       FirebaseMessaging messaging = FirebaseMessaging.instance;
