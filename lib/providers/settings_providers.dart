@@ -10,7 +10,7 @@ class SettingsProvider extends ChangeNotifier {
 
   SettingsProvider(this._prefs) {
     _loadInstantSettings();
-    _loadAsyncSettings();
+    loadAsyncSettings();
   }
 
   //State variables (private)
@@ -67,11 +67,10 @@ class SettingsProvider extends ChangeNotifier {
     _locale = Locale(langCode);
   }
 
-  Future<void> _loadAsyncSettings() async {
+  Future<void> loadAsyncSettings() async {
     bool diskVerified = _prefs.getBool('isPhoneVerified') ?? false;
     final user = FirebaseAuth.instance.currentUser;
     bool cloudVerified = user?.phoneNumber != null && user!.phoneNumber!.isNotEmpty;
-
     if(cloudVerified) {
       _isPhoneVerified = true;
       if(!diskVerified) {
@@ -164,6 +163,7 @@ class SettingsProvider extends ChangeNotifier {
 
   //split range values to save them to disk
   void saveAgeRange(RangeValues values) {
+    _ageRange = values;
     _prefs.setInt('min_age', values.start.round());
     _prefs.setInt('max_age', values.end.round());
     notifyListeners();

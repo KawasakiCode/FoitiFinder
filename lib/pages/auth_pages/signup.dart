@@ -138,6 +138,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                     ),
                                   ],
                                 ),
+                                //email field
                                 TextFormField(
                                   decoration: InputDecoration(
                                     hintText: text.email,
@@ -152,6 +153,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                   autocorrect: false,
                                   enableSuggestions: false,
                                 ),
+                                //password field
                                 Padding(
                                   padding: const EdgeInsets.only(top: 8),
                                   child: StatefulBuilder(
@@ -197,6 +199,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                 }
                               ),
                                 ),
+                                //full name field
                                 Padding(
                                   padding: const EdgeInsets.only(top: 8),
                                   child: TextFormField(
@@ -211,6 +214,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                     controller: _fullName,
                                   ),
                                 ),
+                                //username field
                                 Padding(
                                   padding: const EdgeInsets.only(
                                     top: 8,
@@ -228,6 +232,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                     controller: _username,
                                   ),
                                 ),
+                                //sign up long text
                                 RichText(
                                   text: TextSpan(
                                     style: TextStyle(
@@ -250,6 +255,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                     ],
                                   ),
                                 ),
+                                //sign up button
                                 Padding(
                                   padding: const EdgeInsets.only(top: 10),
                                   child: SizedBox(

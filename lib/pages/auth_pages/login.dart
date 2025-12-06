@@ -2,9 +2,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/firebase_options.dart';
+import 'package:foitifinder/main_screen.dart';
 import 'package:foitifinder/pages/auth_pages/signup.dart';
-import 'package:foitifinder/pages/main_pages/home_page.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/providers/settings_providers.dart';
+import 'package:provider/provider.dart';
+import 'package:foitifinder/pages/auth_pages/verify_email.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -30,6 +33,97 @@ class _LoginPageState extends State<LoginPage> {
     _email.dispose();
     _password.dispose();
     super.dispose();
+  }
+
+  void _login() async {
+    final text = AppLocalizations.of(context)!;
+    final email = _email.text;
+    final password = _password.text;
+
+    try {
+      final userCredential = await FirebaseAuth.instance
+      .signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      
+      // Check if email is verified
+      if (userCredential.user != null && !userCredential.user!.emailVerified) {
+        //warn for pending verificaton
+        if(!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Please verify your email before logging in"),
+              backgroundColor: Colors.orange,
+            )
+          );
+        if (mounted) {
+          //Redirect to Verify Page
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const VerifyEmail()),
+          );
+        }
+      
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(text.accountDeleted),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 4),
+          ),
+        );
+        return;
+      }                                    
+      // Clear navigation stack and navigate to home page
+      if(mounted)return;
+      await Provider.of<SettingsProvider>(context, listen: false).loadAsyncSettings();
+      if(mounted)return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => MainScreen()),
+        (route) => false, // This removes all previous routes
+      );
+      
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+      
+      switch (e.code) {
+        case 'invalid-credential':
+          errorMessage = text.invalidCredentials;
+          break;
+        case 'invalid-email':
+          errorMessage = text.invalidEmail;
+          break;
+        case 'user-disabled':
+          errorMessage = text.disabledAccount;
+          break;
+        case 'too-many-requests':
+          errorMessage = text.tooManyRequests;
+          break;
+        default:
+          errorMessage = text.errorOccured;
+      }
+      
+      // Show error message to user
+      if(!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    } catch (e) {
+      // Handle other types of errors
+      if(!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text.unexpectedError),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   @override
@@ -139,82 +233,7 @@ class _LoginPageState extends State<LoginPage> {
                                 SizedBox(
                                   width: double.infinity,
                                   child: TextButton(
-                                    onPressed: () async {
-                                      final email = _email.text;
-                                      final password = _password.text;
-
-                                      try {
-                                        final userCredential = await FirebaseAuth.instance
-                                        .signInWithEmailAndPassword(
-                                          email: email,
-                                          password: password,
-                                        );
-                                        
-                                        // Check if email is verified
-                                        if (userCredential.user != null && !userCredential.user!.emailVerified) {
-                                          // Delete the unverified account
-                                          await userCredential.user!.delete();
-                                          
-                                          if(!context.mounted) return;
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text(text.accountDeleted),
-                                              backgroundColor: Colors.orange,
-                                              duration: Duration(seconds: 4),
-                                            ),
-                                          );
-                                          return;
-                                        }                                    
-                                        // Clear navigation stack and navigate to home page
-                                        if(!context.mounted) return;
-                                        Navigator.pushAndRemoveUntil(
-                                          context,
-                                          MaterialPageRoute(builder: (context) => MyHomePage()),
-                                          (route) => false, // This removes all previous routes
-                                        );
-                                        
-                                      } on FirebaseAuthException catch (e) {
-                                        String errorMessage;
-                                        
-                                        switch (e.code) {
-                                          case 'invalid-credential':
-                                            errorMessage = text.invalidCredentials;
-                                            break;
-                                          case 'invalid-email':
-                                            errorMessage = text.invalidEmail;
-                                            break;
-                                          case 'user-disabled':
-                                            errorMessage = text.disabledAccount;
-                                            break;
-                                          case 'too-many-requests':
-                                            errorMessage = text.tooManyRequests;
-                                            break;
-                                          default:
-                                            errorMessage = text.errorOccured;
-                                        }
-                                        
-                                        // Show error message to user
-                                        if(!mounted) return;
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text(errorMessage),
-                                            backgroundColor: Colors.red,
-                                            duration: Duration(seconds: 3),
-                                          ),
-                                        );
-                                      } catch (e) {
-                                        // Handle other types of errors
-                                        if(!mounted) return;
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text(text.unexpectedError),
-                                            backgroundColor: Colors.red,
-                                            duration: Duration(seconds: 3),
-                                          ),
-                                        );
-                                      }
-                                      
-                                    },
+                                    onPressed: () => _login,
                                     style: TextButton.styleFrom(
                                       backgroundColor: const Color.fromARGB(
                                         255,

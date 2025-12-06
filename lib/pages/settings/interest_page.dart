@@ -36,7 +36,7 @@ class _InterestPageState extends State<InterestPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.only(left: 15),
+              padding: const EdgeInsets.only(left: 15, top: 10),
               child: Text(text.selectInterests, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
             ),
               Padding(

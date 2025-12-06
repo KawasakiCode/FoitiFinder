@@ -29,6 +29,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   final int batchSize = 20; // how many to load at a time
   bool _isFetching = false;
   late AnimationController _animationController;
+  //location of where the finger tapped the screen
+  double _tapPositionY = 0;
   //Offset _dragOffset = Offset.zero;
   final ValueNotifier<Offset> _swipeNotifier = ValueNotifier(Offset.zero);
 
@@ -129,6 +131,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
   }
 
+  void _onPanStart(DragStartDetails details) {
+    _tapPositionY = details.localPosition.dy;
+  }
   //cache image
   void _precacheNextImage() {
     if (currentIndex + 1 < cards.length) {
@@ -291,19 +296,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       ),
       body: Stack(
         children: [
-          Column(children: [
-            Expanded(  
-              flex: 1,
-              child: Container(color: Theme.of(context).appBarTheme.backgroundColor ?? Theme.of(context).colorScheme.surface),
-              ),
-              Expanded(
-                flex: 1,  
-                child: Container(  
-                color: Colors.grey[900]!,
-                )
-              )
-          ]
-          ),
           Column(
             children: [
               Expanded(
@@ -324,10 +316,20 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     return ValueListenableBuilder<Offset>(
       valueListenable: _swipeNotifier,
       builder: (context, offset, child) {
+        //screen size
         final double screenWidth = MediaQuery.of(context).size.width;
+        final double screenHeight = MediaQuery.of(context).size.height;
+        final double centerPoint = screenHeight / 3;
+
+        //offset and ratio for animations
         final double dragDistance = offset.dx.abs();
         final double ratio = (dragDistance / screenWidth).clamp(0.0, 1.0);
         final double bgRatio = (ratio * 5.0).clamp(0.0, 1.0);
+        
+        //rotation direction
+        final double rotationDirection = _tapPositionY > centerPoint ? -1.0 : 1.0;
+        final double angle = (offset.dx * 0.001) * rotationDirection;
+
         return Stack(
           children: [
             // Background cards (stacked behind)
@@ -357,15 +359,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               child: GestureDetector(
                 onPanUpdate: _onPanUpdate,
                 onPanEnd: _onPanEnd,
+                onPanStart: _onPanStart,
                 child: ValueListenableBuilder<Offset>(
                   valueListenable: _swipeNotifier,
                   builder: (context, offset, child) {
                     return Transform.translate(
                       offset: offset,
                       child: Transform.rotate(
-                        angle:
-                            offset.dx *
-                            0.0025, // Reduced rotation for smoother feel
+                        angle: angle, // Reduced rotation for smoother feel
                         child: _buildCard(cards[currentIndex], true),
                       ),
                     );
@@ -456,25 +457,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   top: 50,
                   left: 50,
                   child: Transform.rotate(
-                    angle: 0.3,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.green, width: 4),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Text(
-                        'LIKE',
-                        style: TextStyle(
-                          color: Colors.green,
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
+                    angle: -0.3,
+                    child: const Icon(Icons.favorite, color: Colors.green, size: 100),
                   ),
                 ),
 
@@ -484,25 +468,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   top: 50,
                   right: 50,
                   child: Transform.rotate(
-                    angle: -0.3,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.red, width: 4),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Text(
-                        'PASS',
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
+                    angle: 0.3,
+                    child: const Icon(Icons.close, color: Colors.red, size: 100),
                   ),
                 ),
             ],
@@ -582,7 +549,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             // Pass button
             FloatingActionButton(
               heroTag: null,
-              onPressed: () => _swipeLeft(),
+              onPressed: () {
+                _tapPositionY = 0;
+                _swipeLeft();
+              },
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(30),
               ),
@@ -614,7 +584,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             // Like button
             FloatingActionButton(
               heroTag: null,
-              onPressed: () => _swipeRight(),
+              onPressed: () {
+                _tapPositionY = 0;
+                _swipeRight();
+              },
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(30),
               ),
