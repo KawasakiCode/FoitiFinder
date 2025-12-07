@@ -56,100 +56,171 @@ class MyApp extends StatelessWidget {
     final settings = Provider.of<SettingsProvider>(context);
     return MaterialApp(
       title: 'FoitiFinder',
+      //LIGHT THEME
       theme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.light,
         scaffoldBackgroundColor: kLightBackground,
-        //for inkwells
-        splashFactory: InkRipple.splashFactory,
-        splashColor: const Color.fromARGB(59, 70, 70, 70),
-        highlightColor: const Color.fromARGB(26, 31, 31, 31),
-        //colorScheme
-        colorScheme: const ColorScheme.light(  
+        
+        // 1. GLOBAL COLORS
+        colorScheme: const ColorScheme.light(
           primary: kBrandPurple,
-          onPrimary: Colors.white,
-
-          secondary: Colors.teal,
-          onSecondary: Colors.white,
-
           surface: kLightSurface,
-          onSurface: kLightTextPrimary,
-
-          error: Colors.redAccent,
-          onError: Colors.white,
+          onSurface: Colors.black,
+          outline: Colors.grey, // Fixes default border colors
         ),
 
-        //text theme
-        textTheme: const TextTheme(  
-          bodyMedium: TextStyle(color: kLightTextPrimary), // Default text
-          bodySmall: TextStyle(color: kLightTextSecondary), // Subtle text
-          titleLarge: TextStyle(color: kLightTextPrimary, fontWeight: FontWeight.bold),
+        // 2. SWITCHES (Crisp Purple)
+        switchTheme: SwitchThemeData(
+          // 1. THUMB: White when ON, Dark Grey when OFF (High contrast)
+          thumbColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains( WidgetState.selected)) return Colors.white;
+            return Colors.grey[600]; // Darker grey thumb for visibility
+          }),
+          
+          // 2. TRACK: Purple when ON, Mid-Grey when OFF (Fixes "Invisible" issue)
+          trackColor:  WidgetStateProperty.resolveWith((states) {
+            if (states.contains( WidgetState.selected)) return kBrandPurple;
+            return Colors.grey[400]; // Much darker than [200] so you can see it
+          }),
+          
+          // 3. BORDER: Transparent (Cleaner look)
+          trackOutlineColor:  WidgetStateProperty.all(Colors.transparent),
         ),
 
-        //appbar
-        appBarTheme: const AppBarTheme(  
+        // 3. SLIDERS (Age Range)
+        sliderTheme: SliderThemeData(
+          activeTrackColor: kBrandPurple,
+          inactiveTrackColor: Colors.grey[300],
+          thumbColor: Colors.white,
+          overlayColor: kBrandPurple.withValues(alpha: 0.1), // The glow when touching
+          valueIndicatorColor: kBrandPurple,
+        ),
+
+        // 4. NAVIGATION BAR (Bottom Bar)
+        navigationBarTheme: NavigationBarThemeData(
           backgroundColor: kLightSurface,
-          foregroundColor: kLightTextPrimary,
           elevation: 0,
+          indicatorColor: Colors.transparent,
+          indicatorShape: const CircleBorder(),          
+          iconTheme: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return const IconThemeData(color: kBrandPurple, size: 30); // Active Icon
+            }
+            return const IconThemeData(color: Colors.grey, size: 28); // Inactive Icon
+          }),
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow, // Tinder style: No text labels
+        ),
+        
+        // 5. APP BAR
+        appBarTheme: const AppBarTheme(
+          backgroundColor: kLightSurface,
           scrolledUnderElevation: 0,
+          foregroundColor: Colors.black, 
         ),
 
-        //navigation bar
-        navigationBarTheme: NavigationBarThemeData(  
-          backgroundColor: kLightSurface,
-          indicatorColor: kBrandPurple.withValues(alpha: 0.1),
-          iconTheme: WidgetStateProperty.all(  
-            const IconThemeData(color: kLightTextSecondary)
-          )
-        )
+        floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: Colors.grey[500], 
+        foregroundColor: Colors.white, 
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+
+        searchBarTheme: SearchBarThemeData(
+          backgroundColor: WidgetStateProperty.all(Colors.grey[500]),
+          surfaceTintColor:  WidgetStateProperty.all(Colors.transparent),
+          shadowColor:  WidgetStateProperty.all(Colors.black),
+          elevation: WidgetStateProperty.all(0)
+        ),
       ),
+
+      // DARK THEME
       darkTheme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
         scaffoldBackgroundColor: kDarkBackground,
-        
-        //color Scheme
+
+        // 1. GLOBAL COLORS
         colorScheme: const ColorScheme.dark(
           primary: kBrandPurple,
-          onPrimary: Colors.white,
-          
           surface: kDarkSurface,
-          onSurface: kDarkTextPrimary,
-          
-          // Prevent M3 from tinting your grey cards with purple
-          surfaceTint: Colors.transparent, 
-          
-          error: Colors.redAccent,
-          onError: Colors.white,
+          onSurface: Colors.white,
+          surfaceTint: Colors.transparent,
         ),
 
-        //text theme
-        textTheme: const TextTheme(
-          bodyMedium: TextStyle(color: kDarkTextPrimary),
-          bodySmall: TextStyle(color: kDarkTextSecondary),
-          titleLarge: TextStyle(color: kDarkTextPrimary, fontWeight: FontWeight.bold),
+        // 2. SWITCHES
+        switchTheme: SwitchThemeData(
+          thumbColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) return Colors.white; // Crisp white contrast
+            return Colors.grey[400]; // Unselected thumb
+          }),
+          trackColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return kBrandPurple.withValues(alpha: 0.5); // <--- TONE DOWN HERE
+            }
+            return Colors.grey[800]; // Unselected track (Dark Grey)
+          }),
+          
+          trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
         ),
 
-        //appbar 
-        appBarTheme: const AppBarTheme(
-          backgroundColor: kDarkBackground, // Or kDarkSurface if you want it distinct
-          foregroundColor: kDarkTextPrimary,
-          elevation: 0,
-          scrolledUnderElevation: 0,
+        // 3. SLIDERS
+        sliderTheme: SliderThemeData(
+          activeTrackColor: kBrandPurple,
+          inactiveTrackColor: Colors.grey[800],
+          thumbColor: Colors.white,
+          overlayColor: kBrandPurple.withValues(alpha: 0.2),
         ),
-        //navigation theme
+
+        // 4. NAVIGATION BAR
         navigationBarTheme: NavigationBarThemeData(
-          backgroundColor: kDarkBackground,
-          indicatorColor: kBrandPurple.withValues(alpha: 0.2),
-          iconTheme: WidgetStateProperty.all(
-              const IconThemeData(color: kDarkTextSecondary)),
+          backgroundColor: kDarkSurface, // Matches the "Surface" look
+          // OR use Colors.transparent if you rely on the extendBody trick
+          
+          elevation: 0,
+          indicatorColor: Colors.transparent, 
+          indicatorShape: const CircleBorder(),
+          iconTheme: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return const IconThemeData(color: kBrandPurple, size: 30);
+            }
+            return const IconThemeData(color: Colors.grey, size: 28);
+          }),
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        ),
+
+        // 5. INPUTS (Profile Page)
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: kDarkSurface,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none, // Clean look
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: kBrandPurple, width: 2), // Glows purple when typing
+          ),
         ),
         
-        //fab theme
-        floatingActionButtonTheme: const FloatingActionButtonThemeData(
-          backgroundColor: kDarkSurface, // Dark Grey button
-          foregroundColor: kBrandPurple, // Purple Icon
-          elevation: 4,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: kDarkBackground,
+          scrolledUnderElevation: 0,
+          foregroundColor: Colors.white,
+        ),
+
+        floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: Colors.grey[800], 
+        foregroundColor: Colors.white, 
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+
+        searchBarTheme: SearchBarThemeData(
+          backgroundColor: WidgetStateProperty.all(Colors.grey[800]),
+          surfaceTintColor:  WidgetStateProperty.all(Colors.transparent),
+          shadowColor:  WidgetStateProperty.all(Colors.black),
+          elevation: WidgetStateProperty.all(0),
         ),
       ),
       themeMode: settings.themeMode,

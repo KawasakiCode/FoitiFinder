@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foitifinder/pages/settings/settings.dart';
 import 'dart:math';
-import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/widgets/animated_swipe_button.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({
@@ -33,6 +33,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   double _tapPositionY = 0;
   //Offset _dragOffset = Offset.zero;
   final ValueNotifier<Offset> _swipeNotifier = ValueNotifier(Offset.zero);
+  //is the card animating (is the controller counting still)
+  bool _isAnimating = false;
 
   // Track swiped cards for rewind functionality
   List<CardData> swipedCards = [];
@@ -104,6 +106,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   void _onPanEnd(DragEndDetails details) {
     final double screenWidth = MediaQuery.of(context).size.width;
+    final double screenHeight = MediaQuery.of(context).size.height;
     final offset = _swipeNotifier.value;
 
     //get how fast user dragged
@@ -111,6 +114,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
     //Distance and speed thresholds for activating swipe left or right
     final distanceThreshold = screenWidth * 0.2;
+    final verticalThreshold = screenHeight * 0.15;
     final velocityThreshold = 1000.0;
 
     //when to swipe left and right or reset
@@ -118,8 +122,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     bool isFlickRight = velocity > velocityThreshold && offset.dx > 0;
     bool isSwipeLeft = offset.dx < -distanceThreshold;
     bool isFlickLeft = velocity < -velocityThreshold && offset.dx < 0;
+    bool isSwipeUp = offset.dy.abs() > offset.dx.abs();
 
-    if (isSwipeRight || isFlickRight) {
+    if(isSwipeUp && offset.dy < -verticalThreshold) {
+      _swipeUp();
+      return;
+    }
+
+    if (!isSwipeUp && (isSwipeRight || isFlickRight)) {
       // Swipe threshold or speed threshold met
       _swipeRight();
     } else if (isSwipeLeft || isFlickLeft) {
@@ -134,6 +144,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   void _onPanStart(DragStartDetails details) {
     _tapPositionY = details.localPosition.dy;
   }
+
   //cache image
   void _precacheNextImage() {
     if (currentIndex + 1 < cards.length) {
@@ -155,18 +166,40 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     _animateCardOut(-1.0, cardName, false);
   }
 
+  void _swipeUp() {
+    final cardName = cards[currentIndex].name;
+    _animateCardOut(0.0, cardName, true, isSuperLike: true);
+  }
+
   //swiping animation
   void _animateCardOut(
     double direction,
     String cardName,
-    bool isLike, {
-    bool isSuperLike = false,
-  }) {
+    bool isLike,
+    {bool fromButton = false,
+    bool isSuperLike = false}) {
+    
+    //if card is currently animating dont animate the next
+    if(_isAnimating)return;
+    //lock the function so that it cant run again while still animating
+    _isAnimating = true;
+
+    if (fromButton) {
+      _tapPositionY = 0.0;
+    }
+    
     final startOffset = _swipeNotifier.value;
-    final endOffset = Offset(
+    //end offset is set off screen 
+    Offset endOffset;
+
+    if(isSuperLike) {
+      endOffset = Offset(0, -MediaQuery.of(context).size.height);
+    } else {
+      endOffset = Offset(
       MediaQuery.of(context).size.width * 1.5 * direction,
       0,
     );
+    }
 
     final animation = Tween<Offset>(begin: startOffset, end: endOffset).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
@@ -198,11 +231,15 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       });
       _precacheNextImage();
       _animationController.reset();
+      _isAnimating = false;
     });
   }
 
   //reset card
   void _resetCard() {
+    if(_isAnimating)return;
+    _isAnimating = true;
+
     final startOffset = _swipeNotifier.value;
 
     final animation = Tween<Offset>(begin: startOffset, end: Offset.zero)
@@ -325,9 +362,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         final double dragDistance = offset.dx.abs();
         final double ratio = (dragDistance / screenWidth).clamp(0.0, 1.0);
         final double bgRatio = (ratio * 5.0).clamp(0.0, 1.0);
-        
+
         //rotation direction
-        final double rotationDirection = _tapPositionY > centerPoint ? -1.0 : 1.0;
+        final double rotationDirection = _tapPositionY > centerPoint
+            ? -1.0
+            : 1.0;
         final double angle = (offset.dx * 0.001) * rotationDirection;
 
         return Stack(
@@ -345,7 +384,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 right: 0,
                 bottom: 0,
                 child: Transform.scale(
-                  scale: (1.0 - (((i - currentIndex)) * 0.05)) + (bgRatio * 0.05),
+                  scale:
+                      (1.0 - (((i - currentIndex)) * 0.05)) + (bgRatio * 0.05),
                   child: _buildCard(cards[i], false),
                 ),
               ),
@@ -357,8 +397,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               right: 0,
               bottom: 0,
               child: GestureDetector(
-                onPanUpdate: _onPanUpdate,
-                onPanEnd: _onPanEnd,
+                onPanUpdate: (details) {
+                  if(_isAnimating)return;
+                  _onPanUpdate(details);},
+                onPanEnd: (details) {
+                  if(_isAnimating)return;
+                  _onPanEnd(details);},
                 onPanStart: _onPanStart,
                 child: ValueListenableBuilder<Offset>(
                   valueListenable: _swipeNotifier,
@@ -383,9 +427,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   //build top card
   Widget _buildCard(CardData card, bool isTop) {
     return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-      ),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
         child: Stack(
@@ -452,25 +494,51 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             // Swipe indicators (only on top card)
             if (isTop) ...[
               // Like indicator (right swipe) - positioned on LEFT for better visibility
-              if (_swipeNotifier.value.dx > 50)
+              if (_swipeNotifier.value.dx > 50 && _swipeNotifier.value.dx.abs() > _swipeNotifier.value.dy.abs())
                 Positioned(
-                  top: 50,
-                  left: 50,
+                  top: 60,
+                  left: 60,
                   child: Transform.rotate(
                     angle: -0.3,
-                    child: const Icon(Icons.favorite, color: Colors.green, size: 100),
+                    child: const Icon(
+                      Icons.favorite,
+                      color: Colors.green,
+                      size: 120,
+                    ),
                   ),
                 ),
 
               // Pass indicator (left swipe) - positioned on RIGHT for better visibility
-              if (_swipeNotifier.value.dx < -50)
+              if (_swipeNotifier.value.dx < -50 && _swipeNotifier.value.dx.abs() > _swipeNotifier.value.dy.abs())
                 Positioned(
-                  top: 50,
-                  right: 50,
+                  top: 60,
+                  right: 60,
                   child: Transform.rotate(
                     angle: 0.3,
-                    child: const Icon(Icons.close, color: Colors.red, size: 100),
+                    child: const Icon(
+                      Icons.close,
+                      color: Colors.red,
+                      size: 120,
+                    ),
                   ),
+                ),
+              
+              // Super like indicator (up swippe)
+              if (_swipeNotifier.value.dy < -50 && _swipeNotifier.value.dy.abs() > _swipeNotifier.value.dx.abs())
+                Positioned(  
+                  top:  200, 
+                  left: 0, 
+                  right: 0,
+                  child: Center(  
+                    child: Transform.rotate(  
+                      angle: 0,
+                      child: const Icon(
+                        Icons.star,
+                        color: Colors.blueAccent,
+                        size: 120,
+                      )
+                    )
+                  )
                 ),
             ],
           ],
@@ -503,7 +571,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   //build the buttons under the cards
   Widget _buildActionButtons() {
-    final text = AppLocalizations.of(context)!;
     // Show rewind button even when no more cards if we have swiped cards
     if (currentIndex >= cards.length && swipedCards.isEmpty) {
       //aka render nothing so there are no buttons
@@ -512,107 +579,83 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
     return Padding(
       padding: const EdgeInsets.all(20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          // Rewind button
-          SizedBox(
-            width: 45,
-            height: 45,
-            child: FloatingActionButton(
-              heroTag: null,
-              onPressed: (currentIndex > 0)
-                  ? _rewindCard
-                  : () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(text.cannotRewind),
-                          duration: Duration(seconds: 1),
-                        ),
-                      );
-                    },
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: Icon(
-                Icons.replay,
-                color: (currentIndex > 0)
-                    ? Colors.orange
-                    : Color.fromARGB(255, 49, 49, 49),
-                size: 25,
-              ),
-            ),
-          ),
+      child: ValueListenableBuilder(
+        valueListenable: _swipeNotifier,
+        builder: (context, offset, child) {
+          final dx = offset.dx;
+          final dy = offset.dy;
+          final isHorizontal = dx.abs() > dy.abs();
+          final isVertical = dy.abs() > dx.abs();
 
-          // Only show other buttons if there are cards to swipe
-          if (currentIndex < cards.length) ...[
-            // Pass button
-            FloatingActionButton(
-              heroTag: null,
-              onPressed: () {
-                _tapPositionY = 0;
-                _swipeLeft();
-              },
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: const Icon(Icons.close, color: Colors.red, size: 30),
-            ),
+          final bool isLikeActive = dx > 45 && isHorizontal;
+          final bool isPassActive = dx < -45 && isHorizontal;
+          final bool isSuperLikeActive = dy < 45 && isVertical;
 
-            // Super like button
-            SizedBox(
-              width: 45,
-              height: 45,
-              child: FloatingActionButton(
-                heroTag: null,
-                onPressed: () {
-                  // Super like acts as a like but with special feedback
-                  final cardName = cards[currentIndex].name;
-                  _animateCardOut(1.0, cardName, true, isSuperLike: true);
-                },
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                child: const Icon(
-                  Icons.star,
-                  color: Color.fromARGB(255, 67, 91, 223),
-                  size: 30,
-                ),
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              // Rewind button
+              AnimatedSwipeButton(
+                icon: Icons.replay,
+                activeColor: Colors.orange,
+                size: 50,
+                // If no history, pass null to disable it visually
+                onPressed: currentIndex > 0
+                    ? _rewindCard
+                    : null
               ),
-            ),
-
-            // Like button
-            FloatingActionButton(
-              heroTag: null,
-              onPressed: () {
-                _tapPositionY = 0;
-                _swipeRight();
-              },
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: const Icon(Icons.favorite, color: Colors.green, size: 30),
-            ),
-
-            // DM button
-            SizedBox(
-              width: 45,
-              height: 45,
-              child: FloatingActionButton(
-                heroTag: null,
-                onPressed: () {},
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
+          
+              // Only show other buttons if there are cards to swipe
+              if (currentIndex < cards.length) ...[
+                // Pass button
+                AnimatedSwipeButton(
+                  icon: Icons.close,
+                  activeColor: Colors.red,
+                  size: 65, // Main buttons are bigger
+                  forcePressed: isPassActive,
+                  onPressed: () {
+                    final cardName = cards[currentIndex].name;
+                    _animateCardOut(-1.0, cardName, false, fromButton: true);
+                  },
                 ),
-                child: const Icon(
-                  Icons.message,
-                  color: Color.fromARGB(255, 0, 0, 0),
-                  size: 27,
+          
+                // Super like button
+                AnimatedSwipeButton(
+                  icon: Icons.star,
+                  activeColor: Colors.blueAccent,
+                  size: 50,
+                  forcePressed: isSuperLikeActive,
+                  onPressed: () {
+                    final cardName = cards[currentIndex].name;
+                    _animateCardOut(1.0, cardName, true, fromButton: true, isSuperLike: true);
+                  },
                 ),
-              ),
-            ),
-          ],
-        ],
+          
+                // Like button
+                AnimatedSwipeButton(
+                  icon: Icons.favorite,
+                  activeColor: Colors.green,
+                  size: 65,
+                  forcePressed: isLikeActive,
+                  onPressed: () {
+                    final cardName = cards[currentIndex].name;
+                    _animateCardOut(1.0, cardName, true, fromButton: true);
+                  },
+                ),
+          
+                // DM button
+                AnimatedSwipeButton(
+                  icon: Icons.message,
+                  activeColor: Colors.blueAccent,
+                  size: 50,
+                  onPressed: () {
+                    // Handle DM
+                  },
+                ),
+              ],
+            ],
+          );
+        }
       ),
     );
   }
