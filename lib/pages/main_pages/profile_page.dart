@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:foitifinder/pages/settings/settings.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'dart:io';
+import 'package:foitifinder/providers/profile_provider.dart';
+import 'package:provider/provider.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -12,6 +15,7 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
+    final profileProvider = Provider.of<ProfileProvider>(context);
     final text = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
@@ -43,19 +47,25 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       body: Column(
         children: [
+          //main row (pfp, username, age)
           Row(
             children: [
+              //pfp
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 15, 15),
-                child: Container(
-                  width: 75,
-                  height: 75,
-                  decoration: BoxDecoration(
-                    color: Colors.black,
-                    shape: BoxShape.circle,
+                padding: EdgeInsets.fromLTRB(20, 20, 15, 15),
+                child: GestureDetector(
+                  onTap: () {
+                    profileProvider.pickAndSaveImage();},
+                  child: CircleAvatar(  
+                    radius: 40,
+                    backgroundColor: Colors.grey[500],
+                    backgroundImage: profileProvider.profileImage != null 
+                    ? ResizeImage(FileImage(profileProvider.profileImage!), width: 300) as ImageProvider
+                    : AssetImage('assets/images/default_avatar.png'),
                   ),
                 ),
               ),
+              //username, age, edit profile button
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

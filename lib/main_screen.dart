@@ -5,6 +5,8 @@ import 'package:foitifinder/pages/main_pages/search_page.dart';
 import 'package:foitifinder/pages/main_pages/dm_page.dart'; // Make sure you have this or a placeholder
 import 'package:foitifinder/pages/main_pages/profile_page.dart';
 import 'package:foitifinder/pages/main_pages/likes_page.dart';
+import 'package:foitifinder/providers/profile_provider.dart';
+import 'package:provider/provider.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -27,6 +29,21 @@ class _MainScreenState extends State<MainScreen> {
     const DMPage(),
     const ProfilePage(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _precacheProfileImage();
+    });
+  }
+
+  void _precacheProfileImage() {
+    final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+    if(profileProvider.profileImage != null) {
+      precacheImage(FileImage(profileProvider.profileImage!), context);
+    }
+  }
 
   //switching tabs
   void _onItemTapped(int index) {

@@ -7,13 +7,11 @@ class MyHomePage extends StatefulWidget {
   const MyHomePage({
     super.key,
     this.showSettings = true,
-    this.showBottomNav = true,
     this.title = 'FoitiFinder',
     this.automaticallyImplyLeading = false,
   });
 
   final bool showSettings;
-  final bool showBottomNav;
   final String title;
   final bool automaticallyImplyLeading;
 
@@ -263,6 +261,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     setState(() {
       _swipeNotifier.value = Offset.zero;
     });
+    _isAnimating = false;
   }
 
   //rewind function
@@ -302,48 +301,50 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   //main build function (appbar here)
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        titleSpacing: 2,
-        automaticallyImplyLeading: widget.automaticallyImplyLeading,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 10),
-              child: Text(widget.title),
-            ),
-            if (widget.showSettings)
-              IconButton(
-                icon: Image.asset(
-                  'assets/icons/settings.png',
-                  width: 25,
-                  height: 25,
-                  key: UniqueKey(),
-                ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => SettingsPage()),
-                  );
-                },
-              ),
-          ],
-        ),
-      ),
-      body: Stack(
-        children: [
-          Column(
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(
+          titleSpacing: 2,
+          automaticallyImplyLeading: widget.automaticallyImplyLeading,
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: cards.isNotEmpty && currentIndex < cards.length
-                    ? _buildSwipeCards()
-                    : _buildNoMoreCards(),
+              Padding(
+                padding: const EdgeInsets.only(left: 10),
+                child: Text(widget.title),
               ),
-              _buildActionButtons(),
+              if (widget.showSettings)
+                IconButton(
+                  icon: Image.asset(
+                    'assets/icons/settings.png',
+                    width: 25,
+                    height: 25,
+                    key: UniqueKey(),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => SettingsPage()),
+                    );
+                  },
+                ),
             ],
           ),
-        ],
+        ),
+        body: Stack(
+          children: [
+            Column(
+              children: [
+                Expanded(
+                  child: cards.isNotEmpty && currentIndex < cards.length
+                      ? _buildSwipeCards()
+                      : _buildNoMoreCards(),
+                ),
+                _buildActionButtons(),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

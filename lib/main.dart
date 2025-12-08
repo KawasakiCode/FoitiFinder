@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/main_screen.dart';
+import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 import 'pages/auth_pages/login.dart';
@@ -43,6 +44,7 @@ Future<void> main() async {
     MultiProvider(  
       providers: [
         ChangeNotifierProvider(create: (_) => SettingsProvider(prefs)),
+        ChangeNotifierProvider(create: (_) => ProfileProvider(prefs)),
       ],
       child: const MyApp()));
 }
