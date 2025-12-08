@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:foitifinder/pages/settings/settings.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
-import 'dart:io';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:provider/provider.dart';
 
