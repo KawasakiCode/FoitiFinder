@@ -42,7 +42,7 @@ Firebase Auth integration (Email/Password and Phone OTP).
 
 Automatic session restoration and verification checks.
 
-🛠 Tech Stack
+Tech Stack
 Frontend: Flutter (Dart)
 
 State Management: Provider (MultiProvider pattern)
@@ -79,8 +79,13 @@ Splash Style: Uses InkRipple with custom opacity to prevent pixelation on dark b
 Getting Started
 
 Clone the repository: https://github.com/KawasakiCode/FoitiFinder
+
 Install dependancies: flutter pub get
+
 Generate Translations: flutter gen-l10n
-Setup Firebase: Add your google-services.json (Android) and GoogleService-Info.plist (iOS) to the respective folders.
+
+Setup Firebase: Add your google-services.json (Android) and GoogleService-Info.plist (iOS) to the respective folders
+
 Run the App: flutter run
+
 
