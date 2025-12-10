@@ -61,10 +61,11 @@ class ProfileProvider extends ChangeNotifier {
 
     await _prefs.setString('user_image_path', localImage.path);
 
-    Future<void> clearImage() async {
-      _profileImage = null;
-      await _prefs.remove('user_image_path');
-      notifyListeners();
-    }
+    //for later use
+    // Future<void> clearImage() async {
+    //   _profileImage = null;
+    //   await _prefs.remove('user_image_path');
+    //   notifyListeners();
+    // }
   }
 }

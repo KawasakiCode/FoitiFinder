@@ -75,9 +75,9 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }                                    
       // Clear navigation stack and navigate to home page
-      if(mounted)return;
+      if(!mounted)return;
       await Provider.of<SettingsProvider>(context, listen: false).loadAsyncSettings();
-      if(mounted)return;
+      if(!mounted)return;
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => MainScreen()),

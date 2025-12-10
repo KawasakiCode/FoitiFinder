@@ -7,7 +7,6 @@ import 'package:foitifinder/pages/main_pages/profile_page.dart';
 import 'package:foitifinder/pages/main_pages/likes_page.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:http/http.dart' as http;
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -34,7 +33,6 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-    testBackend();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _precacheProfileImage();
     });
@@ -96,35 +94,6 @@ class _MainScreenState extends State<MainScreen> {
       ),
     );
   }
-
-  //test backend function
-  Future<void> testBackend() async {
-    try {
-      final url = Uri.parse('http://10.0.2.2:8000/'); 
-
-      print("Attempting to connect to $url...");
-
-      // 2. SEND REQUEST
-      final response = await http.get(url);
-
-      // 3. CHECK RESPONSE
-      if (response.statusCode == 200) {
-        print("✅ SUCCESS! Server said: ${response.body}");
-        
-        // Optional: Show a snackbar
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Connected to Python Backend! 🐍"),
-            duration: Duration(seconds: 2)),
-          );
-        }
-      } else {
-        print("❌ Server Error: ${response.statusCode}");
-      }
-    } catch (e) {
-      print("❌ Connection Failed: $e");
-    }
-  } 
 
   @override
   Widget build(BuildContext context) {
