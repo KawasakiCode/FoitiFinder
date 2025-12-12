@@ -7,7 +7,9 @@ class User(BaseModel):
     username: String
     full_name: String
     firebase_token: String
-    profile_picture: String
+    profile_picture: String | None = None
+    bio: String | None = None
+    age: int | None = None
     created_at: datetime
 
 class Likes(BaseModel):

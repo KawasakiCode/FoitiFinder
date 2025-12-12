@@ -9,7 +9,9 @@ class User(Base):
     username = Column(String, nullable = False)
     full_name = Column(String, nullable = False)
     firebase_token = Column(String, unique = True, nullable = False)
-    profile_picture = Column(String, unique = True, nullable = False)
+    profile_picture = Column(String, unique = True, nullable = True)
+    bio = Column(String, nullable = True)
+    age = Column(Integer, nullable = True)
     created_at = Column(TIMESTAMP(timezone=True), nullable = False, server_default = text('now()'))
 
 class Likes(Base):

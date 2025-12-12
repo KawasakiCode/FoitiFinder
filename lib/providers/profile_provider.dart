@@ -1,9 +1,12 @@
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:foitifinder/services/api_services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart'; // To find the permanent folder
 import 'package:path/path.dart' as path; // To get the filename
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class ProfileProvider extends ChangeNotifier { 
   final SharedPreferences _prefs;
@@ -59,7 +62,17 @@ class ProfileProvider extends ChangeNotifier {
 
     _profileImage = localImage;
 
-    await _prefs.setString('user_image_path', localImage.path);
+    try {
+      String? url = await uploadProfileImage();
+
+      if(url != null) {
+        await _prefs.setString('user_image_path', localImage.path);
+      }
+    } catch (e) {
+      _profileImage = null;
+    }
+
+    
 
     //for later use
     // Future<void> clearImage() async {
@@ -67,5 +80,26 @@ class ProfileProvider extends ChangeNotifier {
     //   await _prefs.remove('user_image_path');
     //   notifyListeners();
     // }
+  }
+
+  Future<String?> uploadProfileImage() async {
+    if(_profileImage == null)return null;
+
+    try {
+      //unique firebase token for every user. We will add that to the file path and url to ensure uniqueness
+      final String uid = FirebaseAuth.instance.currentUser!.uid;
+      //the adress in the cloud. Where the file will be stored in the cloud bucket
+      final Reference storageRef = FirebaseStorage.instance.ref().child('profile_image/$uid.jpg');
+
+      //upload of the file to the cloud
+      final UploadTask uploadTask = storageRef.putFile(_profileImage!);
+      //pause until the file gets uploaded
+      final TaskSnapshot snapshot = await uploadTask;
+      final String downloadUrl = await snapshot.ref.getDownloadURL();
+
+      return downloadUrl;
+    } catch (e) {
+      return null;
+    }
   }
 }
