@@ -1,3 +1,6 @@
+//the provider that loads and changes global settings like dark mode, language. 
+//used only for settings within the settings page
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';

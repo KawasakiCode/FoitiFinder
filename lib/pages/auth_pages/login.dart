@@ -233,7 +233,7 @@ class _LoginPageState extends State<LoginPage> {
                                 SizedBox(
                                   width: double.infinity,
                                   child: TextButton(
-                                    onPressed: () => _login,
+                                    onPressed: _login,
                                     style: TextButton.styleFrom(
                                       backgroundColor: const Color.fromARGB(
                                         255,

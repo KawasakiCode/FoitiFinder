@@ -1,3 +1,5 @@
+//template for the 5 buttons used in homepage for swiping, rewinding and dm
+
 import 'package:flutter/material.dart';
 
 class AnimatedSwipeButton extends StatefulWidget {

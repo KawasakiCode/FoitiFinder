@@ -1,7 +1,12 @@
+//provider that loads the profile of the user like profile picture username, age
+//only used for profile related variables
+
+import 'dart:convert';
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/services/api_services.dart';
+import 'package:foitifinder/models/user_model.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart'; // To find the permanent folder
 import 'package:path/path.dart' as path; // To get the filename
@@ -11,16 +16,26 @@ import 'package:firebase_storage/firebase_storage.dart';
 class ProfileProvider extends ChangeNotifier { 
   final SharedPreferences _prefs;
   File? _profileImage;
+  UserModel? _currentUser;
+  String? _cloudUrl;
 
   //image getter
   File? get profileImage => _profileImage;
+  //user getter
+  UserModel? get currentUser => _currentUser;
+  //cloud url getter for pfp
+  String? get cloudUrl => _cloudUrl;
 
   //constructor
   ProfileProvider(this._prefs) {
     _loadFromDisk();
+    _loadUserFromPrefs();
   }
 
-  void _loadFromDisk() {
+//functions for profile image
+  void _loadFromDisk() async {
+    //used to ensure cloud block will run if any error to local block occurs
+    bool localLoadSuccess = false;
     //get the path from prefs
     String? imagePath = _prefs.getString('user_image_path');
 
@@ -28,6 +43,15 @@ class ProfileProvider extends ChangeNotifier {
       final file = File(imagePath);
       if(file.existsSync()) {
         _profileImage = file;
+        localLoadSuccess = true;
+        notifyListeners();
+      }
+    }
+    if(!localLoadSuccess) {
+      UserModel? userData = await ApiService.getUserData(FirebaseAuth.instance.currentUser!.uid);
+      if(userData.imageUrl != null) {
+        _cloudUrl = userData.imageUrl;
+        _prefs.setString("cloud_url", userData.imageUrl!);
         notifyListeners();
       }
     }
@@ -64,15 +88,26 @@ class ProfileProvider extends ChangeNotifier {
 
     try {
       String? url = await uploadProfileImage();
-
       if(url != null) {
-        await _prefs.setString('user_image_path', localImage.path);
+        String uid = FirebaseAuth.instance.currentUser!.uid;
+        await ApiService.updateProfilePicture(uid, url);
+        if(_currentUser != null) {
+          UserModel updatedUser = UserModel(  
+            uid: _currentUser!.uid,
+            username: _currentUser!.username,
+            fullName: _currentUser!.fullName,
+            bio: _currentUser!.bio,
+            age: _currentUser!.age,
+            imageUrl: url,
+          );
+
+          await _prefs.setString('user_image_path', localImage.path);
+          await _prefs.setString('user_data', jsonEncode(updatedUser.toMap()));
+        }
       }
     } catch (e) {
       _profileImage = null;
     }
-
-    
 
     //for later use
     // Future<void> clearImage() async {
@@ -81,7 +116,7 @@ class ProfileProvider extends ChangeNotifier {
     //   notifyListeners();
     // }
   }
-
+  //upload pfp to cloud
   Future<String?> uploadProfileImage() async {
     if(_profileImage == null)return null;
 
@@ -100,6 +135,50 @@ class ProfileProvider extends ChangeNotifier {
       return downloadUrl;
     } catch (e) {
       return null;
+    }
+  }
+
+//functions for users upload to database
+  Future<void> registerUser({
+    required String uid,
+    required String username,
+    String? fullName,
+    String? bio,
+    int? age,
+    String? imageUrl,
+  }) async {
+    try {
+      await  ApiService.createUser(  
+        uid: uid,
+        username: username,
+        bio: bio,
+        fullName: fullName,
+        age: age,
+        imageUrl: imageUrl,
+      );
+
+      _currentUser = UserModel(  
+        uid: uid,
+        username: username,
+        fullName: fullName,
+        bio: bio,
+        age: age,
+        imageUrl: imageUrl,
+      );
+
+      String jsonString = jsonEncode(_currentUser!.toMap());
+      _prefs.setString('user_data', jsonString);
+
+      notifyListeners();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  void _loadUserFromPrefs() {
+    if(_prefs.getString('user_data') != null) {
+      Map<String, dynamic> decodedString = jsonDecode(_prefs.getString('user_data')!);
+      _currentUser = UserModel.fromJson(decodedString);
     }
   }
 }

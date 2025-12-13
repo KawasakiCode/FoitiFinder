@@ -1,6 +1,8 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:foitifinder/providers/profile_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/firebase_options.dart';
@@ -16,6 +18,7 @@ class SignUpPage extends StatefulWidget {
 
 class _SignUpPageState extends State<SignUpPage> {
   bool _isPasswordVisible = false;
+  bool _isLoading = false;
   late TapGestureRecognizer _tapGestureRecognizer;
   late final TextEditingController _email;
   late final TextEditingController _password;
@@ -46,6 +49,89 @@ class _SignUpPageState extends State<SignUpPage> {
     _fullName.dispose();
     _username.dispose();
     super.dispose();
+  }
+
+  void signUp() async {
+    final text = AppLocalizations.of(context)!;
+    final email = _email.text;
+    final password = _password.text;
+    final username = _username.text;
+    final fullName = _fullName.text;
+
+    // Client-side validation for password length
+    if (password.length < 8) {
+      if(!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text.smallPassword),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    try {
+      await FirebaseAuth.instance
+        .createUserWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
+      if(!mounted)return;
+      await Provider.of<ProfileProvider>(context, listen: false).registerUser(  
+        uid: FirebaseAuth.instance.currentUser!.uid,
+        username: username,
+        fullName: fullName,
+        bio: null,
+        age: null,
+        imageUrl: null,
+      );
+      // If successful, navigate to verify email page
+      if(!mounted) return;
+      Navigator.push(context, MaterialPageRoute(builder: (context) => VerifyEmail()));
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+      
+      switch (e.code) {
+        case 'email-already-in-use':
+          errorMessage = text.emailAlreadyInUse;
+          break;
+        case 'weak-password':
+          errorMessage = text.weakPassword;
+          break;
+        case 'invalid-email':
+          errorMessage = text.invalidEmail;
+          break;
+        case 'operation-not-allowed':
+          errorMessage = text.operationNotAllowed;
+          break;
+        case 'too-many-requests':
+          errorMessage = text.tooManyRequests;
+          break;
+        default:
+          errorMessage = text.signUpError;
+      }
+      
+      // Show error message to user
+      if(!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    } catch (e) {
+      // Handle other types of errors
+      if(!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text.errorOccured),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   @override
@@ -261,76 +347,11 @@ class _SignUpPageState extends State<SignUpPage> {
                                   child: SizedBox(
                                     width: double.infinity,
                                     child: TextButton(
-                                      onPressed: () async {
-                                        final email = _email.text;
-                                        final password = _password.text;
-
-                                        // Client-side validation for password length
-                                        if (password.length < 8) {
-                                          if(!mounted) return;
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text(text.smallPassword),
-                                              backgroundColor: Colors.red,
-                                              duration: Duration(seconds: 3),
-                                            ),
-                                          );
-                                          return;
-                                        }
-
-                                        try {
-                                          await FirebaseAuth.instance
-                                            .createUserWithEmailAndPassword(
-                                              email: email,
-                                              password: password,
-                                            );
-                                          // If successful, navigate to verify email page
-                                          if(!context.mounted) return;
-                                          Navigator.push(context, MaterialPageRoute(builder: (context) => VerifyEmail()));
-                                        } on FirebaseAuthException catch (e) {
-                                          String errorMessage;
-                                          
-                                          switch (e.code) {
-                                            case 'email-already-in-use':
-                                              errorMessage = text.emailAlreadyInUse;
-                                              break;
-                                            case 'weak-password':
-                                              errorMessage = text.weakPassword;
-                                              break;
-                                            case 'invalid-email':
-                                              errorMessage = text.invalidEmail;
-                                              break;
-                                            case 'operation-not-allowed':
-                                              errorMessage = text.operationNotAllowed;
-                                              break;
-                                            case 'too-many-requests':
-                                              errorMessage = text.tooManyRequests;
-                                              break;
-                                            default:
-                                              errorMessage = text.signUpError;
-                                          }
-                                          
-                                          // Show error message to user
-                                          if(!mounted) return;
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text(errorMessage),
-                                              backgroundColor: Colors.red,
-                                              duration: Duration(seconds: 3),
-                                            ),
-                                          );
-                                        } catch (e) {
-                                          // Handle other types of errors
-                                          if(!mounted) return;
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text(text.errorOccured),
-                                              backgroundColor: Colors.red,
-                                              duration: Duration(seconds: 3),
-                                            ),
-                                          );
-                                        }
-                                        
+                                      onPressed: _isLoading ? null : () async {
+                                        setState(() {
+                                          _isLoading = true;
+                                        },);
+                                        signUp();
                                       },
                                       style: TextButton.styleFrom(
                                         backgroundColor: const Color.fromARGB(

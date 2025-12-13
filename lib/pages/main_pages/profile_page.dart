@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/pages/settings/settings.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
@@ -16,6 +17,18 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     final profileProvider = Provider.of<ProfileProvider>(context);
     final text = AppLocalizations.of(context)!;
+    ImageProvider backgroundImage;
+
+    if(profileProvider.profileImage != null) {
+      backgroundImage = ResizeImage(FileImage(profileProvider.profileImage!), width: 300);
+    }
+    else if(profileProvider.cloudUrl != null && profileProvider.cloudUrl!.isNotEmpty) {
+      backgroundImage = CachedNetworkImageProvider(profileProvider.cloudUrl!);
+    }
+    else {
+      backgroundImage = AssetImage('assets/images/default_avatar.png');
+    }
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -58,9 +71,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   child: CircleAvatar(  
                     radius: 40,
                     backgroundColor: Colors.grey[500],
-                    backgroundImage: profileProvider.profileImage != null 
-                    ? ResizeImage(FileImage(profileProvider.profileImage!), width: 300) as ImageProvider
-                    : AssetImage('assets/images/default_avatar.png'),
+                    backgroundImage: backgroundImage,
                   ),
                 ),
               ),

@@ -1,3 +1,6 @@
+//inkwell widget that wait for its animation to complete before running the onTap method
+//ensures no visual bugs occur where the animation lags because of workload 
+
 import 'package:flutter/material.dart';
 
 class DelayedInkWell extends StatelessWidget {
