@@ -46,7 +46,7 @@ class ApiService {
 
   //update pfp (runs every time user updates pfp)
   static Future<void> updateProfilePicture(String uid, String newUrl) async {
-    final url = Uri.parse('$baseUrl/users/$uid/image');
+    final url = Uri.parse('$baseUrl/users/$uid');
     try {
       final response = await http.patch(  
         url,
@@ -63,6 +63,7 @@ class ApiService {
     }
   }
 
+  //get users data back
   static Future<UserModel> getUserData(String uid) async {
     final url = Uri.parse('$baseUrl/users/$uid');
     try {

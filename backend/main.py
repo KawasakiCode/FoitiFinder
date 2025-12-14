@@ -34,20 +34,6 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
     return new_user
 
-#update users profile picture
-@app.patch("/users/{firebase_token}/image")
-def update_profile_image(firebase_token: str, profile_picture: schemas.UserImageUpdate, db: Session = Depends(get_db)):
-    db_user = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
-
-    if not db_user: 
-        raise HTTPException(status_code = 404, detail = "User not found")
-    
-    db_user.profile_picture = profile_picture.profile_picture
-    db.commit()
-    db.refresh(db_user)
-
-    return {"message":"Image updated successfully", "new_url": db_user.profile_picture}
-
 #get users data
 @app.get("/users/{firebase_token}")
 def get_user_data(firebase_token: str, db: Session = Depends(get_db)):
@@ -58,3 +44,21 @@ def get_user_data(firebase_token: str, db: Session = Depends(get_db)):
     
     return db_user
 
+#update one/multiple user attributes without altering the others
+@app.patch("/users/{firebase_token}")
+def update_user(firebase_token: str, user_update: schemas.UserUpdate, db: Session = Depends(get_db)):
+    db_user = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
+    if not db_user:
+        raise HTTPException(status_code=404, details="User not found")
+
+    #make data into a dictionary
+    #exclude_unset = True doesnt override data that are null 
+    #if updated_data username is null then it wont override the database value because of exclude_unset
+    updated_data = user_update.model_dump(exclude_unset=True)
+    #loop through the dictionary adding only values that are not null
+    for key, value in updated_data.items():
+        setattr(db_user, key, value)
+    
+    db.commit()
+    db.refresh(db_user)
+    return db_user

@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:foitifinder/pages/extra_pages/edit_profile.dart';
 import 'package:foitifinder/pages/settings/settings.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
@@ -82,14 +83,18 @@ class _ProfilePageState extends State<ProfilePage> {
                   Row(
                     children: [
                       Text(
-                        "Username, ",
+                        profileProvider.currentUser!.age != null ?
+                        "${profileProvider.currentUser!.username}, "
+                        : profileProvider.currentUser!.username,
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Text(
-                        "Age",
+                        profileProvider.currentUser!.age != null ?
+                        "${profileProvider.currentUser!.age}"
+                        : "",
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -110,7 +115,12 @@ class _ProfilePageState extends State<ProfilePage> {
                             fontWeight: FontWeight.w400,
                           ),
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(  
+                            context,
+                            MaterialPageRoute(builder:(context) => EditProfile(),)
+                          );
+                        },
                       ),
                   ),
                 ],

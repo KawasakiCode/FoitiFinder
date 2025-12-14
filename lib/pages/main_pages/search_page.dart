@@ -126,7 +126,9 @@ class _SearchPageState extends State<SearchPage> {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => MyHomePage(showSettings: false, title: tiles[i].caption, automaticallyImplyLeading: true)),
+                      MaterialPageRoute(builder: (context) => MyHomePage(showSettings: false, 
+                        title: tiles[i].caption, 
+                        automaticallyImplyLeading: true)),
                     );
                   },
                   child: Column(

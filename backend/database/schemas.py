@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from datetime import datetime
-    
+
+#main user schema 
 class UserBase(BaseModel):
     username: str
     full_name: str
@@ -9,37 +10,43 @@ class UserBase(BaseModel):
     bio: str | None = None
     age: int | None = None 
 
-class UserCreate(UserBase):
-    pass
+#for patch endpoints to update a single attribute without needing the others too
+class UserUpdate(BaseModel):
+    username: str | None = None
+    full_name: str | None = None
+    profile_picture: str | None = None
+    bio: str | None = None
+    age: int | None = None
 
+#this adds the fields produced by the database to be returned to the phone
 class User(UserBase):
     id: int
     created_at: datetime
 
-class Config:
-    from_attributes = True
+    #allows pydantic to read sqlalchemy objects instead of only dictionaries
+    class Config:
+        from_attributes = True
 
-class UserImageUpdate(BaseModel):
-    profile_picture: str
+#called when creating users to add secret fields like passwords
+class UserCreate(UserBase):
+    pass
+
+
 
 class Likes(BaseModel):
-    id: int
     liker_id: int
     liked_id: int
     is_super_like: bool
 
 class Matches(BaseModel):
-    id: int
     user_a_id: int
     user_b_id: int
 
 class Messages(BaseModel):
-    id: int
     sender: int
     match_id: int
 
 class Photos(BaseModel):
-    id: int
     user_id: int
     photo_url: str
     display_order: int

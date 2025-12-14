@@ -108,14 +108,15 @@ class ProfileProvider extends ChangeNotifier {
     } catch (e) {
       _profileImage = null;
     }
-
-    //for later use
-    // Future<void> clearImage() async {
-    //   _profileImage = null;
-    //   await _prefs.remove('user_image_path');
-    //   notifyListeners();
-    // }
   }
+  
+  //remove pfp
+  Future<void> clearImage() async {
+      _profileImage = null;
+      await _prefs.remove('user_image_path');
+      notifyListeners();
+    }
+
   //upload pfp to cloud
   Future<String?> uploadProfileImage() async {
     if(_profileImage == null)return null;
