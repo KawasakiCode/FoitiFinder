@@ -337,4 +337,33 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get cannotRewind => 'Αδυναμία επαναφοράς';
+
+  @override
+  String get age => 'Ηλικία';
+
+  @override
+  String get verifySend => 'Στάλθηκε επαλήθευση στο ';
+
+  @override
+  String get checkInbox =>
+      'Παρακαλούμε ελέγξτε τα εισερχόμενά σας για να ολοκληρώσετε την ενημέρωση του email σας.';
+
+  @override
+  String get failedVerifyEmail => 'Απέτυχε η αποστολή επαλήθευσης: ';
+
+  @override
+  String get cancel => 'Ακύρωση';
+
+  @override
+  String get confirm => 'Επιβεβαίωση';
+
+  @override
+  String get securityCheck => 'Έλεγχος Ασφαλείας';
+
+  @override
+  String get confirmPassword =>
+      'Για να αλλάξετε το email σας, παρακαλούμε επιβεβαιώστε τον τρέχοντα κωδικό πρόσβασής σας.';
+
+  @override
+  String get securityCheckFailed => 'Ο έλεγχος ασφαλείας απέτυχε: ';
 }

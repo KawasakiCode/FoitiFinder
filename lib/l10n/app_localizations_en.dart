@@ -332,4 +332,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cannotRewind => 'Cannot rewind further';
+
+  @override
+  String get age => 'Age';
+
+  @override
+  String get verifySend => 'Verification sent to ';
+
+  @override
+  String get checkInbox =>
+      'Please check your inbox to finish updating your email.';
+
+  @override
+  String get failedVerifyEmail => 'Failed to send verification: ';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get confirm => 'Confirm';
+
+  @override
+  String get securityCheck => 'Security Check';
+
+  @override
+  String get confirmPassword =>
+      'To change your email, please confirm your current password.';
+
+  @override
+  String get securityCheckFailed => 'Security check failed: ';
 }

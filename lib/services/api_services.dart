@@ -44,16 +44,32 @@ class ApiService {
     }
   }
 
-  //update pfp (runs every time user updates pfp)
-  static Future<void> updateProfilePicture(String uid, String newUrl) async {
+  //update user data
+  static Future<void> updateUserData({
+    required String uid,
+    String? username,
+    String? fullName,
+    String? bio,
+    int? age,
+    String? imageUrl,
+  }) async {
     final url = Uri.parse('$baseUrl/users/$uid');
+
+    final Map<String, dynamic> data = {};
+
+    if(username != null) data['username'] = username;
+    if(fullName != null) data['full_name'] = fullName;
+    if(bio != null) data['bio'] = bio;
+    if(age != null) data['age'] = age;
+    if(imageUrl != null) data['profile_picture'] = imageUrl;
+
+    if(data.isEmpty)return;
+
     try {
       final response = await http.patch(  
         url,
         headers: {"Content-type": "application/json"},
-        body: jsonEncode({
-          "profile_picture": newUrl,
-        }),
+        body: jsonEncode(data),
       );
       if(response.statusCode != 200) {
         throw Exception("failed to update image in db ${response.body}");

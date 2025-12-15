@@ -99,5 +99,14 @@
   "snackbarFailedVerifyEmail": "Failed to send verification email. Please try again.",
   "sentVerificationEmail": "Sent Verification Email",
   "backToLogin": "Back to login",
-  "cannotRewind": "Cannot rewind further"
+  "cannotRewind": "Cannot rewind further",
+  "age": "Age",
+  "verifySend": "Verification sent to ",
+  "checkInbox": "Please check your inbox to finish updating your email.",
+  "failedVerifyEmail": "Failed to send verification: ",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "securityCheck": "Security Check",
+  "confirmPassword": "To change your email, please confirm your current password.",
+  "securityCheckFailed": "Security check failed: "
 }

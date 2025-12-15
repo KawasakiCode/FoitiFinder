@@ -38,6 +38,17 @@ class ProfileProvider extends ChangeNotifier {
     bool localLoadSuccess = false;
     //get the path from prefs
     String? imagePath = _prefs.getString('user_image_path');
+    String? userData = _prefs.getString('user_data');
+
+    if(userData != null) {
+      try {
+        Map<String, dynamic> userMap = jsonDecode(userData);
+        _currentUser = UserModel.fromJson(userMap);
+        notifyListeners();
+      } catch (e) {
+        _prefs.remove('user_data');
+      }
+    }
 
     if(imagePath != null) {
       final file = File(imagePath);
@@ -90,7 +101,7 @@ class ProfileProvider extends ChangeNotifier {
       String? url = await uploadProfileImage();
       if(url != null) {
         String uid = FirebaseAuth.instance.currentUser!.uid;
-        await ApiService.updateProfilePicture(uid, url);
+        await ApiService.updateUserData(uid: uid);
         if(_currentUser != null) {
           UserModel updatedUser = UserModel(  
             uid: _currentUser!.uid,
@@ -181,5 +192,27 @@ class ProfileProvider extends ChangeNotifier {
       Map<String, dynamic> decodedString = jsonDecode(_prefs.getString('user_data')!);
       _currentUser = UserModel.fromJson(decodedString);
     }
+  }
+
+  void updateLocalUser({
+    String? username,
+    String? fullName,
+    String? bio,
+    int? age,
+  }) async {
+    if(currentUser == null)return;
+
+    _currentUser = UserModel(  
+      uid: _currentUser!.uid,
+      username: username ?? _currentUser!.username,
+      fullName: fullName ?? _currentUser!.fullName,
+      bio: bio ?? _currentUser!.bio,
+      age: age ?? _currentUser!.age,
+      imageUrl: _currentUser!.imageUrl,
+    );
+
+    notifyListeners();
+
+    await _prefs.setString('user_data', jsonEncode(_currentUser!.toMap()));
   }
 }

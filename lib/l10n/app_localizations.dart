@@ -703,6 +703,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cannot rewind further'**
   String get cannotRewind;
+
+  /// No description provided for @age.
+  ///
+  /// In en, this message translates to:
+  /// **'Age'**
+  String get age;
+
+  /// No description provided for @verifySend.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification sent to '**
+  String get verifySend;
+
+  /// No description provided for @checkInbox.
+  ///
+  /// In en, this message translates to:
+  /// **'Please check your inbox to finish updating your email.'**
+  String get checkInbox;
+
+  /// No description provided for @failedVerifyEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to send verification: '**
+  String get failedVerifyEmail;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirm;
+
+  /// No description provided for @securityCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Security Check'**
+  String get securityCheck;
+
+  /// No description provided for @confirmPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'To change your email, please confirm your current password.'**
+  String get confirmPassword;
+
+  /// No description provided for @securityCheckFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Security check failed: '**
+  String get securityCheckFailed;
 }
 
 class _AppLocalizationsDelegate
