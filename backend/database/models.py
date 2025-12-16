@@ -1,18 +1,26 @@
 
 from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP, text, ForeignKey
+from sqlalchemy.orm import relationship
 from .database import Base
 
 class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key = True, nullable = False)
-    username = Column(String, nullable = False)
+    username = Column(String, nullable = False, index = True)
     full_name = Column(String, nullable = False)
     firebase_token = Column(String, unique = True, nullable = False)
     profile_picture = Column(String, unique = True, nullable = True)
     bio = Column(String, nullable = True)
     age = Column(Integer, nullable = True)
     created_at = Column(TIMESTAMP(timezone=True), nullable = False, server_default = text('now()'))
+    gender = Column(String, nullable = True)
+    min_age_range = Column(Integer, nullable = True)
+    max_age_range = Column(Integer, nullable = True)
+    show_out_of_age_range = Column(Boolean, nullable = True)
+    isBalanced = Column(Boolean, nullable = True)
+
+    settings = relationship("Settings", back_populates="user", uselist=False, cascade="all, delete")
 
 class Likes(Base):
     __tablename__ = "likes"
@@ -49,3 +57,13 @@ class Photos(Base):
     display_order = Column(Integer, nullable = False)
     created_at = Column(TIMESTAMP(timezone=True), nullable = False, server_default = text('now()'))
     
+class Settings(Base):
+    __tablename__ = "settings"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), unique = True, nullable = False)
+    is_dark_mode = Column(Boolean, nullable = False, default=False)
+    is_notifications_on = Column(Boolean, nullable = False, default=False)
+    language = Column(String, nullable = False, default="en")
+
+    user = relationship("User", back_populates="settings")
