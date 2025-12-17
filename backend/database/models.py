@@ -17,8 +17,9 @@ class User(Base):
     gender = Column(String, nullable = True)
     min_age_range = Column(Integer, nullable = True)
     max_age_range = Column(Integer, nullable = True)
-    show_out_of_age_range = Column(Boolean, nullable = True)
-    isBalanced = Column(Boolean, nullable = True)
+    show_out_of_range = Column(Boolean, nullable = True)
+    is_balanced = Column(Boolean, nullable = True)
+    interests = Column(String, nullable = True)
 
     settings = relationship("Settings", back_populates="user", uselist=False, cascade="all, delete")
 

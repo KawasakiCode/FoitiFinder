@@ -110,23 +110,19 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
         title: Text(text.phoneNumberSettings),
         automaticallyImplyLeading: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              text.phoneNumber,
-              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
-            ),
-            Container(
-              margin: EdgeInsets.only(top: 10, bottom: 5),
-              padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey, width: 1),
-                borderRadius: BorderRadius.circular(10),
+      body: GestureDetector(
+        onTap:() => FocusScope.of(context).unfocus(),
+        behavior: HitTestBehavior.opaque,
+        child: Padding(
+          padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                text.phoneNumber,
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
               ),
-              child: Row(
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
@@ -134,7 +130,9 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
                       controller: _phoneNumberController,
                       keyboardType: TextInputType.phone,
                       decoration: InputDecoration(
-                        border: InputBorder.none,
+                        border: OutlineInputBorder(  
+                          borderRadius: BorderRadius.circular(15),
+                        ),
                         hintText: text.phoneNumberPlaceholder,
                         hintStyle: TextStyle(
                           fontSize: 15,
@@ -149,18 +147,18 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
                   ),
                 ],
               ),
-            ),
-            Center(
-              child: TextButton(
-                //onpress call validate number and redirect to otp page
-                onPressed: _verifyNumber,
-                child: Text(
-                  text.updatePhoneNumber,
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+              Center(
+                child: TextButton(
+                  //onpress call validate number and redirect to otp page
+                  onPressed: _verifyNumber,
+                  child: Text(
+                    text.updatePhoneNumber,
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -44,7 +44,7 @@ Future<void> main() async {
     MultiProvider(  
       providers: [
         ChangeNotifierProvider(create: (_) => SettingsProvider(prefs)),
-        ChangeNotifierProvider(create: (_) => ProfileProvider(prefs)),
+        ChangeNotifierProvider(create: (_) => ProfileProvider(prefs)..init()),
       ],
       child: const MyApp()));
 }

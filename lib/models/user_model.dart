@@ -9,6 +9,12 @@ class UserModel{
   final String? bio;
   final int? age;
   final String? imageUrl;
+  final String? gender;
+  final int? minAgeRange;
+  final int? maxAgeRange;
+  final bool? showOutOfRange;
+  final bool? isBalanced;
+  final String? interests;
 
   UserModel({
     required this.uid,
@@ -16,7 +22,14 @@ class UserModel{
     required this.fullName,
     this.bio,
     this.age,
-    this.imageUrl
+    this.imageUrl,
+    this.gender, 
+    this.minAgeRange,
+    this.maxAgeRange,
+    this.showOutOfRange,
+    this.isBalanced,
+    this.interests
+    
   });
 
   //convert json to usermodel
@@ -27,7 +40,13 @@ class UserModel{
       fullName: json['full_name'],
       bio: json['bio'],
       age: json['age'],
-      imageUrl: json['profile_picture']
+      imageUrl: json['profile_picture'],
+      gender: json['gender'],
+      minAgeRange: json['min_age_range'],
+      maxAgeRange: json['max_age_range'],
+      showOutOfRange: json['show_out_of_range'],
+      isBalanced: json['is_balanced'],
+      interests: json['interests'],
     );
   }
 
@@ -40,6 +59,12 @@ class UserModel{
       'bio': bio,
       'age': age,
       'profile_picture': imageUrl,
+      'gender': gender,
+      'min_age_range': minAgeRange,
+      'max_age_range': maxAgeRange,
+      'show_out_of_range': showOutOfRange,
+      'is_balanced': isBalanced,
+      'interests': interests,
     };
   }
 }

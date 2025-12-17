@@ -40,8 +40,8 @@ class _MainScreenState extends State<MainScreen> {
 
   void _precacheProfileImage() {
     final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
-    if(profileProvider.profileImage != null) {
-      precacheImage(FileImage(profileProvider.profileImage!), context);
+    if(profileProvider.tempProfileImage != null) {
+      precacheImage(FileImage(profileProvider.tempProfileImage!), context);
     }
   }
 

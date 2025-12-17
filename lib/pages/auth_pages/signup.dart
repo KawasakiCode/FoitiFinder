@@ -85,6 +85,12 @@ class _SignUpPageState extends State<SignUpPage> {
         bio: null,
         age: null,
         imageUrl: null,
+        gender: null,
+        minAgeRange: null,
+        maxAgeRange: null,
+        showOutOfRange: null,
+        isBalanced: null,
+        interests: null
       );
       // If successful, navigate to verify email page
       if(!mounted) return;
@@ -126,7 +132,7 @@ class _SignUpPageState extends State<SignUpPage> {
       if(!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(text.errorOccured),
+          content: Text("${text.errorOccured}, $e"),
           backgroundColor: Colors.red,
           duration: Duration(seconds: 3),
         ),

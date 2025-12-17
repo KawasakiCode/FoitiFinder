@@ -26,6 +26,12 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
         profile_picture=user.profile_picture,
         bio=user.bio,
         age=user.age,
+        gender=user.gender,
+        min_age_range=user.min_age_range,
+        max_age_range=user.max_age_range,
+        show_out_of_range=user.show_out_of_range,
+        is_balanced=user.is_balanced,
+        interests=user.interests,
     )
 
     db.add(new_user)
@@ -40,7 +46,7 @@ def get_user_data(firebase_token: str, db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
 
     if not db_user: 
-        raise HTTPException(status_code=404, details = "User not found")
+        raise HTTPException(status_code=404, detail="User not found")
     
     return db_user
 
@@ -49,7 +55,7 @@ def get_user_data(firebase_token: str, db: Session = Depends(get_db)):
 def update_user(firebase_token: str, user_update: schemas.UserUpdate, db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
     if not db_user:
-        raise HTTPException(status_code=404, details="User not found")
+        raise HTTPException(status_code=404, detail="User not found")
 
     #make data into a dictionary
     #exclude_unset = True doesnt override data that are null 

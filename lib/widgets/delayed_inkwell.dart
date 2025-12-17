@@ -12,7 +12,7 @@ class DelayedInkWell extends StatelessWidget {
     super.key,
     required this.onTap,
     required this.child,
-    required this.delayMs , // Your "Goldilocks" default
+    required this.delayMs , //how much time should the function be delayed
   });
 
   @override

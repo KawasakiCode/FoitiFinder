@@ -320,15 +320,15 @@ class _SettingsPageState extends State<SettingsPage> {
                                     ),
                                     SizedBox(height: 4),
                                     AutoSizeText(
-                                        text.balancedText,
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                        maxLines: 1,
-                                        minFontSize: 12,
-                                        overflow: TextOverflow.ellipsis,
+                                      text.balancedText,
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w500,
                                       ),
+                                      maxLines: 1,
+                                      minFontSize: 12,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ],
                                 ),
                               ),
@@ -888,6 +888,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: TextButton(
                   onPressed: () async {
                     await FirebaseAuth.instance.signOut();
+                    await settings.clearData();
                     if (!context.mounted) return;
                     Navigator.of(context).popUntil((route) => route.isFirst);
                   },

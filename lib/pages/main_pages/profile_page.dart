@@ -20,12 +20,15 @@ class _ProfilePageState extends State<ProfilePage> {
     final text = AppLocalizations.of(context)!;
     ImageProvider backgroundImage;
 
-    if(profileProvider.profileImage != null) {
-      backgroundImage = ResizeImage(FileImage(profileProvider.profileImage!), width: 300);
+    //first check if pfp is stored locally
+    if(profileProvider.tempProfileImage != null) {
+      backgroundImage = ResizeImage(FileImage(profileProvider.tempProfileImage!), width: 300);
     }
-    else if(profileProvider.cloudUrl != null && profileProvider.cloudUrl!.isNotEmpty) {
-      backgroundImage = CachedNetworkImageProvider(profileProvider.cloudUrl!);
+    //if not locally grab it from the cloud
+    else if(profileProvider.currentUser?.imageUrl != null && profileProvider.currentUser!.imageUrl!.isNotEmpty) {
+      backgroundImage = CachedNetworkImageProvider(profileProvider.currentUser!.imageUrl!);
     }
+    //else show default pfp
     else {
       backgroundImage = AssetImage('assets/images/default_avatar.png');
     }
@@ -67,8 +70,9 @@ class _ProfilePageState extends State<ProfilePage> {
               Padding(
                 padding: EdgeInsets.fromLTRB(20, 20, 15, 15),
                 child: GestureDetector(
-                  onTap: () {
-                    profileProvider.pickAndSaveImage();},
+                  onTap: () async {
+                    await profileProvider.updateProfilePicture();
+                  },
                   child: CircleAvatar(  
                     radius: 40,
                     backgroundColor: Colors.grey[500],

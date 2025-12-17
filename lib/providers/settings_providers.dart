@@ -191,4 +191,17 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
     _prefs.setString('language_code', languageCode);
   }
+
+  //for _prefs cleanup
+  Future<void> clearData() async {
+    await _prefs.remove('isPhoneVerified');
+    await _prefs.remove('isDark');
+    await _prefs.remove('user_interests');
+    await _prefs.remove('min_age');
+    await _prefs.remove('max_age');
+    await _prefs.remove('outOfRange');
+    await _prefs.remove('recommendationOpt');
+    await _prefs.remove('language_code');
+    await _prefs.remove('notifications_enabled');
+  }
 }

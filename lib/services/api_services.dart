@@ -16,6 +16,12 @@ class ApiService {
     required String? bio,
     required int? age,
     required String? imageUrl,
+    required String? gender,
+    required int? minAgeRange,
+    required int? maxAgeRange,
+    required bool? showOutOfRange,
+    required bool? isBalanced,
+    required String? interests
   }) async {
     
     final url = Uri.parse('$baseUrl/users/');
@@ -33,10 +39,16 @@ class ApiService {
           "bio": bio,
           "age": age,
           "image_url": imageUrl,
+          "gender": gender,
+          "min_age_range": minAgeRange,
+          "max_age_range": maxAgeRange,
+          "show_out_of_range": showOutOfRange,
+          "is_balanced": isBalanced,
+          "interests": interests,
         }),
       );
 
-      if (response.statusCode != 200 || response.statusCode != 201) {
+      if (response.statusCode != 200 && response.statusCode != 201) {
         throw Exception("Failed to create user");
       }
     } catch (e) {
@@ -52,16 +64,28 @@ class ApiService {
     String? bio,
     int? age,
     String? imageUrl,
+    String? gender,
+    int? minAgeRange,
+    int? maxAgeRange,
+    bool? showOutOfRange,
+    bool? isBalanced,
+    String? interests,
   }) async {
     final url = Uri.parse('$baseUrl/users/$uid');
 
     final Map<String, dynamic> data = {};
 
-    if(username != null) data['username'] = username;
-    if(fullName != null) data['full_name'] = fullName;
-    if(bio != null) data['bio'] = bio;
-    if(age != null) data['age'] = age;
-    if(imageUrl != null) data['profile_picture'] = imageUrl;
+    if (username != null) data['username'] = username;
+    if (fullName != null) data['full_name'] = fullName;
+    if (bio != null) data['bio'] = bio;
+    if (age != null) data['age'] = age;
+    if (imageUrl != null) data['profile_picture'] = imageUrl;
+    if (gender != null) data['gender'] = gender;
+    if (minAgeRange != null) data['min_age_range'] = minAgeRange;
+    if (maxAgeRange != null) data['max_age_range'] = maxAgeRange;
+    if (showOutOfRange != null) data['show_out_of_age_range'] = showOutOfRange;
+    if (isBalanced != null) data['is_balanced'] = isBalanced;
+    if (interests != null) data['interests'] = interests;
 
     if(data.isEmpty)return;
 
@@ -80,7 +104,7 @@ class ApiService {
   }
 
   //get users data back
-  static Future<UserModel> getUserData(String uid) async {
+  static Future<UserModel?> getUserData(String uid) async {
     final url = Uri.parse('$baseUrl/users/$uid');
     try {
       final response = await http.get(url);
@@ -88,6 +112,9 @@ class ApiService {
       if(response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
         return UserModel.fromJson(data);
+      }
+      else if (response.statusCode == 404){
+        return null;
       }
       else {
         throw Exception("Failed to get data ${response.body}");
