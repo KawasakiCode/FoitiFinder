@@ -39,6 +39,7 @@ class _LoginPageState extends State<LoginPage> {
     final text = AppLocalizations.of(context)!;
     final email = _email.text;
     final password = _password.text;
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
 
     try {
       final userCredential = await FirebaseAuth.instance
@@ -58,6 +59,7 @@ class _LoginPageState extends State<LoginPage> {
             )
           );
         if (mounted) {
+          settingsProvider.fetchSettingsFromApi();
           //Redirect to Verify Page
           Navigator.push(
             context,

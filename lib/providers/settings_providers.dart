@@ -4,16 +4,27 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:foitifinder/models/settings_model.dart';
+import 'package:foitifinder/services/api_services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum RecommendationPreference {balanced, recentlyActive}
 
 class SettingsProvider extends ChangeNotifier {
-  final SharedPreferences _prefs; 
+  final SharedPreferences _prefs;
 
-  SettingsProvider(this._prefs) {
-    _loadInstantSettings();
-    loadAsyncSettings();
+  SettingsProvider(this._prefs);
+
+  //function that automatically runs when provider is initialized
+  //loads user from disk, if disk empty then loads user from database
+  Future<void> init() async {
+    _loadFromDisk();
+
+    final user = FirebaseAuth.instance.currentUser;
+    if(user != null) {
+      fetchSettingsFromApi();
+      loadAsyncSettings();
+    }
   }
 
   //State variables (private)
@@ -24,7 +35,7 @@ class SettingsProvider extends ChangeNotifier {
   RangeValues _ageRange = RangeValues(0, 0);
   bool _showOutOfRange = false;
   RecommendationPreference _currentOpt = RecommendationPreference.balanced;
-  Locale _locale = const Locale('en');
+  Locale _locale = const Locale('el');
 
   //Getters
   ThemeMode get themeMode => _themeMode;
@@ -36,9 +47,19 @@ class SettingsProvider extends ChangeNotifier {
   RecommendationPreference get currentOpt => _currentOpt;
   Locale get locale => _locale;
 
-  void _loadInstantSettings() {
+  void _loadFromDisk() {
+    _themeMode = ThemeMode.light;
+    _pushNotificationsEnabled = false;
+    _locale = Locale('el');
+  }
+
+  Future<void> fetchSettingsFromApi() async {
     //theme  
-    _themeMode = _prefs.getBool('isDark') ?? false ? ThemeMode.dark : ThemeMode.light;
+    if(_prefs.getBool('isDark') == null) {
+      SettingsModel data = await ApiService.getUsersSettings(FirebaseAuth.instance.currentUser!.uid);
+      _themeMode = data.isDark! ? ThemeMode.dark : ThemeMode.light;
+      _prefs.setBool('isDark', data.isDark!);
+    }
 
     //is phone verified
     _isPhoneVerified = _prefs.getBool('isPhoneVerified') ?? false;
@@ -66,8 +87,15 @@ class SettingsProvider extends ChangeNotifier {
       );
     }
 
-    String langCode = _prefs.getString('language_code') ?? 'en';
-    _locale = Locale(langCode);
+    String langCode;
+    if(_prefs.getString('language_code') == null) {
+      SettingsModel data = await ApiService.getUsersSettings(FirebaseAuth.instance.currentUser!.uid);
+      langCode =  data.language!;
+      _locale = Locale(langCode);
+      _prefs.setString('language_code', data.language!);
+    }
+
+    notifyListeners();
   }
 
   Future<void> loadAsyncSettings() async {
@@ -81,7 +109,15 @@ class SettingsProvider extends ChangeNotifier {
       }
     }
 
-    bool pushNotifications = _prefs.getBool('notifications_enabled') ?? false;
+    bool pushNotifications;
+    if(_prefs.getBool('notifications_enabled') == null) {
+      SettingsModel data = await ApiService.getUsersSettings(FirebaseAuth.instance.currentUser!.uid);
+      _prefs.setBool('notifications_enabled', data.isNotificationsOn!);
+      pushNotifications = data.isNotificationsOn!;
+    }
+    else {
+      pushNotifications = _prefs.getBool('notifications_enabled') ?? false;
+    }
     try{
       FirebaseMessaging messaging = FirebaseMessaging.instance;
       NotificationSettings settings = await messaging.getNotificationSettings();
@@ -105,6 +141,8 @@ class SettingsProvider extends ChangeNotifier {
 
     final preferences = await SharedPreferences.getInstance();
     await preferences.setBool('isDark', isDark);
+    await ApiService.updateUsersSettings(isDarkMode:  isDark, uid: FirebaseAuth.instance.currentUser!.uid);
+    
   }
 
   //Push notifications logic
@@ -135,6 +173,7 @@ class SettingsProvider extends ChangeNotifier {
     else {
       _pushNotificationsEnabled = false;
     }
+    await ApiService.updateUsersSettings(uid: FirebaseAuth.instance.currentUser!.uid, isNotificationsOn: _pushNotificationsEnabled);
     notifyListeners();
   }
 
@@ -186,10 +225,11 @@ class SettingsProvider extends ChangeNotifier {
     _prefs.setString('recommendationOpt', opt.name);
   }
 
-  void changeLanguage(String languageCode) {
+  void changeLanguage(String languageCode) async {
     _locale = Locale(languageCode);
     notifyListeners();
     _prefs.setString('language_code', languageCode);
+    await ApiService.updateUsersSettings(uid: FirebaseAuth.instance.currentUser!.uid, language: languageCode);
   }
 
   //for _prefs cleanup
@@ -203,5 +243,9 @@ class SettingsProvider extends ChangeNotifier {
     await _prefs.remove('recommendationOpt');
     await _prefs.remove('language_code');
     await _prefs.remove('notifications_enabled');
+    _themeMode = ThemeMode.light;
+    _pushNotificationsEnabled = false;
+    _locale = Locale('el');
+    notifyListeners();
   }
 }

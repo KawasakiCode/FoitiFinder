@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:foitifinder/models/settings_model.dart';
 import 'package:foitifinder/models/user_model.dart';
 import 'package:http/http.dart' as http;
 
@@ -123,4 +124,53 @@ class ApiService {
       rethrow;
     }
   }
+
+  //update user's  settings
+  static Future<void> updateUsersSettings({
+    required String uid,
+    bool? isDarkMode,
+    bool? isNotificationsOn,
+    String? language,
+  }) async {
+    final url =  Uri.parse('$baseUrl/users/settings/$uid');
+
+    final Map<String, dynamic> data = {};
+      if (isDarkMode  != null) data['is_dark_mode'] = isDarkMode;
+      if (isNotificationsOn != null) data['is_notifications_on'] = isNotificationsOn;
+      if (language != null) data['language'] = language;
+
+    if(data.isEmpty)return;
+
+    try {
+      final response =  await http.patch( 
+        url,
+        headers: {"Content-type": "application/json"},
+        body: jsonEncode(data),
+      );
+      if(response.statusCode != 200) {
+        throw Exception("Failed to update settings in db ${response.body}");
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  //get user's settings back
+  static Future<SettingsModel> getUsersSettings(String uid) async {
+    final url = Uri.parse("$baseUrl/users/settings/$uid");
+    try {
+      final response = await http.get(url);
+
+      if(response.statusCode == 200) {
+        final Map<String, dynamic> settings = jsonDecode(response.body);
+        return SettingsModel.fromJson(settings);
+      }
+      else {
+        throw Exception("Failed to get data ${response.body}");
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+ 
 }

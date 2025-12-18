@@ -11,7 +11,7 @@ load_dotenv()
 
 app = FastAPI()
 
-#create new user
+#create new user and initialize default settings table for the new user
 @app.post("/users/", response_model=schemas.User)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     #chech if user with the same firebase.uid already is registered and return and exception if yes
@@ -34,9 +34,23 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
         interests=user.interests,
     )
 
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+    try:
+        db.add(new_user)
+        db.flush()
+
+        new_settings = models.Settings(  
+            user_id=new_user.id,
+            is_dark_mode=False,
+            is_notifications_on=False,
+            language='el'
+        )
+
+        db.add(new_settings)
+        db.commit()
+        db.refresh(new_user)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
     return new_user
 
@@ -68,3 +82,33 @@ def update_user(firebase_token: str, user_update: schemas.UserUpdate, db: Sessio
     db.commit()
     db.refresh(db_user)
     return db_user
+
+#update one/multiple settings without altering the other
+@app.patch("/users/settings/{firebase_token}")
+def update_settings(firebase_token: str, settings_update: schemas.SettingsUpdate, db: Session = Depends(get_db)):
+    db_user =  db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    #since we defined relationship in models.py we can instantly grab the settings 
+    db_user_settings = db_user.settings
+    if not db_user_settings:
+        raise HTTPException(status_code=404, detail="Settings not found for this user")
+    
+    #same logic with update_user
+    updated_data = settings_update.model_dump(exclude_unset=True)
+
+    for key, value in updated_data.items():
+        setattr(db_user_settings, key, value)
+    
+    db.commit()
+    db.refresh(db_user_settings)
+    return db_user_settings
+
+#get user's settings
+@app.get("/users/settings/{firebase_token}")
+def get_users_settings(firebase_token: str, db: Session = Depends(get_db)):
+    db_user = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return db_user.settings

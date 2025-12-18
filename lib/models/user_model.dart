@@ -50,7 +50,7 @@ class UserModel{
     );
   }
 
-  //convert usermodel object to map
+  //convert usermodel object to map (map is like json)
   Map<String, dynamic> toMap() {
     return {
       'firebase_token': uid,
