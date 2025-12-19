@@ -85,7 +85,9 @@ class _MainScreenState extends State<MainScreen> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? Colors.white : Colors.grey[600],
+                color: Theme.of(context).brightness == Brightness.dark 
+                ? (isSelected ? Colors.white : Colors.grey[600]) 
+                : (isSelected ? Colors.grey[900] : Colors.grey[600])
               ),
               child: Text(label),
             ),

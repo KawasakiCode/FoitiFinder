@@ -13,7 +13,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 // --- CONTRAST COLORS ---
-const Color kBrandPurple = Color(0xFF8A2BE2); // Vibrant "Electric" Purple
+const Color kBrandPurple = Color(0xFF8A2BE2); // Vibrant  Purple
 const Color kBrandPurpleDark = Color(0xFF6A1B9A); // Darker shade for contrast
 
 // --- LIGHT THEME PALETTE ---
@@ -22,8 +22,8 @@ const Color kLightSurface = Colors.white;         // Cards/AppBar
 const Color kLightTextPrimary = Color(0xFF1A1B1E); // Almost Black
 const Color kLightTextSecondary = Color(0xFF65676B); // Medium Grey
 
-// --- DARK THEME PALETTE (Tinder Style) ---
-const Color kDarkBackground = Color(0xFF111418);  // Very dark grey/blue (Not pure black)
+// --- DARK THEME PALETTE ---
+const Color kDarkBackground = Color(0xFF111418);  // Very dark grey/blue
 const Color kDarkSurface = Color(0xFF1F2228);     // Slightly lighter for cards
 const Color kDarkTextPrimary = Color(0xFFE4E6EB); // Off-white
 const Color kDarkTextSecondary = Color(0xFFB0B3B8); // Light Grey

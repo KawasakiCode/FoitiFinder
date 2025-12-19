@@ -59,7 +59,6 @@ class _LoginPageState extends State<LoginPage> {
             )
           );
         if (mounted) {
-          settingsProvider.fetchSettingsFromApi();
           //Redirect to Verify Page
           Navigator.push(
             context,
@@ -77,6 +76,8 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }                                    
       // Clear navigation stack and navigate to home page
+      if(!mounted)return;
+      await settingsProvider.fetchSettingsFromApi();
       if(!mounted)return;
       await Provider.of<SettingsProvider>(context, listen: false).loadAsyncSettings();
       if(!mounted)return;

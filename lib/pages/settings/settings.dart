@@ -486,24 +486,41 @@ class _SettingsPageState extends State<SettingsPage> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   padding: const EdgeInsets.only(left: 10, right: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Column(
                     children: [
-                      Text(
-                        text.pushNotifications,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            text.pushNotifications,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Transform.scale(
+                            scale: 1,
+                            child: Switch(
+                              value: settings.notificationsEnabled,
+                              onChanged: (bool enabled) async {
+                                await settings.toggleNotifications(enabled);
+                              },
+                            ),
+                          ),
+                        ],
                       ),
-                      Transform.scale(
-                        scale: 1,
-                        child: Switch(
-                          value: settings.notificationsEnabled,
-                          onChanged: (bool enabled) async {
-                            await settings.toggleNotifications(enabled);
-                          },
-                        ),
+                      if(!settings.osPermission)
+                      Padding(  
+                        padding: const EdgeInsets.only(bottom: 5),
+                        child: Row(  
+                          children: [
+                            Icon(Icons.info_outline, size: 16, color: Colors.orange),
+                            Expanded(
+                              child: Text(' Requires notifications permission from device',
+                                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400)),
+                            )
+                          ]
+                        )
                       ),
                     ],
                   ),

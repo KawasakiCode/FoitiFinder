@@ -84,7 +84,7 @@ class ApiService {
     if (gender != null) data['gender'] = gender;
     if (minAgeRange != null) data['min_age_range'] = minAgeRange;
     if (maxAgeRange != null) data['max_age_range'] = maxAgeRange;
-    if (showOutOfRange != null) data['show_out_of_age_range'] = showOutOfRange;
+    if (showOutOfRange != null) data['show_out_of_range'] = showOutOfRange;
     if (isBalanced != null) data['is_balanced'] = isBalanced;
     if (interests != null) data['interests'] = interests;
 

@@ -5,8 +5,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:foitifinder/models/settings_model.dart';
+import 'package:foitifinder/models/user_model.dart';
 import 'package:foitifinder/services/api_services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 enum RecommendationPreference {balanced, recentlyActive}
 
@@ -18,10 +20,12 @@ class SettingsProvider extends ChangeNotifier {
   //function that automatically runs when provider is initialized
   //loads user from disk, if disk empty then loads user from database
   Future<void> init() async {
-    _loadFromDisk();
-
     final user = FirebaseAuth.instance.currentUser;
-    if(user != null) {
+    
+    if(user == null) {
+       _loadFromDisk();
+    }
+    else {
       fetchSettingsFromApi();
       loadAsyncSettings();
     }
@@ -36,6 +40,7 @@ class SettingsProvider extends ChangeNotifier {
   bool _showOutOfRange = false;
   RecommendationPreference _currentOpt = RecommendationPreference.balanced;
   Locale _locale = const Locale('el');
+  bool _osPermission = false;
 
   //Getters
   ThemeMode get themeMode => _themeMode;
@@ -46,53 +51,98 @@ class SettingsProvider extends ChangeNotifier {
   bool get showOutOfRange => _showOutOfRange;
   RecommendationPreference get currentOpt => _currentOpt;
   Locale get locale => _locale;
+  bool get osPermission => _osPermission;
 
+  //loads default settings if no user is found
   void _loadFromDisk() {
     _themeMode = ThemeMode.light;
     _pushNotificationsEnabled = false;
     _locale = Locale('el');
+    _ageRange = RangeValues(18, 30);
+    _interests = {};
+    _currentOpt = RecommendationPreference.balanced;
+    _showOutOfRange = false;
+    _isPhoneVerified = false;
   }
 
   Future<void> fetchSettingsFromApi() async {
+    SettingsModel data = await ApiService.getUsersSettings(FirebaseAuth.instance.currentUser!.uid);
+    UserModel? userData = await ApiService.getUserData(FirebaseAuth.instance.currentUser!.uid);
     //theme  
     if(_prefs.getBool('isDark') == null) {
-      SettingsModel data = await ApiService.getUsersSettings(FirebaseAuth.instance.currentUser!.uid);
-      _themeMode = data.isDark! ? ThemeMode.dark : ThemeMode.light;
-      _prefs.setBool('isDark', data.isDark!);
+      bool isDark = data.isDark ?? false;
+      _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
+      _prefs.setBool('isDark', isDark);
+    }
+    else {
+      _themeMode = _prefs.getBool('isDark')! ? ThemeMode.dark : ThemeMode.light;
     }
 
     //is phone verified
     _isPhoneVerified = _prefs.getBool('isPhoneVerified') ?? false;
 
     //interests
-    List<String>? savedList = _prefs.getStringList('user_interests');
-    if(savedList != null) {
-      _interests = savedList.toSet();
+    if(_prefs.getStringList('user_interests') == null) {
+      _interests =  (userData?.interests == null
+      ? {}
+      : userData!.interests!.split(',').toSet());
+      _prefs.setStringList('user_interests', _interests.toList());
+    } 
+    else {
+      List<String>? savedList = _prefs.getStringList('user_interests');
+      if(savedList != null) {
+        _interests = savedList.toSet();
+      }
     }
 
     //age range
-    int min = _prefs.getInt('min_age') ?? 18;
-    int max = _prefs.getInt('max_age') ?? 60;
-    _ageRange = RangeValues(min.toDouble(), max.toDouble());
-
-    //show out of age range
-    _showOutOfRange = _prefs.getBool('outOfRange') ?? false;
-
-    //recommendation preference
-    String? savedValue = _prefs.getString('recommendationOpt');
-    if(savedValue != null) {
-      _currentOpt = RecommendationPreference.values.firstWhere(
-        (e) => e.name == savedValue,
-        orElse: () => RecommendationPreference.balanced
-      );
+    if(_prefs.getInt('min_age') == null || _prefs.getInt('max_age') == null) {
+      _ageRange = RangeValues(userData?.minAgeRange == null ? 18 : userData!.minAgeRange!.toDouble(),
+        userData?.maxAgeRange == null ? 30 : userData!.maxAgeRange!.toDouble());
+      _prefs.setInt('min_age', _ageRange.start.round());
+      _prefs.setInt('max_age',  _ageRange.end.round());
+    } 
+    else {
+      int? min = _prefs.getInt('min_age');
+      int? max = _prefs.getInt('max_age');
+      _ageRange = RangeValues(min!.toDouble(), max!.toDouble());
     }
-
+    
+    //show out of age range
+    if(_prefs.getBool('outOfRange') == null) {
+      _showOutOfRange = userData?.showOutOfRange == null ? false : userData!.showOutOfRange!;
+      _prefs.setBool('outOfRange', _showOutOfRange);
+    }
+    else {
+      _showOutOfRange = _prefs.getBool('outOfRange')!;
+    }
+    
+    //recommendation preference
+    if(_prefs.getString('recommendationOpt') == null) {
+      bool isBalanced = userData?.isBalanced ?? true;
+      _currentOpt = isBalanced ? RecommendationPreference.balanced : RecommendationPreference.recentlyActive;
+      _prefs.setString('recommendationOpt', _currentOpt.name);
+    }
+    else {
+      String? savedValue = _prefs.getString('recommendationOpt');
+      if(savedValue != null) {
+        _currentOpt = RecommendationPreference.values.firstWhere(
+          (e) => e.name == savedValue,
+          orElse: () => RecommendationPreference.balanced
+        );
+      }
+    }
+    
     String langCode;
     if(_prefs.getString('language_code') == null) {
-      SettingsModel data = await ApiService.getUsersSettings(FirebaseAuth.instance.currentUser!.uid);
       langCode =  data.language!;
       _locale = Locale(langCode);
       _prefs.setString('language_code', data.language!);
+    }
+    else {
+      langCode = _prefs.getString('language_code')!;
+      _locale = Locale(langCode);
+
     }
 
     notifyListeners();
@@ -109,14 +159,26 @@ class SettingsProvider extends ChangeNotifier {
       }
     }
 
+
     bool pushNotifications;
     if(_prefs.getBool('notifications_enabled') == null) {
       SettingsModel data = await ApiService.getUsersSettings(FirebaseAuth.instance.currentUser!.uid);
-      _prefs.setBool('notifications_enabled', data.isNotificationsOn!);
-      pushNotifications = data.isNotificationsOn!;
+      //does the os give permission
+      bool osPermission = await checkNotificationPermission();
+      _osPermission = osPermission;
+      //if os and db return true then enable notifications else keep false
+      if(osPermission && data.isNotificationsOn!) {
+        pushNotifications = true;
+        _prefs.setBool('notifications_enabled', true);
+      }
+      else {
+        pushNotifications = false;
+        _prefs.setBool('notifications_enabled', false);
+      }
     }
     else {
       pushNotifications = _prefs.getBool('notifications_enabled') ?? false;
+      _osPermission = osPermission;
     }
     try{
       FirebaseMessaging messaging = FirebaseMessaging.instance;
@@ -139,8 +201,7 @@ class SettingsProvider extends ChangeNotifier {
     _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
     notifyListeners();
 
-    final preferences = await SharedPreferences.getInstance();
-    await preferences.setBool('isDark', isDark);
+    await _prefs.setBool('isDark', isDark);
     await ApiService.updateUsersSettings(isDarkMode:  isDark, uid: FirebaseAuth.instance.currentUser!.uid);
     
   }
@@ -161,8 +222,8 @@ class SettingsProvider extends ChangeNotifier {
         _pushNotificationsEnabled = true;
         //token to identify specific user to send push notifications
         //String? token = await messaging.getToken();
-        final preferences = await SharedPreferences.getInstance();
-        await preferences.setBool('notifications_enabled', value);
+        await _prefs.setBool('notifications_enabled', value);
+        _osPermission = true;
       }
       //if user declines then switch stays off and no notifications can be sent
       else {
@@ -182,8 +243,7 @@ class SettingsProvider extends ChangeNotifier {
     _isPhoneVerified = true;
     notifyListeners();
 
-    final preferences = await SharedPreferences.getInstance();
-    await preferences.setBool('isPhoneVerified', true);
+    await _prefs.setBool('isPhoneVerified', true);
   }
 
   //add or remove interests
@@ -199,30 +259,39 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   //store interests into disk
-  void _saveInterests() {
+  Future<void> _saveInterests() async {
     _prefs.setStringList('user_interests', _interests.toList());
+    final String interestsString  = _interests.join(',');
+    await ApiService.updateUserData(uid: FirebaseAuth.instance.currentUser!.uid, interests: interestsString);
   }
 
   //split range values to save them to disk
-  void saveAgeRange(RangeValues values) {
+  Future<void> saveAgeRange(RangeValues values) async {
     _ageRange = values;
     _prefs.setInt('min_age', values.start.round());
     _prefs.setInt('max_age', values.end.round());
     notifyListeners();
+    await ApiService.updateUserData(uid: FirebaseAuth.instance.currentUser!.uid, 
+      minAgeRange: values.start.round(),
+      maxAgeRange: values.end.round());
   }
 
   //store out of range switch state
-  void storeShowOutOfRange(bool outOfRange) {
+  Future<void> storeShowOutOfRange(bool outOfRange) async {
     _showOutOfRange = outOfRange;
     _prefs.setBool('outOfRange', outOfRange);
     notifyListeners();
+    await ApiService.updateUserData(uid: FirebaseAuth.instance.currentUser!.uid,
+      showOutOfRange: _showOutOfRange);
   }
 
   //recommendation preference
-  void changeRecommendationPreference(RecommendationPreference opt) {
+  Future<void> changeRecommendationPreference(RecommendationPreference opt) async {
     _currentOpt = opt;
     notifyListeners();
     _prefs.setString('recommendationOpt', opt.name);
+    await ApiService.updateUserData(uid: FirebaseAuth.instance.currentUser!.uid,
+    isBalanced: _currentOpt == RecommendationPreference.balanced ? true : false);
   }
 
   void changeLanguage(String languageCode) async {
@@ -249,3 +318,19 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
+
+  //does os give permission for notifications
+  Future<bool> checkNotificationPermission() async {
+    PermissionStatus status = await Permission.notification.status;
+
+    if(status.isGranted) {
+      return true;
+    }
+    else if(status.isDenied) {
+      return false;
+    }
+    else if(status.isPermanentlyDenied) {
+      return false;
+    }
+    return false;
+  }
