@@ -3,7 +3,6 @@
 
 import 'dart:convert';
 import 'dart:io';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/models/user_model.dart';
@@ -15,7 +14,9 @@ class ProfileProvider extends ChangeNotifier {
   File? _tempprofileImage; //to preview updates and check for changes
   UserModel? _currentUser;
 
-  ProfileProvider(this._prefs);
+  ProfileProvider(this._prefs) {
+    _loadUser();
+  }
 
   //image getter
   File? get tempProfileImage => _tempprofileImage;
@@ -24,14 +25,14 @@ class ProfileProvider extends ChangeNotifier {
 
   //function that automatically runs when provider is initialized
   //loads user from disk, if disk empty then loads user from database
-  Future<void> init() async {
-    _loadUser();
+  // Future<void> init() async {
+  //   _loadUser();
 
-    final user = FirebaseAuth.instance.currentUser;
-    if(user != null) {
-      await fetchUserFromApi(user.uid);
-    }
-  }
+  //   final user = FirebaseAuth.instance.currentUser;
+  //   if(user != null) {
+  //     await fetchUserFromApi(user.uid);
+  //   }
+  // }
 
   //function to load user from disk
   void _loadUser() {
@@ -41,7 +42,6 @@ class ProfileProvider extends ChangeNotifier {
       try {
         Map<String, dynamic> userMap = jsonDecode(userJson);
         _currentUser = UserModel.fromJson(userMap);
-        notifyListeners();
       } catch (e) {
         _prefs.remove('user_data');
       }

@@ -7,7 +7,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/main_screen.dart';
-import 'package:foitifinder/pages/auth_pages/login.dart';
+import 'package:foitifinder/providers/profile_provider.dart';
+import 'package:foitifinder/providers/settings_providers.dart';
+import 'package:provider/provider.dart';
 
 class SessionGuard extends StatefulWidget {
   final User user;
@@ -18,41 +20,24 @@ class SessionGuard extends StatefulWidget {
 }
 
 class _SessionGuardState extends State<SessionGuard> {
-  bool _isLoading = true;
-
   @override
   void initState() {
     super.initState();
-    _verifyUserStatus();
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _bgSync();
+    });
+
   }
 
-  Future<void> _verifyUserStatus() async {
-    try {
-      //check if user exists
-      //if this fails the catch block runs
-      await widget.user.reload(); 
-      
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      await FirebaseAuth.instance.signOut();
-    }
+  Future<void> _bgSync() async {
+    await Provider.of<SettingsProvider>(context, listen: false).fetchSettingsFromApi(widget.user.uid);
+    if(!mounted)return;
+    await Provider.of<ProfileProvider>(context, listen: false).fetchUserFromApi(widget.user.uid);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-    
-    if (!FirebaseAuth.instance.currentUser!.emailVerified) {
-      return const LoginPage();
-    }
     return const MainScreen();
   }
 }

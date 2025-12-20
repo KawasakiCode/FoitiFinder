@@ -15,21 +15,30 @@ enum RecommendationPreference {balanced, recentlyActive}
 class SettingsProvider extends ChangeNotifier {
   final SharedPreferences _prefs;
 
-  SettingsProvider(this._prefs);
+  SettingsProvider(this._prefs){
+    _themeMode = (_prefs.getBool('isDark') ?? false) ? ThemeMode.light : ThemeMode.dark;
+    _pushNotificationsEnabled = (_prefs.getBool('notifications_enabled') ?? false) ? true : false;
+    _locale = (_prefs.getString('language') != 'en') ? Locale('el') : Locale('en');
+    _ageRange = RangeValues(18, 30);
+    _interests = {};
+    _currentOpt = RecommendationPreference.balanced;
+    _showOutOfRange = false;
+    _isPhoneVerified = false;
+  }
 
   //function that automatically runs when provider is initialized
   //loads user from disk, if disk empty then loads user from database
-  Future<void> init() async {
-    final user = FirebaseAuth.instance.currentUser;
+  // void init() {
+  //   final user = FirebaseAuth.instance.currentUser;
     
-    if(user == null) {
-       _loadFromDisk();
-    }
-    else {
-      fetchSettingsFromApi();
-      loadAsyncSettings();
-    }
-  }
+  //   if(user == null) {
+  //      _loadFromDisk();
+  //   }
+  //   else {
+  //     fetchSettingsFromApi();
+  //     loadAsyncSettings();
+  //   }
+  // }
 
   //State variables (private)
   ThemeMode _themeMode = ThemeMode.light;
@@ -53,21 +62,9 @@ class SettingsProvider extends ChangeNotifier {
   Locale get locale => _locale;
   bool get osPermission => _osPermission;
 
-  //loads default settings if no user is found
-  void _loadFromDisk() {
-    _themeMode = ThemeMode.light;
-    _pushNotificationsEnabled = false;
-    _locale = Locale('el');
-    _ageRange = RangeValues(18, 30);
-    _interests = {};
-    _currentOpt = RecommendationPreference.balanced;
-    _showOutOfRange = false;
-    _isPhoneVerified = false;
-  }
-
-  Future<void> fetchSettingsFromApi() async {
-    SettingsModel data = await ApiService.getUsersSettings(FirebaseAuth.instance.currentUser!.uid);
-    UserModel? userData = await ApiService.getUserData(FirebaseAuth.instance.currentUser!.uid);
+  Future<void> fetchSettingsFromApi(String uid) async {
+    SettingsModel data = await ApiService.getUsersSettings(uid);
+    UserModel? userData = await ApiService.getUserData(uid);
     //theme  
     if(_prefs.getBool('isDark') == null) {
       bool isDark = data.isDark ?? false;
@@ -145,10 +142,6 @@ class SettingsProvider extends ChangeNotifier {
 
     }
 
-    notifyListeners();
-  }
-
-  Future<void> loadAsyncSettings() async {
     bool diskVerified = _prefs.getBool('isPhoneVerified') ?? false;
     final user = FirebaseAuth.instance.currentUser;
     bool cloudVerified = user?.phoneNumber != null && user!.phoneNumber!.isNotEmpty;
@@ -177,8 +170,14 @@ class SettingsProvider extends ChangeNotifier {
       }
     }
     else {
-      pushNotifications = _prefs.getBool('notifications_enabled') ?? false;
-      _osPermission = osPermission;
+      _osPermission = await checkNotificationPermission();
+      if(_osPermission) {
+        pushNotifications = _prefs.getBool('notifications_enabled') ?? false;
+      }
+      else {
+        pushNotifications = false;
+      }
+      
     }
     try{
       FirebaseMessaging messaging = FirebaseMessaging.instance;
@@ -194,6 +193,8 @@ class SettingsProvider extends ChangeNotifier {
     } catch (e) {
       _pushNotificationsEnabled = false;
     }
+
+    notifyListeners();
   }
 
   //Theme change function

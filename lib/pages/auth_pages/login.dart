@@ -77,9 +77,7 @@ class _LoginPageState extends State<LoginPage> {
       }                                    
       // Clear navigation stack and navigate to home page
       if(!mounted)return;
-      await settingsProvider.fetchSettingsFromApi();
-      if(!mounted)return;
-      await Provider.of<SettingsProvider>(context, listen: false).loadAsyncSettings();
+      await settingsProvider.fetchSettingsFromApi(FirebaseAuth.instance.currentUser!.uid);
       if(!mounted)return;
       Navigator.pushAndRemoveUntil(
         context,

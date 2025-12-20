@@ -1,3 +1,4 @@
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -39,12 +40,15 @@ Future<void> main() async {
     SharedPreferences.getInstance(),
   ]);
   final prefs = results[1] as SharedPreferences;
+  await FirebaseAppCheck.instance.activate(
+    androidProvider: AndroidProvider.debug,
+  );
 
   runApp(
     MultiProvider(  
       providers: [
-        ChangeNotifierProvider(create: (_) => SettingsProvider(prefs)..init()),
-        ChangeNotifierProvider(create: (_) => ProfileProvider(prefs)..init()),
+        ChangeNotifierProvider(create: (_) => SettingsProvider(prefs)),
+        ChangeNotifierProvider(create: (_) => ProfileProvider(prefs)),
       ],
       child: const MyApp()));
 }
