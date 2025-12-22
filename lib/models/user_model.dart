@@ -15,11 +15,13 @@ class UserModel{
   final bool? showOutOfRange;
   final bool? isBalanced;
   final String? interests;
+  final bool hasFinishedSetUp;
 
   UserModel({
     required this.uid,
     required this.username,
     required this.fullName,
+    required this.hasFinishedSetUp,
     this.bio,
     this.age,
     this.imageUrl,
@@ -28,8 +30,7 @@ class UserModel{
     this.maxAgeRange,
     this.showOutOfRange,
     this.isBalanced,
-    this.interests
-    
+    this.interests    
   });
 
   //convert json to usermodel
@@ -37,6 +38,7 @@ class UserModel{
     return UserModel ( 
       uid: json['firebase_token'] ?? (throw Exception("Critical: uid missing")),
       username: json['username'] ?? (throw Exception("Critical: username missing")),
+      hasFinishedSetUp: json['has_finished_set_up'] ?? (throw Exception("Critical: finishedSetUp missing")),
       fullName: json['full_name'],
       bio: json['bio'],
       age: json['age'],
@@ -55,6 +57,7 @@ class UserModel{
     return {
       'firebase_token': uid,
       'username': username,
+      'has_finished_set_up': hasFinishedSetUp,
       'full_name': fullName,
       'bio': bio,
       'age': age,

@@ -22,6 +22,7 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     new_user = models.User(  
         username = user.username,
         full_name=user.full_name,
+        has_finished_set_up=user.has_finished_set_up,
         firebase_token=user.firebase_token,
         profile_picture=user.profile_picture,
         bio=user.bio,

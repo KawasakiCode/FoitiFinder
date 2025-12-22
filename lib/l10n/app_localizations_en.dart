@@ -361,4 +361,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get securityCheckFailed => 'Security check failed: ';
+
+  @override
+  String get notificationsWarning =>
+      ' Requires notifications permission from device';
 }

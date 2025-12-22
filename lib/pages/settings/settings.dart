@@ -509,19 +509,28 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                         ],
                       ),
-                      if(!settings.osPermission)
-                      Padding(  
-                        padding: const EdgeInsets.only(bottom: 5),
-                        child: Row(  
-                          children: [
-                            Icon(Icons.info_outline, size: 16, color: Colors.orange),
-                            Expanded(
-                              child: Text(' Requires notifications permission from device',
-                                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400)),
-                            )
-                          ]
-                        )
-                      ),
+                      if (!settings.osPermission)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 5),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                size: 16,
+                                color: Colors.orange,
+                              ),
+                              Expanded(
+                                child: Text(
+                                  text.notificationsWarning,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                     ],
                   ),
                 ),

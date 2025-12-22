@@ -22,7 +22,8 @@ class ApiService {
     required int? maxAgeRange,
     required bool? showOutOfRange,
     required bool? isBalanced,
-    required String? interests
+    required String? interests,
+    required bool? hasFinishedSetUp,
   }) async {
     
     final url = Uri.parse('$baseUrl/users/');
@@ -37,6 +38,7 @@ class ApiService {
           "firebase_token": uid,
           "username": username,
           "full_name": fullName,
+          "has_finished_set_up": hasFinishedSetUp,
           "bio": bio,
           "age": age,
           "image_url": imageUrl,
@@ -62,6 +64,7 @@ class ApiService {
     required String uid,
     String? username,
     String? fullName,
+    bool? hasFinishedSetUp,
     String? bio,
     int? age,
     String? imageUrl,
@@ -78,6 +81,7 @@ class ApiService {
 
     if (username != null) data['username'] = username;
     if (fullName != null) data['full_name'] = fullName;
+    if (hasFinishedSetUp != null) data['has_finished_set_up'] = hasFinishedSetUp;
     if (bio != null) data['bio'] = bio;
     if (age != null) data['age'] = age;
     if (imageUrl != null) data['profile_picture'] = imageUrl;

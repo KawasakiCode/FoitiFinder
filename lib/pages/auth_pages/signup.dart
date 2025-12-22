@@ -82,6 +82,7 @@ class _SignUpPageState extends State<SignUpPage> {
         uid: FirebaseAuth.instance.currentUser!.uid,
         username: username,
         fullName: fullName,
+        hasFinishedSetUp: false,
         bio: null,
         age: null,
         imageUrl: null,

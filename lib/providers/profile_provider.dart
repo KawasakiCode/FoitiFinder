@@ -14,6 +14,9 @@ class ProfileProvider extends ChangeNotifier {
   File? _tempprofileImage; //to preview updates and check for changes
   UserModel? _currentUser;
 
+  //the provider when initialized loads data from disk or if disk is empty loads null
+  //using this way we save the time of making a call to the db
+  //99% of the time disk will be correct anyway
   ProfileProvider(this._prefs) {
     _loadUser();
   }
@@ -22,17 +25,6 @@ class ProfileProvider extends ChangeNotifier {
   File? get tempProfileImage => _tempprofileImage;
   //user getter
   UserModel? get currentUser => _currentUser;
-
-  //function that automatically runs when provider is initialized
-  //loads user from disk, if disk empty then loads user from database
-  // Future<void> init() async {
-  //   _loadUser();
-
-  //   final user = FirebaseAuth.instance.currentUser;
-  //   if(user != null) {
-  //     await fetchUserFromApi(user.uid);
-  //   }
-  // }
 
   //function to load user from disk
   void _loadUser() {
@@ -89,6 +81,7 @@ class ProfileProvider extends ChangeNotifier {
   Future<void> registerUser({
     required String uid,
     required String username,
+    required bool hasFinishedSetUp,
     String? fullName,
     String? bio,
     int? age,
@@ -104,6 +97,7 @@ class ProfileProvider extends ChangeNotifier {
       await  ApiService.createUser(  
         uid: uid,
         username: username,
+        hasFinishedSetUp: hasFinishedSetUp,
         bio: bio,
         fullName: fullName,
         age: age,
@@ -121,6 +115,7 @@ class ProfileProvider extends ChangeNotifier {
         uid: uid,
         username: username,
         fullName: fullName,
+        hasFinishedSetUp: hasFinishedSetUp,
         bio: bio,
         age: age,
         imageUrl: imageUrl,
@@ -142,6 +137,7 @@ class ProfileProvider extends ChangeNotifier {
     String? bio,
     int? age,
     String? imageUrl,
+    bool? hasFinishedSetUp,
   }) async {
     if(currentUser == null)return;
 
@@ -149,6 +145,7 @@ class ProfileProvider extends ChangeNotifier {
       uid: _currentUser!.uid,
       username: username ?? _currentUser!.username,
       fullName: fullName ?? _currentUser!.fullName,
+      hasFinishedSetUp: hasFinishedSetUp ?? _currentUser!.hasFinishedSetUp,
       bio: bio ?? _currentUser!.bio,
       age: age ?? _currentUser!.age,
       imageUrl: imageUrl ?? _currentUser!.imageUrl,

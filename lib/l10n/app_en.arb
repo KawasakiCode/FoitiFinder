@@ -108,5 +108,6 @@
   "confirm": "Confirm",
   "securityCheck": "Security Check",
   "confirmPassword": "To change your email, please confirm your current password.",
-  "securityCheckFailed": "Security check failed: "
+  "securityCheckFailed": "Security check failed: ",
+  "notificationsWarning": " Requires notifications permission from device"
 }

@@ -366,4 +366,8 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get securityCheckFailed => 'Ο έλεγχος ασφαλείας απέτυχε: ';
+
+  @override
+  String get notificationsWarning =>
+      ' Απαιτείται άδεια ειδοποιήσεων από την συσκευή';
 }

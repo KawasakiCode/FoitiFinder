@@ -1,14 +1,11 @@
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
-import 'package:foitifinder/widgets/session_guard.dart';
+import 'package:foitifinder/widgets/auth_wrapper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
-import 'pages/auth_pages/login.dart';
-import 'pages/auth_pages/verify_email.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -241,29 +238,9 @@ class MyApp extends StatelessWidget {
         Locale('en'),
         Locale('el'),
       ],
-      home: StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, snapshot) {
-          if(snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(  
-              body: Center(  
-                child: CircularProgressIndicator(),
-              )
-            );
-          }
-          if(snapshot.hasData) {
-            final User user = snapshot.data!;
-            if(user.emailVerified)  {
-              return SessionGuard(user: user);
-            } else {
-              return const VerifyEmail();
-            }
-          } 
-          else {
-            return const LoginPage();
-          }
-        },
-      ),
+      //app launch flow is main -> authwrapper -> mainscreen(load from disk) -> load from db if different
+      //or main -> authwrapper -> login if no user in firebase cache
+      home: const AuthWrapper(),
     );
   }
 }

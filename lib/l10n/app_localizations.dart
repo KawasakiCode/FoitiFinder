@@ -757,6 +757,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Security check failed: '**
   String get securityCheckFailed;
+
+  /// No description provided for @notificationsWarning.
+  ///
+  /// In en, this message translates to:
+  /// **' Requires notifications permission from device'**
+  String get notificationsWarning;
 }
 
 class _AppLocalizationsDelegate

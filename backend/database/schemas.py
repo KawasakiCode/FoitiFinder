@@ -15,6 +15,7 @@ class UserBase(BaseModel):
     show_out_of_range: bool | None = None
     is_balanced: bool | None = None
     interests: str | None = None
+    has_finished_set_up: bool | None = False
 
 #for patch endpoints to update a single attribute without needing the others too
 class UserUpdate(BaseModel):
@@ -29,6 +30,8 @@ class UserUpdate(BaseModel):
     show_out_of_range: bool | None = None
     is_balanced: bool | None = None
     interests: str | None = None
+    has_finished_set_up: str | None = False
+
 
 #this adds the fields produced by the database to be returned to the phone
 class User(UserBase):

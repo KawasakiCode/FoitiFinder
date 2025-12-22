@@ -15,30 +15,19 @@ enum RecommendationPreference {balanced, recentlyActive}
 class SettingsProvider extends ChangeNotifier {
   final SharedPreferences _prefs;
 
+  //the provider when initialized loads data from disk or if disk is empty loads the defaults
+  //using this way we save the time of making a call to the db
+  //99% of the time disk will be correct anyway
   SettingsProvider(this._prefs){
     _themeMode = (_prefs.getBool('isDark') ?? false) ? ThemeMode.light : ThemeMode.dark;
     _pushNotificationsEnabled = (_prefs.getBool('notifications_enabled') ?? false) ? true : false;
-    _locale = (_prefs.getString('language') != 'en') ? Locale('el') : Locale('en');
+    _locale = _prefs.getString('language') == 'en' ? Locale('en') : Locale('el');
     _ageRange = RangeValues(18, 30);
     _interests = {};
     _currentOpt = RecommendationPreference.balanced;
     _showOutOfRange = false;
     _isPhoneVerified = false;
   }
-
-  //function that automatically runs when provider is initialized
-  //loads user from disk, if disk empty then loads user from database
-  // void init() {
-  //   final user = FirebaseAuth.instance.currentUser;
-    
-  //   if(user == null) {
-  //      _loadFromDisk();
-  //   }
-  //   else {
-  //     fetchSettingsFromApi();
-  //     loadAsyncSettings();
-  //   }
-  // }
 
   //State variables (private)
   ThemeMode _themeMode = ThemeMode.light;
@@ -189,7 +178,6 @@ class SettingsProvider extends ChangeNotifier {
       else {
         _pushNotificationsEnabled = false;
       }
-       notifyListeners();
     } catch (e) {
       _pushNotificationsEnabled = false;
     }
@@ -278,7 +266,7 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   //store out of range switch state
-  Future<void> storeShowOutOfRange(bool outOfRange) async {
+  void storeShowOutOfRange(bool outOfRange) async {
     _showOutOfRange = outOfRange;
     _prefs.setBool('outOfRange', outOfRange);
     notifyListeners();

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/main.dart';
 import 'package:foitifinder/pages/main_pages/home_page.dart';
@@ -6,10 +7,12 @@ import 'package:foitifinder/pages/main_pages/dm_page.dart';
 import 'package:foitifinder/pages/main_pages/profile_page.dart';
 import 'package:foitifinder/pages/main_pages/likes_page.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
+import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:provider/provider.dart';
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  final String uid;
+  const MainScreen({super.key, required this.uid});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -33,9 +36,32 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
+    //after build has finished cache the users pfp so it loads faster 
+    //and grab data from the database
+    //if database data different from disk data change disk else leave as is
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _precacheProfileImage();
+      _runBgTasks();
     });
+  }
+
+  Future<void> _runBgTasks() async {
+    final settingsProv = Provider.of<SettingsProvider>(context, listen: false);
+    final profileProv = Provider.of<ProfileProvider>(context, listen: false);
+
+    settingsProv.fetchSettingsFromApi(widget.uid);
+    profileProv.fetchUserFromApi(widget.uid);
+
+    if (mounted) {
+      final user = profileProv.currentUser;
+
+      //the stream builder grabs a firebase user from local phone cache so the user could be deleted
+      //but still login
+      //If database says user is null the the user has been deleted or banned and so we sign out
+      if(user == null) {
+        await FirebaseAuth.instance.signOut();
+      }
+    }
   }
 
   void _precacheProfileImage() {

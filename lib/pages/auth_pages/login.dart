@@ -81,7 +81,7 @@ class _LoginPageState extends State<LoginPage> {
       if(!mounted)return;
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => MainScreen()),
+        MaterialPageRoute(builder: (context) => MainScreen(uid: FirebaseAuth.instance.currentUser!.uid)),
         (route) => false, // This removes all previous routes
       );
       
