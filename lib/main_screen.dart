@@ -1,3 +1,6 @@
+//the 5 main pages (home, search, likes, messages and profile) get build on top of mainScreen
+//mainscreen makes it easier to handle the bottom nav bar by making it custom
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/main.dart';
@@ -11,6 +14,7 @@ import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:provider/provider.dart';
 
 class MainScreen extends StatefulWidget {
+  //we need uid to initiate the providers after the page builds
   final String uid;
   const MainScreen({super.key, required this.uid});
 
