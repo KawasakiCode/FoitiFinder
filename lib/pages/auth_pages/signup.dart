@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:foitifinder/pages/sign_up_set_up.dart/set_up_page.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -95,7 +96,7 @@ class _SignUpPageState extends State<SignUpPage> {
       );
       // If successful, navigate to verify email page
       if(!mounted) return;
-      Navigator.push(context, MaterialPageRoute(builder: (context) => VerifyEmail()));
+      Navigator.push(context, MaterialPageRoute(builder: (context) => SetUpPage()));
     } on FirebaseAuthException catch (e) {
       String errorMessage;
       
