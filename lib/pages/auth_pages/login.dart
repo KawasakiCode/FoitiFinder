@@ -236,12 +236,7 @@ class _LoginPageState extends State<LoginPage> {
                                   child: TextButton(
                                     onPressed: _login,
                                     style: TextButton.styleFrom(
-                                      backgroundColor: const Color.fromARGB(
-                                        255,
-                                        0,
-                                        65,
-                                        119,
-                                      ),
+                                      backgroundColor: const Color(0xFF8A2BE2),
                                       foregroundColor: Colors.white,
                                       padding: const EdgeInsets.symmetric(
                                         vertical: 10,

@@ -763,6 +763,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **' Requires notifications permission from device'**
   String get notificationsWarning;
+
+  /// No description provided for @addAge.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your age'**
+  String get addAge;
+
+  /// No description provided for @addBio.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your bio'**
+  String get addBio;
+
+  /// No description provided for @addGender.
+  ///
+  /// In en, this message translates to:
+  /// **'Select your gender'**
+  String get addGender;
+
+  /// No description provided for @male.
+  ///
+  /// In en, this message translates to:
+  /// **'Male'**
+  String get male;
+
+  /// No description provided for @female.
+  ///
+  /// In en, this message translates to:
+  /// **'Female'**
+  String get female;
 }
 
 class _AppLocalizationsDelegate

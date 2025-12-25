@@ -370,4 +370,19 @@ class AppLocalizationsEl extends AppLocalizations {
   @override
   String get notificationsWarning =>
       ' Απαιτείται άδεια ειδοποιήσεων από την συσκευή';
+
+  @override
+  String get addAge => 'Πρόσθεσε την ηλικία σου';
+
+  @override
+  String get addBio => 'Πρόσθεσε το βιογραφικό σου';
+
+  @override
+  String get addGender => 'Επίλεξε το φύλο σου';
+
+  @override
+  String get male => 'Άνδρας';
+
+  @override
+  String get female => 'Γυναίκα';
 }

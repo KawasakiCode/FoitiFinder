@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/main_screen.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
+import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/widgets/delayed_inkwell.dart';
 import 'package:provider/provider.dart';
 
@@ -30,10 +32,44 @@ class _SetUpPageState extends State<SetUpPage> {
     );
   }
 
+  void confirmAndExit() async {
+    final user = Provider.of<ProfileProvider>(context, listen: false).currentUser!;
+
+    String? newBio;
+    int? newAge;
+
+    if(_bioController.text != user.bio) {
+      newBio = _bioController.text;
+    }
+    if(_ageController.text != user.age.toString() && _ageController.text.isNotEmpty) {
+      newAge = int.tryParse(_ageController.text);
+    }
+
+    if(newBio != null || newAge != null) {
+      await ApiService.updateUserData(  
+        uid: user.uid,
+        bio: newBio,
+        age: newAge,
+        hasFinishedSetUp: true,
+      );
+    } else {
+      await ApiService.updateUserData(
+        uid: user.uid,
+        hasFinishedSetUp: true,);
+    }
+
+    if(!mounted)return;
+    Navigator.of(context).pushReplacement( 
+      MaterialPageRoute(  
+        builder: (context) => MainScreen(uid: user.uid),
+      )
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context)!;
-    final settings = Provider.of<SettingsProvider>(context, listen: false);
+    final settings = Provider.of<SettingsProvider>(context);
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: SafeArea(
@@ -52,7 +88,7 @@ class _SetUpPageState extends State<SetUpPage> {
                   Padding(
                     padding: const EdgeInsets.only(top: 10, bottom: 7),
                     child: Text(
-                      "Add your age",
+                      text.addAge,
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w400,
@@ -70,7 +106,7 @@ class _SetUpPageState extends State<SetUpPage> {
                   Padding(
                     padding: const EdgeInsets.only(top: 10, bottom: 7),
                     child: Text(
-                      "Add a bio",
+                      text.addBio,
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w400,
@@ -88,9 +124,9 @@ class _SetUpPageState extends State<SetUpPage> {
                   Padding(
                     padding: const EdgeInsets.only(top: 10),
                     child: Text(
-                      text.selectInterests,
+                      text.interests,
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: 20,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -258,9 +294,9 @@ class _SetUpPageState extends State<SetUpPage> {
                   Padding(
                     padding: const EdgeInsets.only(top: 10),
                     child: Text(
-                      "Select your gender",
+                      text.addGender,
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: 20,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -275,8 +311,8 @@ class _SetUpPageState extends State<SetUpPage> {
                       ),
                       clipBehavior: Clip.antiAlias,
                       child: DelayedInkWell(
-                        delayMs: 170,
-                        onTap: () => settings.addRemoveInterests("Men"),
+                        delayMs: 150,
+                        onTap: () => settings.changeGender("Male"),
                         child: Padding(
                           padding: const EdgeInsets.only(
                             top: 8,
@@ -288,13 +324,13 @@ class _SetUpPageState extends State<SetUpPage> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                "Male",
+                                text.male,
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              if (settings.interests.contains("Men"))
+                              if (settings.gender == "Male")
                                 Image.asset(
                                   'assets/icons/check.png',
                                   width: 20,
@@ -318,8 +354,8 @@ class _SetUpPageState extends State<SetUpPage> {
                       ),
                       clipBehavior: Clip.antiAlias,
                       child: DelayedInkWell(
-                        delayMs: 170,
-                        onTap: () => settings.addRemoveInterests("Women"),
+                        delayMs: 150,
+                        onTap: () => settings.changeGender("Female"),
                         child: Padding(
                           padding: const EdgeInsets.only(
                             top: 8,
@@ -331,13 +367,13 @@ class _SetUpPageState extends State<SetUpPage> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                "Female",
+                                text.female,
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              if (settings.interests.contains("Women"))
+                              if (settings.gender == "Female")
                                 Image.asset(
                                   'assets/icons/check.png',
                                   width: 20,
@@ -351,6 +387,30 @@ class _SetUpPageState extends State<SetUpPage> {
                       ),
                     ),
                   ),
+                  //confirm button
+                  Padding(
+                    padding: const EdgeInsets.only(top: 20),
+                    child: Align(
+                      alignment: Alignment.center,
+                      child: TextButton(  
+                        onPressed: () => confirmAndExit(),
+                        style: TextButton.styleFrom(
+                          backgroundColor: const Color(0xFF8A2BE2),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 10,
+                            horizontal: 10
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              12,
+                            ),
+                          ),
+                        ),
+                        child: Text(text.confirm, style: TextStyle(fontSize: 16)),
+                      ),
+                    ),
+                  )
                 ],
               ),
             ),

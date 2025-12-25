@@ -109,5 +109,10 @@
   "securityCheck": "Security Check",
   "confirmPassword": "To change your email, please confirm your current password.",
   "securityCheckFailed": "Security check failed: ",
-  "notificationsWarning": " Requires notifications permission from device"
+  "notificationsWarning": " Requires notifications permission from device",
+  "addAge": "Add your age",
+  "addBio": "Add your bio",
+  "addGender": "Select your gender",
+  "male": "Male",
+  "female": "Female"
 }

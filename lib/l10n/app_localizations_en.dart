@@ -365,4 +365,19 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get notificationsWarning =>
       ' Requires notifications permission from device';
+
+  @override
+  String get addAge => 'Add your age';
+
+  @override
+  String get addBio => 'Add your bio';
+
+  @override
+  String get addGender => 'Select your gender';
+
+  @override
+  String get male => 'Male';
+
+  @override
+  String get female => 'Female';
 }

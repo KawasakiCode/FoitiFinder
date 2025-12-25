@@ -27,6 +27,7 @@ class SettingsProvider extends ChangeNotifier {
     _currentOpt = RecommendationPreference.balanced;
     _showOutOfRange = false;
     _isPhoneVerified = false;
+    _gender = "";
   }
 
   //State variables (private)
@@ -39,6 +40,7 @@ class SettingsProvider extends ChangeNotifier {
   RecommendationPreference _currentOpt = RecommendationPreference.balanced;
   Locale _locale = const Locale('el');
   bool _osPermission = false;
+  String _gender = "";
 
   //Getters
   ThemeMode get themeMode => _themeMode;
@@ -50,6 +52,7 @@ class SettingsProvider extends ChangeNotifier {
   RecommendationPreference get currentOpt => _currentOpt;
   Locale get locale => _locale;
   bool get osPermission => _osPermission;
+  String get gender => _gender;
 
   Future<void> fetchSettingsFromApi(String uid) async {
     SettingsModel data = await ApiService.getUsersSettings(uid);
@@ -79,6 +82,14 @@ class SettingsProvider extends ChangeNotifier {
       if(savedList != null) {
         _interests = savedList.toSet();
       }
+    }
+
+    if(_prefs.getString('gender') == null) {
+      _gender = userData?.gender ?? "";
+      _prefs.setString('gender', _gender);
+    } 
+    else {
+      _gender = _prefs.getString('gender') ?? "";
     }
 
     //age range
@@ -301,12 +312,23 @@ class SettingsProvider extends ChangeNotifier {
     await _prefs.remove('recommendationOpt');
     await _prefs.remove('language_code');
     await _prefs.remove('notifications_enabled');
+    await _prefs.remove('gender');
     _themeMode = ThemeMode.light;
     _pushNotificationsEnabled = false;
     _locale = Locale('el');
     notifyListeners();
   }
-}
+
+  void changeGender(String gender) async {
+    if(gender == "") {
+      _gender = "";
+    } else {
+      _gender = gender;
+    }
+    notifyListeners();
+    _prefs.setString('gender', _gender);
+    await ApiService.updateUserData(uid: FirebaseAuth.instance.currentUser!.uid, gender: _gender);
+  }
 
   //does os give permission for notifications
   Future<bool> checkNotificationPermission() async {
@@ -323,3 +345,8 @@ class SettingsProvider extends ChangeNotifier {
     }
     return false;
   }
+}
+
+  
+
+  

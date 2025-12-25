@@ -7,7 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/main_screen.dart';
 import 'package:foitifinder/pages/auth_pages/login.dart';
-import 'package:foitifinder/pages/sign_up_set_up.dart/set_up_page.dart';
+import 'package:foitifinder/pages/sign_up_set_up/set_up_page.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -59,7 +59,8 @@ class SetupWrapper extends StatelessWidget {
     }
     //setup not done neither phone, send to login
     else{
-      return const LoginPage();
+      //to become login
+      return const SetUpPage();
     }
   }
 
