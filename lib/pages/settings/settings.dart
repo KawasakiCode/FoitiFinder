@@ -923,7 +923,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black,
+                      color: const Color.fromARGB(255, 255, 18, 18),
                     ),
                   ),
                 ),
@@ -945,7 +945,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black,
+                      color: const Color.fromARGB(255, 255, 18, 18),
                     ),
                   ),
                 ),

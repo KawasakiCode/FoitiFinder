@@ -7,7 +7,6 @@ import 'package:foitifinder/pages/auth_pages/signup.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:provider/provider.dart';
-import 'package:foitifinder/pages/auth_pages/verify_email.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -42,39 +41,11 @@ class _LoginPageState extends State<LoginPage> {
     final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
 
     try {
-      final userCredential = await FirebaseAuth.instance
+      await FirebaseAuth.instance
       .signInWithEmailAndPassword(
         email: email,
         password: password,
-      );
-      
-      // Check if email is verified
-      if (userCredential.user != null && !userCredential.user!.emailVerified) {
-        //warn for pending verificaton
-        if(!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Please verify your email before logging in"),
-              backgroundColor: Colors.orange,
-            )
-          );
-        if (mounted) {
-          //Redirect to Verify Page
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const VerifyEmail()),
-          );
-        }
-      
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(text.accountDeleted),
-            backgroundColor: Colors.orange,
-            duration: Duration(seconds: 4),
-          ),
-        );
-        return;
-      }                                    
+      );                                   
       // Clear navigation stack and navigate to home page
       if(!mounted)return;
       await settingsProvider.fetchSettingsFromApi(FirebaseAuth.instance.currentUser!.uid);

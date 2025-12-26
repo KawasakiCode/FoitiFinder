@@ -26,6 +26,7 @@ class _VerifyEmailState extends State<VerifyEmail> {
             Text(
               text.verifyEmail,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
             ),
             SizedBox(height: 5),
             Text(

@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
-import 'package:foitifinder/widgets/auth_wrapper.dart';
+import 'package:foitifinder/wrappers/auth_wrapper.dart';
+import 'package:foitifinder/wrappers/internet_wrapper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
@@ -240,7 +241,9 @@ class MyApp extends StatelessWidget {
       ],
       //app launch flow is main -> authwrapper -> mainscreen(load from disk) -> load from db if different
       //or main -> authwrapper -> login if no user in firebase cache
-      home: const AuthWrapper(),
+      home: InternetWrapper(  
+        child: const AuthWrapper(),
+      ),
     );
   }
 }
