@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/pages/extra_pages/messages_page.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -73,7 +74,7 @@ class _DMPageState extends State<DMPage> {
             height: 85,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: 20, // Number of story circles
+              itemCount: 10,
               itemBuilder: (context, index) {
                 return Padding(
                   padding: EdgeInsets.symmetric(horizontal: 8.0),
@@ -104,48 +105,62 @@ class _DMPageState extends State<DMPage> {
           Expanded(
             child: ListView.builder(
               scrollDirection: Axis.vertical,
-              itemCount: 10,
+              itemCount: 5,
               itemBuilder: (context, index) {
-                return SizedBox(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(18, 15, 15, 0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: 55,
-                          height: 55,
-                          decoration: BoxDecoration(
-                            color: Colors.black,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Username',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text(
-                                  'Last Message',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ],
+                return Material(
+                  borderRadius: BorderRadius.circular(15),
+                  color: Colors.transparent,
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(15),
+                    onTap: () {
+                      Navigator.push(  
+                        context,
+                        MaterialPageRoute(builder:(context) => MessagesPage(),),
+                      );
+                    },
+                    child: SizedBox(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(18, 10, 15, 5),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: 55,
+                              height: 55,
+                              decoration: BoxDecoration(
+                                color: Colors.black,
+                                shape: BoxShape.circle,
+                              ),
                             ),
-                          ),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Username',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Last Message',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 );
