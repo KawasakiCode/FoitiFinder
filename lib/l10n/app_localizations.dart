@@ -793,6 +793,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Female'**
   String get female;
+
+  /// No description provided for @noInternet.
+  ///
+  /// In en, this message translates to:
+  /// **'No Internet Connectiion'**
+  String get noInternet;
+
+  /// No description provided for @turnOnWifi.
+  ///
+  /// In en, this message translates to:
+  /// **'Please turn on Wifi or Mobile Data to continue'**
+  String get turnOnWifi;
+
+  /// No description provided for @search.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get search;
 }
 
 class _AppLocalizationsDelegate

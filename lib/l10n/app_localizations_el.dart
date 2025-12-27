@@ -385,4 +385,14 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get female => 'Γυναίκα';
+
+  @override
+  String get noInternet => 'Χωρίς σύνδεση στο διαδίκτυο';
+
+  @override
+  String get turnOnWifi =>
+      'Ενεργοποίησε το Wi-Fi ή τα δεδομένα για να συνεχίσεις';
+
+  @override
+  String get search => 'Αναζήτηση';
 }

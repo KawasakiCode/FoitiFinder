@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/providers/profile_provider.dart';
+import 'package:provider/provider.dart';
 
 class DMPage extends StatefulWidget {
   const DMPage({super.key});
@@ -12,13 +14,14 @@ class _DMPageState extends State<DMPage> {
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context)!;
+    final user = Provider.of<ProfileProvider>(context);
     return Scaffold(
       appBar: AppBar(
         title: Row(
           children: [
             Expanded(
               child: Text(
-                'Username',
+                user.currentUser!.username,
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ),
@@ -46,7 +49,7 @@ class _DMPageState extends State<DMPage> {
                       height: 17,
                       key: UniqueKey(),
                     ),
-                    hintText: 'Search',
+                    hintText: text.search,
                   ),
                 ),
               ],

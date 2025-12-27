@@ -380,4 +380,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get female => 'Female';
+
+  @override
+  String get noInternet => 'No Internet Connectiion';
+
+  @override
+  String get turnOnWifi => 'Please turn on Wifi or Mobile Data to continue';
+
+  @override
+  String get search => 'Search';
 }

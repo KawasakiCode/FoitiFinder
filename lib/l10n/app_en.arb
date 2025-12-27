@@ -114,5 +114,8 @@
   "addBio": "Add your bio",
   "addGender": "Select your gender",
   "male": "Male",
-  "female": "Female"
+  "female": "Female",
+  "noInternet": "No Internet Connectiion",
+  "turnOnWifi": "Please turn on Wifi or Mobile Data to continue",
+  "search": "Search"
 }
