@@ -48,11 +48,11 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => SettingsProvider(prefs)),
         ChangeNotifierProvider(create: (_) => ProfileProvider(prefs)),
       ],
-      child: const MyApp()));
+      child: const FoitiFinder()));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class FoitiFinder extends StatelessWidget {
+  const FoitiFinder({super.key});
 
   // This widget is the root of your application.
   @override

@@ -49,6 +49,7 @@ lib/firebase_options.dart
 firebase.json
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
+lib/dummy_user_data.dart
 
 # Android local properties (machine-specific paths)
 android/local.properties
