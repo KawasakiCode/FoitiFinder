@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:foitifinder/models/card_data_model.dart';
 import 'package:foitifinder/models/settings_model.dart';
 import 'package:foitifinder/models/user_model.dart';
 import 'package:http/http.dart' as http;
@@ -176,5 +177,34 @@ class ApiService {
       rethrow;
     }
   }
- 
+
+  //get multiple users
+  static Future<List<CardData>> getMultipleUsers(String uid, List<int> seenIds) async {
+    final url = Uri.parse("$baseUrl/users/feed/$uid");
+    try {
+      final response = await http.post(url,
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: jsonEncode({
+        "firebase_token": uid,
+        "seen_ids": seenIds,
+      }));
+
+      if(response.statusCode == 200) {
+        final List<dynamic> body = jsonDecode(response.body);
+        List<CardData> cards = body.map((dynamic item) => CardData.fromPostgresRow(item)).toList();
+        return cards;
+      }
+      else if(response.statusCode != 200) {
+        print("Request failed: ${response.statusCode} - ${response.body}");
+        return [];
+      }
+      else {
+        throw Exception("Failed to get data ${response.body}");
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

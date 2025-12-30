@@ -1,5 +1,8 @@
+from typing import List
 from fastapi import FastAPI, Depends, HTTPException
 from dotenv import load_dotenv
+from pydantic import BaseModel
+from sqlalchemy import func
 from database import models
 from database.database import engine, get_db
 from database import schemas
@@ -10,6 +13,10 @@ models.Base.metadata.create_all(bind=engine)
 load_dotenv()
 
 app = FastAPI()
+
+#class that stores the user id the user already saw to not allow duplicate showings
+class FeedRequest(BaseModel): 
+    seen_user_ids: List[int] = []
 
 #create new user and initialize default settings table for the new user
 @app.post("/users/", response_model=schemas.User)
@@ -83,6 +90,25 @@ def update_user(firebase_token: str, user_update: schemas.UserUpdate, db: Sessio
     db.commit()
     db.refresh(db_user)
     return db_user
+
+#get multiple users for the homepage
+@app.post("/users/feed/{firebase_token}")
+def get_swipe_feed(firebase_token: str, seen_users: FeedRequest, db: Session = Depends(get_db)):
+    #first get the current user id to exclude it 
+    me = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
+    if not me:
+        raise HTTPException(status_code=404, detail='Current User not found')
+    
+    #get users other than you and not users we already saw
+    query = db.query(models.User).filter(  
+        models.User.id != me.id,
+        models.User.id.notin_(seen_users.seen_user_ids)
+    )
+
+    #order the users randomly for now and limit then at 10
+    users = query.order_by(func.random()).limit(10).all()
+
+    return users
 
 #update one/multiple settings without altering the other
 @app.patch("/users/settings/{firebase_token}")

@@ -1,6 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:foitifinder/models/card_data_model.dart';
 import 'package:foitifinder/pages/settings/settings.dart';
-import 'dart:math';
+import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/widgets/animated_swipe_button.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -26,6 +28,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   final int fetchThreshold = 10; //when 10 cards remain load more
   final int batchSize = 20; // how many to load at a time
   bool _isFetching = false;
+  bool _hasNoMoreProfiles = false;
   late AnimationController _animationController;
   //location of where the finger tapped the screen
   double _tapPositionY = 0;
@@ -43,17 +46,18 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     super.initState();
 
     // Initialize sample data
-    cards = _generateMockCards(1, 15);
+    //cards = _generateMockCards(1, 15);
+    _fetchMoreCards();
     currentIndex = 0;
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (cards.isNotEmpty) {
-        precacheImage(NetworkImage(cards[0].imageUrl), context);
-        if (cards.length > 1) {
-          precacheImage(NetworkImage(cards[1].imageUrl), context);
-        }
-      }
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   if (cards.isNotEmpty) {
+    //     precacheImage(NetworkImage(cards[0].imageUrl), context);
+    //     if (cards.length > 1) {
+    //       precacheImage(NetworkImage(cards[1].imageUrl), context);
+    //     }
+    //   }
+    // });
 
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 300),
@@ -69,31 +73,31 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   //generate infinte random cards to test swipe logic
-  List<CardData> _generateMockCards(int startId, int count) {
-    final Random random = Random();
-    final List<String> names = [
-      "Alex",
-      "Sarah",
-      "Mike",
-      "Emma",
-      "John",
-      "Lisa",
-      "Tom",
-      "Anna",
-    ];
+  // List<CardData> _generateMockCards(int startId, int count) {
+  //   final Random random = Random();
+  //   final List<String> names = [
+  //     "Alex",
+  //     "Sarah",
+  //     "Mike",
+  //     "Emma",
+  //     "John",
+  //     "Lisa",
+  //     "Tom",
+  //     "Anna",
+  //   ];
 
-    return List.generate(count, (index) {
-      int id = startId + index;
-      return CardData(
-        id: id,
-        name: names[random.nextInt(names.length)], // e.g. "Sarah #15"
-        age: 18 + random.nextInt(10), // Random age 18-28
-        bio: "This is a bio for user $id generated locally.",
-        // Use random seed to get different images
-        imageUrl: "https://picsum.photos/300/400?random=$id",
-      );
-    });
-  }
+  //   return List.generate(count, (index) {
+  //     int id = startId + index;
+  //     return CardData(
+  //       id: id,
+  //       name: names[random.nextInt(names.length)], // e.g. "Sarah #15"
+  //       age: 18 + random.nextInt(10), // Random age 18-28
+  //       bio: "This is a bio for user $id generated locally.",
+  //       // Use random seed to get different images
+  //       imageUrl: "https://picsum.photos/300/400?random=$id",
+  //     );
+  //   });
+  // }
 
   //gesture detector functions
   void _onPanUpdate(DragUpdateDetails details) {
@@ -145,27 +149,27 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   //cache image
   void _precacheNextImage() {
-    if (currentIndex + 1 < cards.length) {
-      precacheImage(NetworkImage(cards[currentIndex + 1].imageUrl), context);
-      if (currentIndex + 2 < cards.length) {
-        precacheImage(NetworkImage(cards[currentIndex + 1].imageUrl), context);
-      }
-    }
+    // if (currentIndex + 1 < cards.length) {
+    //   precacheImage(NetworkImage(cards[currentIndex + 1].imageUrl), context);
+    //   if (currentIndex + 2 < cards.length) {
+    //     precacheImage(NetworkImage(cards[currentIndex + 1].imageUrl), context);
+    //   }
+    // }
   }
 
   //swiping functions
   void _swipeRight() {
-    final cardName = cards[currentIndex].name; // Store name before animation
+    final cardName = cards[currentIndex].username; // Store name before animation
     _animateCardOut(1.0, cardName, true);
   }
 
   void _swipeLeft() {
-    final cardName = cards[currentIndex].name; // Store name before animation
+    final cardName = cards[currentIndex].username; // Store name before animation
     _animateCardOut(-1.0, cardName, false);
   }
 
   void _swipeUp() {
-    final cardName = cards[currentIndex].name;
+    final cardName = cards[currentIndex].username;
     _animateCardOut(0.0, cardName, true, isSuperLike: true);
   }
 
@@ -280,21 +284,26 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   Future<void> _fetchMoreCards() async {
     //if the user swipes fast this prevents multiple function calls
-    if (_isFetching) return;
+    if (_isFetching || _hasNoMoreProfiles) return;
     _isFetching = true;
 
-    //simulate network delay for test purposes
-    await Future.delayed(const Duration(seconds: 1));
-
-    int lastId = cards.last.id;
-    List<CardData> newBatch = _generateMockCards(lastId + 1, batchSize);
-
-    if (mounted) {
-      setState(() {
-        cards.addAll(newBatch);
-      });
+    try {
+      List<int> currentIds = cards.map((c) => c.id).toList();
+      String uid = FirebaseAuth.instance.currentUser!.uid;
+      List<CardData> users = await ApiService.getMultipleUsers(uid, currentIds);
+      if(users.isEmpty) {
+        _hasNoMoreProfiles = true;
+        _isFetching = false;
+        return;
+      }
+      if (mounted) {
+        setState(() {
+          cards.addAll(users);
+        });
+      } 
+    } catch (e) {
+      setState(() => _isFetching = false);
     }
-
     _isFetching = false;
   }
 
@@ -433,24 +442,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         borderRadius: BorderRadius.circular(20),
         child: Stack(
           children: [
-            // Background image
-            Positioned.fill(
-              child: Image.network(
-                card.imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: Colors.grey[300],
-                    child: const Icon(
-                      Icons.person,
-                      size: 100,
-                      color: Colors.grey,
-                    ),
-                  );
-                },
-              ),
-            ),
-
             // Gradient overlay
             Positioned.fill(
               child: Container(
@@ -476,7 +467,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${card.name}, ${card.age}',
+                    '${card.username}, ${card.age}',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 24,
@@ -485,9 +476,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    card.bio,
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
-                  ),
+                  card.bio != null ? card.bio! : "",
+                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                  ),                
                 ],
               ),
             ),
@@ -615,7 +606,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   size: 65, // Main buttons are bigger
                   forcePressed: isPassActive,
                   onPressed: () {
-                    final cardName = cards[currentIndex].name;
+                    final cardName = cards[currentIndex].username;
                     _animateCardOut(-1.0, cardName, false, fromButton: true);
                   },
                 ),
@@ -627,7 +618,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   size: 50,
                   forcePressed: isSuperLikeActive,
                   onPressed: () {
-                    final cardName = cards[currentIndex].name;
+                    final cardName = cards[currentIndex].username;
                     _animateCardOut(1.0, cardName, true, fromButton: true, isSuperLike: true);
                   },
                 ),
@@ -639,7 +630,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   size: 65,
                   forcePressed: isLikeActive,
                   onPressed: () {
-                    final cardName = cards[currentIndex].name;
+                    final cardName = cards[currentIndex].username;
                     _animateCardOut(1.0, cardName, true, fromButton: true);
                   },
                 ),
@@ -660,21 +651,4 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       ),
     );
   }
-}
-
-//declaration of card class
-class CardData {
-  final int id;
-  final String name;
-  final int age;
-  final String bio;
-  final String imageUrl;
-
-  CardData({
-    required this.id,
-    required this.name,
-    required this.age,
-    required this.bio,
-    required this.imageUrl,
-  });
 }
