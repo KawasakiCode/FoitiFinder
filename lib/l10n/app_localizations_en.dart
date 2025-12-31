@@ -389,4 +389,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get search => 'Search';
+
+  @override
+  String get noMoreProfiles => 'No more profiles to show!';
+
+  @override
+  String get checkLater => 'Check back later for new matches';
 }

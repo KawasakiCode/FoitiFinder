@@ -811,6 +811,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search'**
   String get search;
+
+  /// No description provided for @noMoreProfiles.
+  ///
+  /// In en, this message translates to:
+  /// **'No more profiles to show!'**
+  String get noMoreProfiles;
+
+  /// No description provided for @checkLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Check back later for new matches'**
+  String get checkLater;
 }
 
 class _AppLocalizationsDelegate

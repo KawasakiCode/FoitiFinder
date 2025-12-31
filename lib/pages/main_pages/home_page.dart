@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/models/card_data_model.dart';
 import 'package:foitifinder/pages/settings/settings.dart';
 import 'package:foitifinder/services/api_services.dart';
@@ -36,6 +37,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   final ValueNotifier<Offset> _swipeNotifier = ValueNotifier(Offset.zero);
   //is the card animating (is the controller counting still)
   bool _isAnimating = false;
+  //track user ids we saw to prevent seeing a user twice
+  final Set<int> _seenIds = {};
 
   // Track swiped cards for rewind functionality
   List<CardData> swipedCards = [];
@@ -46,18 +49,17 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     super.initState();
 
     // Initialize sample data
-    //cards = _generateMockCards(1, 15);
     _fetchMoreCards();
     currentIndex = 0;
 
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   if (cards.isNotEmpty) {
-    //     precacheImage(NetworkImage(cards[0].imageUrl), context);
-    //     if (cards.length > 1) {
-    //       precacheImage(NetworkImage(cards[1].imageUrl), context);
-    //     }
-    //   }
-    // });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (cards.isNotEmpty) {
+        precacheImage(NetworkImage(cards[0].imageUrl!), context);
+        if (cards.length > 1) {
+          precacheImage(NetworkImage(cards[1].imageUrl!), context);
+        }
+      }
+    });
 
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 300),
@@ -71,33 +73,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     _animationController.dispose();
     super.dispose();
   }
-
-  //generate infinte random cards to test swipe logic
-  // List<CardData> _generateMockCards(int startId, int count) {
-  //   final Random random = Random();
-  //   final List<String> names = [
-  //     "Alex",
-  //     "Sarah",
-  //     "Mike",
-  //     "Emma",
-  //     "John",
-  //     "Lisa",
-  //     "Tom",
-  //     "Anna",
-  //   ];
-
-  //   return List.generate(count, (index) {
-  //     int id = startId + index;
-  //     return CardData(
-  //       id: id,
-  //       name: names[random.nextInt(names.length)], // e.g. "Sarah #15"
-  //       age: 18 + random.nextInt(10), // Random age 18-28
-  //       bio: "This is a bio for user $id generated locally.",
-  //       // Use random seed to get different images
-  //       imageUrl: "https://picsum.photos/300/400?random=$id",
-  //     );
-  //   });
-  // }
 
   //gesture detector functions
   void _onPanUpdate(DragUpdateDetails details) {
@@ -149,12 +124,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   //cache image
   void _precacheNextImage() {
-    // if (currentIndex + 1 < cards.length) {
-    //   precacheImage(NetworkImage(cards[currentIndex + 1].imageUrl), context);
-    //   if (currentIndex + 2 < cards.length) {
-    //     precacheImage(NetworkImage(cards[currentIndex + 1].imageUrl), context);
-    //   }
-    // }
+    if (currentIndex + 1 < cards.length) {
+      precacheImage(NetworkImage(cards[currentIndex + 1].imageUrl!), context);
+      if (currentIndex + 2 < cards.length) {
+        precacheImage(NetworkImage(cards[currentIndex + 1].imageUrl!), context);
+      }
+    }
   }
 
   //swiping functions
@@ -288,17 +263,23 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     _isFetching = true;
 
     try {
-      List<int> currentIds = cards.map((c) => c.id).toList();
       String uid = FirebaseAuth.instance.currentUser!.uid;
-      List<CardData> users = await ApiService.getMultipleUsers(uid, currentIds);
+      List<CardData> users = await ApiService.getMultipleUsers(uid, _seenIds);
+      List<CardData> uniqueUsers = [];
       if(users.isEmpty) {
         _hasNoMoreProfiles = true;
         _isFetching = false;
         return;
       }
+      //add the ids we saw in the new batch to the seen set
+      for (var card in users) {
+        if(_seenIds.add(card.id)) {
+          uniqueUsers.add(card);
+        }
+      }
       if (mounted) {
         setState(() {
-          cards.addAll(users);
+          cards.addAll(uniqueUsers);
         });
       } 
     } catch (e) {
@@ -446,6 +427,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: NetworkImage(card.imageUrl!),
+                    fit: BoxFit.cover,
+                  ),
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
@@ -541,19 +526,20 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   //when cards run out show this function
   Widget _buildNoMoreCards() {
-    return const Center(
+    final text = AppLocalizations.of(context)!;
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.favorite_border, size: 100, color: Colors.grey),
           SizedBox(height: 20),
           Text(
-            'No more profiles to show!',
+            text.noMoreProfiles,
             style: TextStyle(fontSize: 24, color: Colors.grey),
           ),
           SizedBox(height: 10),
           Text(
-            'Check back later for new matches',
+            text.checkLater,
             style: TextStyle(fontSize: 16, color: Colors.grey),
           ),
         ],
@@ -564,11 +550,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   //build the buttons under the cards
   Widget _buildActionButtons() {
     // Show rewind button even when no more cards if we have swiped cards
-    if (currentIndex >= cards.length && swipedCards.isEmpty) {
-      //aka render nothing so there are no buttons
-      return const SizedBox.shrink();
-    }
-
     return Padding(
       padding: const EdgeInsets.all(20),
       child: ValueListenableBuilder(

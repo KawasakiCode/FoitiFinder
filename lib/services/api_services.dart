@@ -179,7 +179,7 @@ class ApiService {
   }
 
   //get multiple users
-  static Future<List<CardData>> getMultipleUsers(String uid, List<int> seenIds) async {
+  static Future<List<CardData>> getMultipleUsers(String uid, Set<int> seenIds) async {
     final url = Uri.parse("$baseUrl/users/feed/$uid");
     try {
       final response = await http.post(url,
@@ -188,7 +188,7 @@ class ApiService {
       },
       body: jsonEncode({
         "firebase_token": uid,
-        "seen_ids": seenIds,
+        "seen_ids": seenIds.toList(),
       }));
 
       if(response.statusCode == 200) {
@@ -197,7 +197,6 @@ class ApiService {
         return cards;
       }
       else if(response.statusCode != 200) {
-        print("Request failed: ${response.statusCode} - ${response.body}");
         return [];
       }
       else {

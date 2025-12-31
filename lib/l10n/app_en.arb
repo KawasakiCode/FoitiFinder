@@ -117,5 +117,7 @@
   "female": "Female",
   "noInternet": "No Internet Connectiion",
   "turnOnWifi": "Please turn on Wifi or Mobile Data to continue",
-  "search": "Search"
+  "search": "Search",
+  "noMoreProfiles": "No more profiles to show!",
+  "checkLater": "Check back later for new matches"
 }

@@ -395,4 +395,10 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get search => 'Αναζήτηση';
+
+  @override
+  String get noMoreProfiles => 'Δεν υπάρχουν άλλα προφίλ!';
+
+  @override
+  String get checkLater => 'Ελέγξτε ξανά αργότερα για νέα matches';
 }
