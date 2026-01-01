@@ -136,6 +136,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   void _swipeRight() {
     final cardName = cards[currentIndex].username; // Store name before animation
     _animateCardOut(1.0, cardName, true);
+    ApiService.registerLike(uid: FirebaseAuth.instance.currentUser!.uid, likedUserId: cards[currentIndex].id);
   }
 
   void _swipeLeft() {
@@ -146,6 +147,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   void _swipeUp() {
     final cardName = cards[currentIndex].username;
     _animateCardOut(0.0, cardName, true, isSuperLike: true);
+    ApiService.registerLike(uid: FirebaseAuth.instance.currentUser!.uid, likedUserId: cards[currentIndex].id, isSuperLike: true);
   }
 
   //swiping animation

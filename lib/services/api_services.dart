@@ -206,4 +206,34 @@ class ApiService {
       rethrow;
     }
   }
+
+  //like endpoints
+  //register a like/match in the db
+  static Future<bool> registerLike({
+    required String uid,
+    required int likedUserId,
+    bool isSuperLike = false,
+  }) async {
+    final url = Uri.parse("$baseUrl/likes/$uid"); 
+
+    try {
+      final response = await http.post(url, 
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "firebase_token": uid,
+        "liked_id": likedUserId,
+        "is_super_like": isSuperLike,
+      }));
+      if(response.statusCode == 200) {  
+        final data = jsonDecode(response.body);
+        return data["is_match"] ?? false;
+      }
+      else  {
+        throw Exception("Failed to register like ${response.body}");
+      }
+    } catch (e) {
+      rethrow;
+    }
+
+  }
 }

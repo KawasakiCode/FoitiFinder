@@ -18,6 +18,12 @@ app = FastAPI()
 class FeedRequest(BaseModel): 
     seen_user_ids: List[int] = []
 
+#class that handled the likes 
+class LikeRequest(BaseModel):
+    firebase_token: str
+    liked_id: int
+    is_super_like: bool = False
+
 #create new user and initialize default settings table for the new user
 @app.post("/users/", response_model=schemas.User)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
@@ -139,3 +145,39 @@ def get_users_settings(firebase_token: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     
     return db_user.settings
+
+#like endpoints
+@app.post("/likes/{firebase_token}")
+def like_user(request: LikeRequest, db: Session = Depends(get_db)):
+    #the current user
+    me = db.query(models.User).filter(models.User.firebase_token == request.firebase_token).first()
+    if not me:
+        raise HTTPException(status_code=404, detail="Current User not found")
+    #the user you liked
+    liked_user = db.query(models.User).filter(models.User.id == request.liked_id).first()
+    if not liked_user: 
+        raise HTTPException(status_code=404, detail="Liked User not found") 
+    
+    new_like = models.Likes(
+        liker_id = me.id, #the current user
+        liked_id = liked_user.id, #the liked user
+        is_super_like = request.is_super_like,
+    )
+    
+    db.add(new_like)
+    
+    #if the liked user liked the current user
+    reverse_like = db.query(models.Likes).filter(  
+        models.Likes.liker_id == liked_user.id,
+        models.Likes.liked_id == me.id,
+    ).first()
+
+    if reverse_like: 
+        new_match = models.Matches(  
+           user_a_id = me.id,
+           user_b_id = liked_user.id,
+        )
+        db.add(new_match)
+    db.commit()
+
+    return {"is_match": bool(reverse_like)} #if reverse_like returns true then it is a match
