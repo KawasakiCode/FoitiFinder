@@ -21,7 +21,7 @@ class FeedRequest(BaseModel):
 #class that handled the likes 
 class LikeRequest(BaseModel):
     firebase_token: str
-    liked_id: int
+    liked_id: int 
     is_super_like: bool = False
 
 #create new user and initialize default settings table for the new user
@@ -181,3 +181,33 @@ def like_user(request: LikeRequest, db: Session = Depends(get_db)):
     db.commit()
 
     return {"is_match": bool(reverse_like)} #if reverse_like returns true then it is a match
+
+#get matches to load chats
+@app.get("/matches")
+def get_matches(firebase_token: str, db: Session = Depends(get_db)):
+    me = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
+    if not me:
+        raise HTTPException(status_code=404, detail="Current User not found")
+    
+    matches = db.query(models.Matches).filter(  
+        (models.Matches.user_a_id == me.id) | (models.Matches.user_b_id == me.id),
+    ).all()
+
+    results = []
+    for match in matches:
+        other_user_id = match.user_a_id if match.user_a_id != me.id else match.user_b_id
+        other_user = db.query(models.User).filter(models.User.id == other_user_id).first()
+
+        if other_user: 
+            results.append({  
+                "match_id": match.id,
+                "other_user_id": other_user.id,
+                "other_user_name": other_user.username,
+                "image_url": "https://picsum.photos/200",
+                #"last_message": for later
+            })
+        else: 
+            raise HTTPException(status_code=404, detail="Other User not found")
+
+        
+        return results
