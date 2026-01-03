@@ -58,6 +58,7 @@ class Matches(BaseModel):
 class Messages(BaseModel):
     sender: int
     match_id: int
+    content: str
 
 class Photos(BaseModel):
     user_id: int
