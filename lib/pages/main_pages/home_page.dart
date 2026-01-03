@@ -39,7 +39,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool _isAnimating = false;
   //track user ids we saw to prevent seeing a user twice
   final Set<int> _seenIds = {};
-
   // Track swiped cards for rewind functionality
   List<CardData> swipedCards = [];
 
@@ -133,10 +132,21 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   //swiping functions
-  void _swipeRight() {
+  void _swipeRight() async {
     final cardName = cards[currentIndex].username; // Store name before animation
     _animateCardOut(1.0, cardName, true);
-    ApiService.registerLike(uid: FirebaseAuth.instance.currentUser!.uid, likedUserId: cards[currentIndex].id);
+    bool isMatch = await ApiService.registerLike(uid: FirebaseAuth.instance.currentUser!.uid, likedUserId: cards[currentIndex].id);
+
+    if(isMatch) {
+      if(!mounted)return;
+      showDialog(  
+        context: context,
+        builder: (context) => AlertDialog(  
+          title: Text("It's a match!"),
+          content: Text("You anad ${cards[currentIndex].username} liked each other!"),
+        )
+      );
+    }
   }
 
   void _swipeLeft() {
@@ -144,10 +154,21 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     _animateCardOut(-1.0, cardName, false);
   }
 
-  void _swipeUp() {
+  void _swipeUp() async {
     final cardName = cards[currentIndex].username;
     _animateCardOut(0.0, cardName, true, isSuperLike: true);
-    ApiService.registerLike(uid: FirebaseAuth.instance.currentUser!.uid, likedUserId: cards[currentIndex].id, isSuperLike: true);
+    bool isMatch = await ApiService.registerLike(uid: FirebaseAuth.instance.currentUser!.uid, likedUserId: cards[currentIndex].id, isSuperLike: true);
+
+    if(isMatch) {
+      if(!mounted)return;
+      showDialog(  
+        context: context,
+        builder: (context) => AlertDialog(  
+          title: Text("It's a match!"),
+          content: Text("You anad ${cards[currentIndex].username} liked each other!"),
+        )
+      );
+    }
   }
 
   //swiping animation

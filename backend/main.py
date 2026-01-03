@@ -203,7 +203,7 @@ def get_matches(firebase_token: str, db: Session = Depends(get_db)):
                 "match_id": match.id,
                 "other_user_id": other_user.id,
                 "other_user_name": other_user.username,
-                "image_url": "https://picsum.photos/200",
+                "image_url": "https://picsum.photos/200", #other_users.profile_picture later
                 #"last_message": for later
             })
         else: 
