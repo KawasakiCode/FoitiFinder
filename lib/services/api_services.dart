@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:foitifinder/models/card_data_model.dart';
+import 'package:foitifinder/models/matches_model.dart';
 import 'package:foitifinder/models/settings_model.dart';
 import 'package:foitifinder/models/user_model.dart';
 import 'package:http/http.dart' as http;
@@ -234,6 +235,25 @@ class ApiService {
     } catch (e) {
       rethrow;
     }
+  }
 
+  static Future<List<MatchModel>> getMatches({
+    required String uid,
+  }) async {
+    final url = Uri.parse("$baseUrl/matches/$uid");
+    
+    try {
+      final response = await http.get(url);
+
+      if(response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((item) => MatchModel.fromJson(item)).toList();
+      }
+      else  {
+        throw Exception("Failed to register like ${response.body}");
+      }
+    } catch (e) {
+      rethrow;
+    }
   }
 }

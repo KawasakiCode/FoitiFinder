@@ -143,7 +143,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         context: context,
         builder: (context) => AlertDialog(  
           title: Text("It's a match!"),
-          content: Text("You anad ${cards[currentIndex].username} liked each other!"),
+          content: Text("You ana ${cards[currentIndex].username} liked each other!"),
         )
       );
     }
@@ -165,7 +165,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         context: context,
         builder: (context) => AlertDialog(  
           title: Text("It's a match!"),
-          content: Text("You anad ${cards[currentIndex].username} liked each other!"),
+          content: Text("You ana ${cards[currentIndex].username} liked each other!"),
         )
       );
     }

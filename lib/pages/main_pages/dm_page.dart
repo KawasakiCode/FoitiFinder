@@ -1,7 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/models/matches_model.dart';
 import 'package:foitifinder/pages/extra_pages/messages_page.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
+import 'package:foitifinder/services/api_services.dart';
 import 'package:provider/provider.dart';
 
 class DMPage extends StatefulWidget {
@@ -12,6 +15,22 @@ class DMPage extends StatefulWidget {
 }
 
 class _DMPageState extends State<DMPage> {
+  List<MatchModel> _dms = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDMs();
+  }
+
+  Future<void> _loadDMs() async {
+    final dms = await ApiService.getMatches(uid: FirebaseAuth.instance.currentUser!.uid);
+
+    if(mounted) {
+      setState(() => _dms = dms);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context)!;
@@ -77,7 +96,7 @@ class _DMPageState extends State<DMPage> {
               itemCount: 10,
               itemBuilder: (context, index) {
                 return Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.0),
+                  padding: EdgeInsets.symmetric(horizontal: 5.0),
                   child: Container(
                     width: 60,
                     height: 60,
@@ -105,8 +124,10 @@ class _DMPageState extends State<DMPage> {
           Expanded(
             child: ListView.builder(
               scrollDirection: Axis.vertical,
-              itemCount: 5,
+              itemCount: _dms.length,
               itemBuilder: (context, index) {
+                final dm = _dms[index];
+
                 return Material(
                   borderRadius: BorderRadius.circular(15),
                   color: Colors.transparent,
@@ -125,12 +146,12 @@ class _DMPageState extends State<DMPage> {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Container(
-                              width: 55,
-                              height: 55,
-                              decoration: BoxDecoration(
-                                color: Colors.black,
-                                shape: BoxShape.circle,
+                            Hero(
+                              tag: dm.matchId,
+                              child: CircleAvatar(
+                                radius: 28,
+                                backgroundColor: Colors.grey[300],
+                                backgroundImage: NetworkImage(dm.imageUrl),
                               ),
                             ),
                             Expanded(
@@ -141,7 +162,7 @@ class _DMPageState extends State<DMPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Username',
+                                      dm.userBname,
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,

@@ -183,7 +183,7 @@ def like_user(request: LikeRequest, db: Session = Depends(get_db)):
     return {"is_match": bool(reverse_like)} #if reverse_like returns true then it is a match
 
 #get matches to load chats
-@app.get("/matches")
+@app.get("/matches/{firebase_token}")
 def get_matches(firebase_token: str, db: Session = Depends(get_db)):
     me = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
     if not me:

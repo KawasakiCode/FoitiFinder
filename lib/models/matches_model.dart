@@ -1,21 +1,21 @@
 class MatchModel {
   final int matchId;
-  final int userAid;
   final int userBid;
+  final String userBname;
   final String imageUrl;
 
   MatchModel({
     required this.matchId,
-    required this.userAid,
     required this.userBid,
+    required this.userBname,
     required this.imageUrl,
   });
 
   factory MatchModel.fromJson(Map<String, dynamic> json) {
     return MatchModel(  
       matchId: json['match_id'],
-      userAid: json['user_a_id'],
-      userBid: json['user_b_id'],
+      userBid: json['other_user_id'],
+      userBname: json['other_user_name'],
       imageUrl: json['image_url'],
     );
   }

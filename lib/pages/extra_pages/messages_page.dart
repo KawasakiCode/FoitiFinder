@@ -98,6 +98,7 @@ class _MessagesPages extends State<MessagesPage> {
                       vertical: 10,
                     ),
                     suffixIcon: IconButton(
+                      key: UniqueKey(),
                       icon: const Icon(Icons.send, color: Color(0xFF8A2BE2)),
                       onPressed: () {
                         FocusScope.of(context).unfocus();
