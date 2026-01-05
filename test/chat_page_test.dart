@@ -8,7 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 // Replace 'your_app_name' with your actual package name
-import 'package:foitifinder/pages/extra_pages/messages_page.dart'; 
+import 'package:foitifinder/pages/main_pages/dm_page.dart'; 
 
 void main() {
   //chat page tests
@@ -16,7 +16,7 @@ void main() {
     // 1. Load the MessagesPage wrapped in MaterialApp 
     // (MaterialApp is required for Theme and Directionality)
     await tester.pumpWidget(const MaterialApp(
-      home: MessagesPage(),
+      home: DMPage(),
     ));
 
     // 2. Verify initial state: The list should be empty (or have your dummy data)
@@ -51,7 +51,7 @@ void main() {
 
   testWidgets('Messages alternate sides (Left/Right) logic', (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(
-      home: MessagesPage(),
+      home: DMPage(),
     ));
 
     // Send Message 1 ("Me")

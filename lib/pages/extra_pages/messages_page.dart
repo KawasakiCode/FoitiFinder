@@ -1,9 +1,17 @@
 //the chat page
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:foitifinder/models/matches_model.dart';
+import 'package:foitifinder/models/message_model.dart';
+import 'package:foitifinder/providers/profile_provider.dart';
+import 'package:foitifinder/services/api_services.dart';
+import 'package:provider/provider.dart';
 
 class MessagesPage extends StatefulWidget {
-  const MessagesPage({super.key});
+  final MatchModel match;
+
+  const MessagesPage({super.key, required this.match});
 
   @override
   State<MessagesPage> createState() => _MessagesPages();
@@ -12,28 +20,70 @@ class MessagesPage extends StatefulWidget {
 class _MessagesPages extends State<MessagesPage> {
   final TextEditingController _controller = TextEditingController();
   //list that contains messages
-  List<Message> messages = [];
-  bool _debugIsMe = true;
+  List<MessageModel> messages = [];
 
-  void _handleSend() {
+  @override
+  initState() {
+    super.initState();
+    _loadMessages();
+  }
+
+  Future<void> _loadMessages() async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final myUserId = Provider.of<ProfileProvider>(context, listen: false).currentUser!.id!;
+
+    final history = await ApiService.getMessages(uid, myUserId, widget.match.matchId);
+
+    if(mounted) {
+      setState(() {
+        messages = history;
+      });
+    }
+  }
+
+  void _handleSend() async {
     String text = _controller.text.trim();
     if(text.isEmpty)return;
 
-    setState(() {
-      messages.insert(0, Message(text: text, isMe: _debugIsMe));
-      _debugIsMe = !_debugIsMe;
-    });
     _controller.clear();
+    //keep a temporary instance of the last message sent to delete it if the api fails to upload it to the db
+    final tempMessage = MessageModel(  
+      matchId: widget.match.matchId,
+      senderId: Provider.of<ProfileProvider>(context, listen: false).currentUser!.id!,
+      content: text,
+      isMine: true,
+    );
+
+    setState(() {
+      messages.insert(0, tempMessage);
+    });
+
+    bool success = await ApiService.postMessage(
+      uid: FirebaseAuth.instance.currentUser!.uid, 
+      matchId: widget.match.matchId, 
+      content: text);
+   
+   if(!success) {
+    setState(() {
+      messages.remove(tempMessage);
+    });
+
+    if(!mounted)return;
+    ScaffoldMessenger.of(context).showSnackBar( 
+      const SnackBar(content: Text("Failed to send message"))
+    );
+   }
   }
 
   @override 
   Widget build(BuildContext context) {
+    final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold( 
         appBar: AppBar(  
           automaticallyImplyLeading: true,
-          title: Text("Username"),
+          title: Text(profileProvider.currentUser!.username),
           elevation: 0,
           bottom: PreferredSize(  
             preferredSize: const Size.fromHeight(1.0),
@@ -55,7 +105,7 @@ class _MessagesPages extends State<MessagesPage> {
 
                   //the whole row of the screen that the message gets
                   return Row(
-                    mainAxisAlignment: message.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+                    mainAxisAlignment: message.isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
                     children: [
                       //the bubble itself
                       Container(  
@@ -71,7 +121,7 @@ class _MessagesPages extends State<MessagesPage> {
                           ),
                           padding: const EdgeInsets.all(10),
                           child: Text(  
-                            message.text,
+                            message.content,
                             style: const TextStyle(color: Colors.white, fontSize: 17),
                           )
                         )

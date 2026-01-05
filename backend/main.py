@@ -24,6 +24,12 @@ class LikeRequest(BaseModel):
     liked_id: int 
     is_super_like: bool = False
 
+#class that handled the messsages
+class Messages(BaseModel):
+    firebase_token: str
+    match_id: int
+    content: str
+
 #create new user and initialize default settings table for the new user
 @app.post("/users/", response_model=schemas.User)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
@@ -211,3 +217,45 @@ def get_matches(firebase_token: str, db: Session = Depends(get_db)):
 
         
         return results
+    
+#upload message to db
+@app.post("/messages/store")
+def upload_messages(message: Messages, db: Session = Depends(get_db)):
+    me = db.query(models.User).filter(models.User.firebase_token == message.firebase_token).first()
+    if not me:
+        raise HTTPException(status_code=404, detail="Current User not found")
+    
+    #check if the user running the query is actually one of the 2 from the conversation
+    match = db.query(models.Matches).filter(models.Matches.id == message.match_id).first()
+    if not match or (match.user_a_id != me.id and match.user_b_id != me.id):
+        raise HTTPException(status_code =403, detail="You are not part of thie match")
+
+    new_message = models.Messages(  
+        sender = me.id,
+        match_id = message.match_id,
+        content = message.content
+    )
+
+    db.add(new_message)
+    db.commit()
+
+#get messages from db
+@app.get("/messages/{match_id}")
+def get_messages(match_id: int, firebase_token: str, db: Session = Depends(get_db)):
+    me = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
+    if not me:
+        raise HTTPException(status_code=404, detail="Current User not found")
+    
+    match = db.query(models.Matches).filter(models.Matches.id == match_id).first()
+
+    if not match:
+        raise HTTPException(status_code = 404, detail="Match not found")
+
+    messages = db.query(models.Messages).filter(  
+        models.Messages.match_id == match_id
+    ).order_by(models.Messages.created_at.desc()).all()
+
+    return messages
+
+    
+

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:foitifinder/models/card_data_model.dart';
 import 'package:foitifinder/models/matches_model.dart';
+import 'package:foitifinder/models/message_model.dart';
 import 'package:foitifinder/models/settings_model.dart';
 import 'package:foitifinder/models/user_model.dart';
 import 'package:http/http.dart' as http;
@@ -237,6 +238,7 @@ class ApiService {
     }
   }
 
+  //get matches aka dms
   static Future<List<MatchModel>> getMatches({
     required String uid,
   }) async {
@@ -251,6 +253,53 @@ class ApiService {
       }
       else  {
         throw Exception("Failed to register like ${response.body}");
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  //post message to db
+  static Future<bool> postMessage({
+    required String uid,
+    required int matchId,
+    required String content,
+  }) async {
+    final url = Uri.parse("$baseUrl/messages/store");
+
+    try {
+      final response = await http.post(url,
+        headers: {
+            "Content-Type": "application/json", 
+          },
+        body: jsonEncode({
+          "firebase_token": uid,
+          "match_id": matchId,
+          "content": content,
+        }),
+      );
+
+      if(response.statusCode != 200) {
+        return false;
+      }
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  //get all messages from a conversation in reverse chronological order (last to first)
+  static Future<List<MessageModel>> getMessages(String uid, int myUserId, int matchId) async {
+    final url = Uri.parse("$baseUrl/messages/$matchId?firebase_token=$uid");
+
+    try {
+      final response = await http.get(url);
+
+      if(response.statusCode == 200) {
+        List<dynamic> data = jsonDecode(response.body);
+        return data.map((json) => MessageModel.fromJson(json, myUserId)).toList();
+      } else {
+        throw Exception("Failed to get messages ${response.statusCode}");
       }
     } catch (e) {
       rethrow;

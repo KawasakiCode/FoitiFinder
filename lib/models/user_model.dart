@@ -3,6 +3,7 @@
 //the database and firebase are connected through the firebase_token (uid) to find specific users
 
 class UserModel{
+  final int? id;
   final String uid;
   final String username;
   final String? fullName;
@@ -22,6 +23,7 @@ class UserModel{
     required this.username,
     required this.fullName,
     required this.hasFinishedSetUp,
+    this.id,
     this.bio,
     this.age,
     this.imageUrl,
@@ -40,6 +42,7 @@ class UserModel{
       username: json['username'] ?? (throw Exception("Critical: username missing")),
       hasFinishedSetUp: json['has_finished_set_up'] ?? (throw Exception("Critical: finishedSetUp missing")),
       fullName: json['full_name'],
+      id: json['id'],
       bio: json['bio'],
       age: json['age'],
       imageUrl: json['profile_picture'],
@@ -59,6 +62,7 @@ class UserModel{
       'username': username,
       'has_finished_set_up': hasFinishedSetUp,
       'full_name': fullName,
+      'id': id,
       'bio': bio,
       'age': age,
       'profile_picture': imageUrl,

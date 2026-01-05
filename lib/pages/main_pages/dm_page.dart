@@ -137,7 +137,7 @@ class _DMPageState extends State<DMPage> {
                     onTap: () {
                       Navigator.push(  
                         context,
-                        MaterialPageRoute(builder:(context) => MessagesPage(),),
+                        MaterialPageRoute(builder:(context) => MessagesPage(match: dm),),
                       );
                     },
                     child: SizedBox(
