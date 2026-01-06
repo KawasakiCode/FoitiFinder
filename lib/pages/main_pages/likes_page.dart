@@ -1,4 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:foitifinder/models/liker_model.dart';
+import 'package:foitifinder/services/api_services.dart';
 
 class LikesPage extends StatefulWidget{
   const LikesPage({super.key});
@@ -8,6 +11,23 @@ class LikesPage extends StatefulWidget{
 }
 
 class _LikesPage extends State<LikesPage>{
+  List<LikerModel> _likes = [];
+
+  @override
+  initState() {
+    super.initState();
+    _loadLikes();
+  }
+
+  void _loadLikes() async {
+    final likes = await ApiService.getLikes(FirebaseAuth.instance.currentUser!.uid);
+    if(mounted) {
+      setState(() {
+        _likes = likes;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(  
@@ -21,7 +41,7 @@ class _LikesPage extends State<LikesPage>{
           children: [
             GridView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 5),
-              itemCount: 8,
+              itemCount: _likes.length,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 crossAxisSpacing: 8,
@@ -30,33 +50,36 @@ class _LikesPage extends State<LikesPage>{
               ),
               shrinkWrap: true,
               physics: NeverScrollableScrollPhysics(),
-              itemBuilder: (_, _) => Material(
+              itemBuilder: (_, index) => Material(
                 color: Colors.red,
                 borderRadius: BorderRadius.circular(15),
                 clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(15),
-                  splashColor: Colors.white24,
-                  highlightColor: Colors.white10,
-                  onTap: () {},
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 5, bottom: 5),
-                        child: Align(
-                          alignment: Alignment.bottomLeft,
-                          child: Text(
-                            "Username, Age",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                child: Ink.image(
+                  image: NetworkImage(_likes[index].imageUrl),
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: double.infinity,
+                  child: InkWell(
+                    onTap: () {},
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(left: 5, bottom: 5),
+                          child: Align(
+                            alignment: Alignment.bottomLeft,
+                            child: Text(
+                              "${_likes[index].username}, ${_likes[index].age}",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),

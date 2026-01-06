@@ -7,6 +7,7 @@ import 'package:foitifinder/models/message_model.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/services/api_services.dart';
 import 'package:provider/provider.dart';
+import 'dart:async';
 
 class MessagesPage extends StatefulWidget {
   final MatchModel match;
@@ -21,11 +22,23 @@ class _MessagesPages extends State<MessagesPage> {
   final TextEditingController _controller = TextEditingController();
   //list that contains messages
   List<MessageModel> messages = [];
+  //timer to periodically check for new messages 
+  Timer? _timer;
 
   @override
   initState() {
     super.initState();
     _loadMessages();
+    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      _loadMessages();
+    });
+  }
+
+  @override 
+  dispose() {
+    //stop the timer from working if the user leaves chat page (to be changed later)
+    _timer?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadMessages() async {

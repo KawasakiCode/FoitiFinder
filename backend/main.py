@@ -18,17 +18,29 @@ app = FastAPI()
 class FeedRequest(BaseModel): 
     seen_user_ids: List[int] = []
 
-#class that handled the likes 
+#class that handles the likes 
 class LikeRequest(BaseModel):
     firebase_token: str
     liked_id: int 
     is_super_like: bool = False
 
-#class that handled the messsages
+#class that handles the messsages
 class Messages(BaseModel):
     firebase_token: str
     match_id: int
     content: str
+
+#class that handles the like data we need to sent
+#we dont return likes but data from the users that liked the currentuser
+class LikerProfile(BaseModel):
+    id: int
+    username: str
+    #this later will become the profile photos (not pfp)
+    image_url: str = f"https://picsum.photos/${id}"
+
+    class Config:
+        #this ensures that pydantic can read sqlalchemy objects
+        orm_model = True
 
 #create new user and initialize default settings table for the new user
 @app.post("/users/", response_model=schemas.User)
@@ -187,6 +199,24 @@ def like_user(request: LikeRequest, db: Session = Depends(get_db)):
     db.commit()
 
     return {"is_match": bool(reverse_like)} #if reverse_like returns true then it is a match
+
+@app.get("/likes/{firebase_token}", response_model = List[LikerProfile])
+def get_likes(firebase_token: str, db: Session = Depends(get_db)):
+    me = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
+    if not me:
+        raise HTTPException(status_code=404, detail="Current User not found")
+    
+    #get all the users that made likes and return only the ones where they liked the currentuser
+    liked_by_users = db.query(models.User).join(  
+        models.Likes,
+        models.Likes.liker_id == models.User.id 
+    ).filter(
+        models.Likes.liked_id == me.id
+    ).all()
+
+    #pydantic uses the response_model and automatically 
+    #filters only the data specified in the likerProfile class
+    return liked_by_users
 
 #get matches to load chats
 @app.get("/matches/{firebase_token}")

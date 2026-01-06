@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:foitifinder/models/card_data_model.dart';
+import 'package:foitifinder/models/liker_model.dart';
 import 'package:foitifinder/models/matches_model.dart';
 import 'package:foitifinder/models/message_model.dart';
 import 'package:foitifinder/models/settings_model.dart';
@@ -299,6 +300,25 @@ class ApiService {
         List<dynamic> data = jsonDecode(response.body);
         return data.map((json) => MessageModel.fromJson(json, myUserId)).toList();
       } else {
+        throw Exception("Failed to get messages ${response.statusCode}");
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  //get all likes 
+  static Future<List<LikerModel>> getLikes(String uid) async {
+    final url = Uri.parse("$baseUrl/likes/$uid");
+
+    try {
+      final response = await http.get(url);
+
+      if(response.statusCode == 200) {
+        List<dynamic> data = jsonDecode(response.body);
+        return data.map((json) => LikerModel.fromJson(json)).toList();
+      }
+      else {
         throw Exception("Failed to get messages ${response.statusCode}");
       }
     } catch (e) {
