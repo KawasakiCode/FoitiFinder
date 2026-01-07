@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from fastapi import FastAPI, Depends, HTTPException
 from dotenv import load_dotenv
 from pydantic import BaseModel
@@ -14,7 +14,7 @@ load_dotenv()
 
 app = FastAPI()
 
-#class that stores the user id the user already saw to not allow duplicate showings
+#class that stores the user ids the user already saw to not allow duplicate showings
 class FeedRequest(BaseModel): 
     seen_user_ids: List[int] = []
 
@@ -40,7 +40,27 @@ class LikerProfile(BaseModel):
 
     class Config:
         #this ensures that pydantic can read sqlalchemy objects
-        orm_model = True
+        orm_mode = True
+
+#class that handles sending back users photos
+class UserPhotos(BaseModel):
+    firebase_token: str
+    photo_url: str
+    display_order: int
+
+    class Config:
+        orm_mode = True
+
+#class that is used to return to the frontend card data with photos
+class UserCards(BaseModel):
+    id: int
+    username: str
+    age: Optional[int] = None
+    bio: Optional[str] = None
+    photos: List[str] = []
+
+    class Config:
+        orm_mode = True
 
 #create new user and initialize default settings table for the new user
 @app.post("/users/", response_model=schemas.User)
@@ -116,7 +136,7 @@ def update_user(firebase_token: str, user_update: schemas.UserUpdate, db: Sessio
     return db_user
 
 #get multiple users for the homepage
-@app.post("/users/feed/{firebase_token}")
+@app.post("/users/feed/{firebase_token}", response_model = List[UserCards])
 def get_swipe_feed(firebase_token: str, seen_users: FeedRequest, db: Session = Depends(get_db)):
     #first get the current user id to exclude it 
     me = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
@@ -132,7 +152,24 @@ def get_swipe_feed(firebase_token: str, seen_users: FeedRequest, db: Session = D
     #order the users randomly for now and limit then at 10
     users = query.order_by(func.random()).limit(10).all()
 
-    return users
+    results = []
+    for user in users:
+        #sort photos by display order
+        sorted_photos = sorted(user.photos, key = lambda x: x.display_order)
+        photo_urls = [p.photo_url for p in sorted_photos]
+
+        if not photo_urls:
+            photo_urls = []
+        
+        results.append({
+            "id": user.id,
+            "username": user.username,
+            "age": user.age,
+            "bio": user.bio,
+            "photos": photo_urls,
+        })
+
+    return results
 
 #update one/multiple settings without altering the other
 @app.patch("/users/settings/{firebase_token}")
@@ -219,7 +256,7 @@ def get_likes(firebase_token: str, db: Session = Depends(get_db)):
     return liked_by_users
 
 #get matches to load chats
-@app.get("/matches/{firebase_token}")
+@app.get("/matches/{firebase_token}", response_model = List[UserPhotos])
 def get_matches(firebase_token: str, db: Session = Depends(get_db)):
     me = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
     if not me:
@@ -286,6 +323,38 @@ def get_messages(match_id: int, firebase_token: str, db: Session = Depends(get_d
     ).order_by(models.Messages.created_at.desc()).all()
 
     return messages
+
+#get users photos
+@app.get("/photos/{firebase_token}")
+def get_user_photos(firebase_token: str, db: Session = Depends(get_db)):
+    me = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
+    if not me:
+        raise HTTPException(status_code=404, detail="Current User not found")
+    
+    photos = db.query(models.Photos).filter(  
+        models.Photos.user_id == models.User.id
+    ).order_by(models.Photos.display_order.asc()).all()
+
+    return photos
+
+#store a photo inside the db
+@app.post("/photos")
+def upload_photo(user_photos: UserPhotos, db: Session = Depends(get_db)):
+    me = db.query(models.User).filter(models.User.firebase_token == user_photos.firebase_token).first()
+    if not me:
+        raise HTTPException(status_code=404, detail="Current User not found")
+    
+    new_photo = models.Photos(  
+        user_id = me.id,
+        photo_url = user_photos.photo_url,
+        display_order = user_photos.display_order,
+    ) 
+
+    db.add(new_photo)
+    db.commit()
+    db.refresh()
+
+
 
     
 

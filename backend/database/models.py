@@ -23,6 +23,7 @@ class User(Base):
     has_finished_set_up = Column(Boolean, nullable = False)
 
     settings = relationship("Settings", back_populates="user", uselist=False, cascade="all, delete")
+    photos = relationship("Photos", back_populates="user")
 
 class Likes(Base):
     __tablename__ = "likes"
@@ -60,6 +61,8 @@ class Photos(Base):
     display_order = Column(Integer, nullable = False)
     created_at = Column(TIMESTAMP(timezone=True), nullable = False, server_default = text('now()'))
     
+    user = relationship("User", back_populates="photos")
+
 class Settings(Base):
     __tablename__ = "settings"
 

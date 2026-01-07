@@ -3,9 +3,12 @@ import 'package:foitifinder/models/card_data_model.dart';
 import 'package:foitifinder/models/liker_model.dart';
 import 'package:foitifinder/models/matches_model.dart';
 import 'package:foitifinder/models/message_model.dart';
+import 'package:foitifinder/models/photos_model.dart';
 import 'package:foitifinder/models/settings_model.dart';
 import 'package:foitifinder/models/user_model.dart';
 import 'package:http/http.dart' as http;
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class ApiService {
   //test for emulator
@@ -323,6 +326,69 @@ class ApiService {
       }
     } catch (e) {
       rethrow;
+    }
+  }
+
+  //get user photos
+  static Future<List<PhotosModel>> getPhotos(String uid) async {
+    final url = Uri.parse("$baseUrl/photos/$uid");
+
+    try {
+      final response = await http.get(url);
+
+      if(response.statusCode == 200) {
+        List<dynamic> data = jsonDecode(response.body);
+        return data.map((json) => PhotosModel.fromJson(json)).toList();
+      }
+      else {
+        throw Exception("Failed to get photos ${response.body}");
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  //upload a photo to database
+  static Future<bool> uploadPhoto({
+    required String uid,
+    required String photoUrl,
+    required int displayOrder,
+  }) async {
+    final url = Uri.parse("$baseUrl/photos");
+
+    try {
+      final response = await http.post(url,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "firebase_token": uid,
+        "photo_url": photoUrl,
+        "display_order": displayOrder,
+      })
+      );
+
+      if(response.statusCode != 200) {
+        return false;
+      }
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  //upload the photo file to firebase cloud and return the url
+  static Future<String?> uploadToFirebase(File imageFile, String uid) async {
+    try {
+      //to ensure unique file name and path
+      String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+      Reference ref = FirebaseStorage.instance.ref().child('users/$uid/gallery/$fileName.jpg');
+
+      UploadTask task = ref.putFile(imageFile);
+      TaskSnapshot snapshot = await task;
+
+      String downloadUrl = await snapshot.ref.getDownloadURL();
+      return downloadUrl;
+    } catch (e) {
+      return null;
     }
   }
 }

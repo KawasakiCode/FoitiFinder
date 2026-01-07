@@ -1,3 +1,4 @@
+from typing import List, Optional
 from pydantic import BaseModel
 from datetime import datetime
 
@@ -45,6 +46,17 @@ class User(UserBase):
 #called when creating users to add secret fields like passwords
 class UserCreate(UserBase):
     pass
+
+#class when getting user data for the deck of cards
+class UserCardResponse(BaseModel):
+    id: int
+    username: str
+    age: Optional[int] = None
+    bio: Optional[str] = None
+    photos: List[str] = []
+
+    class Config:
+        orm_mode = True
 
 class Likes(BaseModel):
     liker_id: int
