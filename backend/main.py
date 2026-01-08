@@ -256,7 +256,7 @@ def get_likes(firebase_token: str, db: Session = Depends(get_db)):
     return liked_by_users
 
 #get matches to load chats
-@app.get("/matches/{firebase_token}", response_model = List[UserPhotos])
+@app.get("/matches/{firebase_token}", response_model = List[LikerProfile])
 def get_matches(firebase_token: str, db: Session = Depends(get_db)):
     me = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
     if not me:
