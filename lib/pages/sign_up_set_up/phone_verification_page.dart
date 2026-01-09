@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:foitifinder/pages/sign_up_set_up/add_photos.dart';
 import 'package:foitifinder/pages/sign_up_set_up/otp_code_page.dart';
 import 'package:foitifinder/pages/sign_up_set_up/set_up_page.dart';
 import 'package:provider/provider.dart';
@@ -80,7 +81,7 @@ class _PhoneVerificationPage extends State<PhoneVerificationPage> {
         if (isVerified) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => SetUpPage())); 
+            MaterialPageRoute(builder: (context) => AddPhotos())); 
         }
       },
         verificationFailed: (FirebaseAuthException e) {

@@ -352,7 +352,7 @@ def upload_photo(user_photos: UserPhotos, db: Session = Depends(get_db)):
 
     db.add(new_photo)
     db.commit()
-    db.refresh()
+    db.refresh(new_photo)
 
 
 

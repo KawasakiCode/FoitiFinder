@@ -12,9 +12,9 @@ import 'package:firebase_storage/firebase_storage.dart';
 
 class ApiService {
   //test for emulator
-  static const String baseUrl = "http://10.0.2.2:8000"; 
+  // static const String baseUrl = "http://10.0.2.2:8000"; 
   //test for real phone
-  //static const String baseUrl = "http://127.0.0.1:8000"; 
+  static const String baseUrl = "http://127.0.0.1:8000"; 
 
   //create new user (only runs on sign up)
   static Future<void> createUser({

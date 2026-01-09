@@ -1,5 +1,6 @@
 //decides what page to push depending if user finished the initial sign up setup or not
 //gets called only by auth wrapper
+//TODO add hasPhotos bool to differentiate between photos and setup done.
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
