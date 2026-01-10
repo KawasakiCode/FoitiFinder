@@ -916,7 +916,9 @@ class _SettingsPageState extends State<SettingsPage> {
                     await FirebaseAuth.instance.signOut();
                     await settings.clearData();
                     if (!context.mounted) return;
-                    Navigator.of(context).popUntil((route) => route.isFirst);
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                      '/login',
+                      (route) => false);
                   },
                   child: Text(
                     text.logout,

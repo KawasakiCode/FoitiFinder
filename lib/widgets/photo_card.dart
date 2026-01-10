@@ -1,3 +1,9 @@
+//this widget gets called from the homepage 
+//it is effectively the card that is display in the homepage 
+//but made to handle showing photos and having the left and right tap functionality
+//to change photos if user has more than one
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/models/card_data_model.dart';
 
@@ -19,6 +25,13 @@ class _PhotoCardState extends State<PhotoCard> {
     return ["https://picsum.photos/400/600"];
   }
 
+  @override
+  void initState() {
+    super.initState();
+    _precacheRemainingPhotos();
+  }
+
+  //tap to next photo
   void _nextPhoto() {
     if(_currentIndex < _photos.length - 1) {
       setState(() {
@@ -27,12 +40,28 @@ class _PhotoCardState extends State<PhotoCard> {
     }
   }
 
+  //tap to previous photo
   void _previousPhoto() {
     if(_currentIndex > 0) {
       setState(() {
         _currentIndex--;
       },);
     }
+  }
+
+  //function to precache the users other photos
+  void _precacheRemainingPhotos() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if(widget.card.photos.length > 1) {
+        for(int i = 1; i < widget.card.photos.length; i++) {
+          if(i > 5) break;
+          precacheImage(  
+            CachedNetworkImageProvider(widget.card.photos[i]),
+            context
+          );
+        }
+      }
+    });
   }
 
   @override
@@ -44,15 +73,21 @@ class _PhotoCardState extends State<PhotoCard> {
         child: Stack(  
           fit: StackFit.expand,
           children: [
-            Image.network(  
-              _photos[_currentIndex],
+            //first layer is the photo itself
+            CachedNetworkImage( 
+              imageUrl: _photos[_currentIndex], 
               fit: BoxFit.cover,
-              loadingBuilder: (context, child, loadingProgress) {
-                if(loadingProgress == null)return child;
-                return Container(color: Colors.grey[200]);
-              },
-              errorBuilder:(context, error, stackTrace) => Container(color: Colors.grey),
+              memCacheWidth: 800,
+              fadeInDuration: const Duration(milliseconds: 200),
+              placeholder: (context, url) => Container(  
+                color: Colors.grey[200],
+                child: const Center(  
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+              errorWidget:(context, url, error) => Container(color: Colors.grey),
             ),
+            //second layer a black gradient so username clearly shows
             Container(
               decoration: BoxDecoration(  
                 gradient: LinearGradient(  
@@ -65,6 +100,7 @@ class _PhotoCardState extends State<PhotoCard> {
                 )
               )
             ),
+            //third layer the gesture detectors for next and previous photo
             Row(
               children: [
                 Expanded(
@@ -83,6 +119,7 @@ class _PhotoCardState extends State<PhotoCard> {
                 ),
               ],
             ),
+            //fourth layer the indicators which change depending on the number of photos
             Positioned(
               top: 10,
               left: 10,
@@ -109,6 +146,7 @@ class _PhotoCardState extends State<PhotoCard> {
                 })
               ),
             ),
+            //fifth layer the username, age and bio of the user if they exist
             Positioned(
               bottom: 20,
               left: 20,
@@ -133,7 +171,6 @@ class _PhotoCardState extends State<PhotoCard> {
               ),
             ),
           ],
-
         )
       )
     );

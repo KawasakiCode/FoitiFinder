@@ -59,10 +59,12 @@ class _SetUpPageState extends State<SetUpPage> {
     }
 
     if(!mounted)return;
-    Navigator.of(context).pushReplacement( 
+    Navigator.pushAndRemoveUntil( 
+      context,
       MaterialPageRoute(  
-        builder: (context) => MainScreen(uid: user.uid),
-      )
+        builder: (context) => MainScreen(uid: user.uid)
+      ),
+      (route) => false,
     );
   }
 

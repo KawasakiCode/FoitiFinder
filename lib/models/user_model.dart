@@ -17,12 +17,14 @@ class UserModel{
   final bool? isBalanced;
   final String? interests;
   final bool hasFinishedSetUp;
+  final bool hasPhotos;
 
   UserModel({
     required this.uid,
     required this.username,
     required this.fullName,
     required this.hasFinishedSetUp,
+    required this.hasPhotos,
     this.id,
     this.bio,
     this.age,
@@ -32,7 +34,7 @@ class UserModel{
     this.maxAgeRange,
     this.showOutOfRange,
     this.isBalanced,
-    this.interests    
+    this.interests,
   });
 
   //convert json to usermodel
@@ -52,6 +54,7 @@ class UserModel{
       showOutOfRange: json['show_out_of_range'],
       isBalanced: json['is_balanced'],
       interests: json['interests'],
+      hasPhotos: json['has_photos'],
     );
   }
 
@@ -72,6 +75,7 @@ class UserModel{
       'show_out_of_range': showOutOfRange,
       'is_balanced': isBalanced,
       'interests': interests,
+      'has_photos': hasPhotos,
     };
   }
 }

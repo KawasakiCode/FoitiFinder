@@ -146,7 +146,7 @@ class _MessagesPages extends State<MessagesPage> {
             ),
             SafeArea(
               child: Padding(
-                padding: const EdgeInsets.only(left: 5, right: 5),
+                padding: const EdgeInsets.only(left: 5, right: 5, bottom: 5),
                 child: TextField(  
                   controller: _controller,
                   textCapitalization: TextCapitalization.sentences,

@@ -2,6 +2,7 @@ import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/pages/auth_pages/login.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/wrappers/auth_wrapper.dart';
 import 'package:foitifinder/wrappers/internet_wrapper.dart';
@@ -60,6 +61,9 @@ class FoitiFinder extends StatelessWidget {
     final settings = Provider.of<SettingsProvider>(context);
     return MaterialApp(
       title: 'FoitiFinder',
+      routes: {
+        '/login': (context) => const LoginPage(),
+      },
       //LIGHT THEME
       theme: ThemeData(
         useMaterial3: true,

@@ -30,7 +30,12 @@ class _AddPhotos extends State<AddPhotos> {
 
   //function to add a photo in the list
   Future<void> _pickImage(int index) async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    //store the image in smaller resolution to improve loading times
+    final XFile? image = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1080,
+      imageQuality: 85);
+  
     if(image != null) {
       setState(() {
         _photos[index] = File(image.path);

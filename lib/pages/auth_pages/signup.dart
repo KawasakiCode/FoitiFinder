@@ -52,6 +52,7 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   void signUp() async {
+    UserCredential? userCredential;
     final text = AppLocalizations.of(context)!;
     final email = _email.text;
     final password = _password.text;
@@ -72,7 +73,7 @@ class _SignUpPageState extends State<SignUpPage> {
     }
 
     try {
-      await FirebaseAuth.instance
+       userCredential = await FirebaseAuth.instance
         .createUserWithEmailAndPassword(
           email: email,
           password: password,
@@ -83,6 +84,7 @@ class _SignUpPageState extends State<SignUpPage> {
         username: username,
         fullName: fullName,
         hasFinishedSetUp: false,
+        hasPhotos: false,
         bio: null,
         age: null,
         imageUrl: null,
@@ -130,6 +132,10 @@ class _SignUpPageState extends State<SignUpPage> {
       );
     } catch (e) {
       // Handle other types of errors
+      //delete firebase user if db failed
+      if(userCredential != null) {
+        await userCredential.user?.delete();
+      }
       if(!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

@@ -1,10 +1,10 @@
 //decides what page to push depending if user finished the initial sign up setup or not
 //gets called only by auth wrapper
-//TODO add hasPhotos bool to differentiate between photos and setup done.
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/main_screen.dart';
+import 'package:foitifinder/pages/sign_up_set_up/add_photos.dart';
 import 'package:foitifinder/pages/sign_up_set_up/phone_verification_page.dart';
 import 'package:foitifinder/pages/sign_up_set_up/set_up_page.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
@@ -27,7 +27,11 @@ class SetupWrapper extends StatelessWidget {
       return MainScreen(uid: firebaseUser.uid);
     }
     //setup not done completely, send to setup after phone number
-    else if(hasPhone) {
+    else if(hasPhone && !currentUser!.hasPhotos) {
+      return const AddPhotos();
+    }
+    //setup not done completely, send to photos page since user has no photos
+    else if(currentUser!.hasPhotos) {
       return const SetUpPage();
     }
     //setup not done neither phone, send to login

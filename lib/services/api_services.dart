@@ -31,6 +31,7 @@ class ApiService {
     required bool? isBalanced,
     required String? interests,
     required bool? hasFinishedSetUp,
+    required bool? hasPhotos,
   }) async {
     
     final url = Uri.parse('$baseUrl/users/');
@@ -55,6 +56,7 @@ class ApiService {
           "show_out_of_range": showOutOfRange,
           "is_balanced": isBalanced,
           "interests": interests,
+          "has_photos": hasPhotos,
         }),
       );
 

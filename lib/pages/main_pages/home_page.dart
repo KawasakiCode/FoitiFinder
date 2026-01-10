@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
@@ -51,15 +52,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     // Initialize sample data
     _fetchMoreCards();
     currentIndex = 0;
-
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   if (cards.isNotEmpty) {
-    //     precacheImage(NetworkImage(cards[0].imageUrl!), context);
-    //     if (cards.length > 1) {
-    //       precacheImage(NetworkImage(cards[1].imageUrl!), context);
-    //     }
-    //   }
-    // });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // We want to pre-cache for the Current User (Index 0) and the Next User (Index 1)
@@ -141,12 +133,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   //cache image
   void _precacheNextImage() {
-    // if (currentIndex + 1 < cards.length) {
-    //   precacheImage(NetworkImage(cards[currentIndex + 1].imageUrl!), context);
-    //   if (currentIndex + 2 < cards.length) {
-    //     precacheImage(NetworkImage(cards[currentIndex + 2].imageUrl!), context);
-    //   }
-    // }
     if (currentIndex + 1 < cards.length) {
       _precacheUserPhotos(cards[currentIndex + 1]);
     }
@@ -165,13 +151,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       // OPTIMIZATION: Only cache the first 3 photos. 
       // If the user taps past photo #3, Flutter will load #4 on demand.
       // This prevents the "Swipe Stutter" caused by downloading too much at once.
-      if (i > 2) break; 
+      if (i > 5) break; 
       
-      precacheImage(NetworkImage(card.photos[i]), context);
+      precacheImage(CachedNetworkImageProvider(card.photos[i]), context);
     }
   }
 }
-
 
   //swiping functions
   void _swipeRight() async {
@@ -185,7 +170,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         context: context,
         builder: (context) => AlertDialog(  
           title: Text("It's a match!"),
-          content: Text("You ana ${cards[currentIndex].username} liked each other!"),
+          content: Text("You and ${cards[currentIndex].username} liked each other!"),
         )
       );
     }
@@ -207,7 +192,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         context: context,
         builder: (context) => AlertDialog(  
           title: Text("It's a match!"),
-          content: Text("You ana ${cards[currentIndex].username} liked each other!"),
+          content: Text("You and ${cards[currentIndex].username} liked each other!"),
         )
       );
     }
@@ -489,50 +474,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         child: Stack(
           children: [
             PhotoCard(card: card),
-            // // Gradient overlay
-            // Positioned.fill(
-            //   child: Container(
-            //     decoration: BoxDecoration(
-            //       image: DecorationImage(
-            //         image: NetworkImage(card.imageUrl!),
-            //         fit: BoxFit.cover,
-            //       ),
-            //       gradient: LinearGradient(
-            //         begin: Alignment.topCenter,
-            //         end: Alignment.bottomCenter,
-            //         colors: [
-            //           Colors.transparent,
-            //           Colors.black.withValues(alpha: 0.7),
-            //         ],
-            //       ),
-            //     ),
-            //   ),
-            // ),
-
-            // // Card info
-            // Positioned(
-            //   bottom: 20,
-            //   left: 20,
-            //   right: 20,
-            //   child: Column(
-            //     crossAxisAlignment: CrossAxisAlignment.start,
-            //     children: [
-            //       Text(
-            //         '${card.username}, ${card.age}',
-            //         style: const TextStyle(
-            //           color: Colors.white,
-            //           fontSize: 24,
-            //           fontWeight: FontWeight.bold,
-            //         ),
-            //       ),
-            //       const SizedBox(height: 8),
-            //       Text(
-            //       card.bio != null ? card.bio! : "",
-            //       style: const TextStyle(color: Colors.white, fontSize: 16),
-            //       ),                
-            //     ],
-            //   ),
-            // ),
 
             // Swipe indicators (only on top card)
             if (isTop) ...[

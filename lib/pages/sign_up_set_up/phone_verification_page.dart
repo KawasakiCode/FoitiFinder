@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/pages/sign_up_set_up/add_photos.dart';
 import 'package:foitifinder/pages/sign_up_set_up/otp_code_page.dart';
-import 'package:foitifinder/pages/sign_up_set_up/set_up_page.dart';
 import 'package:provider/provider.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';

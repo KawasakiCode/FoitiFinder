@@ -313,7 +313,7 @@ class SettingsProvider extends ChangeNotifier {
     await _prefs.remove('language_code');
     await _prefs.remove('notifications_enabled');
     await _prefs.remove('gender');
-    _themeMode = ThemeMode.light;
+    _themeMode = ThemeMode.dark;
     _pushNotificationsEnabled = false;
     _locale = Locale('el');
     notifyListeners();

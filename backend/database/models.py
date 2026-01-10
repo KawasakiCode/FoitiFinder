@@ -21,6 +21,7 @@ class User(Base):
     is_balanced = Column(Boolean, nullable = True)
     interests = Column(String, nullable = True)
     has_finished_set_up = Column(Boolean, nullable = False)
+    has_photos = Column(Boolean, nullable = False)
 
     settings = relationship("Settings", back_populates="user", uselist=False, cascade="all, delete")
     photos = relationship("Photos", back_populates="user")

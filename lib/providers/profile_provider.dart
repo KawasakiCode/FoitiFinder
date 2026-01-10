@@ -82,6 +82,7 @@ class ProfileProvider extends ChangeNotifier {
     required String uid,
     required String username,
     required bool hasFinishedSetUp,
+    required bool hasPhotos,
     String? fullName,
     String? bio,
     int? age,
@@ -108,6 +109,7 @@ class ProfileProvider extends ChangeNotifier {
         showOutOfRange: showOutOfRange,
         isBalanced: isBalanced,
         interests: interests,
+        hasPhotos: hasPhotos,
       );
 
       //store users data locally
@@ -125,6 +127,7 @@ class ProfileProvider extends ChangeNotifier {
         showOutOfRange: showOutOfRange,
         isBalanced: isBalanced,
         interests: interests,
+        hasPhotos: hasPhotos
       );
 
       await _prefs.setString('user_data', jsonEncode(_currentUser!.toMap()));
@@ -138,6 +141,7 @@ class ProfileProvider extends ChangeNotifier {
     int? age,
     String? imageUrl,
     bool? hasFinishedSetUp,
+    bool? hasPhotos,
   }) async {
     if(currentUser == null)return;
 
@@ -146,6 +150,7 @@ class ProfileProvider extends ChangeNotifier {
       username: username ?? _currentUser!.username,
       fullName: fullName ?? _currentUser!.fullName,
       hasFinishedSetUp: hasFinishedSetUp ?? _currentUser!.hasFinishedSetUp,
+      hasPhotos: hasPhotos ?? _currentUser!.hasPhotos,
       bio: bio ?? _currentUser!.bio,
       age: age ?? _currentUser!.age,
       imageUrl: imageUrl ?? _currentUser!.imageUrl,

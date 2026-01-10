@@ -62,6 +62,16 @@ class UserCards(BaseModel):
     class Config:
         orm_mode = True
 
+#class that sends the match aka dm data
+class MatchResponse(BaseModel):
+    match_id: int
+    other_user_id: int
+    other_user_name: str
+    image_url: str
+
+    class Config:
+        orm_mode = True
+
 #create new user and initialize default settings table for the new user
 @app.post("/users/", response_model=schemas.User)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
@@ -84,6 +94,7 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
         show_out_of_range=user.show_out_of_range,
         is_balanced=user.is_balanced,
         interests=user.interests,
+        has_photos=user.has_photos,
     )
 
     try:
@@ -256,7 +267,7 @@ def get_likes(firebase_token: str, db: Session = Depends(get_db)):
     return liked_by_users
 
 #get matches to load chats
-@app.get("/matches/{firebase_token}", response_model = List[LikerProfile])
+@app.get("/matches/{firebase_token}", response_model = List[MatchResponse])
 def get_matches(firebase_token: str, db: Session = Depends(get_db)):
     me = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
     if not me:
@@ -276,7 +287,7 @@ def get_matches(firebase_token: str, db: Session = Depends(get_db)):
                 "match_id": match.id,
                 "other_user_id": other_user.id,
                 "other_user_name": other_user.username,
-                "image_url": "https://picsum.photos/200", #other_users.profile_picture later
+                "image_url": other_user.profile_picture,
                 #"last_message": for later
             })
         else: 
@@ -353,8 +364,3 @@ def upload_photo(user_photos: UserPhotos, db: Session = Depends(get_db)):
     db.add(new_photo)
     db.commit()
     db.refresh(new_photo)
-
-
-
-    
-
