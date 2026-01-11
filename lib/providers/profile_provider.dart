@@ -3,6 +3,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/models/user_model.dart';
@@ -37,6 +38,9 @@ class ProfileProvider extends ChangeNotifier {
       } catch (e) {
         _prefs.remove('user_data');
       }
+    }
+    else {
+      fetchUserFromApi(FirebaseAuth.instance.currentUser!.uid);
     }
   }
 

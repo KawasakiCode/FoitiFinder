@@ -15,23 +15,24 @@ class SetupWrapper extends StatelessWidget {
 
   const SetupWrapper({super.key, required this.firebaseUser});
 
+
   @override 
   Widget build(BuildContext context) {
-    final userProvider = Provider.of<ProfileProvider>(context);
+    final userProvider = Provider.of<ProfileProvider>(context, listen: false);
     final currentUser = userProvider.currentUser;
 
-    bool hasFinishedSetUp = currentUser?.hasFinishedSetUp ?? false;
+    bool hasFinishedSetUp = currentUser!.hasFinishedSetUp;
     bool hasPhone = firebaseUser.phoneNumber != null && firebaseUser.phoneNumber!.isNotEmpty;
     //setup done completely, send to mainscreen
     if(hasFinishedSetUp && hasPhone) {
       return MainScreen(uid: firebaseUser.uid);
     }
     //setup not done completely, send to setup after phone number
-    else if(hasPhone && !currentUser!.hasPhotos) {
+    else if(hasPhone && !currentUser.hasPhotos) {
       return const AddPhotos();
     }
     //setup not done completely, send to photos page since user has no photos
-    else if(currentUser!.hasPhotos) {
+    else if(currentUser.hasPhotos) {
       return const SetUpPage();
     }
     //setup not done neither phone, send to login

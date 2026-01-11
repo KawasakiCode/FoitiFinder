@@ -31,6 +31,18 @@ class _PhotoCardState extends State<PhotoCard> {
     _precacheRemainingPhotos();
   }
 
+  //reset currentIndex if user changes card
+  @override
+  void didUpdateWidget(PhotoCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if(widget.card.id != oldWidget.card.id) {
+      setState(() {
+        _currentIndex = 0;
+      });
+    }
+  }
+
   //tap to next photo
   void _nextPhoto() {
     if(_currentIndex < _photos.length - 1) {

@@ -7,6 +7,7 @@ from database import models
 from database.database import engine, get_db
 from database import schemas
 from sqlalchemy.orm import Session
+from sqlalchemy import and_
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -36,7 +37,7 @@ class LikerProfile(BaseModel):
     id: int
     username: str
     #this later will become the profile photos (not pfp)
-    image_url: str = f"https://picsum.photos/${id}"
+    image_url: str
 
     class Config:
         #this ensures that pydantic can read sqlalchemy objects
@@ -255,9 +256,20 @@ def get_likes(firebase_token: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Current User not found")
     
     #get all the users that made likes and return only the ones where they liked the currentuser
-    liked_by_users = db.query(models.User).join(  
-        models.Likes,
-        models.Likes.liker_id == models.User.id 
+    #also get the first photo of the user
+    liked_by_users = db.query(
+    models.User.id,
+    models.User.username,
+    models.Photos.photo_url.label("image_url") 
+    ).join(
+        models.Likes, 
+        models.Likes.liker_id == models.User.id
+    ).outerjoin(
+        models.Photos,
+        and_(
+            models.Photos.user_id == models.User.id,
+            models.Photos.display_order == 0
+        )
     ).filter(
         models.Likes.liked_id == me.id
     ).all()
