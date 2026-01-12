@@ -1,18 +1,21 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/services/api_services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
-class EditProfile extends StatefulWidget{
+class EditProfile extends StatefulWidget {
   const EditProfile({super.key});
 
   @override
   State<EditProfile> createState() => _EditProfileState();
 }
 
-class _EditProfileState extends State<EditProfile>{
+class _EditProfileState extends State<EditProfile> {
   late TextEditingController _usernameController;
   late TextEditingController _bioController;
   late TextEditingController _ageController;
@@ -20,16 +23,27 @@ class _EditProfileState extends State<EditProfile>{
   late TextEditingController _emailController;
   bool _allowExit = false;
 
-  @override   
+  //allow up to 6 photos
+  //duplicates allowed
+  final List<File?> _photos = List.filled(6, null);
+  //set the image picker
+  final ImagePicker _picker = ImagePicker();
+
+  @override
   void initState() {
     super.initState();
 
-    final user = Provider.of<ProfileProvider>(context, listen: false).currentUser!;
+    final user = Provider.of<ProfileProvider>(
+      context,
+      listen: false,
+    ).currentUser!;
     final firebaseUser = FirebaseAuth.instance.currentUser!;
 
     _usernameController = TextEditingController(text: user.username);
     _bioController = TextEditingController(text: user.bio ?? "");
-    _ageController = TextEditingController(text: user.age != null ? user.age.toString() : "");
+    _ageController = TextEditingController(
+      text: user.age != null ? user.age.toString() : "",
+    );
     _fullNameController = TextEditingController(text: user.fullName ?? "");
     _emailController = TextEditingController(text: firebaseUser.email ?? "");
 
@@ -40,16 +54,18 @@ class _EditProfileState extends State<EditProfile>{
   Future<void> _refreshFirebaseUser() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
-      if(user != null) {
+      if (user != null) {
         await user.reload();
 
         final freshUser = FirebaseAuth.instance.currentUser;
 
-        if(mounted && freshUser != null && freshUser.email != _emailController.text) {
+        if (mounted &&
+            freshUser != null &&
+            freshUser.email != _emailController.text) {
           _emailController.text = freshUser.email!;
         }
       }
-    } catch(e) {
+    } catch (e) {
       rethrow;
     }
   }
@@ -60,46 +76,49 @@ class _EditProfileState extends State<EditProfile>{
 
     //show a dialog to grab users password
     String? password;
-    return showDialog<String>(  
+    return showDialog<String>(
       context: context,
       builder: (context) {
-        return AlertDialog(  
+        return AlertDialog(
           title: Text(text.securityCheck),
-          content: Column(  
+          content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(text.confirmPassword),
               const SizedBox(height: 10),
-              TextField(  
+              TextField(
                 obscureText: true,
                 onChanged: (value) => password = value,
-                decoration: InputDecoration(  
+                decoration: InputDecoration(
                   labelText: text.password,
                   border: OutlineInputBorder(),
-                )
-              )
-            ]
+                ),
+              ),
+            ],
           ),
           actions: [
-            TextButton(  
-              onPressed: () => Navigator.pop(context,null),
+            TextButton(
+              onPressed: () => Navigator.pop(context, null),
               child: Text(text.cancel),
             ),
-            ElevatedButton(  
+            ElevatedButton(
               onPressed: () => Navigator.pop(context, password),
               child: Text(text.confirm),
-            )
-          ]
+            ),
+          ],
         );
-      }
+      },
     );
   }
-  
+
   //save new profile data to db and exit edit profile page
   Future<void>? _saveAndExit() async {
     final text = AppLocalizations.of(context)!;
-    
-    final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+
+    final profileProvider = Provider.of<ProfileProvider>(
+      context,
+      listen: false,
+    );
     final user = profileProvider.currentUser!;
     final firebaseUser = FirebaseAuth.instance.currentUser!;
 
@@ -110,25 +129,29 @@ class _EditProfileState extends State<EditProfile>{
     String? newEmail;
 
     //check which variables changed
-    if(_usernameController.text != user.username) {
+    if (_usernameController.text != user.username) {
       newUsername = _usernameController.text;
     }
-    if(_emailController.text != firebaseUser.email) {
+    if (_emailController.text != firebaseUser.email) {
       newEmail = _emailController.text;
     }
-    if(_bioController.text != user.bio) {
+    if (_bioController.text != user.bio) {
       newBio = _bioController.text;
     }
-    if(_fullNameController.text != user.fullName) {
+    if (_fullNameController.text != user.fullName) {
       newFullName = _fullNameController.text;
     }
-    if(_ageController.text != user.age.toString() && _ageController.text.isNotEmpty) {
+    if (_ageController.text != user.age.toString() &&
+        _ageController.text.isNotEmpty) {
       newAge = int.tryParse(_ageController.text);
     }
 
     //check if something changed at all
-    if(newUsername != null || newBio != null || newAge != null || newFullName != null) {
-      await ApiService.updateUserData(  
+    if (newUsername != null ||
+        newBio != null ||
+        newAge != null ||
+        newFullName != null) {
+      await ApiService.updateUserData(
         uid: user.uid,
         username: newUsername,
         bio: newBio,
@@ -138,74 +161,127 @@ class _EditProfileState extends State<EditProfile>{
     }
 
     //change email
-    if(_emailController.text != firebaseUser.email && _emailController.text.isNotEmpty) {
+    if (_emailController.text != firebaseUser.email &&
+        _emailController.text.isNotEmpty) {
       try {
         await firebaseUser.verifyBeforeUpdateEmail(_emailController.text);
 
-        if(mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(  
-            SnackBar(  
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
               content: Text("${text.verifySend} $newEmail. ${text.checkInbox}"),
               duration: const Duration(seconds: 5),
             ),
           );
-        } 
+        }
       } on FirebaseAuthException catch (e) {
-        if(e.code == "requires-recent-login") {
+        if (e.code == "requires-recent-login") {
           String? password = await _askForPassword();
-          if(password != null && password.isNotEmpty) {
+          if (password != null && password.isNotEmpty) {
             try {
-              AuthCredential credential = EmailAuthProvider.credential(  
+              AuthCredential credential = EmailAuthProvider.credential(
                 email: firebaseUser.email!,
                 password: password,
               );
 
               await firebaseUser.reauthenticateWithCredential(credential);
               await firebaseUser.verifyBeforeUpdateEmail(_emailController.text);
-              if(mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(  
-                  SnackBar(  
-                    content: Text("${text.verifySend} $newEmail. ${text.checkInbox}"),
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      "${text.verifySend} $newEmail. ${text.checkInbox}",
+                    ),
                     duration: const Duration(seconds: 5),
                   ),
                 );
-              } 
+              }
             } catch (reAuthError) {
-              if(mounted){
+              if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text("${text.securityCheckFailed} $reAuthError"),
-                    duration: const Duration(seconds: 2)),
-                  );
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
                 return;
               }
             }
           }
         }
       } catch (e) {
-        if(mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(  
-            SnackBar(  
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
               content: Text("${text.failedVerifyEmail} $e"),
               duration: const Duration(seconds: 2),
-            )
+            ),
           );
         }
       }
     }
     profileProvider.updateLocalUser(
-      username: newUsername, 
-      fullName: newFullName, 
-      bio: newBio, 
-      age: newAge
+      username: newUsername,
+      fullName: newFullName,
+      bio: newBio,
+      age: newAge,
     );
-
-    if(mounted) {
+    await _submitPhotos();
+    if (mounted) {
       setState(() {
         _allowExit = true;
       });
     }
-    if(mounted) Navigator.pop(context);
+    if (mounted) Navigator.pop(context);
+  }
+
+  Future<void> _pickImage(int index) async {
+    //store the image in smaller resolution to improve loading times
+    final XFile? image = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1080,
+      imageQuality: 85,
+    );
+
+    if (image != null) {
+      setState(() {
+        _photos[index] = File(image.path);
+      });
+    }
+  }
+
+  Future<void> _submitPhotos() async {
+    //if no photos in the list exit submit
+    if (_photos.every((img) => img == null)) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Please add at least one photo")));
+      return;
+    }
+
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+
+    try {
+      for (int i = 0; i < _photos.length; i++) {
+        if (_photos[i] != null) {
+          //upload photo file to firebase cloud storage
+          String? firebaseUrl = await ApiService.uploadToFirebase(
+            _photos[i]!,
+            uid,
+          );
+          //if successful store the link to the file inside the database
+          if (firebaseUrl != null) {
+            await ApiService.uploadPhoto(
+              uid: uid,
+              photoUrl: firebaseUrl,
+              displayOrder: i,
+            );
+          }
+        }
+      }
+    } catch (e) {
+      throw Exception("There was an error $e");
+    }
   }
 
   @override
@@ -216,37 +292,86 @@ class _EditProfileState extends State<EditProfile>{
       child: PopScope(
         canPop: _allowExit,
         onPopInvokedWithResult: (didPop, result) async {
-          if(didPop)return;
+          if (didPop) return;
           await _saveAndExit();
         },
         child: SafeArea(
-          child: Scaffold(  
-            appBar: AppBar(  
+          child: Scaffold(
+            appBar: AppBar(
               title: Text(text.editProfile),
               automaticallyImplyLeading: true,
             ),
-            body: SingleChildScrollView( 
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 10, left: 15),
-                    child: Column(  
-                      spacing: 20,
-                      children: [
-                        TextField(controller: _usernameController,
-                          decoration: InputDecoration(labelText: text.username),),
-                        TextField(controller: _emailController,
-                          decoration: InputDecoration(labelText: text.email),),
-                        TextField(controller: _fullNameController,
-                          decoration: InputDecoration(labelText: text.fullName),),
-                        TextField(controller: _ageController,
-                          decoration: InputDecoration(labelText: text.age),),
-                        TextField(controller: _bioController,
-                          decoration: InputDecoration(labelText: "Bio"),),
-                      ]
+            body: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
+                child: Column(
+                  spacing: 20,
+                  children: [
+                    GridView.builder(
+                      padding: const EdgeInsets.all(10),
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 10,
+                            mainAxisSpacing: 10,
+                            childAspectRatio: 0.7,
+                          ),
+                      itemCount: 6,
+                      itemBuilder: (context, index) {
+                        return _buildPhotoSlot(index);
+                      },
                     ),
-                  )
+                    TextField(
+                      controller: _usernameController,
+                      decoration: InputDecoration(labelText: text.username),
+                    ),
+                    TextField(
+                      controller: _emailController,
+                      decoration: InputDecoration(labelText: text.email),
+                    ),
+                    TextField(
+                      controller: _fullNameController,
+                      decoration: InputDecoration(labelText: text.fullName),
+                    ),
+                    TextField(
+                      controller: _ageController,
+                      decoration: InputDecoration(labelText: text.age),
+                    ),
+                    TextField(
+                      controller: _bioController,
+                      decoration: InputDecoration(labelText: "Bio"),
+                    ),
+                  ],
                 ),
+              ),
             ),
+          ),
         ),
+      ),
+    );
+  }
+
+  //build the actual photo slot that goes inside the grid builder
+  Widget _buildPhotoSlot(int index) {
+    final photo = _photos[index];
+
+    return GestureDetector(
+      onTap: () => _pickImage(index),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: photo != null
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.file(photo, fit: BoxFit.cover),
+              )
+            : const Center(
+                child: Icon(Icons.add, color: Colors.grey, size: 30),
+              ),
       ),
     );
   }
