@@ -2,7 +2,7 @@ class MatchModel {
   final int matchId;
   final int userBid;
   final String userBname;
-  final String imageUrl;
+  final String? imageUrl;
 
   MatchModel({
     required this.matchId,

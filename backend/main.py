@@ -68,7 +68,7 @@ class MatchResponse(BaseModel):
     match_id: int
     other_user_id: int
     other_user_name: str
-    image_url: str
+    image_url: Optional[str] = None
 
     class Config:
         orm_mode = True
@@ -305,8 +305,7 @@ def get_matches(firebase_token: str, db: Session = Depends(get_db)):
         else: 
             raise HTTPException(status_code=404, detail="Other User not found")
 
-        
-        return results
+    return results
     
 #upload message to db
 @app.post("/messages/store")

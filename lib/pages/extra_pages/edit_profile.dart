@@ -3,9 +3,13 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/models/photos_model.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/services/api_services.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
 class EditProfile extends StatefulWidget {
@@ -48,6 +52,45 @@ class _EditProfileState extends State<EditProfile> {
     _emailController = TextEditingController(text: firebaseUser.email ?? "");
 
     _refreshFirebaseUser();
+
+    if(user.hasPhotos) {
+      print("in");
+      _getUserPhotos();
+    }
+  }
+
+  //get user photos
+  Future<void> _getUserPhotos() async {
+    try {
+      List<PhotosModel> backendPhotos = await ApiService.getPhotos(FirebaseAuth.instance.currentUser!.uid);
+      for(int i = 0; i < backendPhotos.length; i++) {
+        if(i >= 6) break;
+        File file = await urlToFile(backendPhotos[i].photoUrl);
+
+        if(mounted) {
+          setState(() {
+            _photos[i] = file;
+          });
+        }
+      }
+    } catch (e) {
+      throw Exception("Failed to fetch photo from db");
+    }
+  }
+
+  //download and save actualy photo file
+  Future<File> urlToFile(String imageUrl) async {
+    final directory = await getTemporaryDirectory();
+    final filename = path.basename(imageUrl);
+    final file = File('${directory.path}/$filename');
+
+    if(await file.exists()) {
+      return file;
+    }
+    final response = await http.get(Uri.parse(imageUrl));
+
+    await file.writeAsBytes(response.bodyBytes);
+    return file;
   }
 
   //refresh firebase to show possibly updated email
@@ -303,7 +346,7 @@ class _EditProfileState extends State<EditProfile> {
             ),
             body: SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
+                padding: const EdgeInsets.only(top: 10, left: 10, right: 10, bottom: 10),
                 child: Column(
                   spacing: 20,
                   children: [

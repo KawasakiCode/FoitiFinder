@@ -150,8 +150,10 @@ class _DMPageState extends State<DMPage> {
                               tag: dm.matchId,
                               child: CircleAvatar(
                                 radius: 28,
-                                backgroundColor: Colors.grey[300],
-                                backgroundImage: NetworkImage(dm.imageUrl),
+                                backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+                                backgroundImage: dm.imageUrl != null 
+                                  ? NetworkImage(dm.imageUrl!) 
+                                  : const AssetImage('assets/images/default_avatar.png'),
                               ),
                             ),
                             Expanded(
