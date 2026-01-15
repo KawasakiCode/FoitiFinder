@@ -1,5 +1,7 @@
-import 'dart:io';
+//found couple of bugs
+//photos possibly show there is an uploading problem to firebase
 
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
@@ -54,7 +56,6 @@ class _EditProfileState extends State<EditProfile> {
     _refreshFirebaseUser();
 
     if(user.hasPhotos) {
-      print("in");
       _getUserPhotos();
     }
   }

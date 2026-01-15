@@ -1,6 +1,8 @@
 //the provider that loads and changes global settings like dark mode, language. 
 //used only for settings within the settings page
 
+//TODO check if data get correctly cleared at log out _prefs should be empty
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';

@@ -1,6 +1,9 @@
 //provider that loads the profile of the user like profile picture username, age
 //only used for profile related variables
 
+//TODO we need a clear data function since it seems after log out some date from here are kept
+//on the new account the logs in
+
 import 'dart:convert';
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
