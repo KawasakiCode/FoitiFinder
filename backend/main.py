@@ -354,9 +354,9 @@ def get_user_photos(firebase_token: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Current User not found")
     
     photos = db.query(models.Photos).filter(  
-        models.Photos.user_id == models.User.id
+        models.Photos.user_id == me.id
     ).order_by(models.Photos.display_order.asc()).all()
-
+    
     return photos
 
 #store a photo inside the db

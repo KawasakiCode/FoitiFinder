@@ -1,8 +1,6 @@
 //the provider that loads and changes global settings like dark mode, language. 
 //used only for settings within the settings page
 
-//TODO check if data get correctly cleared at log out _prefs should be empty
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -21,15 +19,7 @@ class SettingsProvider extends ChangeNotifier {
   //using this way we save the time of making a call to the db
   //99% of the time disk will be correct anyway
   SettingsProvider(this._prefs){
-    _themeMode = (_prefs.getBool('isDark') ?? false) ? ThemeMode.light : ThemeMode.dark;
-    _pushNotificationsEnabled = (_prefs.getBool('notifications_enabled') ?? false) ? true : false;
-    _locale = _prefs.getString('language') == 'en' ? Locale('en') : Locale('el');
-    _ageRange = RangeValues(18, 30);
-    _interests = {};
-    _currentOpt = RecommendationPreference.balanced;
-    _showOutOfRange = false;
-    _isPhoneVerified = false;
-    _gender = "";
+    _loadDefaults();
   }
 
   //State variables (private)
@@ -55,6 +45,18 @@ class SettingsProvider extends ChangeNotifier {
   Locale get locale => _locale;
   bool get osPermission => _osPermission;
   String get gender => _gender;
+
+  void _loadDefaults() {
+    _themeMode = (_prefs.getBool('isDark') ?? false) ? ThemeMode.light : ThemeMode.dark;
+    _pushNotificationsEnabled = (_prefs.getBool('notifications_enabled') ?? false) ? true : false;
+    _locale = _prefs.getString('language') == 'en' ? Locale('en') : Locale('el');
+    _ageRange = RangeValues(18, 30);
+    _interests = {};
+    _currentOpt = RecommendationPreference.balanced;
+    _showOutOfRange = false;
+    _isPhoneVerified = false;
+    _gender = "";
+  }
 
   Future<void> fetchSettingsFromApi(String uid) async {
     SettingsModel data = await ApiService.getUsersSettings(uid);
@@ -305,19 +307,8 @@ class SettingsProvider extends ChangeNotifier {
 
   //for _prefs cleanup
   Future<void> clearData() async {
-    await _prefs.remove('isPhoneVerified');
-    await _prefs.remove('isDark');
-    await _prefs.remove('user_interests');
-    await _prefs.remove('min_age');
-    await _prefs.remove('max_age');
-    await _prefs.remove('outOfRange');
-    await _prefs.remove('recommendationOpt');
-    await _prefs.remove('language_code');
-    await _prefs.remove('notifications_enabled');
-    await _prefs.remove('gender');
-    _themeMode = ThemeMode.dark;
-    _pushNotificationsEnabled = false;
-    _locale = Locale('el');
+    await _prefs.clear();
+    _loadDefaults();
     notifyListeners();
   }
 

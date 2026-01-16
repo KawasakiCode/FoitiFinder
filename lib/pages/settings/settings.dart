@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/pages/settings/interest_page.dart';
 import 'package:foitifinder/pages/settings/phone_number_page.dart';
+import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:provider/provider.dart';
 import 'delete_account_page.dart';
@@ -915,6 +916,8 @@ class _SettingsPageState extends State<SettingsPage> {
                   onPressed: () async {
                     await FirebaseAuth.instance.signOut();
                     await settings.clearData();
+                    if(!context.mounted)return;
+                    await Provider.of<ProfileProvider>(context, listen: false).clearData();
                     if (!context.mounted) return;
                     Navigator.of(context).pushNamedAndRemoveUntil(
                       '/login',

@@ -75,7 +75,7 @@ class _EditProfileState extends State<EditProfile> {
         }
       }
     } catch (e) {
-      throw Exception("Failed to fetch photo from db");
+      throw Exception("Failed to fetch photo from db $e");
     }
   }
 

@@ -1,5 +1,3 @@
-//neither photos or pfp get uploaded to firebase (possibly internet or phone problem)
-
 import 'dart:convert';
 import 'package:foitifinder/models/card_data_model.dart';
 import 'package:foitifinder/models/liker_model.dart';
@@ -14,9 +12,9 @@ import 'package:firebase_storage/firebase_storage.dart';
 
 class ApiService {
   //test for emulator
-  // static const String baseUrl = "http://10.0.2.2:8000";
+  static const String baseUrl = "http://10.0.2.2:8000";
   //test for real phone
-  static const String baseUrl = "http://127.0.0.1:8000"; 
+  // static const String baseUrl = "http://127.0.0.1:8000"; 
 
   //create new user (only runs on sign up)
   static Future<void> createUser({
@@ -85,6 +83,7 @@ class ApiService {
     bool? showOutOfRange,
     bool? isBalanced,
     String? interests,
+    bool? hasPhotos
   }) async {
     final url = Uri.parse('$baseUrl/users/$uid');
 
@@ -102,6 +101,7 @@ class ApiService {
     if (showOutOfRange != null) data['show_out_of_range'] = showOutOfRange;
     if (isBalanced != null) data['is_balanced'] = isBalanced;
     if (interests != null) data['interests'] = interests;
+    if (hasPhotos != null) data['has_photos'] = hasPhotos;
 
     if(data.isEmpty)return;
 

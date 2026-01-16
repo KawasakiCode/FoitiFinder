@@ -71,6 +71,13 @@ class _AddPhotos extends State<AddPhotos> {
           }
         }
       }
+      if(_photos.isNotEmpty) {
+        await ApiService.updateUserData(
+          uid: uid, 
+          hasPhotos: true
+        );
+      }
+
 
       //if all successful send the user to the setup page to complete sign up
       if(mounted) {
