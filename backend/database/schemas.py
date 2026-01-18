@@ -95,3 +95,9 @@ class SettingsUpdate(BaseModel):
     is_dark_mode: bool | None = None
     is_notifications_on: bool | None = None
     language: str | None = None
+
+#schema for swipe records
+class UserSwipes(BaseModel):
+    user_id: int
+    target_id: int
+    action: str

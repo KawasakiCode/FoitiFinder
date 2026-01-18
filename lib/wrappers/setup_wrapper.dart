@@ -21,7 +21,12 @@ class SetupWrapper extends StatelessWidget {
     final userProvider = Provider.of<ProfileProvider>(context, listen: false);
     final currentUser = userProvider.currentUser;
 
-    bool hasFinishedSetUp = currentUser!.hasFinishedSetUp;
+    if(currentUser == null) {
+      return const Scaffold(  
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+    bool hasFinishedSetUp = currentUser.hasFinishedSetUp;
     bool hasPhone = firebaseUser.phoneNumber != null && firebaseUser.phoneNumber!.isNotEmpty;
     //setup done completely, send to mainscreen
     if(hasFinishedSetUp && hasPhone) {

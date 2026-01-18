@@ -15,10 +15,6 @@ load_dotenv()
 
 app = FastAPI()
 
-#class that stores the user ids the user already saw to not allow duplicate showings
-class FeedRequest(BaseModel): 
-    seen_user_ids: List[int] = []
-
 #class that handles the likes 
 class LikeRequest(BaseModel):
     firebase_token: str
@@ -41,7 +37,7 @@ class LikerProfile(BaseModel):
 
     class Config:
         #this ensures that pydantic can read sqlalchemy objects
-        orm_mode = True
+        from_attributes = True
 
 #class that handles sending back users photos
 class UserPhotos(BaseModel):
@@ -50,7 +46,7 @@ class UserPhotos(BaseModel):
     display_order: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 #class that is used to return to the frontend card data with photos
 class UserCards(BaseModel):
@@ -61,7 +57,7 @@ class UserCards(BaseModel):
     photos: List[str] = []
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 #class that sends the match aka dm data
 class MatchResponse(BaseModel):
@@ -71,7 +67,13 @@ class MatchResponse(BaseModel):
     image_url: Optional[str] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+
+#class that sends swipe record data
+class SwipeRequest(BaseModel):
+    firebase_token: str
+    target_id: int
+    action: str
 
 #create new user and initialize default settings table for the new user
 @app.post("/users/", response_model=schemas.User)
@@ -149,20 +151,25 @@ def update_user(firebase_token: str, user_update: schemas.UserUpdate, db: Sessio
 
 #get multiple users for the homepage
 @app.post("/users/feed/{firebase_token}", response_model = List[UserCards])
-def get_swipe_feed(firebase_token: str, seen_users: FeedRequest, db: Session = Depends(get_db)):
+def get_swipe_feed(firebase_token: str, db: Session = Depends(get_db)):
     #first get the current user id to exclude it 
     me = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
     if not me:
         raise HTTPException(status_code=404, detail='Current User not found')
     
     #get users other than you and not users we already saw
-    query = db.query(models.User).filter(  
-        models.User.id != me.id,
-        models.User.id.notin_(seen_users.seen_user_ids)
-    )
+    seen_ids = db.query(models.UserSwipes.target_id).filter(  
+        models.UserSwipes.user_id == me.id
+    ).all()
+
+    seen_ids_list = [x[0] for x in seen_ids]
+
+    seen_ids_list.append(me.id)
 
     #order the users randomly for now and limit then at 10
-    users = query.order_by(func.random()).limit(10).all()
+    users = db.query(models.User).filter(  
+        models.User.id.notin_(seen_ids_list)
+    ).limit(10).all()
 
     results = []
     for user in users:
@@ -375,3 +382,30 @@ def upload_photo(user_photos: UserPhotos, db: Session = Depends(get_db)):
     db.add(new_photo)
     db.commit()
     db.refresh(new_photo)
+
+#register a swipe
+@app.post("swipes/record")
+def record_swipe(swipe: SwipeRequest, db: Session = Depends(get_db)):
+    me = db.query(models.User).filter(models.User.firebase_token == swipe.firebase_token).first()
+    if not me:
+        raise HTTPException(status_code=404, detail="Current User not found")
+    
+    existing = db.query(models.UserSwipes).filter(  
+        models.UserSwipes.user_id == me.id,
+        models.UserSwipes.target_id == swipe.target_id
+    ).first()
+
+    if existing:
+        return False #dont register
+    
+    new_swipe = models.UserSwipes(  
+        user_id = me.id,
+        target_id = swipe.target_id,
+        action = swipe.action
+    )
+
+    db.add(new_swipe)
+    db.commit()
+
+    return True #swipe registered
+

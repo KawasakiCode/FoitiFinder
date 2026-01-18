@@ -395,4 +395,25 @@ class ApiService {
       return null;
     }
   }
+
+  //register swipe
+  static Future<void> registerSwipe(String uid, int otherUserId, String action) async {
+    final url = Uri.parse("$baseUrl/swipes/record");
+
+    try {
+      final response = await http.post(url,  
+      headers: {"Content_Type": "application/json"},
+      body: jsonEncode({
+        "firebase_token": uid,
+        "target_id": otherUserId,
+        "action": action,
+      }));
+
+      if(response.statusCode != 200) {
+        throw Exception("Failed to register swipe ${response.body}");
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

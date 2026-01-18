@@ -74,3 +74,13 @@ class Settings(Base):
     language = Column(String, nullable = False, default="en")
 
     user = relationship("User", back_populates="settings")
+
+class UserSwipes(Base):
+    __tablename__ = "user_swipes"
+
+    id = Column(Integer, primary_key = True, index = True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    target_id = Column(Integer, ForeignKey("users.id"))
+    action = Column(String) #like, pass or super like
+    timestamp = Column(TIMESTAMP(timezone = True), nullable = False, server_default = text('now()'))
+    
