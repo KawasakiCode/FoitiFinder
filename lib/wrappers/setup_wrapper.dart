@@ -4,6 +4,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/main_screen.dart';
+import 'package:foitifinder/pages/auth_pages/login.dart';
 import 'package:foitifinder/pages/sign_up_set_up/add_photos.dart';
 import 'package:foitifinder/pages/sign_up_set_up/phone_verification_page.dart';
 import 'package:foitifinder/pages/sign_up_set_up/set_up_page.dart';
@@ -22,11 +23,13 @@ class SetupWrapper extends StatelessWidget {
     final currentUser = userProvider.currentUser;
 
     if(currentUser == null) {
-      return const Scaffold(  
-        body: Center(child: CircularProgressIndicator()),
-      );
+      Future.delayed(const Duration(seconds: 2), () {
+        if(context.mounted && currentUser == null) {
+          Navigator.pushReplacement(context, MaterialPageRoute(builder:(context) => LoginPage(),));
+        }
+      });
     }
-    bool hasFinishedSetUp = currentUser.hasFinishedSetUp;
+    bool hasFinishedSetUp = currentUser!.hasFinishedSetUp;
     bool hasPhone = firebaseUser.phoneNumber != null && firebaseUser.phoneNumber!.isNotEmpty;
     //setup done completely, send to mainscreen
     if(hasFinishedSetUp && hasPhone) {
@@ -42,8 +45,9 @@ class SetupWrapper extends StatelessWidget {
     }
     //setup not done neither phone, send to login
     else{
-      //to become login
       return const PhoneVerificationPage();
     }
   }
+
+  
 }

@@ -384,11 +384,11 @@ def upload_photo(user_photos: UserPhotos, db: Session = Depends(get_db)):
     db.refresh(new_photo)
 
 #register a swipe
-@app.post("swipes/record")
+@app.post("/swipes")
 def record_swipe(swipe: SwipeRequest, db: Session = Depends(get_db)):
     me = db.query(models.User).filter(models.User.firebase_token == swipe.firebase_token).first()
     if not me:
-        raise HTTPException(status_code=404, detail="Current User not found")
+       raise HTTPException(status_code=404, detail="Current User not found")
     
     existing = db.query(models.UserSwipes).filter(  
         models.UserSwipes.user_id == me.id,
@@ -408,4 +408,3 @@ def record_swipe(swipe: SwipeRequest, db: Session = Depends(get_db)):
     db.commit()
 
     return True #swipe registered
-
