@@ -189,17 +189,10 @@ class ApiService {
   }
 
   //get multiple users
-  static Future<List<CardData>> getMultipleUsers(String uid, Set<int> seenIds) async {
+  static Future<List<CardData>> getMultipleUsers(String uid) async {
     final url = Uri.parse("$baseUrl/users/feed/$uid");
     try {
-      final response = await http.post(url,
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: jsonEncode({
-        "firebase_token": uid,
-        "seen_ids": seenIds.toList(),
-      }));
+      final response = await http.get(url);
 
       if(response.statusCode == 200) {
         final List<dynamic> body = jsonDecode(response.body);
@@ -410,6 +403,26 @@ class ApiService {
       }));
       if(response.statusCode != 200) {
         throw Exception("Failed to register swipe ${response.body}");
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  //get a single user by id
+  static Future<CardData> getSingleUser(int userId) async {
+    final url = Uri.parse("$baseUrl/single/user/$userId");
+
+    try {
+      final response = await http.get(url);
+
+      if(response.statusCode == 200) {
+        Map<String, dynamic> data = jsonDecode(response.body);
+        CardData user = CardData.fromPostgresRow(data);
+        return user;
+      }
+      else {
+        throw Exception("Failed to grab user ${response.statusCode}");
       }
     } catch (e) {
       rethrow;

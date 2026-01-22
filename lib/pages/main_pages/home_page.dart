@@ -39,8 +39,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   final ValueNotifier<Offset> _swipeNotifier = ValueNotifier(Offset.zero);
   //is the card animating (is the controller counting still)
   bool _isAnimating = false;
-  //track user ids we saw to prevent seeing a user twice
-  final Set<int> _seenIds = {};
   // Track swiped cards for rewind functionality
   List<CardData> swipedCards = [];
 
@@ -317,22 +315,15 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
     try {
       String uid = FirebaseAuth.instance.currentUser!.uid;
-      List<CardData> users = await ApiService.getMultipleUsers(uid, _seenIds);
-      List<CardData> uniqueUsers = [];
+      List<CardData> users = await ApiService.getMultipleUsers(uid);
       if(users.isEmpty) {
         _hasNoMoreProfiles = true;
         _isFetching = false;
         return;
       }
-      //add the ids we saw in the new batch to the seen set
-      for (var card in users) {
-        if(_seenIds.add(card.id)) {
-          uniqueUsers.add(card);
-        }
-      }
       if (mounted) {
         setState(() {
-          cards.addAll(uniqueUsers);
+          cards.addAll(users);
         });
       } 
     } catch (e) {

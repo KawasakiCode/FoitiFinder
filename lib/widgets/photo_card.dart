@@ -1,5 +1,4 @@
-//this widget gets called from the homepage 
-//it is effectively the card that is display in the homepage 
+//this widget creates the users card 
 //but made to handle showing photos and having the left and right tap functionality
 //to change photos if user has more than one
 

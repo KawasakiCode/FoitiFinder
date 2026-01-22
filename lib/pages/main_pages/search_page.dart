@@ -71,7 +71,7 @@ class _SearchPageState extends State<SearchPage> {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.only(left: 15, bottom: 10),
+                          padding: const EdgeInsets.only(left: 15, bottom: 10, top: 20),
                           child: Align(
                             alignment: Alignment.bottomLeft,
                             child: Text(

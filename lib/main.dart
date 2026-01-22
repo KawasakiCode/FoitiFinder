@@ -164,7 +164,7 @@ class FoitiFinder extends StatelessWidget {
           }),
           trackColor: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
-              return kBrandPurple.withValues(alpha: 0.5); // <--- TONE DOWN HERE
+              return kBrandPurple.withValues(alpha: 0.5);
             }
             return Colors.grey[800]; // Unselected track (Dark Grey)
           }),

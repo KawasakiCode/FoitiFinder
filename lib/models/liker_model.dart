@@ -8,7 +8,7 @@ class LikerModel {
     required this.id,
     required this.username,
     required this.age,
-    required this.imageUrl,
+    required this.imageUrl, 
   });
 
   factory LikerModel.fromJson(Map<String, dynamic> json) {
@@ -16,7 +16,7 @@ class LikerModel {
       id: json['id'],
       username: json['username'],
       age: json['age'] ?? 18, //for now because some users may not have age yet
-      imageUrl: json['image_url'] ?? "https://picsum.photos/200"
+      imageUrl: json['image_url'] ?? "https://picsum.photos/200" //first user photo NOT pfp
     );
   }
 }

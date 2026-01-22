@@ -150,7 +150,7 @@ def update_user(firebase_token: str, user_update: schemas.UserUpdate, db: Sessio
     return db_user
 
 #get multiple users for the homepage
-@app.post("/users/feed/{firebase_token}", response_model = List[UserCards])
+@app.get("/users/feed/{firebase_token}", response_model = List[UserCards])
 def get_swipe_feed(firebase_token: str, db: Session = Depends(get_db)):
     #first get the current user id to exclude it 
     me = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
@@ -165,11 +165,11 @@ def get_swipe_feed(firebase_token: str, db: Session = Depends(get_db)):
     seen_ids_list = [x[0] for x in seen_ids]
 
     seen_ids_list.append(me.id)
-
+    print(seen_ids_list)
     #order the users randomly for now and limit then at 10
     users = db.query(models.User).filter(  
         models.User.id.notin_(seen_ids_list)
-    ).limit(10).all()
+    ).order_by(func.random()).limit(10).all()
 
     results = []
     for user in users:
@@ -187,7 +187,6 @@ def get_swipe_feed(firebase_token: str, db: Session = Depends(get_db)):
             "bio": user.bio,
             "photos": photo_urls,
         })
-
     return results
 
 #update one/multiple settings without altering the other
@@ -408,3 +407,21 @@ def record_swipe(swipe: SwipeRequest, db: Session = Depends(get_db)):
     db.commit()
 
     return True #swipe registered
+
+@app.get("/single/user/{user_id}")
+def get_single_user(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    sorted_photos = sorted(user.photos, key = lambda x: x.display_order)
+    photos_urls = [p.photo_url for p in sorted_photos]
+
+    return {
+        "id": user.id,
+        "username": user.username,
+        "age": user.age,
+        "bio": user.bio,
+        "photos": photos_urls,
+    }
