@@ -212,32 +212,32 @@ class ApiService {
 
   //like endpoints
   //register a like/match in the db
-  static Future<bool> registerLike({
-    required String uid,
-    required int likedUserId,
-    bool isSuperLike = false,
-  }) async {
-    final url = Uri.parse("$baseUrl/likes/$uid"); 
+  // static Future<bool> registerLike({
+  //   required String uid,
+  //   required int likedUserId,
+  //   bool isSuperLike = false,
+  // }) async {
+  //   final url = Uri.parse("$baseUrl/likes/$uid"); 
 
-    try {
-      final response = await http.post(url, 
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "firebase_token": uid,
-        "liked_id": likedUserId,
-        "is_super_like": isSuperLike,
-      }));
-      if(response.statusCode == 200) {  
-        final data = jsonDecode(response.body);
-        return data["is_match"] ?? false;
-      }
-      else  {
-        throw Exception("Failed to register like ${response.body}");
-      }
-    } catch (e) {
-      rethrow;
-    }
-  }
+  //   try {
+  //     final response = await http.post(url, 
+  //     headers: {"Content-Type": "application/json"},
+  //     body: jsonEncode({
+  //       "firebase_token": uid,
+  //       "liked_id": likedUserId,
+  //       "is_super_like": isSuperLike,
+  //     }));
+  //     if(response.statusCode == 200) {  
+  //       final data = jsonDecode(response.body);
+  //       return data["is_match"] ?? false;
+  //     }
+  //     else  {
+  //       throw Exception("Failed to register like ${response.body}");
+  //     }
+  //   } catch (e) {
+  //     rethrow;
+  //   }
+  // }
 
   //get matches aka dms
   static Future<List<MatchModel>> getMatches({
@@ -390,7 +390,7 @@ class ApiService {
   }
 
   //register swipe
-  static Future<void> registerSwipe(String uid, int otherUserId, String action) async {
+  static Future<bool> registerSwipe(String uid, int otherUserId, String action) async {
     final url = Uri.parse("$baseUrl/swipes");
 
     try {
@@ -401,7 +401,11 @@ class ApiService {
         "target_id": otherUserId,
         "action": action,
       }));
-      if(response.statusCode != 200) {
+      if(response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        return data['data'] ?? false;
+      }
+      else {
         throw Exception("Failed to register swipe ${response.body}");
       }
     } catch (e) {

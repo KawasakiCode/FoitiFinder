@@ -160,8 +160,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   void _swipeRight() async {
     final cardName = cards[currentIndex].username; // Store name before animation
     _animateCardOut(1.0, cardName, true);
-    await ApiService.registerSwipe(FirebaseAuth.instance.currentUser!.uid, cards[currentIndex].id, "like");
-    bool isMatch = await ApiService.registerLike(uid: FirebaseAuth.instance.currentUser!.uid, likedUserId: cards[currentIndex].id);
+    bool isMatch = await ApiService.registerSwipe(FirebaseAuth.instance.currentUser!.uid, cards[currentIndex].id, "like");
 
     if(isMatch) {
       if(!mounted)return;
@@ -184,8 +183,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   void _swipeUp() async {
     final cardName = cards[currentIndex].username;
     _animateCardOut(0.0, cardName, true, isSuperLike: true);
-    await ApiService.registerSwipe(FirebaseAuth.instance.currentUser!.uid, cards[currentIndex].id, "super_like");
-    bool isMatch = await ApiService.registerLike(uid: FirebaseAuth.instance.currentUser!.uid, likedUserId: cards[currentIndex].id, isSuperLike: true);
+    bool isMatch = await ApiService.registerSwipe(FirebaseAuth.instance.currentUser!.uid, cards[currentIndex].id, "super_like");
 
     if(isMatch) {
       if(!mounted)return;

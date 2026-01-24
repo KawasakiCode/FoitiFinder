@@ -220,40 +220,40 @@ def get_users_settings(firebase_token: str, db: Session = Depends(get_db)):
     return db_user.settings
 
 #like endpoints
-@app.post("/likes/{firebase_token}")
-def like_user(request: LikeRequest, db: Session = Depends(get_db)):
-    #the current user
-    me = db.query(models.User).filter(models.User.firebase_token == request.firebase_token).first()
-    if not me:
-        raise HTTPException(status_code=404, detail="Current User not found")
-    #the user you liked
-    liked_user = db.query(models.User).filter(models.User.id == request.liked_id).first()
-    if not liked_user: 
-        raise HTTPException(status_code=404, detail="Liked User not found") 
+# @app.post("/likes/{firebase_token}")
+# def like_user(request: LikeRequest, db: Session = Depends(get_db)):
+#     #the current user
+#     me = db.query(models.User).filter(models.User.firebase_token == request.firebase_token).first()
+#     if not me:
+#         raise HTTPException(status_code=404, detail="Current User not found")
+#     #the user you liked
+#     liked_user = db.query(models.User).filter(models.User.id == request.liked_id).first()
+#     if not liked_user: 
+#         raise HTTPException(status_code=404, detail="Liked User not found") 
     
-    new_like = models.Likes(
-        liker_id = me.id, #the current user
-        liked_id = liked_user.id, #the liked user
-        is_super_like = request.is_super_like,
-    )
+#     new_like = models.Likes(
+#         liker_id = me.id, #the current user
+#         liked_id = liked_user.id, #the liked user
+#         is_super_like = request.is_super_like,
+#     )
     
-    db.add(new_like)
+#     db.add(new_like)
     
-    #if the liked user liked the current user
-    reverse_like = db.query(models.Likes).filter(  
-        models.Likes.liker_id == liked_user.id,
-        models.Likes.liked_id == me.id,
-    ).first()
+#     #if the liked user liked the current user
+#     reverse_like = db.query(models.Likes).filter(  
+#         models.Likes.liker_id == liked_user.id,
+#         models.Likes.liked_id == me.id,
+#     ).first()
 
-    if reverse_like: 
-        new_match = models.Matches(  
-           user_a_id = me.id,
-           user_b_id = liked_user.id,
-        )
-        db.add(new_match)
-    db.commit()
+#     if reverse_like: 
+#         new_match = models.Matches(  
+#            user_a_id = me.id,
+#            user_b_id = liked_user.id,
+#         )
+#         db.add(new_match)
+#     db.commit()
 
-    return {"is_match": bool(reverse_like)} #if reverse_like returns true then it is a match
+#     return {"is_match": bool(reverse_like)} #if reverse_like returns true then it is a match
 
 @app.get("/likes/{firebase_token}", response_model = List[LikerProfile])
 def get_likes(firebase_token: str, db: Session = Depends(get_db)):
@@ -261,8 +261,14 @@ def get_likes(firebase_token: str, db: Session = Depends(get_db)):
     if not me:
         raise HTTPException(status_code=404, detail="Current User not found")
     
-    #get all the users that made likes and return only the ones where they liked the currentuser
-    #also get the first photo of the user
+    #grab all the people YOU liked or super liked
+    my_likes_subquery = db.query(models.UserSwipes.target_id).filter(  
+        models.UserSwipes.user_id == me.id,
+        models.UserSwipes.action == "like" or models.UserSwipes.action == "super_like"
+    ).subquery()
+
+    #find people who liked YOU but you havent liked back yet,
+    #also show people you passed on
     liked_by_users = db.query(
     models.User.id,
     models.User.username,
@@ -277,7 +283,8 @@ def get_likes(firebase_token: str, db: Session = Depends(get_db)):
             models.Photos.display_order == 0
         )
     ).filter(
-        models.Likes.liked_id == me.id
+        models.Likes.liked_id == me.id,
+        models.User.id.notin_(my_likes_subquery)
     ).all()
 
     #pydantic uses the response_model and automatically 
@@ -394,19 +401,48 @@ def record_swipe(swipe: SwipeRequest, db: Session = Depends(get_db)):
         models.UserSwipes.target_id == swipe.target_id
     ).first()
 
+    is_match = False
+
     if existing:
-        return False #dont register
-    
-    new_swipe = models.UserSwipes(  
+        if existing.action == swipe.action:
+            db.commit()
+        else: 
+            existing.action == swipe.action
+            db.commit()
+    else:
+        new_swipe = models.UserSwipes(  
         user_id = me.id,
         target_id = swipe.target_id,
         action = swipe.action
-    )
+        )
 
-    db.add(new_swipe)
-    db.commit()
+        db.add(new_swipe)
+        db.commit()  
+    
+    if swipe.action == "like" or swipe.action == "super_like":
+        
+        # Look in UserSwipes to see if THEY liked US
+        reverse_swipe = db.query(models.UserSwipes).filter(
+            models.UserSwipes.user_id == swipe.target_id, # Them
+            models.UserSwipes.target_id == me.id,         # Us
+            models.UserSwipes.action == "like" or models.UserSwipes.action == "super_like"
+        ).first()
 
-    return True #swipe registered
+        if reverse_swipe:
+            # Check if match already exists (to prevent duplicates)
+            existing_match = db.query(models.Match).filter(
+                ((models.Matches.user_a_id == me.id) & (models.Matches.user_b_id == swipe.target_id)) or
+                ((models.Matches.user_a_id == swipe.target_id) & (models.Matches.user_b_id == me.id))
+            ).first()
+
+            if not existing_match:
+                # Create the Match
+                new_match = models.Match(user1_id=me.id, user2_id=swipe.target_id)
+                db.add(new_match)
+                db.commit()
+                is_match = True
+
+    return {"data": is_match}
 
 @app.get("/single/user/{user_id}")
 def get_single_user(user_id: int, db: Session = Depends(get_db)):

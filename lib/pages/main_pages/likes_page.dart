@@ -90,7 +90,8 @@ class _LikesPage extends State<LikesPage>{
                             icon: Icons.close,
                             activeColor: Colors.red,
                             size: 65, // Main buttons are bigger
-                            onPressed: () {
+                            onPressed: () async {
+                              await ApiService.registerSwipe(FirebaseAuth.instance.currentUser!.uid, _likes[index].id, "pass");
                               if (context.mounted) Navigator.pop(ctx, true);
                             },
                           ),
@@ -99,7 +100,8 @@ class _LikesPage extends State<LikesPage>{
                             icon: Icons.favorite,
                             activeColor: Colors.green,
                             size: 65,
-                            onPressed: () {
+                            onPressed: () async {
+                              await ApiService.registerSwipe(FirebaseAuth.instance.currentUser!.uid, _likes[index].id, "like");
                               if (context.mounted) Navigator.pop(ctx, true);
                             },
                           ),
@@ -115,6 +117,12 @@ class _LikesPage extends State<LikesPage>{
         );
       }
     );
+
+    if(result == true) {
+      setState(() {
+        _likes.removeAt(index);
+      });
+    }
   }
 
   @override
