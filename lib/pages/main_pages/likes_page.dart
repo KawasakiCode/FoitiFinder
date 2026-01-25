@@ -31,6 +31,7 @@ class _LikesPage extends State<LikesPage>{
     }
   }
 
+  //dialog to show complete user card and option to like and pass it
   Future<void> _showUserDialog(int userId, int index) async {
     final result = await showGeneralDialog<bool>(
       context: context,
@@ -101,7 +102,17 @@ class _LikesPage extends State<LikesPage>{
                             activeColor: Colors.green,
                             size: 65,
                             onPressed: () async {
-                              await ApiService.registerSwipe(FirebaseAuth.instance.currentUser!.uid, _likes[index].id, "like");
+                              bool isMatch = await ApiService.registerSwipe(FirebaseAuth.instance.currentUser!.uid, _likes[index].id, "like");
+                              if(isMatch) {
+                                if(!context.mounted)return;
+                                await showDialog(  
+                                  context: context,
+                                  builder: (context) => AlertDialog(  
+                                    title: Text("It's a match!"),
+                                    content: Text("You and ${_likes[index].username} liked each other!"),
+                                  )
+                                );
+                              }
                               if (context.mounted) Navigator.pop(ctx, true);
                             },
                           ),
