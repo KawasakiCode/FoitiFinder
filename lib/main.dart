@@ -182,8 +182,7 @@ class FoitiFinder extends StatelessWidget {
 
         // 4. NAVIGATION BAR
         navigationBarTheme: NavigationBarThemeData(
-          backgroundColor: kDarkSurface, // Matches the "Surface" look
-          // OR use Colors.transparent if you rely on the extendBody trick
+          backgroundColor: kDarkSurface,
           
           elevation: 0,
           indicatorColor: Colors.transparent, 

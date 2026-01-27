@@ -8,7 +8,7 @@ from database import models
 from database.database import engine, get_db
 from database import schemas
 from sqlalchemy.orm import Session, aliased
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, or_, case
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -79,7 +79,7 @@ class SwipeRequest(BaseModel):
 #create new user and initialize default settings table for the new user
 @app.post("/users/", response_model=schemas.User)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    #chech if user with the same firebase.uid already is registered and return and exception if yes
+    #check if user with the same firebase.uid already is registered and return and exception if yes
     db_user = db.query(models.User).filter(models.User.firebase_token == user.firebase_token).first()
     if db_user: 
         raise HTTPException(status_code = 400, detail="User already exists")
@@ -413,13 +413,14 @@ def record_swipe(swipe: SwipeRequest, db: Session = Depends(get_db)):
 
             if not existing_match:
                 # Create the Match
-                new_match = models.Match(user1_id=me.id, user2_id=swipe.target_id)
+                new_match = models.Match(user1_id=me.id, user2_id=swipe.target_id, user_a_saw=False, user_b_saw=False)
                 db.add(new_match)
                 db.commit()
                 is_match = True
 
     return {"data": is_match}
 
+#get single user by id
 @app.get("/single/user/{user_id}")
 def get_single_user(user_id: int, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == user_id).first()
@@ -437,3 +438,42 @@ def get_single_user(user_id: int, db: Session = Depends(get_db)):
         "bio": user.bio,
         "photos": photos_urls,
     }
+
+#get all matches that the user hasnt seen yet
+@app.get("/matches/unseen")
+def get_unseen_matches(firebase_token: str, db: Session = Depends(get_db)):
+    me = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
+    if not me:
+       raise HTTPException(status_code=404, detail="Current User not found")
+    
+    new_matches = db.query(  
+        models.User.id,
+        models.User.username,
+        models.User.profile_picture,
+        models.Matches.id.label("match_id")
+    ).join(  
+        models.Matches,
+        or_(
+            models.Matches.user_a_id == models.User.id,
+            models.Matches.user_b_id == models.User.id,
+        )
+    ).filter(  
+        or_(models.Matches.user_a_id == me.id, models.Matches.user_b_id == me.id),
+        models.User.id != me.id,
+        case(  
+            (models.Matches.user_a_id == me.id, models.Matches.user_a_saw == False),
+            (models.Matches.user_b_id == me.id, models.Matches.user_b_saw == False),
+            else_=False
+        )
+    ).all()
+
+    results = []
+    for row in new_matches:
+        results.append({
+            "id": row.id,
+            "username": row.username,
+            "profile_picture": row.profile_picture,
+            "match_id": row.match_id
+        })
+    
+    return results

@@ -60,14 +60,11 @@ class UserCardResponse(BaseModel):
     class Config:
         orm_mode = True
 
-class Likes(BaseModel):
-    liker_id: int
-    liked_id: int
-    is_super_like: bool
-
 class Matches(BaseModel):
     user_a_id: int
     user_b_id: int
+    user_a_saw: bool
+    user_b_saw: bool
 
 class Messages(BaseModel):
     sender: int

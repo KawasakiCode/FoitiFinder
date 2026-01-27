@@ -26,15 +26,8 @@ class User(Base):
     settings = relationship("Settings", back_populates="user", uselist=False, cascade="all, delete")
     photos = relationship("Photos", back_populates="user")
 
-class Likes(Base):
-    __tablename__ = "likes"
-
-    id = Column(Integer, primary_key = True, nullable = False)
-    liker_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable = False)
-    liked_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable = False)
-    is_super_like = Column(Boolean, nullable = True, server_default = 'false')
-    created_at = Column(TIMESTAMP(timezone=True), nullable = False, server_default = text('now()'))
-
+#the seen columns help to know when a user saw a match to remove it from the 
+#new matches row inside the message page of the app
 class Matches(Base):
     __tablename__ = "matches"
 
@@ -42,6 +35,8 @@ class Matches(Base):
     user_a_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable = False)
     user_b_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable = False)
     created_at = Column(TIMESTAMP(timezone=True), nullable = False, server_default = text('now()'))
+    user_a_saw = Column(Boolean, nullable=False) #if user a saw the match 
+    user_b_saw = Column(Boolean, nullable=False) #if user b saw the match
 
 class Messages(Base):
     __tablename__ = "messages"
