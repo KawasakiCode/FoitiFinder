@@ -16,6 +16,7 @@ class DMPage extends StatefulWidget {
 
 class _DMPageState extends State<DMPage> {
   List<MatchModel> _dms = [];
+  List<MatchModel> _newMatches = [];
 
   @override
   void initState() {
@@ -25,15 +26,23 @@ class _DMPageState extends State<DMPage> {
 
   Future<void> _loadDMs() async {
     final dms = await ApiService.getMatches(uid: FirebaseAuth.instance.currentUser!.uid);
-
+    final newMatches = await ApiService.getNewMatches(FirebaseAuth.instance.currentUser!.uid);
     if(mounted) {
-      setState(() => _dms = dms);
+      setState(() {
+        _dms = dms;
+        _newMatches = newMatches;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final text = AppLocalizations.of(context)!;
+    final text = AppLocalizations.of(context);
+    if(text == null) {
+      return const Scaffold(  
+        body: Center(child: CircularProgressIndicator())
+      );
+    }
     final user = Provider.of<ProfileProvider>(context);
     return Scaffold(
       appBar: AppBar(
@@ -93,16 +102,34 @@ class _DMPageState extends State<DMPage> {
             height: 85,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: 10,
+              itemCount: _newMatches.length,
               itemBuilder: (context, index) {
-                return Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 5.0),
-                  child: Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: Colors.black,
-                      shape: BoxShape.circle,
+                return Material(
+                  borderRadius: BorderRadius.circular(15),
+                  color: Colors.transparent,
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(15),
+                      onTap: () {
+                        Navigator.push(  
+                          context,
+                          MaterialPageRoute(builder:(context) => MessagesPage(match: _dms[index]),),
+                        );
+                      },
+                    child: SizedBox(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 18),
+                        child: Hero(
+                          tag: _newMatches[index].matchId,
+                          child: CircleAvatar(
+                            radius: 28,
+                            backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+                            backgroundImage: _newMatches[index].imageUrl != null 
+                              ? NetworkImage(_newMatches[index].imageUrl!) 
+                              : const AssetImage('assets/images/default_avatar.png'),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 );

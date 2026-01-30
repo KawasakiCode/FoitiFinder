@@ -264,6 +264,45 @@ def get_likes(firebase_token: str, db: Session = Depends(get_db)):
     #filters only the data specified in the likerProfile class
     return liked_by_users
 
+#get all matches that the user hasnt seen yet
+@app.get("/matches/unseen")
+def get_unseen_matches(firebase_token: str, db: Session = Depends(get_db)):
+    me = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
+    if not me:
+       raise HTTPException(status_code=404, detail="Current User not found")
+    
+    new_matches = db.query(  
+        models.User.id,
+        models.User.username,
+        models.User.profile_picture,
+        models.Matches.id.label("match_id")
+    ).join(  
+        models.Matches,
+        or_(
+            models.Matches.user_a_id == models.User.id,
+            models.Matches.user_b_id == models.User.id,
+        )
+    ).filter(  
+        or_(models.Matches.user_a_id == me.id, models.Matches.user_b_id == me.id),
+        models.User.id != me.id,
+        case(  
+            (models.Matches.user_a_id == me.id, models.Matches.user_a_saw == False),
+            (models.Matches.user_b_id == me.id, models.Matches.user_b_saw == False),
+            else_=False
+        )
+    ).all()
+
+    results = []
+    for row in new_matches:
+        results.append({
+            "other_user_id": row.id,
+            "other_user_name": row.username,
+            "image_url": row.profile_picture,
+            "match_id": row.match_id
+        })
+    
+    return results
+
 #get matches to load chats
 @app.get("/matches/{firebase_token}", response_model = List[MatchResponse])
 def get_matches(firebase_token: str, db: Session = Depends(get_db)):
@@ -395,25 +434,36 @@ def record_swipe(swipe: SwipeRequest, db: Session = Depends(get_db)):
         db.add(new_swipe)
         db.commit()  
     
-    if swipe.action == "like" or swipe.action == "super_like":
+    if swipe.action in ["like", "super_like"]:
         
         # Look in UserSwipes to see if THEY liked US
         reverse_swipe = db.query(models.UserSwipes).filter(
             models.UserSwipes.user_id == swipe.target_id, # Them
             models.UserSwipes.target_id == me.id,         # Us
-            models.UserSwipes.action == "like" or models.UserSwipes.action == "super_like"
+            or_(  
+                models.UserSwipes.action == "like",
+                models.UserSwipes.action == "super_like"
+            )
         ).first()
 
         if reverse_swipe:
             # Check if match already exists (to prevent duplicates)
-            existing_match = db.query(models.Match).filter(
-                ((models.Matches.user_a_id == me.id) & (models.Matches.user_b_id == swipe.target_id)) or
-                ((models.Matches.user_a_id == swipe.target_id) & (models.Matches.user_b_id == me.id))
+            existing_match = db.query(models.Matches).filter(
+                or_(
+                    and_(
+                        models.Matches.user_a_id == me.id,
+                        models.Matches.user_b_id == swipe.target_id,
+                    ),
+                    and_(
+                        models.Matches.user_a_id == swipe.target_id,
+                        models.Matches.user_b_id == me.id,
+                    )
+                ),
             ).first()
 
             if not existing_match:
                 # Create the Match
-                new_match = models.Match(user1_id=me.id, user2_id=swipe.target_id, user_a_saw=False, user_b_saw=False)
+                new_match = models.Matches(user_a_id=me.id, user_b_id=swipe.target_id, user_a_saw=False, user_b_saw=False)
                 db.add(new_match)
                 db.commit()
                 is_match = True
@@ -438,42 +488,3 @@ def get_single_user(user_id: int, db: Session = Depends(get_db)):
         "bio": user.bio,
         "photos": photos_urls,
     }
-
-#get all matches that the user hasnt seen yet
-@app.get("/matches/unseen")
-def get_unseen_matches(firebase_token: str, db: Session = Depends(get_db)):
-    me = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
-    if not me:
-       raise HTTPException(status_code=404, detail="Current User not found")
-    
-    new_matches = db.query(  
-        models.User.id,
-        models.User.username,
-        models.User.profile_picture,
-        models.Matches.id.label("match_id")
-    ).join(  
-        models.Matches,
-        or_(
-            models.Matches.user_a_id == models.User.id,
-            models.Matches.user_b_id == models.User.id,
-        )
-    ).filter(  
-        or_(models.Matches.user_a_id == me.id, models.Matches.user_b_id == me.id),
-        models.User.id != me.id,
-        case(  
-            (models.Matches.user_a_id == me.id, models.Matches.user_a_saw == False),
-            (models.Matches.user_b_id == me.id, models.Matches.user_b_saw == False),
-            else_=False
-        )
-    ).all()
-
-    results = []
-    for row in new_matches:
-        results.append({
-            "id": row.id,
-            "username": row.username,
-            "profile_picture": row.profile_picture,
-            "match_id": row.match_id
-        })
-    
-    return results

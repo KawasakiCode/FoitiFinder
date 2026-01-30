@@ -18,7 +18,13 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     final profileProvider = Provider.of<ProfileProvider>(context);
-    final text = AppLocalizations.of(context)!;
+    final text = AppLocalizations.of(context);
+
+    if(text == null) {
+      return const Scaffold(  
+        body: Center(child: CircularProgressIndicator())
+      );
+    }
     ImageProvider backgroundImage;
 
     //first check if pfp is stored locally

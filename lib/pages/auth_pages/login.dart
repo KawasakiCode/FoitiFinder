@@ -35,24 +35,30 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _login() async {
+    if(!context.mounted)return;
     final text = AppLocalizations.of(context)!;
     final email = _email.text;
     final password = _password.text;
     final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
 
     try {
-      await FirebaseAuth.instance
+      final credential = await FirebaseAuth.instance
       .signInWithEmailAndPassword(
         email: email,
         password: password,
-      );                                   
+      );  
+
+      final user = credential.user;
+      if(user == null) {
+        throw FirebaseAuthException(code: 'user-null', message: 'User is null');
+      }                                 
       // Clear navigation stack and navigate to home page
       if(!mounted)return;
-      await settingsProvider.fetchSettingsFromApi(FirebaseAuth.instance.currentUser!.uid);
+      await settingsProvider.fetchSettingsFromApi(user.uid);
       if(!mounted)return;
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => MainScreen(uid: FirebaseAuth.instance.currentUser!.uid)),
+        MaterialPageRoute(builder: (context) => MainScreen(uid: user.uid)),
         (route) => false, // This removes all previous routes
       );
       
