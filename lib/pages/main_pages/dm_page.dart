@@ -25,9 +25,13 @@ class _DMPageState extends State<DMPage> {
   }
 
   Future<void> _loadDMs() async {
-    final dms = await ApiService.getMatches(uid: FirebaseAuth.instance.currentUser!.uid);
-    final newMatches = await ApiService.getNewMatches(FirebaseAuth.instance.currentUser!.uid);
-    if(mounted) {
+    final dms = await ApiService.getMatches(
+      uid: FirebaseAuth.instance.currentUser!.uid,
+    );
+    final newMatches = await ApiService.getNewMatches(
+      FirebaseAuth.instance.currentUser!.uid,
+    );
+    if (mounted) {
       setState(() {
         _dms = dms;
         _newMatches = newMatches;
@@ -38,10 +42,8 @@ class _DMPageState extends State<DMPage> {
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
-    if(text == null) {
-      return const Scaffold(  
-        body: Center(child: CircularProgressIndicator())
-      );
+    if (text == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     final user = Provider.of<ProfileProvider>(context);
     return Scaffold(
@@ -84,139 +86,215 @@ class _DMPageState extends State<DMPage> {
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(18, 5, 15, 0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  text.newMatches,
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ],
+          if (_newMatches.isNotEmpty) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 5, 15, 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    text.newMatches,
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Container(
-            margin: EdgeInsets.all(0),
-            width: MediaQuery.of(context).size.width,
-            height: 85,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: _newMatches.length,
-              itemBuilder: (context, index) {
-                return Material(
-                  borderRadius: BorderRadius.circular(15),
-                  color: Colors.transparent,
-                  clipBehavior: Clip.antiAlias,
-                  child: InkWell(
+            Container(
+              margin: EdgeInsets.all(0),
+              width: MediaQuery.of(context).size.width,
+              height: 85,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: _newMatches.length,
+                itemBuilder: (context, index) {
+                  return Material(
                     borderRadius: BorderRadius.circular(15),
-                      onTap: () {
-                        Navigator.push(  
+                    color: Colors.transparent,
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(15),
+                      onTap: () async {
+                        await ApiService.updateMatchSeen(
+                          _newMatches[index].matchId,
+                          FirebaseAuth.instance.currentUser!.uid,
+                        );
+                        if (!context.mounted) return;
+                        Navigator.push(
                           context,
-                          MaterialPageRoute(builder:(context) => MessagesPage(match: _dms[index]),),
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                MessagesPage(match: _dms[index]),
+                          ),
                         );
                       },
-                    child: SizedBox(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 18),
-                        child: Hero(
-                          tag: _newMatches[index].matchId,
-                          child: CircleAvatar(
-                            radius: 28,
-                            backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-                            backgroundImage: _newMatches[index].imageUrl != null 
-                              ? NetworkImage(_newMatches[index].imageUrl!) 
-                              : const AssetImage('assets/images/default_avatar.png'),
+                      child: SizedBox(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 18),
+                          child: Hero(
+                            tag: _newMatches[index].matchId,
+                            child: CircleAvatar(
+                              radius: 28,
+                              backgroundColor: const Color.fromARGB(
+                                255,
+                                255,
+                                255,
+                                255,
+                              ),
+                              child: ClipOval(
+                                child: _newMatches[index].imageUrl != null
+                                    ? Image.network(
+                                        _newMatches[index].imageUrl!,
+                                        width: 56,
+                                        height: 56,
+                                        fit: BoxFit.cover,
+                                        alignment: Alignment.topCenter,
+                                      )
+                                    : Image.asset(
+                                        'assets/images/default_avatar.png',
+                                        width: 56,
+                                        height: 56,
+                                        fit: BoxFit.cover,
+                                      ),
+                              ),
+                            ),
                           ),
                         ),
                       ),
                     ),
+                  );
+                },
+              ),
+            ),
+          ] else ... [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 5, 15, 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "You have no new matches",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                );
-              },
+                ],
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(18, 5, 15, 0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  text.messages,
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ],
+          ],
+          if (_dms.isNotEmpty) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 5, 15, 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    text.messages,
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              scrollDirection: Axis.vertical,
-              itemCount: _dms.length,
-              itemBuilder: (context, index) {
-                final dm = _dms[index];
+            Expanded(
+              child: ListView.builder(
+                scrollDirection: Axis.vertical,
+                itemCount: _dms.length,
+                itemBuilder: (context, index) {
+                  final dm = _dms[index];
 
-                return Material(
-                  borderRadius: BorderRadius.circular(15),
-                  color: Colors.transparent,
-                  clipBehavior: Clip.antiAlias,
-                  child: InkWell(
+                  return Material(
                     borderRadius: BorderRadius.circular(15),
-                    onTap: () {
-                      Navigator.push(  
-                        context,
-                        MaterialPageRoute(builder:(context) => MessagesPage(match: dm),),
-                      );
-                    },
-                    child: SizedBox(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(18, 10, 15, 5),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Hero(
-                              tag: dm.matchId,
-                              child: CircleAvatar(
-                                radius: 28,
-                                backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-                                backgroundImage: dm.imageUrl != null 
-                                  ? NetworkImage(dm.imageUrl!) 
-                                  : const AssetImage('assets/images/default_avatar.png'),
-                              ),
-                            ),
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      dm.userBname,
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    Text(
-                                      'Last Message',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ],
+                    color: Colors.transparent,
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(15),
+                      onTap: () async {
+                        await ApiService.updateMatchSeen(
+                          _dms[index].matchId,
+                          FirebaseAuth.instance.currentUser!.uid,
+                        );
+                        if (!context.mounted) return;
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => MessagesPage(match: dm),
+                          ),
+                        );
+                      },
+                      child: SizedBox(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(18, 10, 15, 5),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Hero(
+                                tag: dm.matchId + 1,
+                                child: CircleAvatar(
+                                  radius: 28,
+                                  backgroundColor: const Color.fromARGB(
+                                    255,
+                                    255,
+                                    255,
+                                    255,
+                                  ),
+                                  backgroundImage: dm.imageUrl != null
+                                      ? NetworkImage(dm.imageUrl!)
+                                      : const AssetImage(
+                                          'assets/images/default_avatar.png',
+                                        ),
                                 ),
                               ),
-                            ),
-                          ],
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    10,
+                                    0,
+                                    0,
+                                    0,
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        dm.userBname,
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Text(
+                                        'Last Message',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
-          ),
+          ] else ... [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 5, 15, 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "You have no messages yet",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );

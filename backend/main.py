@@ -488,3 +488,24 @@ def get_single_user(user_id: int, db: Session = Depends(get_db)):
         "bio": user.bio,
         "photos": photos_urls,
     }
+
+#update match seen
+@app.patch("/matches/seen/{match_id}")
+def update_match_seen(match_id: int, firebase_token: str,db: Session = Depends(get_db)):
+    me = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
+    if not me: 
+        raise HTTPException(status_code=404, detail="Current User not found")
+
+    match = db.query(models.Matches).filter(models.Matches.id == match_id).first()
+    if not match:
+        raise HTTPException(status_code=404, detail="Match not found")
+    
+    if match.user_a_id == me.id:
+        match.user_a_saw = True
+    elif match.user_b_id == me.id:
+        match.user_b_saw = True
+    else: 
+        raise HTTPException(status_code=403, detail="You are not part of this match")
+    
+    db.commit()
+    return {"message": "Match seen updated"}

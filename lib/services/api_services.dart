@@ -421,5 +421,20 @@ class ApiService {
     } catch (e) {
       rethrow;
     }
+  }
+
+  //update match seen
+  static Future<void> updateMatchSeen(int matchId, String uid) async {
+    final url = Uri.parse("$baseUrl/matches/seen/$matchId?firebase_token=$uid");
+
+    try {
+      final response = await http.patch(url);
+
+      if(response.statusCode != 200) {
+        throw Exception("Failed to update match seen: ${response.body}");
+      }
+    } catch (e) {
+      rethrow;
+    }
   } 
 }
