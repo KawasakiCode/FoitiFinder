@@ -5,7 +5,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/main.dart';
 import 'package:foitifinder/pages/main_pages/home_page.dart';
-import 'package:foitifinder/pages/main_pages/search_page.dart';
 import 'package:foitifinder/pages/main_pages/dm_page.dart';
 import 'package:foitifinder/pages/main_pages/profile_page.dart';
 import 'package:foitifinder/pages/main_pages/likes_page.dart';
@@ -31,7 +30,6 @@ class _MainScreenState extends State<MainScreen> {
   //list that holds the 5 main pages loaded to memory
   final List<Widget> _pages = [
     const MyHomePage(),
-    const SearchPage(),
     const LikesPage(),
     const DMPage(),
     const ProfilePage(),
@@ -150,10 +148,9 @@ class _MainScreenState extends State<MainScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   Expanded(child: _buildNavItem(0, 'assets/icons/home_page.png', 'Home')),
-                  Expanded(child: _buildNavItem(1, 'assets/icons/search.png', 'Search')),
-                  Expanded(child: _buildNavItem(2, 'assets/icons/like.png', 'Likes')),
-                  Expanded(child: _buildNavItem(3, 'assets/icons/comment.png', 'Chat')),
-                  Expanded(child: _buildNavItem(4, 'assets/icons/user.png', 'Profile')),
+                  Expanded(child: _buildNavItem(1, 'assets/icons/like.png', 'Likes')),
+                  Expanded(child: _buildNavItem(2, 'assets/icons/comment.png', 'Chat')),
+                  Expanded(child: _buildNavItem(3, 'assets/icons/user.png', 'Profile')),
                 ],
               ),
           ),
