@@ -401,4 +401,53 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get checkLater => 'Ελέγξτε ξανά αργότερα για νέα matches';
+
+  @override
+  String get signUpText => 'Κάνε εγγραφή για να συνεχίσεις';
+
+  @override
+  String get addPhotoText => 'Πρόσθεσε τουλάχιστον μία φωτογραφία';
+
+  @override
+  String get message => 'Μήνυμα...';
+
+  @override
+  String get failedToSendMessage => 'Αποτυχία αποστολής';
+
+  @override
+  String get noMatches => 'Δεν έχεις νέα ταιριάσματα';
+
+  @override
+  String get noMessages => 'Δεν έχεις μηνύματα ακόμα';
+
+  @override
+  String get itsAMatch => 'Είναι Match!';
+
+  @override
+  String get matchText1 => 'Εσύ και ';
+
+  @override
+  String get matchText2 => ' αρέσετε ο ένας στον άλλον!';
+
+  @override
+  String get enterOtpCode => 'Εισήγαγε τον 6ψήφιο κωδικό';
+
+  @override
+  String get invalidOtpCode => 'Λάθος κωδικός ή σφάλμα. Προσπάθησε ξανά';
+
+  @override
+  String get uploadPhotos => 'Ανέβασε Φωτογραφίες';
+
+  @override
+  String get addAtLeastAPhoto =>
+      'Πρόσθεσε τουλάχιστον μία φωτογραφία για να συνεχίσεις';
+
+  @override
+  String get submit => 'Υποβολή';
+
+  @override
+  String get noWifi => 'Χωρίς Σύνδεση';
+
+  @override
+  String get turnWifiOn => 'Ενεργοποίησε WiFi ή Δεδομένα για να συνεχίσεις';
 }

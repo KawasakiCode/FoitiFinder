@@ -196,7 +196,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                   ),
                                 ),
                                 Text(
-                                  'Sign up to continue',
+                                  text.signUpText,
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,

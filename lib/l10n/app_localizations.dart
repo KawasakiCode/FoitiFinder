@@ -823,6 +823,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Check back later for new matches'**
   String get checkLater;
+
+  /// No description provided for @signUpText.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up to continue'**
+  String get signUpText;
+
+  /// No description provided for @addPhotoText.
+  ///
+  /// In en, this message translates to:
+  /// **'Please add at least one photo'**
+  String get addPhotoText;
+
+  /// No description provided for @message.
+  ///
+  /// In en, this message translates to:
+  /// **'Message...'**
+  String get message;
+
+  /// No description provided for @failedToSendMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to send message'**
+  String get failedToSendMessage;
+
+  /// No description provided for @noMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'You have no new matches'**
+  String get noMatches;
+
+  /// No description provided for @noMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'You have no messages yet'**
+  String get noMessages;
+
+  /// No description provided for @itsAMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s a match!'**
+  String get itsAMatch;
+
+  /// No description provided for @matchText1.
+  ///
+  /// In en, this message translates to:
+  /// **'You and '**
+  String get matchText1;
+
+  /// No description provided for @matchText2.
+  ///
+  /// In en, this message translates to:
+  /// **' liked each other!'**
+  String get matchText2;
+
+  /// No description provided for @enterOtpCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the full 6-digit code'**
+  String get enterOtpCode;
+
+  /// No description provided for @invalidOtpCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid code or an error occured. Please try again'**
+  String get invalidOtpCode;
+
+  /// No description provided for @uploadPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Your Photos'**
+  String get uploadPhotos;
+
+  /// No description provided for @addAtLeastAPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least one photo to continue'**
+  String get addAtLeastAPhoto;
+
+  /// No description provided for @submit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit'**
+  String get submit;
+
+  /// No description provided for @noWifi.
+  ///
+  /// In en, this message translates to:
+  /// **'No Internet Connectiion'**
+  String get noWifi;
+
+  /// No description provided for @turnWifiOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Please turn on Wifi or Mobile Data to continue'**
+  String get turnWifiOn;
 }
 
 class _AppLocalizationsDelegate

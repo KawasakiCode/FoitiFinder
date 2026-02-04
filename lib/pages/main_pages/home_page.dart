@@ -41,6 +41,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool _isAnimating = false;
   // Track swiped cards for rewind functionality
   List<CardData> swipedCards = [];
+  late final text = AppLocalizations.of(context)!;
 
   //card creation
   @override
@@ -167,8 +168,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       showDialog(  
         context: context,
         builder: (context) => AlertDialog(  
-          title: Text("It's a match!"),
-          content: Text("You and ${cards[currentIndex].username} liked each other!"),
+          title: Text(text.itsAMatch),
+          content: Text("${text.matchText1}${cards[currentIndex].username}${text.matchText2}"),
         )
       );
     }
@@ -190,8 +191,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       showDialog(  
         context: context,
         builder: (context) => AlertDialog(  
-          title: Text("It's a match!"),
-          content: Text("You and ${cards[currentIndex].username} liked each other!"),
+          title: Text(text.itsAMatch),
+          content: Text("${text.matchText1}${cards[currentIndex].username}${text.matchText2}"),
         )
       );
     }

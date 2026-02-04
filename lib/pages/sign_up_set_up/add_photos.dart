@@ -7,6 +7,7 @@
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/pages/sign_up_set_up/set_up_page.dart';
 import 'package:foitifinder/services/api_services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -27,6 +28,7 @@ class _AddPhotos extends State<AddPhotos> {
   //bool to not allow the user to upload a photo when another 
   //one is already uploading
   bool _isUploading = false;
+  late final text = AppLocalizations.of(context)!;
 
   //function to add a photo in the list
   Future<void> _pickImage(int index) async {
@@ -47,7 +49,7 @@ class _AddPhotos extends State<AddPhotos> {
     //if no photos in the list exit submit
     if(_photos.every((img) => img == null)) {
       ScaffoldMessenger.of(context).showSnackBar(  
-        SnackBar(content: Text("Please add at least one photo")),
+        SnackBar(content: Text(text.addPhotoText)),
       );
       return;
     }
@@ -99,7 +101,7 @@ class _AddPhotos extends State<AddPhotos> {
     return SafeArea(
       child: Scaffold (
         appBar: AppBar(  
-          title: Text("Upload Your Photos"),
+          title: Text(text.uploadPhotos),
           automaticallyImplyLeading: true,
         ),
         body: Column(  
@@ -107,7 +109,7 @@ class _AddPhotos extends State<AddPhotos> {
             //Text
             Padding(  
               padding: EdgeInsets.all(16),
-              child: Text("Add at least one photo to continue",
+              child: Text(text.addAtLeastAPhoto,
               style: TextStyle(fontSize: 15)),
             ),
             //The grid and photo placements
@@ -133,7 +135,7 @@ class _AddPhotos extends State<AddPhotos> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: _isUploading ? null : _submitPhotos,
-                  child: Text("Submit"),
+                  child: Text(text.submit),
                 )
               )
             )

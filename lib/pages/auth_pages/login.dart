@@ -50,7 +50,7 @@ class _LoginPageState extends State<LoginPage> {
 
       final user = credential.user;
       if(user == null) {
-        throw FirebaseAuthException(code: 'user-null', message: 'User is null');
+        throw FirebaseAuthException(code: 'user-null', message: text.errorOccured);
       }                                 
       // Clear navigation stack and navigate to home page
       if(!mounted)return;

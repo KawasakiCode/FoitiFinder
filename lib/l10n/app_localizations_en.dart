@@ -395,4 +395,53 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get checkLater => 'Check back later for new matches';
+
+  @override
+  String get signUpText => 'Sign up to continue';
+
+  @override
+  String get addPhotoText => 'Please add at least one photo';
+
+  @override
+  String get message => 'Message...';
+
+  @override
+  String get failedToSendMessage => 'Failed to send message';
+
+  @override
+  String get noMatches => 'You have no new matches';
+
+  @override
+  String get noMessages => 'You have no messages yet';
+
+  @override
+  String get itsAMatch => 'It\'s a match!';
+
+  @override
+  String get matchText1 => 'You and ';
+
+  @override
+  String get matchText2 => ' liked each other!';
+
+  @override
+  String get enterOtpCode => 'Enter the full 6-digit code';
+
+  @override
+  String get invalidOtpCode =>
+      'Invalid code or an error occured. Please try again';
+
+  @override
+  String get uploadPhotos => 'Upload Your Photos';
+
+  @override
+  String get addAtLeastAPhoto => 'Add at least one photo to continue';
+
+  @override
+  String get submit => 'Submit';
+
+  @override
+  String get noWifi => 'No Internet Connectiion';
+
+  @override
+  String get turnWifiOn => 'Please turn on Wifi or Mobile Data to continue';
 }

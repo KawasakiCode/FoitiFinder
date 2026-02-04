@@ -71,8 +71,8 @@ class _OtpCodePage extends State<OtpCodePage> {
     //if code less try again
     if (code.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Enter the full 6-digit code'),
+        SnackBar(
+          content: Text(text.enterOtpCode),
           backgroundColor: Colors.red,
           duration: Duration(seconds: 2),
         ),
@@ -92,8 +92,8 @@ class _OtpCodePage extends State<OtpCodePage> {
       //should never happen
       if (currentUser == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Internal Error'),
+          SnackBar(
+            content: Text(text.errorOccured),
             backgroundColor: Colors.red,
             duration: Duration(seconds: 2),
           ),
@@ -113,8 +113,8 @@ class _OtpCodePage extends State<OtpCodePage> {
     } on FirebaseAuthException {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Invalid code or an error occured. Please try again'),
+        SnackBar(
+          content: Text(text.invalidOtpCode),
           backgroundColor: Colors.red,
           duration: Duration(seconds: 2),
         ),

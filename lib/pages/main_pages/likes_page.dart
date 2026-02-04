@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/models/card_data_model.dart';
 import 'package:foitifinder/models/liker_model.dart';
 import 'package:foitifinder/services/api_services.dart';
@@ -33,6 +34,7 @@ class _LikesPage extends State<LikesPage>{
 
   //dialog to show complete user card and option to like and pass it
   Future<void> _showUserDialog(int userId, int index) async {
+    final text = AppLocalizations.of(context)!;
     final result = await showGeneralDialog<bool>(
       context: context,
       barrierDismissible: true,
@@ -108,8 +110,8 @@ class _LikesPage extends State<LikesPage>{
                                 await showDialog(  
                                   context: context,
                                   builder: (context) => AlertDialog(  
-                                    title: Text("It's a match!"),
-                                    content: Text("You and ${_likes[index].username} liked each other!"),
+                                    title: Text(text.itsAMatch),
+                                    content: Text("${text.matchText1}${_likes[index].username}${text.matchText2}"),
                                   )
                                 );
                               }

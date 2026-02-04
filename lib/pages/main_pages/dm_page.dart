@@ -195,7 +195,7 @@ class _DMPageState extends State<DMPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "You have no new matches",
+                      text.noMatches,
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ],
@@ -311,7 +311,7 @@ class _DMPageState extends State<DMPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "You have no messages yet",
+                      text.noMessages,
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ],

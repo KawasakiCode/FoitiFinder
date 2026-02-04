@@ -119,5 +119,21 @@
   "turnOnWifi": "Please turn on Wifi or Mobile Data to continue",
   "search": "Search",
   "noMoreProfiles": "No more profiles to show!",
-  "checkLater": "Check back later for new matches"
+  "checkLater": "Check back later for new matches",
+  "signUpText": "Sign up to continue",
+  "addPhotoText": "Please add at least one photo",
+  "message": "Message...",
+  "failedToSendMessage": "Failed to send message",
+  "noMatches": "You have no new matches",
+  "noMessages": "You have no messages yet",
+  "itsAMatch": "It's a match!",
+  "matchText1": "You and ",
+  "matchText2": " liked each other!",
+  "enterOtpCode": "Enter the full 6-digit code",
+  "invalidOtpCode": "Invalid code or an error occured. Please try again",
+  "uploadPhotos": "Upload Your Photos",
+  "addAtLeastAPhoto": "Add at least one photo to continue",
+  "submit": "Submit",
+  "noWifi": "No Internet Connectiion",
+  "turnWifiOn": "Please turn on Wifi or Mobile Data to continue"
 }

@@ -2,6 +2,7 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/models/matches_model.dart';
 import 'package:foitifinder/models/message_model.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
@@ -20,6 +21,7 @@ class MessagesPage extends StatefulWidget {
 
 class _MessagesPages extends State<MessagesPage> {
   final TextEditingController _controller = TextEditingController();
+  late final texts = AppLocalizations.of(context)!;
   //list that contains messages
   List<MessageModel> messages = [];
   //timer to periodically check for new messages 
@@ -83,13 +85,14 @@ class _MessagesPages extends State<MessagesPage> {
 
     if(!mounted)return;
     ScaffoldMessenger.of(context).showSnackBar( 
-      const SnackBar(content: Text("Failed to send message"))
+      SnackBar(content: Text(texts.failedToSendMessage))
     );
    }
   }
 
   @override 
   Widget build(BuildContext context) {
+    final text = AppLocalizations.of(context)!;
     final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
@@ -153,7 +156,7 @@ class _MessagesPages extends State<MessagesPage> {
                   minLines: 1,
                   maxLines: 3,
                   decoration: InputDecoration(  
-                    hintText: "Message...",
+                    hintText: text.message,
                     filled: true,
                     fillColor: const Color.fromARGB(82, 158, 158, 158),
                     contentPadding: const EdgeInsets.symmetric(  
