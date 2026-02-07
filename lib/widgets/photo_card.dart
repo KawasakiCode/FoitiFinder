@@ -165,8 +165,18 @@ class _PhotoCardState extends State<PhotoCard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  widget.card.age != null 
+                  ?
                   Text(
                     '${widget.card.username}, ${widget.card.age}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )
+                  : Text(
+                    widget.card.username,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 24,

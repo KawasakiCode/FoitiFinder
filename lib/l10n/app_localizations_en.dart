@@ -444,4 +444,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get turnWifiOn => 'Please turn on Wifi or Mobile Data to continue';
+
+  @override
+  String get verifyYourEmail => 'Verify Your Email';
+
+  @override
+  String get verifyyourEmail => 'Verify your email';
+
+  @override
+  String get backToSettings => 'Back to settings';
+
+  @override
+  String get mailAlreadyVerified => 'Your email is already verified';
 }

@@ -2,6 +2,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/pages/auth_pages/verify_email.dart';
 import 'package:foitifinder/pages/settings/interest_page.dart';
 import 'package:foitifinder/pages/settings/phone_number_page.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
@@ -124,6 +125,78 @@ class _SettingsPageState extends State<SettingsPage> {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
+                ),
+              ),
+              //Verify email
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 15, top: 10),
+                  child: Text(
+                    text.verifyYourEmail,
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
+                child: Material(
+                  color: Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                    side: const BorderSide(color: Colors.grey, width: 1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      DelayedInkWell(
+                        delayMs: 150,
+                        onTap: () async {
+                          if(FirebaseAuth.instance.currentUser?.emailVerified == true) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(text.mailAlreadyVerified),
+                                backgroundColor: Colors.grey,
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          }
+                            else {
+                              Navigator.push(  
+                              (context),
+                              MaterialPageRoute(builder: (context) => VerifyEmail())
+                            );
+                          }
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                            top: 10,
+                            left: 10,
+                            right: 15,
+                            bottom: 12,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    text.verifyyourEmail,
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               //Discovery Settings (Interests)

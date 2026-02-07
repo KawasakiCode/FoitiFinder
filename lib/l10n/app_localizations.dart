@@ -919,6 +919,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please turn on Wifi or Mobile Data to continue'**
   String get turnWifiOn;
+
+  /// No description provided for @verifyYourEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify Your Email'**
+  String get verifyYourEmail;
+
+  /// No description provided for @verifyyourEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your email'**
+  String get verifyyourEmail;
+
+  /// No description provided for @backToSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to settings'**
+  String get backToSettings;
+
+  /// No description provided for @mailAlreadyVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Your email is already verified'**
+  String get mailAlreadyVerified;
 }
 
 class _AppLocalizationsDelegate

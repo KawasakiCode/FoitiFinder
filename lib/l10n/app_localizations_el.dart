@@ -449,5 +449,18 @@ class AppLocalizationsEl extends AppLocalizations {
   String get noWifi => 'Χωρίς Σύνδεση';
 
   @override
-  String get turnWifiOn => 'Ενεργοποίησε WiFi ή Δεδομένα για να συνεχίσεις';
+  String get turnWifiOn =>
+      'Ενεργοποίησε το WiFi ή τα Δεδομένα για να συνεχίσεις';
+
+  @override
+  String get verifyYourEmail => 'Επαλήθευσε το Email σου';
+
+  @override
+  String get verifyyourEmail => 'Επαλήθευσε το email σου';
+
+  @override
+  String get backToSettings => 'Πίσω στις ρυθμίσεις';
+
+  @override
+  String get mailAlreadyVerified => 'Το email σου έχει ήδη επαληθευτεί';
 }

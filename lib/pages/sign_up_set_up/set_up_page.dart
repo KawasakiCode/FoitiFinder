@@ -77,7 +77,16 @@ class _SetUpPageState extends State<SetUpPage> {
       child: SafeArea(
         child: Scaffold(
           appBar: AppBar(
-            title: Text(text.editProfile),
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(text.editProfile, style: TextStyle(fontSize: 20)),
+                TextButton(  
+                  onPressed: () => confirmAndExit(),
+                  child: Text("Skip", style: TextStyle(fontSize: 20)),
+                )
+              ],
+            ),
             automaticallyImplyLeading: true,
           ),
           body: SingleChildScrollView(

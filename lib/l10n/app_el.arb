@@ -135,5 +135,10 @@
   "addAtLeastAPhoto": "Πρόσθεσε τουλάχιστον μία φωτογραφία για να συνεχίσεις",
   "submit": "Υποβολή",
   "noWifi": "Χωρίς Σύνδεση",
-  "turnWifiOn": "Ενεργοποίησε WiFi ή Δεδομένα για να συνεχίσεις"
+  "turnWifiOn": "Ενεργοποίησε WiFi ή Δεδομένα για να συνεχίσεις",
+  "turnWifiOn": "Ενεργοποίησε το WiFi ή τα Δεδομένα για να συνεχίσεις",
+  "verifyYourEmail": "Επαλήθευσε το Email σου",
+  "verifyyourEmail": "Επαλήθευσε το email σου",
+  "backToSettings": "Πίσω στις ρυθμίσεις",
+  "mailAlreadyVerified": "Το email σου έχει ήδη επαληθευτεί"
 }

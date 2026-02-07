@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:foitifinder/pages/auth_pages/login.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 
 class VerifyEmail extends StatefulWidget {
@@ -18,6 +17,10 @@ class _VerifyEmailState extends State<VerifyEmail> {
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context)!;
     return Scaffold(
+      appBar: AppBar(  
+        automaticallyImplyActions: true,
+        title: Text(text.verifyYourEmail),
+      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -33,22 +36,24 @@ class _VerifyEmailState extends State<VerifyEmail> {
               FirebaseAuth.instance.currentUser?.email ?? '',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
-            SizedBox(height: 20),
             if (_isEmailSent)
-              Container(
-                padding: EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.green[100],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  text.verificationEmailSent,
-                  style: TextStyle(color: Colors.green[800]),
+              Padding(
+                padding: const EdgeInsets.only(top: 10, bottom: 5),
+                child: Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.green[100],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    text.verificationEmailSent,
+                    style: TextStyle(color: Colors.green[800]),
+                  ),
                 ),
               ),
-            SizedBox(height: 20),
+
             Padding(
-              padding: const EdgeInsets.only(top: 8),
+              padding: const EdgeInsets.only(top: 5),
               child: TextButton(
                 onPressed: _isLoading ? null : () async {
                   setState(() {
@@ -120,17 +125,13 @@ class _VerifyEmailState extends State<VerifyEmail> {
               onPressed: () {
                 // Sign out and redirect to login page
                 FirebaseAuth.instance.signOut();
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoginPage()),
-                  (route) => false,
-                );
+                Navigator.pop(context);
               },
               style: TextButton.styleFrom(
                 foregroundColor: Colors.grey[600],
                 textStyle: TextStyle(fontSize: 14),
               ),
-              child: Text(text.backToLogin),
+              child: Text(text.backToSettings),
             ),
           ],
         ),
