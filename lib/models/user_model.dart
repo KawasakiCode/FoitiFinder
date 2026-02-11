@@ -2,6 +2,10 @@
 //email and password are missing because they are on firebase and not in the database
 //the database and firebase are connected through the firebase_token (uid) to find specific users
 
+//Age, gender, minMaxAgeRange, showOutOfRange, isBalanced, interests are here
+//and not in settings model because they affect the matching algorithm and its
+//easier to grab all data needed from one model
+
 class UserModel{
   final int? id;
   final String uid;
@@ -37,7 +41,6 @@ class UserModel{
     this.interests,
   });
 
-  //convert json to usermodel
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel ( 
       uid: json['firebase_token'] ?? (throw Exception("Critical: uid missing")),
@@ -58,7 +61,6 @@ class UserModel{
     );
   }
 
-  //convert usermodel object to map (map is like json)
   Map<String, dynamic> toMap() {
     return {
       'firebase_token': uid,

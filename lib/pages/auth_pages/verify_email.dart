@@ -1,3 +1,6 @@
+//Page to sent verification email to the user
+//Only accessible through the settings page
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
@@ -26,17 +29,20 @@ class _VerifyEmailState extends State<VerifyEmail> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            //Verify email text
             Text(
               text.verifyEmail,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 5),
+            //User's email text
             Text(
               FirebaseAuth.instance.currentUser?.email ?? '',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
             if (_isEmailSent)
+              //Confirmation that verification email was sent
               Padding(
                 padding: const EdgeInsets.only(top: 10, bottom: 5),
                 child: Container(
@@ -51,12 +57,13 @@ class _VerifyEmailState extends State<VerifyEmail> {
                   ),
                 ),
               ),
-
+            //Sent verification email button
             Padding(
               padding: const EdgeInsets.only(top: 5),
               child: TextButton(
                 onPressed: _isLoading ? null : () async {
                   setState(() {
+                    //lock the button so if the user spams it it doesnt sent more emails
                     _isLoading = true;
                   });
 
@@ -85,6 +92,7 @@ class _VerifyEmailState extends State<VerifyEmail> {
                     );
                   } finally {
                     setState(() {
+                      //unlock button 
                       _isLoading = false;
                     });
                   }
@@ -121,10 +129,9 @@ class _VerifyEmailState extends State<VerifyEmail> {
               ),
             ),
             SizedBox(height: 20),
+            //Back button
             TextButton(
               onPressed: () {
-                // Sign out and redirect to login page
-                FirebaseAuth.instance.signOut();
                 Navigator.pop(context);
               },
               style: TextButton.styleFrom(

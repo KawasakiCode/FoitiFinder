@@ -1,3 +1,6 @@
+//The dm (chat) page
+//Here are all the dm's of the user which are effectively all his matches
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
@@ -28,6 +31,7 @@ class _DMPageState extends State<DMPage> {
     _loadDMs();
   }
 
+  //This function grabs all the users matches from the api
   Future<void> _loadDMs() async {
     final dms = await ApiService.getMatches(
       uid: FirebaseAuth.instance.currentUser!.uid,

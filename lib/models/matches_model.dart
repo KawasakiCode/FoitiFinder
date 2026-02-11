@@ -1,3 +1,6 @@
+//Grabs data of the other user from a match
+//Used to show the user's dm's in chat/messages page
+
 class MatchModel {
   final int matchId;
   final int userBid;

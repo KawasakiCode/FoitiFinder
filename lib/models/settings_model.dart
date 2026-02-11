@@ -14,7 +14,6 @@ class SettingsModel{
     this.language,    
   });
 
-  //convert json to settingsmodel
   factory SettingsModel.fromJson(Map<String, dynamic> json) {
     return SettingsModel ( 
       userId: json['user_id'] ?? (throw Exception("Critical: user_id missing")),
@@ -24,7 +23,6 @@ class SettingsModel{
     );
   }
 
-  //convert settingsmodel object to map (map is like json)
   Map<String, dynamic> toMap() {
     return {
       'user_id': userId,

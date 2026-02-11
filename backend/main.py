@@ -33,7 +33,6 @@ class Messages(BaseModel):
 class LikerProfile(BaseModel):
     id: int
     username: str
-    #this later will become the profile photos (not pfp)
     image_url: str
 
     class Config:

@@ -1,4 +1,4 @@
-//the 5 main pages (home, search, likes, messages and profile) get build on top of mainScreen
+//the 4 main pages (home, likes, messages and profile) get build on top of mainScreen
 //mainscreen makes it easier to handle the bottom nav bar by making it custom
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -13,7 +13,6 @@ import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:provider/provider.dart';
 
 class MainScreen extends StatefulWidget {
-  //we need uid to initiate the providers after the page builds
   final String uid;
   const MainScreen({super.key, required this.uid});
 
@@ -27,7 +26,6 @@ class _MainScreenState extends State<MainScreen> {
   //list to hold where the user went so back button doesnt close the app
   final List<int> _navigationHistory = [0];
 
-  //list that holds the 5 main pages loaded to memory
   final List<Widget> _pages = [
     const MyHomePage(),
     const LikesPage(),
@@ -59,7 +57,7 @@ class _MainScreenState extends State<MainScreen> {
 
       //the stream builder grabs a firebase user from local phone cache so the user could be deleted
       //but still login
-      //If database says user is null the the user has been deleted or banned and so we sign out
+      //If database says user is null then the user has been deleted or banned and so we sign out
       if(user == null) {
         await FirebaseAuth.instance.signOut();
       }
@@ -89,16 +87,15 @@ class _MainScreenState extends State<MainScreen> {
 
     return GestureDetector(
       onTap: () => _onItemTapped(index),
-      behavior: HitTestBehavior.opaque, // Ensures clicks work even on empty space
+      behavior: HitTestBehavior.opaque,
       
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOut,
-        // If selected, move UP by 6 pixels. If not, stay at 0.
         transform: Matrix4.translationValues(0, isSelected ? -6.0 : 0.0, 0),
         
         child: Column(
-          mainAxisSize: MainAxisSize.min, // Hug content
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(
@@ -107,7 +104,7 @@ class _MainScreenState extends State<MainScreen> {
               height: 28,
               color: isSelected ? kBrandPurple : Colors.grey[600],
             ),
-            const SizedBox(height: 4), // Gap
+            const SizedBox(height: 4),
             AnimatedDefaultTextStyle(
               duration: const Duration(milliseconds: 200),
               style: TextStyle(
@@ -128,7 +125,6 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      //allow back button to close the app from home page with empty history
       canPop: _selectedIndex == 0 && _navigationHistory.length == 1,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;

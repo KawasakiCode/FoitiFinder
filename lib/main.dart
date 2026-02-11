@@ -1,3 +1,8 @@
+//The main frame of the app
+//Material app, firebase Auth and shared preferences launch here
+//Contains the theme of the app and the locale(language)
+//Contains an internet wrapper and the auth wrapper
+
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -13,25 +18,25 @@ import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 // --- CONTRAST COLORS ---
-const Color kBrandPurple = Color(0xFF8A2BE2); // Vibrant  Purple
-const Color kBrandPurpleDark = Color(0xFF6A1B9A); // Darker shade for contrast
+const Color kBrandPurple = Color(0xFF8A2BE2);
+const Color kBrandPurpleDark = Color(0xFF6A1B9A);
 
 // --- LIGHT THEME PALETTE ---
-const Color kLightBackground = Color(0xFFF0F2F5); // Not pure white (adds depth)
-const Color kLightSurface = Colors.white;         // Cards/AppBar
-const Color kLightTextPrimary = Color(0xFF1A1B1E); // Almost Black
-const Color kLightTextSecondary = Color(0xFF65676B); // Medium Grey
+const Color kLightBackground = Color(0xFFF0F2F5);
+const Color kLightSurface = Colors.white;
+const Color kLightTextPrimary = Color(0xFF1A1B1E); 
+const Color kLightTextSecondary = Color(0xFF65676B); 
 
 // --- DARK THEME PALETTE ---
-const Color kDarkBackground = Color(0xFF111418);  // Very dark grey/blue
-const Color kDarkSurface = Color(0xFF1F2228);     // Slightly lighter for cards
-const Color kDarkTextPrimary = Color(0xFFE4E6EB); // Off-white
-const Color kDarkTextSecondary = Color(0xFFB0B3B8); // Light Grey
+const Color kDarkBackground = Color(0xFF111418);
+const Color kDarkSurface = Color(0xFF1F2228); 
+const Color kDarkTextPrimary = Color(0xFFE4E6EB); 
+const Color kDarkTextSecondary = Color(0xFFB0B3B8); 
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize Firebase asynchronously without blocking UI
+  // Initialize Firebase and Shared Preferences together to reduce wait time
   final results = await Future.wait([
     Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -55,7 +60,6 @@ Future<void> main() async {
 class FoitiFinder extends StatelessWidget {
   const FoitiFinder({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     final settings = Provider.of<SettingsProvider>(context);
@@ -64,48 +68,40 @@ class FoitiFinder extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginPage(),
       },
-      //LIGHT THEME
       theme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.light,
         scaffoldBackgroundColor: kLightBackground,
         
-        // 1. GLOBAL COLORS
         colorScheme: const ColorScheme.light(
           primary: kBrandPurple,
           surface: kLightSurface,
           onSurface: Colors.black,
-          outline: Colors.grey, // Fixes default border colors
+          outline: Colors.grey,
         ),
 
-        // 2. SWITCHES (Crisp Purple)
         switchTheme: SwitchThemeData(
-          // 1. THUMB: White when ON, Dark Grey when OFF (High contrast)
           thumbColor: WidgetStateProperty.resolveWith((states) {
             if (states.contains( WidgetState.selected)) return Colors.white;
-            return Colors.grey[600]; // Darker grey thumb for visibility
+            return Colors.grey[600];
           }),
           
-          // 2. TRACK: Purple when ON, Mid-Grey when OFF (Fixes "Invisible" issue)
           trackColor:  WidgetStateProperty.resolveWith((states) {
             if (states.contains( WidgetState.selected)) return kBrandPurple;
-            return Colors.grey[400]; // Much darker than [200] so you can see it
+            return Colors.grey[400];
           }),
           
-          // 3. BORDER: Transparent (Cleaner look)
           trackOutlineColor:  WidgetStateProperty.all(Colors.transparent),
         ),
 
-        // 3. SLIDERS (Age Range)
         sliderTheme: SliderThemeData(
           activeTrackColor: kBrandPurple,
           inactiveTrackColor: Colors.grey[300],
           thumbColor: Colors.white,
-          overlayColor: kBrandPurple.withValues(alpha: 0.1), // The glow when touching
+          overlayColor: kBrandPurple.withValues(alpha: 0.1),
           valueIndicatorColor: kBrandPurple,
         ),
 
-        // 4. NAVIGATION BAR (Bottom Bar)
         navigationBarTheme: NavigationBarThemeData(
           backgroundColor: kLightSurface,
           elevation: 0,
@@ -113,14 +109,13 @@ class FoitiFinder extends StatelessWidget {
           indicatorShape: const CircleBorder(),          
           iconTheme: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
-              return const IconThemeData(color: kBrandPurple, size: 30); // Active Icon
+              return const IconThemeData(color: kBrandPurple, size: 30);
             }
-            return const IconThemeData(color: Colors.grey, size: 28); // Inactive Icon
+            return const IconThemeData(color: Colors.grey, size: 28);
           }),
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow, // Tinder style: No text labels
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         ),
         
-        // 5. APP BAR
         appBarTheme: const AppBarTheme(
           backgroundColor: kLightSurface,
           scrolledUnderElevation: 0,
@@ -142,13 +137,11 @@ class FoitiFinder extends StatelessWidget {
         ),
       ),
 
-      // DARK THEME
       darkTheme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
         scaffoldBackgroundColor: kDarkBackground,
 
-        // 1. GLOBAL COLORS
         colorScheme: const ColorScheme.dark(
           primary: kBrandPurple,
           surface: kDarkSurface,
@@ -156,23 +149,21 @@ class FoitiFinder extends StatelessWidget {
           surfaceTint: Colors.transparent,
         ),
 
-        // 2. SWITCHES
         switchTheme: SwitchThemeData(
           thumbColor: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) return Colors.white; // Crisp white contrast
-            return Colors.grey[400]; // Unselected thumb
+            return Colors.grey[400];
           }),
           trackColor: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
               return kBrandPurple.withValues(alpha: 0.5);
             }
-            return Colors.grey[800]; // Unselected track (Dark Grey)
+            return Colors.grey[800];
           }),
           
           trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
         ),
 
-        // 3. SLIDERS
         sliderTheme: SliderThemeData(
           activeTrackColor: kBrandPurple,
           inactiveTrackColor: Colors.grey[800],
@@ -180,7 +171,6 @@ class FoitiFinder extends StatelessWidget {
           overlayColor: kBrandPurple.withValues(alpha: 0.2),
         ),
 
-        // 4. NAVIGATION BAR
         navigationBarTheme: NavigationBarThemeData(
           backgroundColor: kDarkSurface,
           
@@ -196,17 +186,16 @@ class FoitiFinder extends StatelessWidget {
           labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         ),
 
-        // 5. INPUTS (Profile Page)
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: kDarkSurface,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none, // Clean look
+            borderSide: BorderSide.none,
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: kBrandPurple, width: 2), // Glows purple when typing
+            borderSide: const BorderSide(color: kBrandPurple, width: 2),
           ),
         ),
         
@@ -242,7 +231,7 @@ class FoitiFinder extends StatelessWidget {
         Locale('en'),
         Locale('el'),
       ],
-      //app launch flow is main -> authwrapper -> mainscreen(load from disk) -> load from db if different
+      //app launch flow is main -> authwrapper -> mainscreen (load from disk) -> load from db if different
       //or main -> authwrapper -> login if no user in firebase cache
       home: InternetWrapper(  
         child: const AuthWrapper(),

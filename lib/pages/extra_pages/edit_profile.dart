@@ -1,5 +1,5 @@
-//found couple of bugs
-//photos possibly show there is an uploading problem to firebase
+//Edit profile page where user can change the following:
+//email, bio, age, fullName, username, photos
 
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -32,10 +32,10 @@ class _EditProfileState extends State<EditProfile> {
   //allow up to 6 photos
   //duplicates allowed
   final List<File?> _photos = List.filled(6, null);
-  //set the image picker
   final ImagePicker _picker = ImagePicker();
 
   @override
+  //grab existing data from firebase and provider(database)
   void initState() {
     super.initState();
 
@@ -60,7 +60,6 @@ class _EditProfileState extends State<EditProfile> {
     }
   }
 
-  //get user photos
   Future<void> _getUserPhotos() async {
     try {
       List<PhotosModel> backendPhotos = await ApiService.getPhotos(FirebaseAuth.instance.currentUser!.uid);
@@ -79,7 +78,7 @@ class _EditProfileState extends State<EditProfile> {
     }
   }
 
-  //download and save actualy photo file
+  //download and save actual photo file
   Future<File> urlToFile(String imageUrl) async {
     final directory = await getTemporaryDirectory();
     final filename = path.basename(imageUrl);
@@ -264,6 +263,7 @@ class _EditProfileState extends State<EditProfile> {
         }
       }
     }
+    //update Provider
     profileProvider.updateLocalUser(
       username: newUsername,
       fullName: newFullName,
@@ -351,6 +351,7 @@ class _EditProfileState extends State<EditProfile> {
                 child: Column(
                   spacing: 20,
                   children: [
+                    //GridView builder for the 6 photo slots
                     GridView.builder(
                       padding: const EdgeInsets.all(10),
                       shrinkWrap: true,
@@ -367,22 +368,27 @@ class _EditProfileState extends State<EditProfile> {
                         return _buildPhotoSlot(index);
                       },
                     ),
+                    //Username TextField
                     TextField(
                       controller: _usernameController,
                       decoration: InputDecoration(labelText: text.username),
                     ),
+                    //Email TextField
                     TextField(
                       controller: _emailController,
                       decoration: InputDecoration(labelText: text.email),
                     ),
+                    //FullName TextField
                     TextField(
                       controller: _fullNameController,
                       decoration: InputDecoration(labelText: text.fullName),
                     ),
+                    //Age TextField
                     TextField(
                       controller: _ageController,
                       decoration: InputDecoration(labelText: text.age),
                     ),
+                    //Bio TextField
                     TextField(
                       controller: _bioController,
                       decoration: InputDecoration(labelText: "Bio"),

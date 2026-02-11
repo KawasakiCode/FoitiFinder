@@ -1,4 +1,5 @@
-//the chat page
+//The messages page
+//Not the chat main page but where the actual messages are sent 
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -22,7 +23,6 @@ class MessagesPage extends StatefulWidget {
 class _MessagesPages extends State<MessagesPage> {
   final TextEditingController _controller = TextEditingController();
   late final texts = AppLocalizations.of(context)!;
-  //list that contains messages
   List<MessageModel> messages = [];
   //timer to periodically check for new messages 
   Timer? _timer;
@@ -43,6 +43,8 @@ class _MessagesPages extends State<MessagesPage> {
     super.dispose();
   }
 
+  //Using the users id and the match id we can find all messages
+  //between the 2 users in the dm and we grab them with the api
   Future<void> _loadMessages() async {
     final uid = FirebaseAuth.instance.currentUser!.uid;
     final myUserId = Provider.of<ProfileProvider>(context, listen: false).currentUser!.id!;
@@ -113,6 +115,7 @@ class _MessagesPages extends State<MessagesPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [  
             Expanded(  
+              //reverse: true makes it so the most recent message is at the bottom
               child: ListView.builder(  
                 reverse: true,
                 itemCount: messages.length,
@@ -147,6 +150,7 @@ class _MessagesPages extends State<MessagesPage> {
                 },
               )
             ),
+            //The TextField where messages are written
             SafeArea(
               child: Padding(
                 padding: const EdgeInsets.only(left: 5, right: 5, bottom: 5),
@@ -169,7 +173,7 @@ class _MessagesPages extends State<MessagesPage> {
                       onPressed: () {
                         FocusScope.of(context).unfocus();
                         _handleSend();
-                      }, // Calls your send function
+                      },
                     ),
                     border: OutlineInputBorder(  
                       borderRadius: BorderRadius.circular(24),
@@ -194,10 +198,10 @@ class _MessagesPages extends State<MessagesPage> {
   }
 }
 
-//message object gets stores on the message list
+//Message object gets stores on the message list
 class Message {
   final String text;
-  final bool isMe; //to know which user send the message
+  final bool isMe; //To know which user send the message
 
   Message({required this.text, required this.isMe});
 }

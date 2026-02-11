@@ -1,3 +1,7 @@
+//Grabs necessary data for the cards that 
+//appear in the users likes page
+//Only contains people that liked the user
+
 class LikerModel {
   final int id;
   final String username;
@@ -15,8 +19,8 @@ class LikerModel {
     return LikerModel(  
       id: json['id'],
       username: json['username'],
-      age: json['age'] ?? 18, //for now because some users may not have age yet
-      imageUrl: json['image_url'] ?? "https://picsum.photos/200" //first user photo NOT pfp
+      age: json['age'] ?? 18,
+      imageUrl: json['image_url'] ?? "https://picsum.photos/200"
     );
   }
 }
