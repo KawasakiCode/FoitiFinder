@@ -1,3 +1,6 @@
+//The main page of the app where swiping takes place
+//Here the deck of cards shows and the user swipes left(pass), right(like), up(super_like) to other users
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -25,19 +28,19 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
+  //The loaded cards are inside this list
+  //We use currentIndex to navigate through the list
+  //CurrentIndex always shows to the current top card
   List<CardData> cards = [];
   int currentIndex = 0;
   final int maxHistory = 5; //how many rewinds until no more
-  final int fetchThreshold = 10; //when 10 cards remain load more
-  final int batchSize = 20; // how many to load at a time
+  final int fetchThreshold = 10; //when 10 cards remain in the current stack load more
+  final int batchSize = 20; // how many cards to load at a time
   bool _isFetching = false;
   bool _hasNoMoreProfiles = false;
   late AnimationController _animationController;
-  //location of where the finger tapped the screen
   double _tapPositionY = 0;
-  //Offset _dragOffset = Offset.zero;
   final ValueNotifier<Offset> _swipeNotifier = ValueNotifier(Offset.zero);
-  //is the card animating (is the controller counting still)
   bool _isAnimating = false;
   // Track swiped cards for rewind functionality
   List<CardData> swipedCards = [];
@@ -53,7 +56,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     currentIndex = 0;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // We want to pre-cache for the Current User (Index 0) and the Next User (Index 1)
+      // We want to pre-cache photos for the Current User (Index 0) and the Next User (Index 1)
       // Determine how many users to look ahead (max 2)
       int usersToPrecache = cards.length > 2 ? 2 : cards.length;
 
@@ -84,9 +87,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   //gesture detector functions
   void _onPanUpdate(DragUpdateDetails details) {
-    //setState(() {
-    _swipeNotifier.value += details.delta;
-    //});
+      _swipeNotifier.value += details.delta;
   }
 
   void _onPanEnd(DragEndDetails details) {
@@ -102,7 +103,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     final verticalThreshold = screenHeight * 0.15;
     final velocityThreshold = 1000.0;
 
-    //when to swipe left and right or reset
+    //when to swipe left, right, up or reset
     bool isSwipeRight = offset.dx > distanceThreshold;
     bool isFlickRight = velocity > velocityThreshold && offset.dx > 0;
     bool isSwipeLeft = offset.dx < -distanceThreshold;
@@ -115,13 +116,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
 
     if (!isSwipeUp && (isSwipeRight || isFlickRight)) {
-      // Swipe threshold or speed threshold met
       _swipeRight();
     } else if (isSwipeLeft || isFlickLeft) {
-      // Swipe left
       _swipeLeft();
     } else {
-      // Return to center
       _resetCard();
     }
   }
@@ -136,7 +134,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       _precacheUserPhotos(cards[currentIndex + 1]);
     }
 
-    // 2. Precache the card after that (Buffer)
+    //Precache the card after that (Buffer)
     if (currentIndex + 2 < cards.length) {
       _precacheUserPhotos(cards[currentIndex + 2]);
     }
@@ -144,13 +142,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   void _precacheUserPhotos(CardData card) {
   if (card.photos.isNotEmpty) {
-    // Loop through photos
     for (int i = 0; i < card.photos.length; i++) {
       
       // OPTIMIZATION: Only cache the first 3 photos. 
       // If the user taps past photo #3, Flutter will load #4 on demand.
       // This prevents the "Swipe Stutter" caused by downloading too much at once.
-      if (i > 5) break; 
+      if (i > 2) break; 
       
       precacheImage(CachedNetworkImageProvider(card.photos[i]), context);
     }
@@ -159,7 +156,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   //swiping functions
   void _swipeRight() async {
-    final cardName = cards[currentIndex].username; // Store name before animation
+    final cardName = cards[currentIndex].username;
     _animateCardOut(1.0, cardName, true);
     bool isMatch = await ApiService.registerSwipe(FirebaseAuth.instance.currentUser!.uid, cards[currentIndex].id, "like");
 
@@ -176,7 +173,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   void _swipeLeft() async {
-    final cardName = cards[currentIndex].username; // Store name before animation
+    final cardName = cards[currentIndex].username;
     await ApiService.registerSwipe(FirebaseAuth.instance.currentUser!.uid, cards[currentIndex].id, "pass");
     _animateCardOut(-1.0, cardName, false);
   }
@@ -198,7 +195,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
   }
 
-  //swiping animation
+  //This function handles the swiping animation
+  //We use a flag _isAnimating to prevent an animation to begin whilst one is already running
+  //The end offset of the animation is set off screen so the card doesnt show at all
+  //This function also updates the currentIndex so if more than 5 cards have been swiped
+  //then delete the first of the 5 because rewind goes up to 5 back
+  //Also if less than 10 cards remain in the deck call function to make more
+
   void _animateCardOut(
     double direction,
     String cardName,
@@ -206,9 +209,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     {bool fromButton = false,
     bool isSuperLike = false}) {
     
-    //if card is currently animating dont animate the next
     if(_isAnimating)return;
-    //lock the function so that it cant run again while still animating
     _isAnimating = true;
 
     if (fromButton) {
@@ -216,7 +217,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
     
     final startOffset = _swipeNotifier.value;
-    //end offset is set off screen 
     Offset endOffset;
 
     if(isSuperLike) {
@@ -244,13 +244,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         currentIndex++;
         _swipeNotifier.value = Offset.zero;
 
-        //if more than 5 cards are behind delete the first
         if (currentIndex > maxHistory) {
           cards.removeAt(0);
           currentIndex--;
         }
 
-        //if less than 10 cards are remaining ahead make new
         int remainingCards = cards.length - currentIndex;
         if (remainingCards <= fetchThreshold) {
           _fetchMoreCards();
@@ -262,7 +260,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     });
   }
 
-  //reset card
+  //Reset card animation
+  //This animation takes the card from wherever it is and sends it to the center where it started
   void _resetCard() {
     if(_isAnimating)return;
     _isAnimating = true;
@@ -297,16 +296,16 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   void _rewindCard() {
     if (currentIndex > 0) {
       setState(() {
-        // Get the last swiped card
         currentIndex--;
 
-        // Reset drag offset
         _swipeNotifier.value = Offset.zero;
         _animationController.reset();
       });
     }
   }
 
+  //This function is responsible for grabbing more cards from the database if less
+  //than 10 remain in the active deck
   Future<void> _fetchMoreCards() async {
     //if the user swipes fast this prevents multiple function calls
     if (_isFetching || _hasNoMoreProfiles) return;
@@ -331,7 +330,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     _isFetching = false;
   }
 
-  //main build function (appbar here)
+  //Main build (UI here)
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -387,20 +386,25 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     return ValueListenableBuilder<Offset>(
       valueListenable: _swipeNotifier,
       builder: (context, offset, child) {
-        //screen size
         final double screenWidth = MediaQuery.of(context).size.width;
         final double screenHeight = MediaQuery.of(context).size.height;
         final double centerPoint = screenHeight / 3;
 
-        //offset and ratio for animations
+        //Offset and ratio for animations
+        //The bgRatio is used to ensure that card behind the top one grows as the user swipes the top one
+        //so when the top one reaches a certain point in the screen the card behind has already taken its place
         final double dragDistance = offset.dx.abs();
         final double ratio = (dragDistance / screenWidth).clamp(0.0, 1.0);
         final double bgRatio = (ratio * 5.0).clamp(0.0, 1.0);
 
-        //rotation direction
+        //rotation direction is used to give direction to the card
+        //if the user grabs the card from the top the card swipes clockwise
+        //if the user grabs the card from the bottom the card swipes counterclockwise
         final double rotationDirection = _tapPositionY > centerPoint
             ? -1.0
             : 1.0;
+        //angle is used to alter how aggresively the card will turn during its animation
+        //low angle is recommended for a smooth feel
         final double angle = (offset.dx * 0.001) * rotationDirection;
 
         return Stack(
@@ -419,6 +423,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 bottom: 0,
                 child: Transform.scale(
                   scale:
+                  //0.05 makes each subsequent card 5% smaller than the previous so
+                  //card 1 100% scale, card 2 95%, card 3 90% etc...
+                  //bgRatio makes card 2 grow bigger as card one gets swiped off the screen
                       (1.0 - (((i - currentIndex)) * 0.05)) + (bgRatio * 0.05),
                   child: _buildCard(cards[i], false),
                 ),
@@ -444,7 +451,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     return Transform.translate(
                       offset: offset,
                       child: Transform.rotate(
-                        angle: angle, // Reduced rotation for smoother feel
+                        angle: angle,
                         child: _buildCard(cards[currentIndex], true),
                       ),
                     );
@@ -470,7 +477,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
             // Swipe indicators (only on top card)
             if (isTop) ...[
-              // Like indicator (right swipe) - positioned on LEFT for better visibility
+              // Like indicator (right swipe)
               if (_swipeNotifier.value.dx > 50 && _swipeNotifier.value.dx.abs() > _swipeNotifier.value.dy.abs())
                 Positioned(
                   top: 60,
@@ -485,7 +492,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   ),
                 ),
 
-              // Pass indicator (left swipe) - positioned on RIGHT for better visibility
+              // Pass indicator (left swipe)
               if (_swipeNotifier.value.dx < -50 && _swipeNotifier.value.dx.abs() > _swipeNotifier.value.dy.abs())
                 Positioned(
                   top: 60,
@@ -524,7 +531,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
   }
 
-  //when cards run out show this function
+  //When cards run out show this function
   Widget _buildNoMoreCards() {
     final text = AppLocalizations.of(context)!;
     return Center(
@@ -547,7 +554,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
   }
 
-  //build the buttons under the cards
+  //Build the buttons under the cards
   Widget _buildActionButtons() {
     // Show rewind button even when no more cards if we have swiped cards
     return Padding(

@@ -1,3 +1,6 @@
+//The likes page is where the user can see who liked him 
+//Here he can like another user back and make a match or pass on them
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
@@ -32,7 +35,7 @@ class _LikesPage extends State<LikesPage>{
     }
   }
 
-  //dialog to show complete user card and option to like and pass it
+  //Dialog to show complete user card and option to like and pass it
   Future<void> _showUserDialog(int userId, int index) async {
     final text = AppLocalizations.of(context)!;
     final result = await showGeneralDialog<bool>(
@@ -68,7 +71,7 @@ class _LikesPage extends State<LikesPage>{
                       top: 0,
                       left: 0,
                       right: 0,
-                      bottom: 90, // Leave room for buttons!
+                      bottom: 90, // Leave room for buttons
                       child: ClipRRect(
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(20),
@@ -88,17 +91,15 @@ class _LikesPage extends State<LikesPage>{
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          // REJECT
                           AnimatedSwipeButton(
                             icon: Icons.close,
                             activeColor: Colors.red,
-                            size: 65, // Main buttons are bigger
+                            size: 65,
                             onPressed: () async {
                               await ApiService.registerSwipe(FirebaseAuth.instance.currentUser!.uid, _likes[index].id, "pass");
                               if (context.mounted) Navigator.pop(ctx, true);
                             },
                           ),
-                          // LIKE
                           AnimatedSwipeButton(
                             icon: Icons.favorite,
                             activeColor: Colors.green,

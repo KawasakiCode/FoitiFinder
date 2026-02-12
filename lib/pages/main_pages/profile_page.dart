@@ -1,3 +1,7 @@
+//This is the profile page
+//Here the user can edit their profile (bio, age, email..)
+//Also here the user can change their pfp
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/dummy_user_data.dart';
@@ -27,15 +31,15 @@ class _ProfilePageState extends State<ProfilePage> {
     }
     ImageProvider backgroundImage;
 
-    //first check if pfp is stored locally
+    //First check if pfp is stored locally
     if(profileProvider.tempProfileImage != null) {
       backgroundImage = ResizeImage(FileImage(profileProvider.tempProfileImage!), width: 300);
     }
-    //if not locally grab it from the cloud
+    //If not locally grab it from the cloud
     else if(profileProvider.currentUser?.imageUrl != null && profileProvider.currentUser!.imageUrl!.isNotEmpty) {
       backgroundImage = CachedNetworkImageProvider(profileProvider.currentUser!.imageUrl!);
     }
-    //else show default pfp
+    //Else show default pfp
     else {
       backgroundImage = AssetImage('assets/images/default_avatar.png');
     }
@@ -70,10 +74,10 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       body: Column(
         children: [
-          //main row (pfp, username, age)
+          //Main row (pfp, username, age)
           Row(
             children: [
-              //pfp
+              //Pfp
               Padding(
                 padding: EdgeInsets.fromLTRB(20, 20, 15, 15),
                 child: GestureDetector(
@@ -87,7 +91,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
               ),
-              //username, age, edit profile button
+              //Username, age, edit profile button
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -138,6 +142,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ],
           ),
+          //TODO to be deleted. Only for test purposes
           FloatingActionButton(
             onPressed: () async {
               await DummyDataService().generateDummyUsers(15);
