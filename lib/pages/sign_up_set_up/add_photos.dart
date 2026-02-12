@@ -1,4 +1,4 @@
-//this file will only be called after the phone verified page of the 
+//This file will only be called after the phone verified page of the 
 //initial sign up setup. The user should only see this file once on signup
 //File is responsible for initial picking and uploading the user's photos
 //to firebase cloud as well creating the links of the photos and 

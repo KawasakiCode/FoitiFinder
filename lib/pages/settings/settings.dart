@@ -1,3 +1,10 @@
+//The settings page
+//Here the user can change theme, language, verify their email
+//change interests, age range etc...
+
+//Most settings changed here are monitored by SettingsProvider 
+//and stored in SharedPreferences
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -27,12 +34,14 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  //settings page ui
+  //UI
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
     final settings = Provider.of<SettingsProvider>(context);
     final text = AppLocalizations.of(context)!;
+    //Interests start as a map because language can change 
+    //and we need to display the correct language 
     final Map<String, String> interestsMap = {
       'Women': text.women,
       'Men': text.men,

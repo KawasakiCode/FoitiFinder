@@ -1,4 +1,4 @@
-//this widget creates the users card 
+//This widget creates the users card 
 //but made to handle showing photos and having the left and right tap functionality
 //to change photos if user has more than one
 

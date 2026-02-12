@@ -1,4 +1,4 @@
-//provider that loads the profile of the user like profile picture username, age
+//Provider that loads the profile of the user (profile picture username, age)
 //only used for profile related variables
 
 import 'dart:convert';
@@ -15,8 +15,8 @@ class ProfileProvider extends ChangeNotifier {
   File? _tempprofileImage; //to preview updates and check for changes
   UserModel? _currentUser;
 
-  //the provider when initialized loads data from disk or if disk is empty loads null
-  //using this way we save the time of making a call to the db
+  //The provider when initialized loads data from disk or if disk is empty loads null
+  //Using this way we save the time of making a call to the db
   //99% of the time disk will be correct anyway
   ProfileProvider(this._prefs) {
     _loadUser();
@@ -27,7 +27,7 @@ class ProfileProvider extends ChangeNotifier {
   //user getter
   UserModel? get currentUser => _currentUser;
 
-  //function to load user from disk
+  //Load from disk
   void _loadUser() {
     String? userJson = _prefs.getString('user_data');
 
@@ -44,7 +44,7 @@ class ProfileProvider extends ChangeNotifier {
     }
   }
 
-  //load user data from postgres database and also store them in prefs if empty
+  //Load user data from postgres database and also store them in prefs if empty or different
   Future<void> fetchUserFromApi(String uid) async {
     
     UserModel? user = await ApiService.getUserData(uid);
@@ -57,31 +57,29 @@ class ProfileProvider extends ChangeNotifier {
     }
   }
 
-  //pick the image file store it temporarily and upload it to cloud and get the url back
+  //Pick the image file, store it temporarily and upload it to cloud and get the url back
   Future<void> updateProfilePicture() async {
-    //pick image
     File? file = await ImageService.pickImage();
     if(file == null)return;
 
-    //store it temporarily and show it
     _tempprofileImage = file;
     notifyListeners();
 
-    //upload it to cloud
+    //Upload to cloud
     String? uid = _currentUser?.uid;
     if(uid != null) {
       String? url = await ImageService.uploadImage(file, uid);
-      //update the db user data and local user data
+      //Update the db user data and local user data
       if(url != null) {
         await ApiService.updateUserData(uid: uid, imageUrl: url);
         updateLocalUser(imageUrl: url);
-        //clean temp file
+        //Clean temp file
         _tempprofileImage = null;
       }
     }     
   }
 
-  //register new user on sign up
+  //Register new user on sign up
   Future<void> registerUser({
     required String uid,
     required String username,
@@ -98,7 +96,6 @@ class ProfileProvider extends ChangeNotifier {
     bool? isBalanced,
     String? interests,
   }) async {
-      //create new user in the database
       await  ApiService.createUser(  
         uid: uid,
         username: username,
@@ -116,7 +113,7 @@ class ProfileProvider extends ChangeNotifier {
         hasPhotos: hasPhotos,
       );
 
-      //store users data locally
+      //Store users data locally
       _currentUser = UserModel(  
         uid: uid,
         username: username,
@@ -138,6 +135,7 @@ class ProfileProvider extends ChangeNotifier {
       notifyListeners();
   }
 
+  //Update users data (sync with database)
   void updateLocalUser({
     String? username,
     String? fullName,
@@ -165,6 +163,7 @@ class ProfileProvider extends ChangeNotifier {
     await _prefs.setString('user_data', jsonEncode(_currentUser!.toMap()));
   }
 
+  //Clear all data (used on logout)
   Future<void> clearData() async {
     _currentUser = null;
     _tempprofileImage = null;

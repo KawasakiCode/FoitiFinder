@@ -1,3 +1,13 @@
+//From this page the user can delete their account permanently
+//As of now the deletion is instant
+//Later a grace period of 10 days will be added in case the user changes 
+//their mind or deleted accidenticaly
+
+//Request the user's password for 2 reasons:
+//Security to prevent third party deleting someone's account
+//Firebase sometime throws requires-recent-login exception which would
+//force the user to log out and in again which is bad UX
+
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -51,7 +61,6 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
             ),
             child: Column(
               children: [
-                //header text
                 Padding(
                   padding: EdgeInsets.only(left: 15, right: 15, top: 10),
                   child: Text(
@@ -61,7 +70,6 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                   ),
                 ),
                 Divider(color: Colors.grey, thickness: 0.8),
-                //long text
                 Padding(
                   padding: EdgeInsets.only(left: 15, right: 15, top: 10),
                   child: Text(
@@ -193,10 +201,6 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                           password: password,
                         );
                         await user.reauthenticateWithCredential(credential);
-
-                        // Get user data before deletion (if needed for Firestore deletion or logging)
-                        // You can add Firestore deletion here if needed:
-                        // await FirebaseFirestore.instance.collection('users').doc(user.uid).delete();
 
                         // Delete the user account from Firebase Auth
                         await user.delete();

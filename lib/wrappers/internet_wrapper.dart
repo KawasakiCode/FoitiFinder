@@ -1,4 +1,4 @@
-//internet connection wrapper
+//Internet connection wrapper
 //if it detects a connection loss it pushes a no internet page 
 //when the wifi comes back again it automatically returns to the page it was
 

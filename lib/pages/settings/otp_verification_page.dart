@@ -1,3 +1,6 @@
+//In this page the user enters the OTP code from the sms sent to them
+//for phone number verification
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
@@ -37,7 +40,7 @@ class _OtpVerificationPage extends State<OtpVerificationPage> {
     super.dispose();
   }
 
-//when a number is inserted into the controllers
+//When a number is inserted into the controllers sent focus to the next one
   void _onDigitEntered(int index, String value) {
     if (value.length == 1 && index < 5) {
       FocusScope.of(context).requestFocus(focusNodes[index + 1]);
@@ -46,7 +49,7 @@ class _OtpVerificationPage extends State<OtpVerificationPage> {
     }
   }
 
-//build the 6 controllers
+//Build the 6 controllers
   Widget _buildBox(int index) {
     return SizedBox(
       width: 45,
@@ -65,10 +68,10 @@ class _OtpVerificationPage extends State<OtpVerificationPage> {
     );
   }
 
-//after pressing verify
+//After pressing verify
   Future<void> _submitOtp() async {
     final code = controllers.map((c) => c.text).join();
-    //if code less try again
+    //if code less than 6 try again
     if (code.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -80,7 +83,6 @@ class _OtpVerificationPage extends State<OtpVerificationPage> {
       return;
     }
 
-    //get users phone number
     PhoneAuthCredential credential = PhoneAuthProvider.credential(
       verificationId: widget.verificationId,
       smsCode: code,
@@ -89,7 +91,7 @@ class _OtpVerificationPage extends State<OtpVerificationPage> {
 
     try {
       User? currentUser = FirebaseAuth.instance.currentUser;
-      //should never happen
+      //Should NEVER happen
       if (currentUser == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -101,13 +103,13 @@ class _OtpVerificationPage extends State<OtpVerificationPage> {
         return;
       }
 
-      //link phone number to user
+      //Link phone number to user
       await currentUser.linkWithCredential(credential);
       if(!mounted)return;
       final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
       settingsProvider.verifyPhone();
       if(!context.mounted)return;
-      //return to phoneNumberPage and sent success true
+      //Return to phoneNumberPage and sent success true
       Navigator.pop(context);
 
     } on FirebaseAuthException {
@@ -122,7 +124,7 @@ class _OtpVerificationPage extends State<OtpVerificationPage> {
     }
   }
 
-//otp page ui
+//Page UI
   @override
   Widget build(BuildContext context) {
     return Scaffold(

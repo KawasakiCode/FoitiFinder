@@ -1,3 +1,13 @@
+//The initial setup after the user sing's up
+//Here the user needs to provide their phone number
+//Phone number is required because it is harder to fill the app with bots
+//General information and settings can also be given in this page
+//like bio, age, interests etc...
+
+//This page is shown only once after the user sign's up.
+//If the user quits the app while in this page then the app will
+//launch here next time
+
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/main_screen.dart';
@@ -32,6 +42,7 @@ class _SetUpPageState extends State<SetUpPage> {
     );
   }
 
+  //Put user data if available in the database
   void confirmAndExit() async {
     final user = Provider.of<ProfileProvider>(context, listen: false).currentUser!;
 
@@ -68,6 +79,7 @@ class _SetUpPageState extends State<SetUpPage> {
     );
   }
 
+  //UI
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context)!;
@@ -95,7 +107,7 @@ class _SetUpPageState extends State<SetUpPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  //age controller
+                  //Age controller
                   Padding(
                     padding: const EdgeInsets.only(top: 10, bottom: 7),
                     child: Text(
@@ -113,7 +125,7 @@ class _SetUpPageState extends State<SetUpPage> {
                       decoration: InputDecoration(labelText: text.age),
                     ),
                   ),
-                  //bio controller
+                  //Bio controller
                   Padding(
                     padding: const EdgeInsets.only(top: 10, bottom: 7),
                     child: Text(
@@ -131,7 +143,7 @@ class _SetUpPageState extends State<SetUpPage> {
                       decoration: InputDecoration(labelText: "Bio"),
                     ),
                   ),
-                  //interests
+                  //Interests
                   Padding(
                     padding: const EdgeInsets.only(top: 10),
                     child: Text(
@@ -271,7 +283,7 @@ class _SetUpPageState extends State<SetUpPage> {
                       ),
                     ),
                   ),
-                  //age range
+                  //Age range
                   Padding(
                     padding: const EdgeInsets.only(top: 20, right: 10),
                     child: Row(
@@ -301,7 +313,7 @@ class _SetUpPageState extends State<SetUpPage> {
                     divisions: 82,
                     onChanged: (v) => settings.saveAgeRange(v),
                   ),
-                  //gender
+                  //Gender
                   Padding(
                     padding: const EdgeInsets.only(top: 10),
                     child: Text(
@@ -398,7 +410,7 @@ class _SetUpPageState extends State<SetUpPage> {
                       ),
                     ),
                   ),
-                  //confirm button
+                  //Confirm button
                   Padding(
                     padding: const EdgeInsets.only(top: 20),
                     child: Align(

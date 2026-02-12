@@ -1,3 +1,6 @@
+//This is the page where the user can change their phone number
+//after the initial sign up 
+
 import 'package:flutter/material.dart';
 import 'package:foitifinder/pages/settings/otp_verification_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -18,7 +21,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
   final TextEditingController _phoneNumberController = TextEditingController();
   bool _isValid = false;
 
-  //validate phone number and return it to sent to otp page
+  //Validate phone number and return it to sent to otp page
   String _validateNumber() {
     final String phoneNumber;
     final input = _phoneNumberController.text.trim();
@@ -102,7 +105,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
     }
   }
 
-  //phone_number_page ui
+  //UI
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -149,7 +152,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
               ),
               Center(
                 child: TextButton(
-                  //onpress call validate number and redirect to otp page
+                  //Onpress calls validate number and redirects to otp page
                   onPressed: _verifyNumber,
                   child: Text(
                     text.updatePhoneNumber,

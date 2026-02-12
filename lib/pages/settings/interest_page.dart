@@ -1,9 +1,15 @@
+//This page is for the user to select who they are interested in
+//The interests are sent to the settings provider where they are 
+//also stored in the database and Shared Preferences
+
 import 'package:flutter/material.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:provider/provider.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/widgets/delayed_inkwell.dart';
 
+//Use a set for the interests since no duplicates are allowed
+//and available options are only 3
 Set<String> _selectedInterests = {};
 
 class InterestPage extends StatefulWidget {

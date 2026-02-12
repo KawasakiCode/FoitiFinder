@@ -1,4 +1,4 @@
-//decides what page to push depending if user finished the initial sign up setup or not
+//Decides what page to push depending if user finished the initial sign up setup or not
 //gets called only by auth wrapper
 
 import 'package:firebase_auth/firebase_auth.dart';

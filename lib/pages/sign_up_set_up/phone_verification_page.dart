@@ -1,3 +1,5 @@
+//Same page with settings phone number verification page
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/pages/sign_up_set_up/add_photos.dart';

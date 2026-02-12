@@ -1,4 +1,4 @@
-//widget that contains the stream builder that grabs firebase data and changes
+//Widget that contains the stream builder that grabs firebase data and changes
 //gets called by main 
 //is const because flutter wont rebuild it everytime we call notifyListeners 
 //in settings provider. If it wasnt a const an infinite loop happens
