@@ -1,4 +1,4 @@
-//the provider that loads and changes global settings like dark mode, language. 
+//The provider that loads and changes global settings like dark mode, language. 
 //used only for settings within the settings page
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -15,7 +15,7 @@ enum RecommendationPreference {balanced, recentlyActive}
 class SettingsProvider extends ChangeNotifier {
   final SharedPreferences _prefs;
 
-  //the provider when initialized loads data from disk or if disk is empty loads the defaults
+  //The provider when initialized loads data from disk or if disk is empty loads the defaults
   //using this way we save the time of making a call to the db
   //99% of the time disk will be correct anyway
   SettingsProvider(this._prefs){
@@ -61,7 +61,7 @@ class SettingsProvider extends ChangeNotifier {
   Future<void> fetchSettingsFromApi(String uid) async {
     SettingsModel data = await ApiService.getUsersSettings(uid);
     UserModel? userData = await ApiService.getUserData(uid);
-    //theme  
+    //Theme  
     if(_prefs.getBool('isDark') == null) {
       bool isDark = data.isDark ?? false;
       _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
@@ -71,10 +71,10 @@ class SettingsProvider extends ChangeNotifier {
       _themeMode = _prefs.getBool('isDark')! ? ThemeMode.dark : ThemeMode.light;
     }
 
-    //is phone verified
+    //Is phone verified
     _isPhoneVerified = _prefs.getBool('isPhoneVerified') ?? false;
 
-    //interests
+    //Interests
     if(_prefs.getStringList('user_interests') == null) {
       _interests =  (userData?.interests == null
       ? {}
@@ -96,7 +96,7 @@ class SettingsProvider extends ChangeNotifier {
       _gender = _prefs.getString('gender') ?? "";
     }
 
-    //age range
+    //Age range
     if(_prefs.getInt('min_age') == null || _prefs.getInt('max_age') == null) {
       _ageRange = RangeValues(userData?.minAgeRange == null ? 18 : userData!.minAgeRange!.toDouble(),
         userData?.maxAgeRange == null ? 30 : userData!.maxAgeRange!.toDouble());
@@ -109,7 +109,7 @@ class SettingsProvider extends ChangeNotifier {
       _ageRange = RangeValues(min!.toDouble(), max!.toDouble());
     }
     
-    //show out of age range
+    //Show out of age range
     if(_prefs.getBool('outOfRange') == null) {
       _showOutOfRange = userData?.showOutOfRange == null ? false : userData!.showOutOfRange!;
       _prefs.setBool('outOfRange', _showOutOfRange);
@@ -118,7 +118,7 @@ class SettingsProvider extends ChangeNotifier {
       _showOutOfRange = _prefs.getBool('outOfRange')!;
     }
     
-    //recommendation preference
+    //Recommendation preference
     if(_prefs.getString('recommendationOpt') == null) {
       bool isBalanced = userData?.isBalanced ?? true;
       _currentOpt = isBalanced ? RecommendationPreference.balanced : RecommendationPreference.recentlyActive;
@@ -134,6 +134,7 @@ class SettingsProvider extends ChangeNotifier {
       }
     }
     
+    //Language
     String langCode;
     if(_prefs.getString('language_code') == null) {
       langCode =  data.language!;
@@ -156,14 +157,14 @@ class SettingsProvider extends ChangeNotifier {
       }
     }
 
-
+    //Notifications
     bool pushNotifications;
     if(_prefs.getBool('notifications_enabled') == null) {
       SettingsModel data = await ApiService.getUsersSettings(FirebaseAuth.instance.currentUser!.uid);
-      //does the os give permission
+      //Does the os give permission?
       bool osPermission = await checkNotificationPermission();
       _osPermission = osPermission;
-      //if os and db return true then enable notifications else keep false
+      //If os and db return true then enable notifications else keep false
       if(osPermission && data.isNotificationsOn!) {
         pushNotifications = true;
         _prefs.setBool('notifications_enabled', true);
@@ -183,6 +184,7 @@ class SettingsProvider extends ChangeNotifier {
       }
       
     }
+    //Firebase code to give permission for push notifications
     try{
       FirebaseMessaging messaging = FirebaseMessaging.instance;
       NotificationSettings settings = await messaging.getNotificationSettings();
@@ -221,20 +223,20 @@ class SettingsProvider extends ChangeNotifier {
         badge: true,
         sound: true,
       );
-      //if user accepts permissions they are enabled and switch stays on
+      //If user accepts permissions they are enabled and switch stays on
       if(settings.authorizationStatus == AuthorizationStatus.authorized) {
         _pushNotificationsEnabled = true;
-        //token to identify specific user to send push notifications
+        //Token to identify specific user to send push notifications
         //String? token = await messaging.getToken();
         await _prefs.setBool('notifications_enabled', value);
         _osPermission = true;
       }
-      //if user declines then switch stays off and no notifications can be sent
+      //If user declines then switch stays off and no notifications can be sent
       else {
         _pushNotificationsEnabled = false;
       }
     }
-    //if the switch is gets turned off stop sending notifications
+    //If the switch is gets turned off stop sending notifications
     else {
       _pushNotificationsEnabled = false;
     }
@@ -250,7 +252,7 @@ class SettingsProvider extends ChangeNotifier {
     await _prefs.setBool('isPhoneVerified', true);
   }
 
-  //add or remove interests
+  //Add or remove interests
   void addRemoveInterests(String interest) {
     if(_interests.contains(interest)) {
       _interests.remove(interest);
@@ -262,14 +264,14 @@ class SettingsProvider extends ChangeNotifier {
     _saveInterests();
   }
 
-  //store interests into disk
+  //Store interests into disk
   Future<void> _saveInterests() async {
     _prefs.setStringList('user_interests', _interests.toList());
     final String interestsString  = _interests.join(',');
     await ApiService.updateUserData(uid: FirebaseAuth.instance.currentUser!.uid, interests: interestsString);
   }
 
-  //split range values to save them to disk
+  //Split range values to save them to disk
   Future<void> saveAgeRange(RangeValues values) async {
     _ageRange = values;
     _prefs.setInt('min_age', values.start.round());
@@ -280,7 +282,7 @@ class SettingsProvider extends ChangeNotifier {
       maxAgeRange: values.end.round());
   }
 
-  //store out of range switch state
+  //Store out of range switch state
   void storeShowOutOfRange(bool outOfRange) async {
     _showOutOfRange = outOfRange;
     _prefs.setBool('outOfRange', outOfRange);
@@ -289,7 +291,7 @@ class SettingsProvider extends ChangeNotifier {
       showOutOfRange: _showOutOfRange);
   }
 
-  //recommendation preference
+  //Recommendation preference
   Future<void> changeRecommendationPreference(RecommendationPreference opt) async {
     _currentOpt = opt;
     notifyListeners();
@@ -305,7 +307,7 @@ class SettingsProvider extends ChangeNotifier {
     await ApiService.updateUsersSettings(uid: FirebaseAuth.instance.currentUser!.uid, language: languageCode);
   }
 
-  //for _prefs cleanup
+  //Clear all prefs for logout
   Future<void> clearData() async {
     await _prefs.clear();
     _loadDefaults();
@@ -323,7 +325,7 @@ class SettingsProvider extends ChangeNotifier {
     await ApiService.updateUserData(uid: FirebaseAuth.instance.currentUser!.uid, gender: _gender);
   }
 
-  //does os give permission for notifications
+  //Does os give permission for notifications
   Future<bool> checkNotificationPermission() async {
     PermissionStatus status = await Permission.notification.status;
 
