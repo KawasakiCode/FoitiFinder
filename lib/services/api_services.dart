@@ -1,3 +1,6 @@
+//This file makes all the api calls to the python fast api server
+//Each static function serves a specific purpose and calls one endpoint from the server
+
 import 'dart:convert';
 import 'package:foitifinder/models/card_data_model.dart';
 import 'package:foitifinder/models/liker_model.dart';
@@ -11,12 +14,12 @@ import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 
 class ApiService {
-  //test for emulator
+  //Test for emulator
   static const String baseUrl = "http://10.0.2.2:8000";
-  //test for real phone
+  //Test for real phone
   // static const String baseUrl = "http://127.0.0.1:8000"; 
 
-  //create new user (only runs on sign up)
+  //Create new user (only runs on sign up)
   static Future<void> createUser({
     required String uid,
     required String username,
@@ -68,7 +71,7 @@ class ApiService {
     }
   }
 
-  //update user data
+  //Update user data
   static Future<void> updateUserData({
     required String uid,
     String? username,
@@ -119,7 +122,7 @@ class ApiService {
     }
   }
 
-  //get users data back
+  //Get users data back
   static Future<UserModel?> getUserData(String uid) async {
     final url = Uri.parse('$baseUrl/users/$uid');
     try {
@@ -140,7 +143,7 @@ class ApiService {
     }
   }
 
-  //update user's  settings
+  //Update user's  settings
   static Future<void> updateUsersSettings({
     required String uid,
     bool? isDarkMode,
@@ -170,7 +173,7 @@ class ApiService {
     }
   }
 
-  //get user's settings back
+  //Get user's settings back
   static Future<SettingsModel> getUsersSettings(String uid) async {
     final url = Uri.parse("$baseUrl/users/settings/$uid");
     try {
@@ -188,7 +191,7 @@ class ApiService {
     }
   }
 
-  //get multiple users
+  //Get multiple users to display as cards
   static Future<List<CardData>> getMultipleUsers(String uid) async {
     final url = Uri.parse("$baseUrl/users/feed/$uid");
     try {
@@ -210,7 +213,7 @@ class ApiService {
     }
   }
 
-  //get matches aka dms
+  //Get matches aka dms
   static Future<List<MatchModel>> getMatches({
     required String uid,
   }) async {
@@ -231,7 +234,7 @@ class ApiService {
     }
   }
 
-  //post message to db
+  //Post message to db
   static Future<bool> postMessage({
     required String uid,
     required int matchId,
@@ -260,7 +263,7 @@ class ApiService {
     }
   }
 
-  //get all messages from a conversation in reverse chronological order (last to first)
+  //Get all messages from a conversation in reverse chronological order (last to first)
   static Future<List<MessageModel>> getMessages(String uid, int myUserId, int matchId) async {
     final url = Uri.parse("$baseUrl/messages/$matchId?firebase_token=$uid");
 
@@ -278,7 +281,7 @@ class ApiService {
     }
   }
 
-  //get all likes 
+  //Get all likes 
   static Future<List<LikerModel>> getLikes(String uid) async {
     final url = Uri.parse("$baseUrl/likes/$uid");
 
@@ -297,7 +300,7 @@ class ApiService {
     }
   }
 
-  //get user photos
+  //Get user photos
   static Future<List<PhotosModel>> getPhotos(String uid) async {
     final url = Uri.parse("$baseUrl/photos/$uid");
 
@@ -316,7 +319,7 @@ class ApiService {
     }
   }
 
-  //upload a photo to database
+  //Upload a photo to database
   static Future<bool> uploadPhoto({
     required String uid,
     required String photoUrl,
@@ -343,10 +346,10 @@ class ApiService {
     }
   }
 
-  //upload the photo file to firebase cloud and return the url
+  //Upload the photo file to firebase cloud and return the url
   static Future<String?> uploadToFirebase(File imageFile, String uid) async {
     try {
-      //to ensure unique file name and path
+      //To ensure unique file name and path
       String fileName = DateTime.now().millisecondsSinceEpoch.toString();
       Reference ref = FirebaseStorage.instance.ref().child('users/$uid/gallery/$fileName.jpg');
 
@@ -360,7 +363,7 @@ class ApiService {
     }
   }
 
-  //register swipe
+  //Register swipe (pass, like, super like)
   static Future<bool> registerSwipe(String uid, int otherUserId, String action) async {
     final url = Uri.parse("$baseUrl/swipes");
 
@@ -384,7 +387,7 @@ class ApiService {
     }
   }
 
-  //get a single user by id
+  //Get a single user by id
   static Future<CardData> getSingleUser(int userId) async {
     final url = Uri.parse("$baseUrl/single/user/$userId");
 
@@ -404,7 +407,7 @@ class ApiService {
     }
   }
 
-  //get new matches
+  //Get new matches
   static Future<List<MatchModel>> getNewMatches(String uid) async {
     final url = Uri.parse("$baseUrl/matches/unseen?firebase_token=$uid");
 
@@ -423,7 +426,7 @@ class ApiService {
     }
   }
 
-  //update match seen
+  //Update match as seen
   static Future<void> updateMatchSeen(int matchId, String uid) async {
     final url = Uri.parse("$baseUrl/matches/seen/$matchId?firebase_token=$uid");
 

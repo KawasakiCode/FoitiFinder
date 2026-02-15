@@ -1,16 +1,16 @@
-//manages local profile image handling as well as picking an image from users gallery
-//gets called strictly by the profile_provider.dart to handle pfp
+//Manages local profile image handling as well as picking an image from users gallery
+//Gets called strictly by the profile_provider.dart to handle pfp
 
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 class ImageService {
-  //the object that handles grabbing the file that the user selects
+  //The object that handles grabbing the file that the user selects
   static final ImagePicker _picker = ImagePicker();
 
-  //the function that handles the picking and also reducing the image quality
-  //to save size and upload times
+  //The function that handles the picking and also reducing the image quality
+  //To save size and upload times
   //Returns the path of the selected image
   static Future<File?> pickImage() async {
     final XFile? pickedFile = await _picker.pickImage(  
@@ -24,18 +24,18 @@ class ImageService {
     return File(pickedFile.path);
   }
 
-  //function that uploads the image file in the firebase cloud and returns the unique url for it
-  //image is the image that will be uploaded to the cloud
-  //uid is the unique user identifier so postgres knows to which user to save the returned url
+  //Function that uploads the image file in the firebase cloud and returns the unique url for it
+  //Image is the image that will be uploaded to the cloud
+  //Uid is the unique user identifier so postgres knows to which user to save the returned url
   static Future<String?> uploadImage(File image, String uid) async {
     try {
-      //the adress in the cloud. Where the file will be stored in the cloud bucket
+      //The adress in the cloud. Where the file will be stored in the cloud bucket
       final Reference storageRef = FirebaseStorage.instance
       .ref().child('profile_image/$uid.jpg');
 
-      //upload of the file to the cloud
+      //Upload of the file to the cloud
       final UploadTask uploadTask = storageRef.putFile(image);
-      //pause until the file gets uploaded
+      //Pause until the file gets uploaded
       final TaskSnapshot snapshot = await uploadTask;
       return await snapshot.ref.getDownloadURL();
     } catch (e) {
