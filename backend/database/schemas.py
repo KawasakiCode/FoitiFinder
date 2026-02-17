@@ -18,6 +18,7 @@ class UserBase(BaseModel):
     interests: str | None = None
     has_finished_set_up: bool | None = False
     has_photos: bool | None = False
+    score: float | None = 0
 
 #for patch endpoints to update a single attribute without needing the others too
 class UserUpdate(BaseModel):
@@ -34,6 +35,7 @@ class UserUpdate(BaseModel):
     interests: str | None = None
     has_finished_set_up: bool | None = False
     has_photos: bool | None = False
+    score: float | None = 0
 
 
 #this adds the fields produced by the database to be returned to the phone

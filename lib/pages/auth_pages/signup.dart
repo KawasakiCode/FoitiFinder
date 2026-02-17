@@ -96,6 +96,7 @@ class _SignUpPageState extends State<SignUpPage> {
         showOutOfRange: null,
         isBalanced: null,
         interests: null,
+        score: 0
       );
       // If successful, navigate to phone verification page
       if (!mounted) return;

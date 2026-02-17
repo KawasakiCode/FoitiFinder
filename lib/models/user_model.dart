@@ -22,6 +22,7 @@ class UserModel{
   final String? interests;
   final bool hasFinishedSetUp;
   final bool hasPhotos;
+  final double score;
 
   UserModel({
     required this.uid,
@@ -29,6 +30,7 @@ class UserModel{
     required this.fullName,
     required this.hasFinishedSetUp,
     required this.hasPhotos,
+    required this.score,
     this.id,
     this.bio,
     this.age,
@@ -46,6 +48,7 @@ class UserModel{
       uid: json['firebase_token'] ?? (throw Exception("Critical: uid missing")),
       username: json['username'] ?? (throw Exception("Critical: username missing")),
       hasFinishedSetUp: json['has_finished_set_up'] ?? (throw Exception("Critical: finishedSetUp missing")),
+      score: json['score'],
       fullName: json['full_name'],
       id: json['id'],
       bio: json['bio'],
@@ -66,6 +69,7 @@ class UserModel{
       'firebase_token': uid,
       'username': username,
       'has_finished_set_up': hasFinishedSetUp,
+      'score' : score,
       'full_name': fullName,
       'id': id,
       'bio': bio,

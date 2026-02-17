@@ -1,5 +1,5 @@
 
-from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP, text, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP, text, ForeignKey, Float
 from sqlalchemy.orm import relationship
 from .database import Base
 
@@ -22,6 +22,7 @@ class User(Base):
     interests = Column(String, nullable = True)
     has_finished_set_up = Column(Boolean, nullable = False)
     has_photos = Column(Boolean, nullable = False)
+    score = Column(Float, nullable = True)
 
     settings = relationship("Settings", back_populates="user", uselist=False, cascade="all, delete")
     photos = relationship("Photos", back_populates="user")
