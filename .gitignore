@@ -73,3 +73,6 @@ backend/__pycache__/
 backend/.env
 .vscode/
 .idea/
+matchmaker/venv/
+matchmaker/.venv/
+matchmaker/__pycacke__/

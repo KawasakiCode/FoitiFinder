@@ -1,5 +1,10 @@
 # Face Scoring Methodology
 
+## Note: The requirements.txt are to be imported for the notebook file.
+## You should preferably run the notebook for model training using google collab and google drive to upload the files
+
+## Don't forget to zip the scut database images before uploading to drive
+
 ## 1. Objective
 To create a lightweight, privacy-focused facial attractiveness scoring system for a dating application, capable of running efficiently on a standard backend CPU.
 
