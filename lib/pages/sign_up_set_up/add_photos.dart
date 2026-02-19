@@ -30,7 +30,7 @@ class _AddPhotos extends State<AddPhotos> {
   bool _isUploading = false;
   late final text = AppLocalizations.of(context)!;
 
-  //function to add a photo in the list
+  //Function to add a photo in the list
   Future<void> _pickImage(int index) async {
     //store the image in smaller resolution to improve loading times
     final XFile? image = await _picker.pickImage(
@@ -80,6 +80,8 @@ class _AddPhotos extends State<AddPhotos> {
         );
       }
 
+      //sent the request to the ai model to give the user a score
+      await ApiService.giveUserScore(uid);
 
       //if all successful send the user to the setup page to complete sign up
       if(mounted) {

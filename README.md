@@ -2,7 +2,7 @@
 
 **FoitiFinder** is a modern social discovery application built with Flutter, designed to connect people. It features a high-performance, physics-based card swipe interface, robust state management, and full internationalization support.
 
-### ✨ Key Features
+### Key Features
 
 #### Core Experience
 * **Tinder-style Swipe Deck:** Implements physics-based animations (Drag, Rotation, and Velocity detection) for a fluid user experience.
@@ -17,7 +17,7 @@
 
 ---
 
-### 🏗️ Architecture & Foundation
+### Architecture & Foundation
 
 * **Navigation:**
     * **IndexedStack Shell:** Preserves state between tabs (Home, Likes, Profile) without rebuilding.
@@ -32,7 +32,7 @@
 
 ---
 
-### 🛠️ Tech Stack
+### Tech Stack
 
 * **Frontend:** Flutter (Dart)
 * **State Management:** Provider (MultiProvider pattern)
@@ -42,7 +42,7 @@
 
 ---
 
-### 📦 Key Packages
+### Key Packages
 
 * **`provider`:** Essential state management for data flow.
 * **`firebase_auth` & `firebase_core`:** User identity and session handling.
@@ -54,7 +54,7 @@
 
 ---
 
-### 🎨 Theme Customization
+### Theme Customization
 
 The app uses a strict styling system defined in `main.dart` to prevent default Material 3 color
 
@@ -85,7 +85,7 @@ To ensure the model is culturally relevant to the app's initial target demograph
 
 ---
 
-## ⚠️ Ethical & Technical Limitations
+## Ethical & Technical Limitations
 
 Please note that "beauty" is subjective and culturally dependent. This model has the following inherent biases:
 1.  **Rater Bias:** The model mimics the preferences of the original 60 raters (university students), favoring specific aesthetic traits like neoteny (youthfulness).
@@ -93,7 +93,7 @@ Please note that "beauty" is subjective and culturally dependent. This model has
 
 ---
 
-## 🏆 Credits & Citations
+## Credits & Citations
 
 This project is made possible by the **SCUT-FBP5500 Database**. We gratefully acknowledge the researchers at South China University of Technology for providing this dataset for academic and research use.
 
@@ -102,6 +102,17 @@ This project is made possible by the **SCUT-FBP5500 Database**. We gratefully ac
 
 **Repository:** [SCUT-FBP5500 Database Release](https://github.com/HCIILAB/SCUT-FBP5500-Database-Release)
 
+## Disclaimer: Educational Purposes Only
+
+This AI scoring engine was built strictly for **educational and portfolio demonstration purposes**. It should *not* be taken seriously or used as a genuine measure of human attractiveness. 
+
+If you test the model with your own photo, please be aware that the algorithm is **extremely sensitive** to the following factors:
+
+* **Facial Orientation (Pose):** The model was trained on straight-facing, passport-style images. Tilted heads, profile shots, or looking away from the camera will severely artificially lower the score.
+* **Photo Quality & Lighting:** Harsh shadows, poor lighting, or camera lens distortion (such as wide-angle selfie lenses making noses appear larger) will negatively skew the mathematical embedding.
+* **Phenotype & Rater Bias:** The ground-truth data relies on a specific subset of the SCUT-FBP5500 dataset, meaning the model is hardcoded to the subjective, culturally-dependent biases of the original raters which were chinese college students so they gave harsher ratings to caucasian people.
+
+**TL;DR:** The scoring mechanism is highly rigid. If you upload a photo and receive a low rating, blame the dataset variance and the camera angle, not your face!
 
 ## Getting Started
 

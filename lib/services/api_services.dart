@@ -442,4 +442,19 @@ class ApiService {
       rethrow;
     }
   } 
+
+  //Give score to a user
+  static Future<void> giveUserScore(String uid) async {
+    final url = Uri.parse("$baseUrl/users/$uid/calculate-rating");
+
+    try {
+      final response = await http.post(url);
+
+      if(response.statusCode != 200) {
+        throw Exception("Failed to give user a score: ${response.body}");
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

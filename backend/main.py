@@ -1,3 +1,11 @@
+import sys
+import os
+
+#Point python to the root folder (one level up so it can see matchmaker folder)
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.abspath(os.path.join(current_dir, ".."))
+sys.path.append(parent_dir)
+
 import datetime
 from typing import List, Optional
 from fastapi import FastAPI, Depends, HTTPException
@@ -9,6 +17,10 @@ from database.database import engine, get_db
 from database import schemas
 from sqlalchemy.orm import Session, aliased
 from sqlalchemy import and_, or_, case
+
+import tempfile
+import requests
+from matchmaker.ai_rater import get_face_score
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -508,3 +520,50 @@ def update_match_seen(match_id: int, firebase_token: str,db: Session = Depends(g
     
     db.commit()
     return {"message": "Match seen updated"}
+
+#get user's score using the ai model
+@app.post("/users/{firebase_token}/calculate-rating")
+def calculate_user_rating(firebase_token: str, db: Session = Depends(get_db)):
+    me = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
+    if not me: 
+        raise HTTPException(status_code=404, detail="Current User not found")
+    
+    photo_urls = me.photos
+    if not photo_urls:
+        raise HTTPException(status_code=400, detail="User has no photos")
+
+    final_score = None
+
+    #Loop through photos
+    for url in photo_urls[:6]:
+        temp_path = None
+        try: 
+            #Download the image from Firebase Storage
+            response = requests.get(url, stream=True)
+            response.raise_for_status()
+
+            #Create a temp file for facenet to use
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as temp_file:
+                for chunk in response.iter_content(chunk_size=8192):
+                    temp_file.write(chunk)
+                temp_path = temp_file.name
+            
+            score = get_face_score(temp_path)
+
+            if score is not None:
+                final_score = score
+                break #Face found stop iterating
+        except Exception as e:
+            #Move to next photo
+            continue
+        finally: 
+            if temp_path and os.path.exists(temp_path):
+                os.remove(temp_path)
+    
+    if final_score is None:
+        raise HTTPException(status_code=400, detail="No faces found in photos")
+    
+    me.score = final_score
+    db.commit()
+
+    return {"message": "score given"}

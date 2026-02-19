@@ -34,3 +34,15 @@ We employed a **Transfer Learning** approach to overcome the small dataset size:
 ## 5. Limitations
 * **Bias:** The model reflects the preferences of the original SCUT raters (Asian university students), potentially favoring specific aesthetic traits (neoteny).
 * **Domain Shift:** Performance degrades on wide-angle selfie shots due to lens distortion compared to the telephoto lens used in the training set.
+
+## Disclaimer: Educational Purposes Only
+
+This AI scoring engine was built strictly for **educational and portfolio demonstration purposes**. It should *not* be taken seriously or used as a genuine measure of human attractiveness. 
+
+If you test the model with your own photo, please be aware that the algorithm is **extremely sensitive** to the following factors:
+
+* **Facial Orientation (Pose):** The model was trained on straight-facing, passport-style images. Tilted heads, profile shots, or looking away from the camera will severely artificially lower the score.
+* **Photo Quality & Lighting:** Harsh shadows, poor lighting, or camera lens distortion (such as wide-angle selfie lenses making noses appear larger) will negatively skew the mathematical embedding.
+* **Phenotype & Rater Bias:** The ground-truth data relies on a specific subset of the SCUT-FBP5500 dataset, meaning the model is hardcoded to the subjective, culturally-dependent biases of the original raters which were chinese college students so they gave harsher ratings to caucasian people.
+
+**TL;DR:** The scoring mechanism is highly rigid. If you upload a photo and receive a low rating, blame the dataset variance and the camera angle, not your face!
