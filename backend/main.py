@@ -169,6 +169,13 @@ def get_swipe_feed(firebase_token: str, db: Session = Depends(get_db)):
     if not me:
         raise HTTPException(status_code=404, detail='Current User not found')
     
+    if me.score is not None:
+        min_score = me.score - 1.5
+        max_score = me.score + 1.5
+    else:
+        min_score = 0
+        max_score = 10
+
     #get users other than you and not users we already saw
     seen_ids = db.query(models.UserSwipes.target_id).filter(  
         models.UserSwipes.user_id == me.id
@@ -177,10 +184,11 @@ def get_swipe_feed(firebase_token: str, db: Session = Depends(get_db)):
     seen_ids_list = [x[0] for x in seen_ids]
 
     seen_ids_list.append(me.id)
-    print(seen_ids_list)
     #order the users randomly for now and limit then at 10
     users = db.query(models.User).filter(  
-        models.User.id.notin_(seen_ids_list)
+        models.User.id.notin_(seen_ids_list),
+        models.User.attractiveness_score >= min_score,
+        models.User.attractiveness_score <= max_score
     ).order_by(func.random()).limit(10).all()
 
     results = []
