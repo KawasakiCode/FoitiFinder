@@ -14,6 +14,7 @@ class ProfileProvider extends ChangeNotifier {
   final SharedPreferences _prefs; 
   File? _tempprofileImage; //to preview updates and check for changes
   UserModel? _currentUser;
+  bool isLoading = false; //flag to check for backend activity
 
   //The provider when initialized loads data from disk or if disk is empty loads null
   //Using this way we save the time of making a call to the db
@@ -97,6 +98,8 @@ class ProfileProvider extends ChangeNotifier {
     bool? isBalanced,
     String? interests,
   }) async {
+      isLoading = true;
+
       await  ApiService.createUser(  
         uid: uid,
         username: username,
@@ -134,8 +137,10 @@ class ProfileProvider extends ChangeNotifier {
         hasPhotos: hasPhotos
       );
 
-      await _prefs.setString('user_data', jsonEncode(_currentUser!.toMap()));
       notifyListeners();
+      isLoading = false;
+      await _prefs.setString('user_data', jsonEncode(_currentUser!.toMap()));
+      
   }
 
   //Update users data (sync with database)

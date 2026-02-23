@@ -22,30 +22,33 @@ class SetupWrapper extends StatelessWidget {
     final userProvider = Provider.of<ProfileProvider>(context, listen: false);
     final currentUser = userProvider.currentUser;
 
-    if(currentUser == null) {
-      Future.delayed(const Duration(seconds: 2), () {
-        if(context.mounted && currentUser == null) {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder:(context) => LoginPage(),));
-        }
-      });
+    if(!userProvider.isLoading) {
+      if(currentUser == null) {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder:(context) => LoginPage(),));
+      }
+      bool hasFinishedSetUp = currentUser!.hasFinishedSetUp;
+      bool hasPhone = firebaseUser.phoneNumber != null && firebaseUser.phoneNumber!.isNotEmpty;
+      //setup done completely, send to mainscreen
+      if(hasFinishedSetUp && hasPhone) {
+        return MainScreen(uid: firebaseUser.uid);
+      }
+      //setup not done completely, send to setup after phone number
+      else if(hasPhone && !currentUser.hasPhotos) {
+        return const AddPhotos();
+      }
+      //setup not done completely, send to photos page since user has no photos
+      else if(currentUser.hasPhotos) {
+        return const SetUpPage();
+      }
+      //setup not done neither phone, send to login
+      else{
+        return const PhoneVerificationPage();
+      }
     }
-    bool hasFinishedSetUp = currentUser!.hasFinishedSetUp;
-    bool hasPhone = firebaseUser.phoneNumber != null && firebaseUser.phoneNumber!.isNotEmpty;
-    //setup done completely, send to mainscreen
-    if(hasFinishedSetUp && hasPhone) {
-      return MainScreen(uid: firebaseUser.uid);
-    }
-    //setup not done completely, send to setup after phone number
-    else if(hasPhone && !currentUser.hasPhotos) {
-      return const AddPhotos();
-    }
-    //setup not done completely, send to photos page since user has no photos
-    else if(currentUser.hasPhotos) {
-      return const SetUpPage();
-    }
-    //setup not done neither phone, send to login
-    else{
-      return const PhoneVerificationPage();
+    else {
+      return Scaffold(  
+        body: CircularProgressIndicator()
+      );
     }
   }
 
