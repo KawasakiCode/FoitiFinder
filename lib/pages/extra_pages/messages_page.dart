@@ -1,6 +1,8 @@
 //The messages page
 //Not the chat main page but where the actual messages are sent 
 
+import 'dart:convert';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
@@ -10,6 +12,8 @@ import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/services/api_services.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
+
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 class MessagesPage extends StatefulWidget {
   final MatchModel match;
@@ -21,25 +25,32 @@ class MessagesPage extends StatefulWidget {
 }
 
 class _MessagesPages extends State<MessagesPage> {
+  late WebSocketChannel _channel;
   final TextEditingController _controller = TextEditingController();
   late final texts = AppLocalizations.of(context)!;
   List<MessageModel> messages = [];
-  //timer to periodically check for new messages 
-  Timer? _timer;
 
   @override
   initState() {
     super.initState();
     _loadMessages();
-    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      _loadMessages();
+    //where the connection happens
+    _channel = WebSocketChannel.connect(  
+      Uri.parse('ws://192.x.x.x/ws/chat/${Provider.of<ProfileProvider>(context, listen: false).currentUser!.id!}')
+    );
+
+    //get the json from the socket and convert it to add to messages
+    _channel.stream.listen((incomingData) {
+      final decodedMessage = jsonDecode(incomingData);
+
+      setState(() {
+        messages.insert(0, decodedMessage);
+      });
     });
   }
 
   @override 
   dispose() {
-    //stop the timer from working if the user leaves chat page (to be changed later)
-    _timer?.cancel();
     super.dispose();
   }
 
@@ -63,7 +74,15 @@ class _MessagesPages extends State<MessagesPage> {
     if(text.isEmpty)return;
 
     _controller.clear();
-    //keep a temporary instance of the last message sent to delete it if the api fails to upload it to the db
+
+    final messagePayload = {
+      "to_user": widget.match.userBid,
+      "text": text,
+    };
+
+    //send the json message to the socket (for the other user to receive)
+    _channel.sink.add(jsonEncode(messagePayload));
+
     final tempMessage = MessageModel(  
       matchId: widget.match.matchId,
       senderId: Provider.of<ProfileProvider>(context, listen: false).currentUser!.id!,
@@ -75,12 +94,24 @@ class _MessagesPages extends State<MessagesPage> {
       messages.insert(0, tempMessage);
     });
 
-    bool success = await ApiService.postMessage(
-      uid: FirebaseAuth.instance.currentUser!.uid, 
-      matchId: widget.match.matchId, 
-      content: text);
+    //keep a temporary instance of the last message sent to delete it if the api fails to upload it to the db
+    // final tempMessage = MessageModel(  
+    //   matchId: widget.match.matchId,
+    //   senderId: Provider.of<ProfileProvider>(context, listen: false).currentUser!.id!,
+    //   content: text,
+    //   isMine: true,
+    // );
+
+    // setState(() {
+    //   messages.insert(0, tempMessage);
+    // });
+
+    // bool success = await ApiService.postMessage(
+    //   uid: FirebaseAuth.instance.currentUser!.uid, 
+    //   matchId: widget.match.matchId, 
+    //   content: text);
    
-   if(!success) {
+   if(true) {
     setState(() {
       messages.remove(tempMessage);
     });
@@ -196,12 +227,4 @@ class _MessagesPages extends State<MessagesPage> {
       ),
     );
   }
-}
-
-//Message object gets stores on the message list
-class Message {
-  final String text;
-  final bool isMe; //To know which user send the message
-
-  Message({required this.text, required this.isMe});
 }

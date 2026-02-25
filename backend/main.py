@@ -1,15 +1,16 @@
 import os
 import datetime
 from typing import List, Optional
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, WebSocket, WebSocketDisconnect
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from sqlalchemy import func
 from database import models
-from database.database import engine, get_db
+from database.database import SessionLocal, engine, get_db
 from database import schemas
 from sqlalchemy.orm import Session, aliased
 from sqlalchemy import and_, or_, case
+import json
 
 import tempfile
 import requests
@@ -354,7 +355,7 @@ def upload_messages(message: Messages, db: Session = Depends(get_db)):
     #check if the user running the query is actually one of the 2 from the conversation
     match = db.query(models.Matches).filter(models.Matches.id == message.match_id).first()
     if not match or (match.user_a_id != me.id and match.user_b_id != me.id):
-        raise HTTPException(status_code =403, detail="You are not part of thie match")
+        raise HTTPException(status_code =403, detail="You are not part of this match")
 
     new_message = models.Messages(  
         sender = me.id,
@@ -570,3 +571,72 @@ def calculate_user_rating(firebase_token: str, db: Session = Depends(get_db)):
     db.commit()
 
     return {"message": "score given"}
+
+#Connection Manager manages websockets
+#Keeps online users and sends messages
+class ConnectionManager:
+    def __init__(self):
+        # Dictionary to map user_id -> active WebSocket connection
+        self.active_connections: dict[int, WebSocket] = {}
+
+    async def connect(self, websocket: WebSocket, user_id: int):
+        await websocket.accept()
+        self.active_connections[user_id] = websocket
+        print(f"User {user_id} connected. Total online: {len(self.active_connections)}")
+
+    def disconnect(self, user_id: int):
+        if user_id in self.active_connections:
+            del self.active_connections[user_id]
+            print(f"User {user_id} disconnected.")
+
+    async def send_personal_message(self, message: dict, receiver_id: int):
+        # Only send if the recipient is currently online
+        if receiver_id in self.active_connections:
+            websocket = self.active_connections[receiver_id]
+            await websocket.send_json(message)
+
+manager = ConnectionManager()
+
+#websocket endpoint
+@app.websocket("/ws/chat/{user_id}")
+async def websocket_endpoint(websocket: WebSocket, user_id: int):
+    # 1. Open the tunnel
+    await manager.connect(websocket, user_id)
+    
+    try:
+        while True:
+            # 2. Wait indefinitely for a message from this user
+            data = await websocket.receive_text()
+            message_payload = json.loads(data)
+            
+            
+            db: Session = SessionLocal()
+            try: 
+                me = db.query(models.User).filter(models.User.id == user_id).first()
+                if not me:
+                    raise HTTPException(status_code=404, detail="Current User not found")
+
+                match_id = message_payload.get("match_id")
+                message = message_payload.get("content")
+                receiver_id = message_payload.get("to_user")
+                
+                #Validate that the user is part of the conversation and sent message
+                match = db.query(models.Matches).filter(models.Matches.id == match_id).first()
+                if match and (match.user_a_id != me.id and match.user_b_id != me.id):
+                    new_message = models.Messages(  
+                        sender = me.id,
+                        match_id = message.match_id,
+                        content = message.content
+                    )
+
+                    db.add(new_message)
+                    db.commit()
+
+                    await manager.send_personal_message(message_payload, receiver_id)
+            except Exception as e:
+                print(e)
+            finally:
+                db.close()
+    except WebSocketDisconnect:
+        # 4. Handle the user closing the app
+        manager.disconnect(user_id)
