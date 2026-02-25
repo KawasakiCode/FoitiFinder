@@ -162,7 +162,7 @@ def get_swipe_feed(firebase_token: str, db: Session = Depends(get_db)):
     if not me:
         raise HTTPException(status_code=404, detail='Current User not found')
     
-    if me.score is not None:
+    if me.score is not None and me.score != 0:
         min_score = me.score - 1.5
         max_score = me.score + 1.5
     else:
@@ -562,8 +562,9 @@ def calculate_user_rating(firebase_token: str, db: Session = Depends(get_db)):
         finally: 
             if temp_path and os.path.exists(temp_path):
                 os.remove(temp_path)
-            if score is None:
-                final_score = 0
+
+    if score is None:
+        final_score = 0
     
     me.score = final_score
     db.commit()
