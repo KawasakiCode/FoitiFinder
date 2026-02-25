@@ -1,11 +1,4 @@
-import sys
 import os
-
-#Point python to the root folder (one level up so it can see matchmaker folder)
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.abspath(os.path.join(current_dir, ".."))
-sys.path.append(parent_dir)
-
 import datetime
 from typing import List, Optional
 from fastapi import FastAPI, Depends, HTTPException
@@ -536,7 +529,10 @@ def calculate_user_rating(firebase_token: str, db: Session = Depends(get_db)):
     if not me: 
         raise HTTPException(status_code=404, detail="Current User not found")
     
-    photo_urls = me.photos
+    photo_urls = []
+    for photo in me.photos:
+        photo_urls.append(photo.photo_url)
+
     if not photo_urls:
         raise HTTPException(status_code=400, detail="User has no photos")
 
@@ -561,15 +557,13 @@ def calculate_user_rating(firebase_token: str, db: Session = Depends(get_db)):
             if score is not None:
                 final_score = score
                 break #Face found stop iterating
-        except Exception as e:
-            #Move to next photo
+        except Exception:
             continue
         finally: 
             if temp_path and os.path.exists(temp_path):
                 os.remove(temp_path)
-    
-    if final_score is None:
-        raise HTTPException(status_code=400, detail="No faces found in photos")
+            if score is None:
+                final_score = 0
     
     me.score = final_score
     db.commit()

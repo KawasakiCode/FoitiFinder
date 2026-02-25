@@ -1,14 +1,10 @@
 import os
 import joblib
+from pathlib import Path
 from deepface import DeepFace
 
 #Load the model
-MODEL_PATH = 'rating_model.pkl'
-
-try: 
-    rating_model = joblib.load(MODEL_PATH)
-except Exception as e:
-    rating_model = None
+MODEL_PATH = Path(__file__).parent / 'rating_model.pkl'
 
 def get_face_score(image_path: str):
     """
@@ -16,6 +12,12 @@ def get_face_score(image_path: str):
     Returns a float score (1.0 - 10.0) if a face is found
     Returns None if no face is found or if an error occurs
     """
+
+    try: 
+        rating_model = joblib.load(MODEL_PATH)
+    except Exception as e:
+        rating_model = None
+
     if rating_model is None:
         return None
     
@@ -45,5 +47,5 @@ def get_face_score(image_path: str):
     except ValueError:
         #If no face detected DeepFace throws a value error
         return None
-    except Exception as e:
+    except Exception:
         return None
