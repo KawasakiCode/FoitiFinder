@@ -104,6 +104,7 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
         is_balanced=user.is_balanced,
         interests=user.interests,
         has_photos=user.has_photos,
+        score=user.score
     )
 
     try:
@@ -181,8 +182,8 @@ def get_swipe_feed(firebase_token: str, db: Session = Depends(get_db)):
     #order the users randomly for now and limit then at 10
     users = db.query(models.User).filter(  
         models.User.id.notin_(seen_ids_list),
-        models.User.attractiveness_score >= min_score,
-        models.User.attractiveness_score <= max_score
+        models.User.score >= min_score,
+        models.User.score <= max_score
     ).order_by(func.random()).limit(10).all()
 
     results = []
@@ -266,9 +267,9 @@ def get_likes(firebase_token: str, db: Session = Depends(get_db)):
         )
     ).filter(
         Incoming.target_id == me.id,
-        Incoming.action == "like" or Incoming.action == "super_like",
+        Incoming.action.in_(["like", "super_like"]),
         or_(
-            Outgoing.id == None,
+            Outgoing.id.is_(None),
             Incoming.timestamp > Outgoing.timestamp,
         ),
     ).all()
@@ -621,18 +622,19 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
                 receiver_id = message_payload.get("to_user")
                 
                 #Validate that the user is part of the conversation and sent message
-                match = db.query(models.Matches).filter(models.Matches.id == match_id).first()
-                if match and (match.user_a_id != me.id and match.user_b_id != me.id):
-                    new_message = models.Messages(  
-                        sender = me.id,
-                        match_id = message.match_id,
-                        content = message.content
-                    )
+                # match = db.query(models.Matches).filter(models.Matches.id == match_id).first()
+                # if match and (match.user_a_id == me.id or match.user_b_id == me.id):
+                new_message = models.Messages(  
+                    sender = me.id,
+                    match_id = match_id,
+                    content = message
+                )
 
-                    db.add(new_message)
-                    db.commit()
+                db.add(new_message)
+                db.commit()
 
-                    await manager.send_personal_message(message_payload, receiver_id)
+                message_payload["sender"] = me.id
+                await manager.send_personal_message(message_payload, receiver_id)
             except Exception as e:
                 print(e)
             finally:
