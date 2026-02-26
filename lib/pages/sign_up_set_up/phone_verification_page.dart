@@ -7,6 +7,7 @@ import 'package:foitifinder/pages/sign_up_set_up/otp_code_page.dart';
 import 'package:provider/provider.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/widgets/loading_overlay.dart';
 
 
 class PhoneVerificationPage extends StatefulWidget {
@@ -20,6 +21,7 @@ class _PhoneVerificationPage extends State<PhoneVerificationPage> {
   AppLocalizations get  text => AppLocalizations.of(context)!;
   final TextEditingController _phoneNumberController = TextEditingController();
   bool _isValid = false;
+  bool _isLoading = false;
 
   //validate phone number and return it to sent to otp page
   String _validateNumber() {
@@ -45,6 +47,9 @@ class _PhoneVerificationPage extends State<PhoneVerificationPage> {
   }
 
   Future<void> _verifyNumber() async {
+    setState(() {
+        _isLoading = true;
+    },);
     FocusScope.of(context).unfocus();
     String? phoneNumber = _validateNumber();
     //if phone number is valid
@@ -78,7 +83,9 @@ class _PhoneVerificationPage extends State<PhoneVerificationPage> {
 
         if (!mounted) return;
         final isVerified = Provider.of<SettingsProvider>(context, listen: false).isPhoneVerified;
-
+        setState(() {
+          _isLoading = false;
+        },);
         if (isVerified) {
           Navigator.pushReplacement(
             context,
@@ -86,6 +93,9 @@ class _PhoneVerificationPage extends State<PhoneVerificationPage> {
         }
       },
         verificationFailed: (FirebaseAuthException e) {
+          setState(() {
+            _isLoading = false;
+          },);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(text.snackbarVerifyFailed),
@@ -95,6 +105,9 @@ class _PhoneVerificationPage extends State<PhoneVerificationPage> {
           );
         },
         codeAutoRetrievalTimeout: (verificationId) {
+          setState(() {
+            _isLoading = false;
+          },);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(text.snackbarCodeExpired),
@@ -115,57 +128,60 @@ class _PhoneVerificationPage extends State<PhoneVerificationPage> {
         title: Text(text.phoneNumberSettings),
         automaticallyImplyLeading: false,
       ),
-      body: GestureDetector(
-        onTap:() => FocusScope.of(context).unfocus(),
-        behavior: HitTestBehavior.opaque,
-        child: Padding(
-          padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Text(
-                  text.phoneNumber,
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+      body: LoadingOverlay(
+        isLoading: _isLoading,
+        child: GestureDetector(
+          onTap:() => FocusScope.of(context).unfocus(),
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Text(
+                    text.phoneNumber,
+                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                  ),
                 ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _phoneNumberController,
-                      keyboardType: TextInputType.phone,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(  
-                          borderRadius: BorderRadius.circular(15),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _phoneNumberController,
+                        keyboardType: TextInputType.phone,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(  
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          hintText: text.phoneNumberPlaceholder,
+                          hintStyle: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w400,
+                          ),
                         ),
-                        hintText: text.phoneNumberPlaceholder,
-                        hintStyle: TextStyle(
+                        style: const TextStyle(
                           fontSize: 15,
-                          fontWeight: FontWeight.w400,
+                          fontWeight: FontWeight.w500,
                         ),
-                      ),
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
                       ),
                     ),
-                  ),
-                ],
-              ),
-              Center(
-                child: TextButton(
-                  //onpress call validate number and redirect to otp page
-                  onPressed: _verifyNumber,
-                  child: Text(
-                    text.verifyPhoneNumber,
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                  ],
+                ),
+                Center(
+                  child: TextButton(
+                    //onpress call validate number and redirect to otp page
+                    onPressed: _verifyNumber,
+                    child: Text(
+                      text.verifyPhoneNumber,
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

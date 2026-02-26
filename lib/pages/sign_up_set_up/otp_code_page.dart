@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:provider/provider.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/widgets/loading_overlay.dart';
 
 class OtpCodePage extends StatefulWidget {
   final String verificationId;
@@ -21,6 +22,7 @@ class OtpCodePage extends StatefulWidget {
 }
 
 class _OtpCodePage extends State<OtpCodePage> {
+  bool _isLoading = false;
   AppLocalizations get  text => AppLocalizations.of(context)!;
   final List<TextEditingController> controllers = List.generate(
     6,
@@ -69,9 +71,15 @@ class _OtpCodePage extends State<OtpCodePage> {
 
 //after pressing verify
   Future<void> _submitOtp() async {
+    setState(() {
+      _isLoading = true;
+    },);
     final code = controllers.map((c) => c.text).join();
     //if code less try again
     if (code.length < 6) {
+      setState(() {
+        _isLoading = false;
+      },);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(text.enterOtpCode),
@@ -110,9 +118,15 @@ class _OtpCodePage extends State<OtpCodePage> {
       settingsProvider.verifyPhone();
       if(!context.mounted)return;
       //return to phoneNumberPage and sent success true
+      setState(() {
+        _isLoading = false;
+      },);
       Navigator.pop(context);
 
     } on FirebaseAuthException {
+      setState(() {
+        _isLoading = false;
+      },);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -132,34 +146,37 @@ class _OtpCodePage extends State<OtpCodePage> {
         title: Text(text.verifyPhoneNumber),
         automaticallyImplyLeading: true,
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 10, right: 10, top: 30),
-            child: Text(
-              text.enterCode,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 15, bottom: 5),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: List.generate(6, (index) => _buildBox(index)),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 15),
-            child: TextButton(
-              onPressed: _submitOtp,
+      body: LoadingOverlay(
+        isLoading: _isLoading,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 10, right: 10, top: 30),
               child: Text(
-                text.verify,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                text.enterCode,
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                textAlign: TextAlign.center,
               ),
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.only(top: 15, bottom: 5),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: List.generate(6, (index) => _buildBox(index)),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 15),
+              child: TextButton(
+                onPressed: _submitOtp,
+                child: Text(
+                  text.verify,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

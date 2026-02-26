@@ -11,6 +11,7 @@ import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/pages/sign_up_set_up/set_up_page.dart';
 import 'package:foitifinder/services/api_services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:foitifinder/widgets/loading_overlay.dart';
 
 class AddPhotos extends StatefulWidget {
   const AddPhotos({super.key});
@@ -20,6 +21,7 @@ class AddPhotos extends StatefulWidget {
 }
 
 class _AddPhotos extends State<AddPhotos> {
+  bool _isLoading = false;
   //allow up to 6 photos
   //duplicates allowed 
   final List<File?> _photos = List.filled(6, null);
@@ -46,6 +48,9 @@ class _AddPhotos extends State<AddPhotos> {
   }
 
   Future<void> _submitPhotos() async {
+    setState(() {
+        _isLoading = true;
+      },);
     //if no photos in the list exit submit
     if(_photos.every((img) => img == null)) {
       ScaffoldMessenger.of(context).showSnackBar(  
@@ -82,6 +87,9 @@ class _AddPhotos extends State<AddPhotos> {
 
       //sent the request to the ai model to give the user a score
       await ApiService.giveUserScore(uid);
+      setState(() {
+        _isLoading = false;
+      },);
 
       //if all successful send the user to the setup page to complete sign up
       if(mounted) {
@@ -90,10 +98,18 @@ class _AddPhotos extends State<AddPhotos> {
         );
       }
     } catch (e) {
+      setState(() {
+        _isLoading = false;
+      },);
       throw Exception("There was an error $e");
     } finally {
       //unlock uploading stream
-      if(mounted) setState(() => _isUploading = false);
+      if(mounted) {
+        setState(() { 
+          _isUploading = false;
+          _isLoading = false;
+        });
+      }
     }
 
   }
@@ -106,42 +122,45 @@ class _AddPhotos extends State<AddPhotos> {
           title: Text(text.uploadPhotos),
           automaticallyImplyLeading: true,
         ),
-        body: Column(  
-          children: [
-            //Text
-            Padding(  
-              padding: EdgeInsets.all(16),
-              child: Text(text.addAtLeastAPhoto,
-              style: TextStyle(fontSize: 15)),
-            ),
-            //The grid and photo placements
-            Expanded(  
-              child: GridView.builder(  
-                padding: const EdgeInsets.all(10),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                  childAspectRatio: 0.7,
-                ),
-                itemCount: 6,
-                itemBuilder: (context, index) {
-                  return _buildPhotoSlot(index);
-                },
+        body: LoadingOverlay(
+          isLoading: _isLoading,
+          child: Column(  
+            children: [
+              //Text
+              Padding(  
+                padding: EdgeInsets.all(16),
+                child: Text(text.addAtLeastAPhoto,
+                style: TextStyle(fontSize: 15)),
               ),
-            ),
-            Padding(  
-              padding: const EdgeInsets.all(15),
-              child: SizedBox(  
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _isUploading ? null : _submitPhotos,
-                  child: Text(text.submit),
+              //The grid and photo placements
+              Expanded(  
+                child: GridView.builder(  
+                  padding: const EdgeInsets.all(10),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    childAspectRatio: 0.7,
+                  ),
+                  itemCount: 6,
+                  itemBuilder: (context, index) {
+                    return _buildPhotoSlot(index);
+                  },
+                ),
+              ),
+              Padding(  
+                padding: const EdgeInsets.all(15),
+                child: SizedBox(  
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _isUploading ? null : _submitPhotos,
+                    child: Text(text.submit),
+                  )
                 )
               )
-            )
-          ]
+            ]
+          ),
         )
       ),
     );

@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/widgets/loading_overlay.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -55,6 +56,9 @@ class _SignUpPageState extends State<SignUpPage> {
 
   //Function that signs up the user
   void signUp() async {
+    setState(() {
+      _isLoading = true;
+    },);
     UserCredential? userCredential;
     final text = AppLocalizations.of(context)!;
     final email = _email.text;
@@ -98,6 +102,10 @@ class _SignUpPageState extends State<SignUpPage> {
         interests: null,
         score: 0
       );
+
+      setState(() {
+        _isLoading = false;
+      },);
       // If successful, navigate to phone verification page
       if (!mounted) return;
       Navigator.push(
@@ -105,6 +113,9 @@ class _SignUpPageState extends State<SignUpPage> {
         MaterialPageRoute(builder: (context) => PhoneVerificationPage()),
       );
     } on FirebaseAuthException catch (e) {
+      setState(() {
+        _isLoading = false;
+      },);
       String errorMessage;
       //most common FirebaseAuthExceptions
       switch (e.code) {
@@ -136,6 +147,9 @@ class _SignUpPageState extends State<SignUpPage> {
         ),
       );
     } catch (e) {
+      setState(() {
+        _isLoading = false;
+      },);
       //Delete firebase user if db failed
       //If user doesn't get deleted we run in the problem where the user exists in firebase but not in db
       if (userCredential != null) {
@@ -158,254 +172,257 @@ class _SignUpPageState extends State<SignUpPage> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: MediaQuery.of(context).size.height,
-            ),
-            child: IntrinsicHeight(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  //main page container (title, TextFormFields)
-                  Container(
-                    padding: EdgeInsets.only(
-                      bottom: 10,
-                      top: 20,
-                      left: 15,
-                      right: 15,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey, width: 1),
-                    ),
-                    child: Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 20),
-                          child: Text(
-                            'FoitiFinder',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        //signUp text
-                        Text(
-                          text.signUpText,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey,
-                          ),
-                        ),
-                        //or text with dividers
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Divider(thickness: 1, color: Colors.grey),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(
-                                13,
-                                10,
-                                13,
-                                10,
+        body: LoadingOverlay(
+          isLoading: _isLoading,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height,
+              ),
+              child: IntrinsicHeight(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    //main page container (title, TextFormFields)
+                    Container(
+                      padding: EdgeInsets.only(
+                        bottom: 10,
+                        top: 20,
+                        left: 15,
+                        right: 15,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey, width: 1),
+                      ),
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 20),
+                            child: Text(
+                              'FoitiFinder',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
                               ),
-                              child: Text(
-                                text.or,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w400,
-                                  color: Colors.grey,
+                            ),
+                          ),
+                          //signUp text
+                          Text(
+                            text.signUpText,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          //or text with dividers
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Divider(thickness: 1, color: Colors.grey),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  13,
+                                  10,
+                                  13,
+                                  10,
+                                ),
+                                child: Text(
+                                  text.or,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w400,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Divider(thickness: 1, color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                          //email field
+                          TextFormField(
+                            decoration: InputDecoration(
+                              hintText: text.email,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(12),
                                 ),
                               ),
                             ),
-                            Expanded(
-                              child: Divider(thickness: 1, color: Colors.grey),
-                            ),
-                          ],
-                        ),
-                        //email field
-                        TextFormField(
-                          decoration: InputDecoration(
-                            hintText: text.email,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(12),
-                              ),
-                            ),
+                            controller: _email,
+                            keyboardType: TextInputType.emailAddress,
+                            autocorrect: false,
+                            enableSuggestions: false,
                           ),
-                          controller: _email,
-                          keyboardType: TextInputType.emailAddress,
-                          autocorrect: false,
-                          enableSuggestions: false,
-                        ),
-                        //password field
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: StatefulBuilder(
-                            builder: (context, setState) {
-                              return TextFormField(
-                                decoration: InputDecoration(
-                                  hintText: text.password,
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(
-                                      Radius.circular(12),
+                          //password field
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: StatefulBuilder(
+                              builder: (context, setState) {
+                                return TextFormField(
+                                  decoration: InputDecoration(
+                                    hintText: text.password,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.all(
+                                        Radius.circular(12),
+                                      ),
                                     ),
-                                  ),
-                                  suffixIcon: Padding(
-                                    padding: EdgeInsets.only(right: 8.0),
-                                    child: Material(
-                                      color: Colors.transparent,
-                                      child: InkWell(
-                                        borderRadius: BorderRadius.circular(20),
-                                        onTap: () {
-                                          setState(() {
-                                            _isPasswordVisible =
-                                                !_isPasswordVisible;
-                                          });
-                                        },
-                                        child: Padding(
-                                          padding: EdgeInsets.all(8.0),
-                                          child: Image.asset(
-                                            _isPasswordVisible
-                                                ? 'assets/icons/hide.png'
-                                                : 'assets/icons/view.png',
-                                            width: 10,
-                                            height: 10,
+                                    suffixIcon: Padding(
+                                      padding: EdgeInsets.only(right: 8.0),
+                                      child: Material(
+                                        color: Colors.transparent,
+                                        child: InkWell(
+                                          borderRadius: BorderRadius.circular(20),
+                                          onTap: () {
+                                            setState(() {
+                                              _isPasswordVisible =
+                                                  !_isPasswordVisible;
+                                            });
+                                          },
+                                          child: Padding(
+                                            padding: EdgeInsets.all(8.0),
+                                            child: Image.asset(
+                                              _isPasswordVisible
+                                                  ? 'assets/icons/hide.png'
+                                                  : 'assets/icons/view.png',
+                                              width: 10,
+                                              height: 10,
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ),
-                                controller: _password,
-                                obscureText: !_isPasswordVisible,
-                                autocorrect: false,
-                                enableSuggestions: false,
-                              );
-                            },
-                          ),
-                        ),
-                        //full name field
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: TextFormField(
-                            decoration: InputDecoration(
-                              hintText: text.fullName,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(12),
-                                ),
-                              ),
-                            ),
-                            controller: _fullName,
-                          ),
-                        ),
-                        //username field
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8, bottom: 8),
-                          child: TextFormField(
-                            decoration: InputDecoration(
-                              hintText: text.username,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(12),
-                                ),
-                              ),
-                            ),
-                            controller: _username,
-                          ),
-                        ),
-                        //sign up long text
-                        RichText(
-                          text: TextSpan(
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Color.fromARGB(255, 94, 94, 94),
-                            ),
-                            children: [
-                              TextSpan(text: text.signUpLongText),
-                              TextSpan(
-                                text: text.here,
-                                style: TextStyle(
-                                  color: Colors.blue,
-                                  decoration: TextDecoration.underline,
-                                ),
-                                recognizer: _tapGestureRecognizer,
-                              ),
-                            ],
-                          ),
-                        ),
-                        //sign up button
-                        Padding(
-                          padding: const EdgeInsets.only(top: 10),
-                          child: SizedBox(
-                            width: double.infinity,
-                            child: TextButton(
-                              onPressed: _isLoading
-                                  ? null
-                                  : () async {
-                                      setState(() {
-                                        _isLoading = true;
-                                      });
-                                      signUp();
-                                    },
-                              style: TextButton.styleFrom(
-                                backgroundColor: const Color(0xFF8A2BE2),
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 10,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              child: Text(text.signUp),
+                                  controller: _password,
+                                  obscureText: !_isPasswordVisible,
+                                  autocorrect: false,
+                                  enableSuggestions: false,
+                                );
+                              },
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  //Already have account log in Row
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Container(
-                      padding: const EdgeInsets.only(top: 7, bottom: 7),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey, width: 1),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(text.haveAccount),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            style: TextButton.styleFrom(
-                              foregroundColor: Colors.black,
-                              textStyle: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
+                          //full name field
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: TextFormField(
+                              decoration: InputDecoration(
+                                hintText: text.fullName,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(12),
+                                  ),
+                                ),
                               ),
+                              controller: _fullName,
                             ),
-                            child: Text(
-                              text.login,
+                          ),
+                          //username field
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8, bottom: 8),
+                            child: TextFormField(
+                              decoration: InputDecoration(
+                                hintText: text.username,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(12),
+                                  ),
+                                ),
+                              ),
+                              controller: _username,
+                            ),
+                          ),
+                          //sign up long text
+                          RichText(
+                            text: TextSpan(
                               style: TextStyle(
-                                color: const Color.fromARGB(255, 0, 65, 119),
+                                fontSize: 13,
+                                color: Color.fromARGB(255, 94, 94, 94),
+                              ),
+                              children: [
+                                TextSpan(text: text.signUpLongText),
+                                TextSpan(
+                                  text: text.here,
+                                  style: TextStyle(
+                                    color: Colors.blue,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                  recognizer: _tapGestureRecognizer,
+                                ),
+                              ],
+                            ),
+                          ),
+                          //sign up button
+                          Padding(
+                            padding: const EdgeInsets.only(top: 10),
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: TextButton(
+                                onPressed: _isLoading
+                                    ? null
+                                    : () async {
+                                        setState(() {
+                                          _isLoading = true;
+                                        });
+                                        signUp();
+                                      },
+                                style: TextButton.styleFrom(
+                                  backgroundColor: const Color(0xFF8A2BE2),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 10,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: Text(text.signUp),
                               ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                ],
+                    //Already have account log in Row
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Container(
+                        padding: const EdgeInsets.only(top: 7, bottom: 7),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey, width: 1),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(text.haveAccount),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.black,
+                                textStyle: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              child: Text(
+                                text.login,
+                                style: TextStyle(
+                                  color: const Color.fromARGB(255, 0, 65, 119),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
