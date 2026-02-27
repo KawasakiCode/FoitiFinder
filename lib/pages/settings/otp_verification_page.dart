@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
+import 'package:foitifinder/widgets/loading_overlay.dart';
 import 'package:provider/provider.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 
@@ -22,6 +23,7 @@ class OtpVerificationPage extends StatefulWidget {
 }
 
 class _OtpVerificationPage extends State<OtpVerificationPage> {
+  bool _isLoading = false;
   AppLocalizations get  text => AppLocalizations.of(context)!;
   final List<TextEditingController> controllers = List.generate(
     6,
@@ -70,6 +72,9 @@ class _OtpVerificationPage extends State<OtpVerificationPage> {
 
 //After pressing verify
   Future<void> _submitOtp() async {
+    setState(() {
+      _isLoading = true;
+    },);
     final code = controllers.map((c) => c.text).join();
     //if code less than 6 try again
     if (code.length < 6) {
@@ -110,9 +115,15 @@ class _OtpVerificationPage extends State<OtpVerificationPage> {
       settingsProvider.verifyPhone();
       if(!context.mounted)return;
       //Return to phoneNumberPage and sent success true
+      setState(() {
+        _isLoading = false;
+      },);
       Navigator.pop(context);
 
     } on FirebaseAuthException {
+      setState(() {
+        _isLoading = false;
+      },);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -132,34 +143,37 @@ class _OtpVerificationPage extends State<OtpVerificationPage> {
         title: Text(text.verifyPhoneNumber),
         automaticallyImplyLeading: true,
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 10, right: 10, top: 30),
-            child: Text(
-              text.enterCode,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 15, bottom: 5),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: List.generate(6, (index) => _buildBox(index)),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 15),
-            child: TextButton(
-              onPressed: _submitOtp,
+      body: LoadingOverlay(
+        isLoading: _isLoading,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 10, right: 10, top: 30),
               child: Text(
-                text.verify,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                text.enterCode,
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                textAlign: TextAlign.center,
               ),
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.only(top: 15, bottom: 5),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: List.generate(6, (index) => _buildBox(index)),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 15),
+              child: TextButton(
+                onPressed: _submitOtp,
+                child: Text(
+                  text.verify,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
