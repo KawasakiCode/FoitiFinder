@@ -52,9 +52,9 @@ def get_face_score(image_path: str):
         embedding_objs = DeepFace.represent(  
             img_path = face_bgr,
             model_name = 'Facenet',
-            enforce_detection = True,
-            align = True,
-            detector_backend= "mtcnn"
+            enforce_detection = False,
+            align = False,
+            detector_backend= "skip"
         )
 
         face_vector = embedding_objs[0]["embedding"]

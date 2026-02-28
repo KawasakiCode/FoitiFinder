@@ -14,19 +14,19 @@ class LikesPage extends StatefulWidget{
   const LikesPage({super.key});
 
   @override
-  State<LikesPage> createState() => _LikesPage();
+  State<LikesPage> createState() => LikesPageState();
 }
 
-class _LikesPage extends State<LikesPage>{
+class LikesPageState extends State<LikesPage>{
   List<LikerModel> _likes = [];
 
   @override
   initState() {
     super.initState();
-    _loadLikes();
+    loadLikes();
   }
 
-  void _loadLikes() async {
+  void loadLikes() async {
     final likes = await ApiService.getLikes(FirebaseAuth.instance.currentUser!.uid);
     if(mounted) {
       setState(() {

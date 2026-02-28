@@ -2,6 +2,7 @@
 //mainscreen makes it easier to handle the bottom nav bar by making it custom
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/main.dart';
 import 'package:foitifinder/pages/main_pages/home_page.dart';
@@ -22,6 +23,8 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
+  final GlobalKey<LikesPageState> _likesPageKey = GlobalKey<LikesPageState>();
+
 
   //list to hold where the user went so back button doesnt close the app
   final List<int> _navigationHistory = [0];
@@ -36,6 +39,16 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      if (message.data['type'] == 'new_like') {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _likesPageKey.currentState?.loadLikes();
+        });
+        
+      }
+    });
+
     //after build has finished cache the users pfp so it loads faster 
     //and grab data from the database
     //if database data different from disk data change disk else leave as is

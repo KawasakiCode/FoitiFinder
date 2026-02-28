@@ -11,6 +11,7 @@ from database import schemas
 from sqlalchemy.orm import Session, aliased
 from sqlalchemy import and_, or_, case
 import json
+from firebase_admin import messaging
 
 import tempfile
 import requests
@@ -642,3 +643,26 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
     except WebSocketDisconnect:
         # 4. Handle the user closing the app
         manager.disconnect(user_id)
+
+def notify_user_of_like_or_match(target_user_firebase_token: str, caller: str):
+    #Make a data message not a notification
+    if caller == "like":
+        message = messaging.Message(  
+            data = {
+                'type': 'new_like',
+                'count': '1',
+                'click_action': 'FLUTTER_NOTIFICATION_CLICK'
+            },
+            token = target_user_firebase_token
+        )
+    else:
+        message = messaging.Message(  
+            data = {
+                'type': 'new_match',
+                'count': '1',
+                'click_action': 'FLUTTER_NOTIFICATION_CLICK'
+            },
+            token = target_user_firebase_token
+        )
+    
+    response = messaging.send(message)

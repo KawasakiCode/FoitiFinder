@@ -114,9 +114,9 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(text.unexpectedError),
+          content: Text("${text.unexpectedError}, $e"),
           backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
+          duration: Duration(seconds: 10),
         ),
       );
     }
