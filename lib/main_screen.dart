@@ -12,6 +12,7 @@ import 'package:foitifinder/pages/main_pages/likes_page.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class MainScreen extends StatefulWidget {
   final String uid;
@@ -29,23 +30,15 @@ class _MainScreenState extends State<MainScreen> {
   //list to hold where the user went so back button doesnt close the app
   final List<int> _navigationHistory = [0];
 
-  final List<Widget> _pages = [
-    const MyHomePage(),
-    const LikesPage(),
-    const DMPage(),
-    const ProfilePage(),
-  ];
-
   @override
   void initState() {
     super.initState();
 
+    _updateFcmToken();
+
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       if (message.data['type'] == 'new_like') {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
           _likesPageKey.currentState?.loadLikes();
-        });
-        
       }
     });
 
@@ -56,6 +49,26 @@ class _MainScreenState extends State<MainScreen> {
       _precacheProfileImage();
       _runBgTasks();
     });
+  }
+
+  //Function to store the fcm token in the firebase firestore database
+  //so python backend can grab it and send notifications to users
+  void _updateFcmToken() async {
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      String? token = await FirebaseMessaging.instance.getToken();
+
+      if (token != null) {  
+        await FirebaseFirestore.instance  
+          .collection('users')
+          .doc(user.uid)
+          .set({  
+            'fcm_token': token,
+            'last_active': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+      }
+    }
   }
 
   Future<void> _runBgTasks() async {
@@ -137,6 +150,13 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> _pages = [
+      const MyHomePage(),
+      LikesPage(key: _likesPageKey),
+      const DMPage(),
+      const ProfilePage(),
+    ];
+
     return PopScope(
       canPop: _selectedIndex == 0 && _navigationHistory.length == 1,
       onPopInvokedWithResult: (didPop, result) {

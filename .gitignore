@@ -76,3 +76,4 @@ backend/.env
 matchmaker/venv/
 matchmaker/.venv/
 matchmaker/__pycacke__/
+backend/serviceAccountKey.json

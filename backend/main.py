@@ -11,8 +11,8 @@ from database import schemas
 from sqlalchemy.orm import Session, aliased
 from sqlalchemy import and_, or_, case
 import json
-from firebase_admin import messaging
-
+from firebase_admin import messaging, credentials, firestore
+import firebase_admin
 import tempfile
 import requests
 from matchmaker.ai_rater import get_face_score
@@ -22,6 +22,13 @@ models.Base.metadata.create_all(bind=engine)
 load_dotenv()
 
 app = FastAPI()
+
+cred = credentials.Certificate("serviceAccountKey.json")
+
+if not firebase_admin._apps:
+    firebase_admin.initialize_app(cred)
+
+firestore_db = firestore.client()
 
 #class that handles the likes 
 class LikeRequest(BaseModel):
@@ -78,7 +85,7 @@ class MatchResponse(BaseModel):
 
 #class that sends swipe record data
 class SwipeRequest(BaseModel):
-    firebase_token: str
+    firebase_uid: str
     target_id: int
     action: str
 
@@ -419,10 +426,10 @@ def upload_photo(user_photos: UserPhotos, db: Session = Depends(get_db)):
 #register a swipe
 @app.post("/swipes")
 def record_swipe(swipe: SwipeRequest, db: Session = Depends(get_db)):
-    me = db.query(models.User).filter(models.User.firebase_token == swipe.firebase_token).first()
+    me = db.query(models.User).filter(models.User.firebase_token == swipe.firebase_uid).first()
     if not me:
        raise HTTPException(status_code=404, detail="Current User not found")
-    
+
     query = db.query(models.UserSwipes).filter(  
         models.UserSwipes.user_id == me.id,
         models.UserSwipes.target_id == swipe.target_id
@@ -450,6 +457,26 @@ def record_swipe(swipe: SwipeRequest, db: Session = Depends(get_db)):
         db.commit()  
     
     if swipe.action in ["like", "super_like"]:
+
+        #The following code is used to grab the target user's fcm token to be able to send 
+        #a notification to them
+        #Remember firebase uid is NOT the same as the FCM token
+        target_user = db.query(models.User).filter(models.User.id == swipe.target_id).first()
+        if not target_user:
+            raise HTTPException(status_code=404, detail="Target User not found")
+
+        user_ref = firestore_db.collection('users').document(target_user.firebase_token)
+        user_doc = user_ref.get()
+
+        if user_doc.exists:
+            user_data = user_doc.to_dict()
+
+            target_fcm_token = user_data.get('fcm_token')
+
+            if target_fcm_token:
+                notify_user_of_like_or_match(target_fcm_token, 'like')
+            else: 
+                raise HTTPException(status_code=404, detail="Target User not found")
         
         # Look in UserSwipes to see if THEY liked US
         reverse_swipe = db.query(models.UserSwipes).filter(
@@ -664,5 +691,9 @@ def notify_user_of_like_or_match(target_user_firebase_token: str, caller: str):
             },
             token = target_user_firebase_token
         )
+    try:
+        response = messaging.send(message)
+        print("success")
+    except Exception as e:
+        print(e)
     
-    response = messaging.send(message)
