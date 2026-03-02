@@ -25,6 +25,7 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
   final GlobalKey<LikesPageState> _likesPageKey = GlobalKey<LikesPageState>();
+  final GlobalKey<DMPageState> _dmPageKey = GlobalKey<DMPageState>();
 
 
   //list to hold where the user went so back button doesnt close the app
@@ -38,7 +39,10 @@ class _MainScreenState extends State<MainScreen> {
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       if (message.data['type'] == 'new_like') {
-          _likesPageKey.currentState?.loadLikes();
+        _likesPageKey.currentState?.loadLikes();
+      }
+      else if (message.data['type'] == 'new_match') {
+        _dmPageKey.currentState?.loadDMs();
       }
     });
 
@@ -153,7 +157,7 @@ class _MainScreenState extends State<MainScreen> {
     final List<Widget> _pages = [
       const MyHomePage(),
       LikesPage(key: _likesPageKey),
-      const DMPage(),
+      DMPage(key: _dmPageKey),
       const ProfilePage(),
     ];
 

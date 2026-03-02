@@ -457,27 +457,6 @@ def record_swipe(swipe: SwipeRequest, db: Session = Depends(get_db)):
         db.commit()  
     
     if swipe.action in ["like", "super_like"]:
-
-        #The following code is used to grab the target user's fcm token to be able to send 
-        #a notification to them
-        #Remember firebase uid is NOT the same as the FCM token
-        target_user = db.query(models.User).filter(models.User.id == swipe.target_id).first()
-        if not target_user:
-            raise HTTPException(status_code=404, detail="Target User not found")
-
-        user_ref = firestore_db.collection('users').document(target_user.firebase_token)
-        user_doc = user_ref.get()
-
-        if user_doc.exists:
-            user_data = user_doc.to_dict()
-
-            target_fcm_token = user_data.get('fcm_token')
-
-            if target_fcm_token:
-                notify_user_of_like_or_match(target_fcm_token, 'like')
-            else: 
-                raise HTTPException(status_code=404, detail="Target User not found")
-        
         # Look in UserSwipes to see if THEY liked US
         reverse_swipe = db.query(models.UserSwipes).filter(
             models.UserSwipes.user_id == swipe.target_id, # Them
@@ -509,6 +488,31 @@ def record_swipe(swipe: SwipeRequest, db: Session = Depends(get_db)):
                 db.add(new_match)
                 db.commit()
                 is_match = True
+
+        #The following code is used to grab the target user's fcm token to be able to send 
+        #a notification to them
+        #Remember firebase uid is NOT the same as the FCM token
+        target_user = db.query(models.User).filter(models.User.id == swipe.target_id).first()
+        if not target_user:
+            raise HTTPException(status_code=404, detail="Target User not found")
+
+        user_ref = firestore_db.collection('users').document(target_user.firebase_token)
+        user_doc = user_ref.get()
+
+        if user_doc.exists:
+            user_data = user_doc.to_dict()
+
+            target_fcm_token = user_data.get('fcm_token')
+
+            if target_fcm_token:
+                if is_match:
+                    notify_user_of_like_or_match(target_fcm_token, 'match')
+                elif not is_match:
+                    notify_user_of_like_or_match(target_fcm_token, 'like')
+                else: 
+                    raise HTTPException(status_code=404, detail="Target User not found")
+            else: 
+                raise HTTPException(status_code=404, detail="Target User not found")
 
     return {"data": is_match}
 

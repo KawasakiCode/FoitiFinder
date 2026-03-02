@@ -373,7 +373,7 @@ class ApiService {
       final response = await http.post(url,  
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
-        "firebase_token": uid,
+        "firebase_uid": uid,
         "target_id": otherUserId,
         "action": action,
       }));

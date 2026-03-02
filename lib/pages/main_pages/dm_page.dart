@@ -14,10 +14,10 @@ class DMPage extends StatefulWidget {
   const DMPage({super.key});
 
   @override
-  State<DMPage> createState() => _DMPageState();
+  State<DMPage> createState() => DMPageState();
 }
 
-class _DMPageState extends State<DMPage> {
+class DMPageState extends State<DMPage> {
   //list that grabs all the users dms from the db
   List<MatchModel> _dms = [];
   //list that grabs all the matches the user hasnt interacted with yet
@@ -28,11 +28,11 @@ class _DMPageState extends State<DMPage> {
   @override
   void initState() {
     super.initState();
-    _loadDMs();
+    loadDMs();
   }
 
   //This function grabs all the users matches from the api
-  Future<void> _loadDMs() async {
+  Future<void> loadDMs() async {
     final dms = await ApiService.getMatches(
       uid: FirebaseAuth.instance.currentUser!.uid,
     );
