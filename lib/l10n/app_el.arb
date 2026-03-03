@@ -140,5 +140,7 @@
   "verifyYourEmail": "Επαλήθευσε το Email σου",
   "verifyyourEmail": "Επαλήθευσε το email σου",
   "backToSettings": "Πίσω στις ρυθμίσεις",
-  "mailAlreadyVerified": "Το email σου έχει ήδη επαληθευτεί"
+  "mailAlreadyVerified": "Το email σου έχει ήδη επαληθευτεί",
+  "messageNotifications": "Ειδοποιήσεις μηνυμάτων",
+  "likeNotifications": "Ειδοποιήσεις για Like & Match"
 }

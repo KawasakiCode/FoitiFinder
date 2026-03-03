@@ -456,4 +456,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mailAlreadyVerified => 'Your email is already verified';
+
+  @override
+  String get messageNotifications => 'Message Notifications';
+
+  @override
+  String get likeNotifications => 'Like and Match Notifications';
 }

@@ -4,13 +4,15 @@
 class SettingsModel{
   final int userId;
   final bool? isDark;
-  final bool? isNotificationsOn;
+  final bool? isLikeNotificationsOn;
+  final bool? isMessageNotificationsOn;
   final String? language;
 
   SettingsModel({
     required this.userId,
     this.isDark,
-    this.isNotificationsOn,
+    this.isLikeNotificationsOn,
+    this.isMessageNotificationsOn,
     this.language,    
   });
 
@@ -18,7 +20,8 @@ class SettingsModel{
     return SettingsModel ( 
       userId: json['user_id'] ?? (throw Exception("Critical: user_id missing")),
       isDark: json['is_dark_mode'],
-      isNotificationsOn: json['is_notifications_on'],
+      isLikeNotificationsOn: json['is_like_notifications_on'],
+      isMessageNotificationsOn: json['is_message_notifications_on'],
       language: json['language'],
     );
   }
@@ -27,7 +30,8 @@ class SettingsModel{
     return {
       'user_id': userId,
       'is_dark_mode': isDark,
-      'is_notification_on': isNotificationsOn,
+      'is_like_notification_on': isLikeNotificationsOn,
+      'is_message_notifications_on': isMessageNotificationsOn,
       'language': language,
     };
   }

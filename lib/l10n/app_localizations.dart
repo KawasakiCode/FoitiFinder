@@ -943,6 +943,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your email is already verified'**
   String get mailAlreadyVerified;
+
+  /// No description provided for @messageNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Message Notifications'**
+  String get messageNotifications;
+
+  /// No description provided for @likeNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Like and Match Notifications'**
+  String get likeNotifications;
 }
 
 class _AppLocalizationsDelegate

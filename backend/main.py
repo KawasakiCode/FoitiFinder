@@ -121,8 +121,9 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
         new_settings = models.Settings(  
             user_id=new_user.id,
-            is_dark_mode=False,
-            is_notifications_on=False,
+            is_dark_mode=True,
+            is_like_notifications_on=False,
+            is_message_notifications_on=False,
             language='el'
         )
 

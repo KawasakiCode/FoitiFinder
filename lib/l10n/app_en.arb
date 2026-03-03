@@ -139,5 +139,7 @@
   "verifyYourEmail": "Verify Your Email",
   "verifyyourEmail": "Verify your email",
   "backToSettings": "Back to settings",
-  "mailAlreadyVerified": "Your email is already verified"
+  "mailAlreadyVerified": "Your email is already verified",
+  "messageNotifications": "Message Notifications",
+  "likeNotifications": "Like and Match Notifications"
 }

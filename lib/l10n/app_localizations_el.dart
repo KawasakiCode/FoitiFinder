@@ -463,4 +463,10 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get mailAlreadyVerified => 'Το email σου έχει ήδη επαληθευτεί';
+
+  @override
+  String get messageNotifications => 'Ειδοποιήσεις μηνυμάτων';
+
+  @override
+  String get likeNotifications => 'Ειδοποιήσεις για Like & Match';
 }
