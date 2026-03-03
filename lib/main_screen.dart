@@ -154,7 +154,7 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> _pages = [
+    final List<Widget> pages = [
       const MyHomePage(),
       LikesPage(key: _likesPageKey),
       DMPage(key: _dmPageKey),
@@ -171,7 +171,7 @@ class _MainScreenState extends State<MainScreen> {
         });
       },
       child: Scaffold(
-        body: IndexedStack(index: _selectedIndex, children: _pages),
+        body: IndexedStack(index: _selectedIndex, children: pages),
         bottomNavigationBar: SafeArea(
           child: Container(
             height: 70,
