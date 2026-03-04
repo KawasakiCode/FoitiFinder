@@ -5,6 +5,7 @@ from fastapi import FastAPI, Depends, HTTPException, WebSocket, WebSocketDisconn
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from sqlalchemy import func
+from notifications import send_smart_notification
 from database import models
 from database.database import SessionLocal, engine, get_db
 from database import schemas
@@ -508,8 +509,10 @@ def record_swipe(swipe: SwipeRequest, db: Session = Depends(get_db)):
             if target_fcm_token:
                 if is_match:
                     notify_user_of_like_or_match(target_fcm_token, 'match')
+                    send_smart_notification(target_user.firebase_token, 'match', firestore_db)
                 elif not is_match:
                     notify_user_of_like_or_match(target_fcm_token, 'like')
+                    send_smart_notification(target_user.firebase_token, 'like', firestore_db)
                 else: 
                     raise HTTPException(status_code=404, detail="Target User not found")
             else: 

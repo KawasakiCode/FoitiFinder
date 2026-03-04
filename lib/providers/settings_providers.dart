@@ -1,6 +1,7 @@
 //The provider that loads and changes global settings like dark mode, language. 
 //used only for settings within the settings page
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -233,41 +234,6 @@ class SettingsProvider extends ChangeNotifier {
     
   }
 
-  //Push notifications logic
-  // Future<void> toggleNotifications(bool value) async {
-  //   //when user first turns the switch to on the app asks for permissions
-  //   if (value == true) {
-  //     FirebaseMessaging messaging = FirebaseMessaging.instance;
-
-  //     NotificationSettings settings = await messaging.requestPermission(  
-  //       alert: true,
-  //       badge: true,
-  //       sound: true,
-  //     );
-  //     //If user accepts permissions they are enabled and switch stays on
-  //     if(settings.authorizationStatus == AuthorizationStatus.authorized) {
-  //       _likeNotificationsEnabled = true;
-  //       _messageNotificationsEnabled = true;
-  //       //Token to identify specific user to send push notifications
-  //       //String? token = await messaging.getToken();
-  //       await _prefs.setBool('notifications_enabled', value);
-  //       _osPermission = true;
-  //     }
-  //     //If user declines then switch stays off and no notifications can be sent
-  //     else {
-  //       _likeNotificationsEnabled = false;
-  //       _messageNotificationsEnabled = false;
-  //     }
-  //   }
-  //   //If the switch is gets turned off stop sending notifications
-  //   else {
-  //     _likeNotificationsEnabled = false;
-  //     _messageNotificationsEnabled = false;
-  //   }
-  //   await ApiService.updateUsersSettings(uid: FirebaseAuth.instance.currentUser!.uid, isLikeNotificationsOn: _likeNotificationsEnabled, isMessageNotificationsOn: _messageNotificationsEnabled);
-  //   notifyListeners();
-  // }
-
   //Only handles the OS permission
   Future<bool> _ensureOsPermission() async {
     FirebaseMessaging messaging = FirebaseMessaging.instance;
@@ -302,14 +268,17 @@ class SettingsProvider extends ChangeNotifier {
 
     // Update the specific variable
     _likeNotificationsEnabled = value;
+    notifyListeners();
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    await FirebaseFirestore.instance.collection('users').doc(uid).update({
+      'like_notifications': _likeNotificationsEnabled,
+    });
     
     // Save to local prefs (optional, good for startup)
     await _prefs.setBool('like_notifications_enabled', value);
 
     // Sync with Database
     await ApiService.updateUsersSettings(uid: FirebaseAuth.instance.currentUser!.uid, isLikeNotificationsOn: _likeNotificationsEnabled);
-    
-    notifyListeners();
   }
 
   //Toggle message notifications
@@ -326,14 +295,17 @@ class SettingsProvider extends ChangeNotifier {
 
     // Update the specific variable
     _messageNotificationsEnabled = value;
+    notifyListeners();
 
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    await FirebaseFirestore.instance.collection('users').doc(uid).update({
+      'message_notifications': _messageNotificationsEnabled,
+    });
     // Save to local prefs
     await _prefs.setBool('message_notifications_enabled', value);
 
     // Sync with Database
     await ApiService.updateUsersSettings(uid: FirebaseAuth.instance.currentUser!.uid, isMessageNotificationsOn: _messageNotificationsEnabled);
-
-    notifyListeners();
   }
 
   //Phone number logic

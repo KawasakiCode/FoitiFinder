@@ -71,6 +71,7 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
       await settingsProvider.fetchSettingsFromApi(user.uid);
       if (!mounted) return;
+      print("error here");
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => MainScreen(uid: user.uid)),

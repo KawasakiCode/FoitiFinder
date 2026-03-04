@@ -34,7 +34,6 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-
     _updateFcmToken();
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -59,7 +58,7 @@ class _MainScreenState extends State<MainScreen> {
   //so python backend can grab it and send notifications to users
   void _updateFcmToken() async {
     User? user = FirebaseAuth.instance.currentUser;
-
+    final settings = Provider.of<SettingsProvider>(context, listen: false);
     if (user != null) {
       String? token = await FirebaseMessaging.instance.getToken();
 
@@ -70,6 +69,8 @@ class _MainScreenState extends State<MainScreen> {
           .set({  
             'fcm_token': token,
             'last_active': FieldValue.serverTimestamp(),
+            'like_notifications': settings.likeNotificationsEnabled,
+            'message_notifications': settings.messageNotificationsEnabled
           }, SetOptions(merge: true));
       }
     }
