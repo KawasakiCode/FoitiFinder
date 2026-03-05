@@ -368,6 +368,11 @@ def upload_messages(message: Messages, db: Session = Depends(get_db)):
     if not match or (match.user_a_id != me.id and match.user_b_id != me.id):
         raise HTTPException(status_code =403, detail="You are not part of this match")
 
+    if match.user_a_id == me.id:
+        other_user_id = match.user_b_id
+    elif match.user_b_id == me.id:
+        other_user_id = match.user_a_id
+
     new_message = models.Messages(  
         sender = me.id,
         match_id = message.match_id,
@@ -376,6 +381,27 @@ def upload_messages(message: Messages, db: Session = Depends(get_db)):
 
     db.add(new_message)
     db.commit()
+
+    target_user = db.query(models.User).filter(models.User.id == other_user_id).first()
+    if not target_user:
+        raise HTTPException(status_code=404, detail="Target User not found")
+
+    user_ref = firestore_db.collection('users').document(target_user.firebase_token)
+    user_doc = user_ref.get()
+
+    if user_doc.exists:
+        user_data = user_doc.to_dict()
+
+        target_fcm_token = user_data.get('fcm_token')
+
+        if target_fcm_token:
+            if new_message:
+                #notify_user_of_like_or_match_or_message(target_fcm_token, 'message')
+                send_smart_notification(target_user.firebase_token, 'message', firestore_db)
+            else: 
+                raise HTTPException(status_code=404, detail="Target User not found")
+        else: 
+            raise HTTPException(status_code=404, detail="Target User not found")
 
 #get messages from db
 @app.get("/messages/{match_id}")
@@ -508,10 +534,10 @@ def record_swipe(swipe: SwipeRequest, db: Session = Depends(get_db)):
 
             if target_fcm_token:
                 if is_match:
-                    notify_user_of_like_or_match(target_fcm_token, 'match')
+                    notify_user_of_like_or_match_or_message(target_fcm_token, 'match')
                     send_smart_notification(target_user.firebase_token, 'match', firestore_db)
                 elif not is_match:
-                    notify_user_of_like_or_match(target_fcm_token, 'like')
+                    notify_user_of_like_or_match_or_message(target_fcm_token, 'like')
                     send_smart_notification(target_user.firebase_token, 'like', firestore_db)
                 else: 
                     raise HTTPException(status_code=404, detail="Target User not found")
@@ -679,7 +705,7 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
         # 4. Handle the user closing the app
         manager.disconnect(user_id)
 
-def notify_user_of_like_or_match(target_user_firebase_token: str, caller: str):
+def notify_user_of_like_or_match_or_message(target_user_firebase_token: str, caller: str):
     #Make a data message not a notification
     if caller == "like":
         message = messaging.Message(  
@@ -690,6 +716,14 @@ def notify_user_of_like_or_match(target_user_firebase_token: str, caller: str):
             },
             token = target_user_firebase_token
         )
+    elif caller == "message":
+        message = messaging.Message(  
+            data = {
+                'type': 'new_message',
+                'count': '1',
+                'click_action': 'FLUTTER_NOTIFICATION_CLICK'
+            }
+        )
     else:
         message = messaging.Message(  
             data = {
@@ -699,9 +733,5 @@ def notify_user_of_like_or_match(target_user_firebase_token: str, caller: str):
             },
             token = target_user_firebase_token
         )
-    try:
-        response = messaging.send(message)
-        print("success")
-    except Exception as e:
-        print(e)
+    messaging.send(message)
     
