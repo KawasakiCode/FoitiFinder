@@ -3,11 +3,8 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:foitifinder/main_screen.dart';
 import 'package:foitifinder/pages/auth_pages/signup.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
-import 'package:foitifinder/providers/settings_providers.dart';
-import 'package:provider/provider.dart';
 import 'package:foitifinder/widgets/loading_overlay.dart';
 
 class LoginPage extends StatefulWidget {
@@ -50,10 +47,6 @@ class _LoginPageState extends State<LoginPage> {
     final text = AppLocalizations.of(context)!;
     final email = _email.text;
     final password = _password.text;
-    final settingsProvider = Provider.of<SettingsProvider>(
-      context,
-      listen: false,
-    );
 
     try {
       final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
@@ -68,15 +61,6 @@ class _LoginPageState extends State<LoginPage> {
           message: text.errorOccured,
         );
       }
-      if (!mounted) return;
-      await settingsProvider.fetchSettingsFromApi(user.uid);
-      if (!mounted) return;
-      print("error here");
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => MainScreen(uid: user.uid)),
-        (route) => false,
-      );
     } on FirebaseAuthException catch (e) {
       String errorMessage;
       setState(() {
@@ -115,9 +99,9 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("${text.unexpectedError}, $e"),
+          content: Text(text.unexpectedError),
           backgroundColor: Colors.red,
-          duration: Duration(seconds: 10),
+          duration: Duration(seconds: 3),
         ),
       );
     }

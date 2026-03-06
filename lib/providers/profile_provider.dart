@@ -20,7 +20,7 @@ class ProfileProvider extends ChangeNotifier {
   //Using this way we save the time of making a call to the db
   //99% of the time disk will be correct anyway
   ProfileProvider(this._prefs) {
-    _loadUser();
+    loadUser();
   }
 
   //image getter
@@ -29,7 +29,7 @@ class ProfileProvider extends ChangeNotifier {
   UserModel? get currentUser => _currentUser;
 
   //Load from disk
-  void _loadUser() {
+  Future<void> loadUser() async {
     String? userJson = _prefs.getString('user_data');
 
     if(userJson != null) {
@@ -41,7 +41,9 @@ class ProfileProvider extends ChangeNotifier {
       }
     }
     else {
-      fetchUserFromApi(FirebaseAuth.instance.currentUser!.uid);
+      if(FirebaseAuth.instance.currentUser != null) {
+        fetchUserFromApi(FirebaseAuth.instance.currentUser!.uid);
+      }
     }
   }
 
