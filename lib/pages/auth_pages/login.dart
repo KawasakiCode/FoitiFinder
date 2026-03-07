@@ -45,8 +45,21 @@ class _LoginPageState extends State<LoginPage> {
     });
     if (!context.mounted) return;
     final text = AppLocalizations.of(context)!;
-    final email = _email.text;
+    final email = _email.text.trim();
     final password = _password.text;
+
+    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+
+      if (email.isEmpty || password.isEmpty) {
+        // TODO: Show SnackBar "Please fill in both fields."
+        return;
+      }
+
+      // Basic format check before bothering Firebase
+      if (email.length > 254 || !emailRegex.hasMatch(email)) {
+        // TODO: Show SnackBar "Please enter a valid email address."
+        return;
+      }
 
     try {
       final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
