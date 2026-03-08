@@ -955,6 +955,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Like and Match Notifications'**
   String get likeNotifications;
+
+  /// No description provided for @emptyEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter an email'**
+  String get emptyEmail;
+
+  /// No description provided for @emptyPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a password'**
+  String get emptyPassword;
+
+  /// No description provided for @emptyFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your credentials'**
+  String get emptyFields;
+
+  /// No description provided for @lostInternet.
+  ///
+  /// In en, this message translates to:
+  /// **'Lost Internet connection'**
+  String get lostInternet;
+
+  /// No description provided for @usernameRestrictions.
+  ///
+  /// In en, this message translates to:
+  /// **'Usernames must be between 3 and 20 characters and use only letters, numbers and underscores'**
+  String get usernameRestrictions;
+
+  /// No description provided for @fullNameRestriction.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Names can only contain letters, spaces, dashes and apostrophes and begin with a letter'**
+  String get fullNameRestriction;
 }
 
 class _AppLocalizationsDelegate

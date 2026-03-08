@@ -56,19 +56,68 @@ class _SignUpPageState extends State<SignUpPage> {
 
   //Function that signs up the user
   void signUp() async {
-    setState(() {
-      _isLoading = true;
-    },);
     UserCredential? userCredential;
     final text = AppLocalizations.of(context)!;
-    final email = _email.text;
+    final email = _email.text.trim();
     final password = _password.text;
     final username = _username.text;
     final fullName = _fullName.text;
 
+    //Restrictions
+    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    final usernameRegex = RegExp(r'^[a-zA-Z0-9][a-zA-Z0-9_]{2,19}$');
+    final nameRegex = RegExp(r"^(?=.*[a-zA-Z])[a-zA-Z\s\-']+$");
+
+    //Empty fields check
+    if (email.isEmpty || password.isEmpty || username.isEmpty || fullName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text.emptyFields),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    //Username validity check
+    if (!usernameRegex.hasMatch(username)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text.usernameRestrictions),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    //Full Name validity check
+    if(!nameRegex.hasMatch(fullName)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text.fullNameRestriction),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    // Email validation check
+      if (email.length > 254 || !emailRegex.hasMatch(email)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(text.invalidEmail),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+        return;
+      }
+
     // Client-side validation for password length
     if (password.length < 8) {
-      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(text.smallPassword),
@@ -79,6 +128,9 @@ class _SignUpPageState extends State<SignUpPage> {
       return;
     }
 
+    setState(() {
+      _isLoading = true;
+    },);
     try {
       userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
@@ -133,6 +185,9 @@ class _SignUpPageState extends State<SignUpPage> {
           break;
         case 'too-many-requests':
           errorMessage = text.tooManyRequests;
+          break;
+        case 'network-request-failed':
+          errorMessage = text.lostInternet;
           break;
         default:
           errorMessage = text.signUpError;
@@ -365,9 +420,6 @@ class _SignUpPageState extends State<SignUpPage> {
                                 onPressed: _isLoading
                                     ? null
                                     : () async {
-                                        setState(() {
-                                          _isLoading = true;
-                                        });
                                         signUp();
                                       },
                                 style: TextButton.styleFrom(

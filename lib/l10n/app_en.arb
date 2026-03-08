@@ -141,5 +141,11 @@
   "backToSettings": "Back to settings",
   "mailAlreadyVerified": "Your email is already verified",
   "messageNotifications": "Message Notifications",
-  "likeNotifications": "Like and Match Notifications"
+  "likeNotifications": "Like and Match Notifications",
+  "emptyEmail": "Please enter an email",
+  "emptyPassword": "Please enter a password",
+  "emptyFields": "Please enter your credentials",
+  "lostInternet": "Lost Internet connection",
+  "usernameRestrictions": "Usernames must be between 3 and 20 characters and use only letters, numbers and underscores",
+  "fullNameRestriction": "Full Names can only contain letters, spaces, dashes and apostrophes and begin with a letter"
 }

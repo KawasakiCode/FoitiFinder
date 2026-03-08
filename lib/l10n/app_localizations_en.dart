@@ -462,4 +462,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get likeNotifications => 'Like and Match Notifications';
+
+  @override
+  String get emptyEmail => 'Please enter an email';
+
+  @override
+  String get emptyPassword => 'Please enter a password';
+
+  @override
+  String get emptyFields => 'Please enter your credentials';
+
+  @override
+  String get lostInternet => 'Lost Internet connection';
+
+  @override
+  String get usernameRestrictions =>
+      'Usernames must be between 3 and 20 characters and use only letters, numbers and underscores';
+
+  @override
+  String get fullNameRestriction =>
+      'Full Names can only contain letters, spaces, dashes and apostrophes and begin with a letter';
 }

@@ -469,4 +469,24 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get likeNotifications => 'Ειδοποιήσεις για Like & Match';
+
+  @override
+  String get emptyEmail => 'Παρακαλώ εισαγάγετε ένα email';
+
+  @override
+  String get emptyPassword => 'Παρακαλώ εισαγάγετε κωδικό πρόσβασης';
+
+  @override
+  String get emptyFields => 'Παρακαλώ συμπληρώστε τα στοιχεία σας';
+
+  @override
+  String get lostInternet => 'Απώλεια σύνδεσης στο διαδίκτυο';
+
+  @override
+  String get usernameRestrictions =>
+      'Το όνομα χρήστη πρέπει να έχει από 3 έως 20 χαρακτήρες και να περιέχει μόνο γράμματα, αριθμούς και κάτω παύλες';
+
+  @override
+  String get fullNameRestriction =>
+      'Το ονοματεπώνυμο μπορεί να περιέχει μόνο γράμματα, κενά, παύλες και αποστρόφους και να ξεκινάει με γράμμα';
 }

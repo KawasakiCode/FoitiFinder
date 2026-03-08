@@ -40,9 +40,6 @@ class _LoginPageState extends State<LoginPage> {
   //If login is successful sent user to MainScreen (HomePage)
   //If login fails notify the user
   void _login() async {
-    setState(() {
-      isLoading = true;
-    });
     if (!context.mounted) return;
     final text = AppLocalizations.of(context)!;
     final email = _email.text.trim();
@@ -50,17 +47,51 @@ class _LoginPageState extends State<LoginPage> {
 
     final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
 
-      if (email.isEmpty || password.isEmpty) {
-        // TODO: Show SnackBar "Please fill in both fields."
-        return;
-      }
+    if (email.isEmpty && password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text.emptyFields),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+    else if (email.isEmpty && password.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text.emptyEmail),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+    else if (password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text.emptyPassword),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+    // Email validation check
+    if (email.length > 254 || !emailRegex.hasMatch(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text.invalidEmail),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
 
-      // Basic format check before bothering Firebase
-      if (email.length > 254 || !emailRegex.hasMatch(email)) {
-        // TODO: Show SnackBar "Please enter a valid email address."
-        return;
-      }
-
+    setState(() {
+      isLoading = true;
+    });
     try {
       final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
@@ -92,6 +123,9 @@ class _LoginPageState extends State<LoginPage> {
           break;
         case 'too-many-requests':
           errorMessage = text.tooManyRequests;
+          break;
+        case 'network-request-failed':
+          errorMessage = text.lostInternet;
           break;
         default:
           errorMessage = text.errorOccured;
