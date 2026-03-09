@@ -991,6 +991,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Full Names can only contain letters, spaces, dashes and apostrophes and begin with a letter'**
   String get fullNameRestriction;
+
+  /// No description provided for @phoneAlreadyInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone is already linked with another account. Try to login'**
+  String get phoneAlreadyInUse;
 }
 
 class _AppLocalizationsDelegate

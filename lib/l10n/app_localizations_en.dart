@@ -482,4 +482,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get fullNameRestriction =>
       'Full Names can only contain letters, spaces, dashes and apostrophes and begin with a letter';
+
+  @override
+  String get phoneAlreadyInUse =>
+      'This phone is already linked with another account. Try to login';
 }

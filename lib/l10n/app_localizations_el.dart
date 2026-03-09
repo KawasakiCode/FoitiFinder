@@ -489,4 +489,8 @@ class AppLocalizationsEl extends AppLocalizations {
   @override
   String get fullNameRestriction =>
       'Το ονοματεπώνυμο μπορεί να περιέχει μόνο γράμματα, κενά, παύλες και αποστρόφους και να ξεκινάει με γράμμα';
+
+  @override
+  String get phoneAlreadyInUse =>
+      'Αυτό το τηλέφωνο είναι ήδη συνδεδεμένο με άλλον λογαριασμό. Δοκιμάστε να συνδεθείτε';
 }

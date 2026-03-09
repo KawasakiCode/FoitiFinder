@@ -47,13 +47,14 @@ class _PhoneVerificationPage extends State<PhoneVerificationPage> {
   }
 
   Future<void> _verifyNumber() async {
-    setState(() {
-        _isLoading = true;
-    },);
+    
     FocusScope.of(context).unfocus();
     String? phoneNumber = _validateNumber();
     //if phone number is valid
     if (_isValid && phoneNumber != "") {
+      setState(() {
+        _isLoading = true;
+      },);
       await FirebaseAuth.instance.verifyPhoneNumber(
         phoneNumber: phoneNumber,
         verificationCompleted: (phoneAuthCredential) async {

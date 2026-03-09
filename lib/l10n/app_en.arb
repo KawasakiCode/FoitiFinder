@@ -147,5 +147,6 @@
   "emptyFields": "Please enter your credentials",
   "lostInternet": "Lost Internet connection",
   "usernameRestrictions": "Usernames must be between 3 and 20 characters and use only letters, numbers and underscores",
-  "fullNameRestriction": "Full Names can only contain letters, spaces, dashes and apostrophes and begin with a letter"
+  "fullNameRestriction": "Full Names can only contain letters, spaces, dashes and apostrophes and begin with a letter",
+  "phoneAlreadyInUse": "This phone is already linked with another account. Try to login"
 }

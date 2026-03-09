@@ -71,9 +71,6 @@ class _OtpCodePage extends State<OtpCodePage> {
 
 //after pressing verify
   Future<void> _submitOtp() async {
-    setState(() {
-      _isLoading = true;
-    },);
     final code = controllers.map((c) => c.text).join();
     //if code less try again
     if (code.length < 6) {
@@ -110,7 +107,9 @@ class _OtpCodePage extends State<OtpCodePage> {
         );
         return;
       }
-
+      setState(() {
+        _isLoading = true;
+      },);
       //link phone number to user
       await currentUser.linkWithCredential(credential);
       if(!mounted)return;
@@ -123,14 +122,45 @@ class _OtpCodePage extends State<OtpCodePage> {
       },);
       Navigator.pop(context);
 
-    } on FirebaseAuthException {
+    } on FirebaseAuthException catch (e) {
       setState(() {
         _isLoading = false;
-      },);
+      });
       if (!mounted) return;
+
+      String errorMessage;
+      switch (e.code) {
+        case 'credential-already-in-use':
+          // You will need to add this new string to your localization file
+          errorMessage = text.phoneAlreadyInUse; 
+          break;
+        case 'invalid-verification-code':
+          errorMessage = text.invalidOtpCode;
+          break;
+        case 'network-request-failed':
+          errorMessage = text.lostInternet;
+          break;
+        default:
+          errorMessage = text.errorOccured;
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(text.invalidOtpCode),
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      // Fallback for any non-Firebase errors
+      setState(() {
+        _isLoading = false;
+      });
+      if (!mounted) return;
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text.errorOccured),
           backgroundColor: Colors.red,
           duration: Duration(seconds: 2),
         ),
