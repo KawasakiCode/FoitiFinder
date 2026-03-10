@@ -46,7 +46,7 @@
   "snackbarNonValidPhoneNumber": "Enter a valid phone number 69xxxxxxxx",
   "snackbarVerified": "Phone Verified",
   "snackbarCodeExpired": "Code expired",
-  "snackbarVerifyFailed": "Failed to verify phone number",
+  "snackbarVerifyFailed": "Failed to verify phone number. Please contact support",
   "verifyPhoneNumber": "Verify Phone Number",
   "enterCode": "Enter the verification code sent to your phone number",
   "verify": "Verify",
@@ -148,5 +148,8 @@
   "lostInternet": "Lost Internet connection",
   "usernameRestrictions": "Usernames must be between 3 and 20 characters and use only letters, numbers and underscores",
   "fullNameRestriction": "Full Names can only contain letters, spaces, dashes and apostrophes and begin with a letter",
-  "phoneAlreadyInUse": "This phone is already linked with another account. Try to login"
+  "phoneAlreadyInUse": "This phone is already linked with another account. Try to login",
+  "newCodeSent": "New code sent",
+  "resendCode": "Resend Code",
+  "resendIn": "Resend in"
 }

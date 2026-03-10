@@ -383,7 +383,7 @@ abstract class AppLocalizations {
   /// No description provided for @snackbarVerifyFailed.
   ///
   /// In en, this message translates to:
-  /// **'Failed to verify phone number'**
+  /// **'Failed to verify phone number. Please contact support'**
   String get snackbarVerifyFailed;
 
   /// No description provided for @verifyPhoneNumber.
@@ -997,6 +997,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This phone is already linked with another account. Try to login'**
   String get phoneAlreadyInUse;
+
+  /// No description provided for @newCodeSent.
+  ///
+  /// In en, this message translates to:
+  /// **'New code sent'**
+  String get newCodeSent;
+
+  /// No description provided for @resendCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend Code'**
+  String get resendCode;
+
+  /// No description provided for @resendIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend in'**
+  String get resendIn;
 }
 
 class _AppLocalizationsDelegate

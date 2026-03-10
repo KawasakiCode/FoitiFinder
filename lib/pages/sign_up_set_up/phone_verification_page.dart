@@ -109,13 +109,6 @@ class _PhoneVerificationPage extends State<PhoneVerificationPage> {
           setState(() {
             _isLoading = false;
           },);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(text.snackbarCodeExpired),
-              backgroundColor: Colors.red,
-              duration: Duration(seconds: 2),
-            ),
-          );
         },
       );
     }
@@ -124,64 +117,67 @@ class _PhoneVerificationPage extends State<PhoneVerificationPage> {
   //phone_number_page ui
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(text.phoneNumberSettings),
-        automaticallyImplyLeading: false,
-      ),
-      body: LoadingOverlay(
-        isLoading: _isLoading,
-        child: GestureDetector(
-          onTap:() => FocusScope.of(context).unfocus(),
-          behavior: HitTestBehavior.opaque,
-          child: Padding(
-            padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: Text(
-                    text.phoneNumber,
-                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(text.phoneNumberSettings),
+          automaticallyImplyLeading: false,
+        ),
+        body: LoadingOverlay(
+          isLoading: _isLoading,
+          child: GestureDetector(
+            onTap:() => FocusScope.of(context).unfocus(),
+            behavior: HitTestBehavior.opaque,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Text(
+                      text.phoneNumber,
+                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                    ),
                   ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _phoneNumberController,
-                        keyboardType: TextInputType.phone,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(  
-                            borderRadius: BorderRadius.circular(15),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _phoneNumberController,
+                          keyboardType: TextInputType.phone,
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(  
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            hintText: text.phoneNumberPlaceholder,
+                            hintStyle: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w400,
+                            ),
                           ),
-                          hintText: text.phoneNumberPlaceholder,
-                          hintStyle: TextStyle(
+                          style: const TextStyle(
                             fontSize: 15,
-                            fontWeight: FontWeight.w400,
+                            fontWeight: FontWeight.w500,
                           ),
-                        ),
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                Center(
-                  child: TextButton(
-                    //onpress call validate number and redirect to otp page
-                    onPressed: _verifyNumber,
-                    child: Text(
-                      text.verifyPhoneNumber,
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                    ],
+                  ),
+                  Center(
+                    child: TextButton(
+                      //onpress call validate number and redirect to otp page
+                      onPressed: _verifyNumber,
+                      child: Text(
+                        text.verifyPhoneNumber,
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

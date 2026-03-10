@@ -152,7 +152,8 @@ class AppLocalizationsEl extends AppLocalizations {
   String get snackbarCodeExpired => 'Ο κωδικός έληξε';
 
   @override
-  String get snackbarVerifyFailed => 'Απέτυχε η επαλήθευση του αριθμού';
+  String get snackbarVerifyFailed =>
+      'Απέτυχε η επαλήθευση του αριθμού. Επικοινωνήστε με την υποστήριξη';
 
   @override
   String get verifyPhoneNumber => 'Επαλήθευση Αριθμού';
@@ -493,4 +494,13 @@ class AppLocalizationsEl extends AppLocalizations {
   @override
   String get phoneAlreadyInUse =>
       'Αυτό το τηλέφωνο είναι ήδη συνδεδεμένο με άλλον λογαριασμό. Δοκιμάστε να συνδεθείτε';
+
+  @override
+  String get newCodeSent => 'Νέος κωδικός στάλθηκε';
+
+  @override
+  String get resendCode => 'Επαναποστολή κωδικού';
+
+  @override
+  String get resendIn => 'Επαναποστολή σε';
 }

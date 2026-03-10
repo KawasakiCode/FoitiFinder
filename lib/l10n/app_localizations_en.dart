@@ -152,7 +152,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get snackbarCodeExpired => 'Code expired';
 
   @override
-  String get snackbarVerifyFailed => 'Failed to verify phone number';
+  String get snackbarVerifyFailed =>
+      'Failed to verify phone number. Please contact support';
 
   @override
   String get verifyPhoneNumber => 'Verify Phone Number';
@@ -486,4 +487,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get phoneAlreadyInUse =>
       'This phone is already linked with another account. Try to login';
+
+  @override
+  String get newCodeSent => 'New code sent';
+
+  @override
+  String get resendCode => 'Resend Code';
+
+  @override
+  String get resendIn => 'Resend in';
 }

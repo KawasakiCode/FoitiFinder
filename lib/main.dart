@@ -206,10 +206,10 @@ class FoitiFinder extends StatelessWidget {
         ),
 
         floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: Colors.grey[800], 
-        foregroundColor: Colors.white, 
-        elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          backgroundColor: Colors.grey[800], 
+          foregroundColor: Colors.white, 
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
 
         searchBarTheme: SearchBarThemeData(
