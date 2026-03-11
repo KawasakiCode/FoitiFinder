@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
+import 'package:foitifinder/widgets/otp_input_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/widgets/loading_overlay.dart';
@@ -30,14 +31,10 @@ class _OtpCodePage extends State<OtpCodePage> {
   bool _canResend = false;
   Timer? _timer;
   late String _currentVerificationId;
+  String _currentCode = '';
 
   bool _isLoading = false;
   AppLocalizations get text => AppLocalizations.of(context)!;
-  final List<TextEditingController> controllers = List.generate(
-    6,
-    (_) => TextEditingController(),
-  );
-  final List<FocusNode> focusNodes = List.generate(6, (_) => FocusNode());
 
   @override
   void initState() {
@@ -48,12 +45,6 @@ class _OtpCodePage extends State<OtpCodePage> {
 
   @override
   void dispose() {
-    for (var c in controllers) {
-      c.dispose();
-    }
-    for (var f in focusNodes) {
-      f.dispose();
-    }
     _timer?.cancel();
     super.dispose();
   }
@@ -119,37 +110,10 @@ class _OtpCodePage extends State<OtpCodePage> {
       }
     );
   }
-  //when a number is inserted into the controllers
-  void _onDigitEntered(int index, String value) {
-    if (value.length == 1 && index < 5) {
-      FocusScope.of(context).requestFocus(focusNodes[index + 1]);
-    } else if (value.isEmpty && index > 0) {
-      FocusScope.of(context).requestFocus(focusNodes[index - 1]);
-    }
-  }
-
-  //build the 6 controllers
-  Widget _buildBox(int index) {
-    return SizedBox(
-      width: 45,
-      child: TextFormField(
-        controller: controllers[index],
-        focusNode: focusNodes[index],
-        maxLength: 1,
-        textAlign: TextAlign.center,
-        keyboardType: TextInputType.number,
-        decoration: const InputDecoration(
-          counterText: "",
-          border: OutlineInputBorder(),
-        ),
-        onChanged: (value) => _onDigitEntered(index, value),
-      ),
-    );
-  }
 
   //after pressing verify
-  Future<void> _submitOtp() async {
-    final code = controllers.map((c) => c.text).join();
+  Future<void> _submitOtp(String code) async {
+    // final code = controllers.map((c) => c.text).join();
     //if code less try again
     if (code.length < 6) {
       setState(() {
@@ -272,20 +236,16 @@ class _OtpCodePage extends State<OtpCodePage> {
             ),
             Padding(
               padding: const EdgeInsets.only(top: 15, bottom: 5),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: List.generate(6, (index) => _buildBox(index)),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 15),
-              child: TextButton(
-                onPressed: _submitOtp,
-                child: Text(
-                  text.verify,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-              ),
+              child: OtpInputWidget(  
+                length: 6,
+                onChanged: (String code) {
+                  _currentCode = code;
+                },
+                onCompleted: (String code) {
+                  _submitOtp(code);
+                },
+                focusedBorderColor: Color(0xFF8A2BE2)
+              )
             ),
             Padding(
               padding: const EdgeInsets.only(top: 10),

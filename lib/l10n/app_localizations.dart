@@ -1015,6 +1015,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Resend in'**
   String get resendIn;
+
+  /// No description provided for @requestTimedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Request timed out. Please try again'**
+  String get requestTimedOut;
 }
 
 class _AppLocalizationsDelegate

@@ -496,4 +496,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get resendIn => 'Resend in';
+
+  @override
+  String get requestTimedOut => 'Request timed out. Please try again';
 }

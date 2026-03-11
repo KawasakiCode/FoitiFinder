@@ -151,5 +151,6 @@
   "phoneAlreadyInUse": "This phone is already linked with another account. Try to login",
   "newCodeSent": "New code sent",
   "resendCode": "Resend Code",
-  "resendIn": "Resend in"
+  "resendIn": "Resend in",
+  "requestTimedOut": "Request timed out. Please try again"
 }

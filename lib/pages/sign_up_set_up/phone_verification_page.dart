@@ -1,5 +1,7 @@
 //Same page with settings phone number verification page
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/pages/sign_up_set_up/add_photos.dart';
@@ -9,7 +11,6 @@ import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/widgets/loading_overlay.dart';
 
-
 class PhoneVerificationPage extends StatefulWidget {
   const PhoneVerificationPage({super.key});
 
@@ -18,10 +19,19 @@ class PhoneVerificationPage extends StatefulWidget {
 }
 
 class _PhoneVerificationPage extends State<PhoneVerificationPage> {
-  AppLocalizations get  text => AppLocalizations.of(context)!;
+  AppLocalizations get text => AppLocalizations.of(context)!;
   final TextEditingController _phoneNumberController = TextEditingController();
   bool _isValid = false;
   bool _isLoading = false;
+
+  //Timer to stop loading when anit spam is enabled by firebase
+  Timer? _timeoutTimer;
+
+  @override
+  void dispose() {
+    _timeoutTimer?.cancel();
+    super.dispose();
+  }
 
   //validate phone number and return it to sent to otp page
   String _validateNumber() {
@@ -47,70 +57,108 @@ class _PhoneVerificationPage extends State<PhoneVerificationPage> {
   }
 
   Future<void> _verifyNumber() async {
-    
     FocusScope.of(context).unfocus();
     String? phoneNumber = _validateNumber();
     //if phone number is valid
     if (_isValid && phoneNumber != "") {
       setState(() {
         _isLoading = true;
-      },);
-      await FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: phoneNumber,
-        verificationCompleted: (phoneAuthCredential) async {
-        Provider.of<SettingsProvider>(context, listen: false).verifyPhone();
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(text.snackbarVerified),
-            backgroundColor: Colors.green,
-          ),
-        );
-        
-        if (!mounted) return;
-        Navigator.pop(context);
-      },
-      codeSent: (String verificationId, int? resendToken) async {
-        // Wait for the user to finish on the OTP page
-        await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => OtpCodePage(
-              verificationId: verificationId,
-              phoneNumber: phoneNumber,
-            ),
-          ),
-        );
-
-        if (!mounted) return;
-        final isVerified = Provider.of<SettingsProvider>(context, listen: false).isPhoneVerified;
-        setState(() {
-          _isLoading = false;
-        },);
-        if (isVerified) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => AddPhotos())); 
-        }
-      },
-        verificationFailed: (FirebaseAuthException e) {
+      });
+      _timeoutTimer?.cancel();
+      //If the spinner still loads after timer end kill it and show error
+      _timeoutTimer = Timer(const Duration(seconds: 10), () {
+        if (mounted && _isLoading) {
           setState(() {
             _isLoading = false;
-          },);
+          });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(text.snackbarVerifyFailed),
+              content: Text(text.requestTimedOut), 
               backgroundColor: Colors.red,
-              duration: Duration(seconds: 2),
+              duration: const Duration(seconds: 3),
             ),
           );
-        },
-        codeAutoRetrievalTimeout: (verificationId) {
-          setState(() {
-            _isLoading = false;
-          },);
-        },
-      );
+        }
+      });
+      try {
+        await FirebaseAuth.instance.verifyPhoneNumber(
+          phoneNumber: phoneNumber,
+          verificationCompleted: (phoneAuthCredential) async {
+            _timeoutTimer?.cancel();
+            Provider.of<SettingsProvider>(context, listen: false).verifyPhone();
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(text.snackbarVerified),
+                backgroundColor: Colors.green,
+              ),
+            );
+
+            if (!mounted) return;
+            Navigator.pop(context);
+          },
+          codeSent: (String verificationId, int? resendToken) async {
+            _timeoutTimer?.cancel();
+            // Wait for the user to finish on the OTP page
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => OtpCodePage(
+                  verificationId: verificationId,
+                  phoneNumber: phoneNumber,
+                ),
+              ),
+            );
+
+            if (!mounted) return;
+            final isVerified = Provider.of<SettingsProvider>(
+              context,
+              listen: false,
+            ).isPhoneVerified;
+            setState(() {
+              _isLoading = false;
+            });
+            if (isVerified) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => AddPhotos()),
+              );
+            }
+          },
+          verificationFailed: (FirebaseAuthException e) {
+            _timeoutTimer?.cancel();
+            setState(() {
+              _isLoading = false;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(text.snackbarVerifyFailed),
+                backgroundColor: Colors.red,
+                duration: Duration(seconds: 2),
+              ),
+            );
+          },
+          codeAutoRetrievalTimeout: (verificationId) {
+            _timeoutTimer?.cancel();
+            setState(() {
+              _isLoading = false;
+            });
+          },
+        );
+      } catch (e) {
+        _timeoutTimer?.cancel();
+        setState(() {
+          _isLoading = false;
+        });
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(text.generalError),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
     }
   }
 
@@ -127,7 +175,7 @@ class _PhoneVerificationPage extends State<PhoneVerificationPage> {
         body: LoadingOverlay(
           isLoading: _isLoading,
           child: GestureDetector(
-            onTap:() => FocusScope.of(context).unfocus(),
+            onTap: () => FocusScope.of(context).unfocus(),
             behavior: HitTestBehavior.opaque,
             child: Padding(
               padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
@@ -138,7 +186,10 @@ class _PhoneVerificationPage extends State<PhoneVerificationPage> {
                     padding: const EdgeInsets.only(bottom: 10),
                     child: Text(
                       text.phoneNumber,
-                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                   Row(
@@ -149,7 +200,7 @@ class _PhoneVerificationPage extends State<PhoneVerificationPage> {
                           controller: _phoneNumberController,
                           keyboardType: TextInputType.phone,
                           decoration: InputDecoration(
-                            border: OutlineInputBorder(  
+                            border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(15),
                             ),
                             hintText: text.phoneNumberPlaceholder,
@@ -172,7 +223,10 @@ class _PhoneVerificationPage extends State<PhoneVerificationPage> {
                       onPressed: _verifyNumber,
                       child: Text(
                         text.verifyPhoneNumber,
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ),

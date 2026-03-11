@@ -503,4 +503,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get resendIn => 'Επαναποστολή σε';
+
+  @override
+  String get requestTimedOut => 'Το αίτημα έληξε. Παρακαλώ δοκιμάστε ξανά';
 }
