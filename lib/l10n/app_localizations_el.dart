@@ -506,4 +506,8 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get requestTimedOut => 'Το αίτημα έληξε. Παρακαλώ δοκιμάστε ξανά';
+
+  @override
+  String get numberAlreadyLinked =>
+      'Αυτός ο αριθμός είναι ήδη συνδεδεμένος με αυτόν τον λογαργιασμό';
 }

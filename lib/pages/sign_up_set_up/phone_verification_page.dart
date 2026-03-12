@@ -61,19 +61,23 @@ class _PhoneVerificationPage extends State<PhoneVerificationPage> {
     String? phoneNumber = _validateNumber();
     //if phone number is valid
     if (_isValid && phoneNumber != "") {
-      setState(() {
-        _isLoading = true;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = true;
+        });
+      }
       _timeoutTimer?.cancel();
       //If the spinner still loads after timer end kill it and show error
       _timeoutTimer = Timer(const Duration(seconds: 10), () {
         if (mounted && _isLoading) {
-          setState(() {
-            _isLoading = false;
-          });
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+            });
+          }
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(text.requestTimedOut), 
+              content: Text(text.requestTimedOut),
               backgroundColor: Colors.red,
               duration: const Duration(seconds: 3),
             ),
@@ -87,9 +91,11 @@ class _PhoneVerificationPage extends State<PhoneVerificationPage> {
             _timeoutTimer?.cancel();
             Provider.of<SettingsProvider>(context, listen: false).verifyPhone();
 
-            setState(() {
-              _isLoading = false;
-            },);
+            if (mounted) {
+              setState(() {
+                _isLoading = false;
+              });
+            }
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(text.snackbarVerified),
@@ -117,9 +123,11 @@ class _PhoneVerificationPage extends State<PhoneVerificationPage> {
               context,
               listen: false,
             ).isPhoneVerified;
-            setState(() {
-              _isLoading = false;
-            });
+            if (mounted) {
+              setState(() {
+                _isLoading = false;
+              });
+            }
             if (isVerified) {
               Navigator.pushReplacement(
                 context,
@@ -129,9 +137,11 @@ class _PhoneVerificationPage extends State<PhoneVerificationPage> {
           },
           verificationFailed: (FirebaseAuthException e) {
             _timeoutTimer?.cancel();
-            setState(() {
-              _isLoading = false;
-            });
+            if (mounted) {
+              setState(() {
+                _isLoading = false;
+              });
+            }
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(text.snackbarVerifyFailed),
@@ -142,16 +152,20 @@ class _PhoneVerificationPage extends State<PhoneVerificationPage> {
           },
           codeAutoRetrievalTimeout: (verificationId) {
             _timeoutTimer?.cancel();
-            setState(() {
-              _isLoading = false;
-            });
+            if (mounted) {
+              setState(() {
+                _isLoading = false;
+              });
+            }
           },
         );
       } catch (e) {
         _timeoutTimer?.cancel();
-        setState(() {
-          _isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

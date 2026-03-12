@@ -499,4 +499,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get requestTimedOut => 'Request timed out. Please try again';
+
+  @override
+  String get numberAlreadyLinked =>
+      'This number is already linked to your account';
 }

@@ -1,5 +1,5 @@
 //This is the page where the user can change their phone number
-//after the initial sign up 
+//after the initial sign up
 
 import 'dart:async';
 
@@ -11,7 +11,6 @@ import 'package:provider/provider.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 
-
 class PhoneNumberPage extends StatefulWidget {
   const PhoneNumberPage({super.key});
 
@@ -21,13 +20,13 @@ class PhoneNumberPage extends StatefulWidget {
 
 class _PhoneNumberPageState extends State<PhoneNumberPage> {
   bool _isLoading = false;
-  AppLocalizations get  text => AppLocalizations.of(context)!;
+  AppLocalizations get text => AppLocalizations.of(context)!;
   final TextEditingController _phoneNumberController = TextEditingController();
   bool _isValid = false;
 
   Timer? _timeoutTimer;
 
-  @override 
+  @override
   void dispose() {
     _timeoutTimer?.cancel();
     super.dispose();
@@ -59,99 +58,121 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
   Future<void> _verifyNumber() async {
     FocusScope.of(context).unfocus();
     String? phoneNumber = _validateNumber();
-    //if phone number is valid
+    //if phone number is valid check if the user doesn't type the same number again
+    final currentUser = FirebaseAuth.instance.currentUser;
+
     if (_isValid && phoneNumber != "") {
-      setState(() {
-        _isLoading = true;
-      },);
+      if(currentUser != null && currentUser.phoneNumber == phoneNumber) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(text.numberAlreadyLinked), // Translate this to Greek
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+        return;
+      }
+      if (mounted) {
+        setState(() {
+          _isLoading = true;
+        });
+      }
       _timeoutTimer?.cancel();
       _timeoutTimer = Timer(const Duration(seconds: 10), () {
         if (mounted && _isLoading) {
-          setState(() {
-            _isLoading = false;
-          },);
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+            });
+          }
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(text.requestTimedOut), 
+              content: Text(text.requestTimedOut),
               backgroundColor: Colors.red,
               duration: const Duration(seconds: 3),
             ),
           );
         }
       });
-      try{
-      await FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: phoneNumber,
-        verificationCompleted: (phoneAuthCredential) async {
-          _timeoutTimer?.cancel();
-        Provider.of<SettingsProvider>(context, listen: false).verifyPhone();
+      try {
+        await FirebaseAuth.instance.verifyPhoneNumber(
+          phoneNumber: phoneNumber,
+          verificationCompleted: (phoneAuthCredential) async {
+            _timeoutTimer?.cancel();
+            Provider.of<SettingsProvider>(context, listen: false).verifyPhone();
 
-        setState(() {
-          _isLoading = false;
-        },);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(text.snackbarVerified),
-            backgroundColor: Colors.green,
-          ),
-        );
-        if (!mounted) return;
-        Navigator.pop(context);
-      },
-      codeSent: (String verificationId, int? resendToken) async {
-        _timeoutTimer?.cancel();
-        // Wait for the user to finish on the OTP page
-        await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => OtpVerificationPage(
-              verificationId: verificationId,
-              phoneNumber: phoneNumber,
-            ),
-          ),
-        );
-        setState(() {
-            _isLoading = false;
-        },);
-        if (!mounted) return;
-        final isVerified = Provider.of<SettingsProvider>(context, listen: false).isPhoneVerified;
+            if (mounted) {
+              setState(() {
+                _isLoading = false;
+              });
+            }
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(text.snackbarVerified),
+                backgroundColor: Colors.green,
+              ),
+            );
+            if (!mounted) return;
+            Navigator.pop(context);
+          },
+          codeSent: (String verificationId, int? resendToken) async {
+            _timeoutTimer?.cancel();
+            // Wait for the user to finish on the OTP page
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => OtpVerificationPage(
+                  verificationId: verificationId,
+                  phoneNumber: phoneNumber,
+                ),
+              ),
+            );
+            if (mounted) {
+              setState(() {
+                _isLoading = false;
+              });
+            }
+            if (!mounted) return;
+            final isVerified = Provider.of<SettingsProvider>(
+              context,
+              listen: false,
+            ).isPhoneVerified;
 
-        if (isVerified) {
-          Navigator.pop(context); 
-        }
-      },
-        verificationFailed: (FirebaseAuthException e) {
-          _timeoutTimer?.cancel();
-          setState(() {
-            _isLoading = false;
-          },);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(text.snackbarVerifyFailed),
-              backgroundColor: Colors.red,
-              duration: Duration(seconds: 2),
-            ),
-          );
-        },
-        codeAutoRetrievalTimeout: (verificationId) {
-          _timeoutTimer?.cancel();
-          setState(() {
-            _isLoading = false;
-          },);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(text.snackbarCodeExpired),
-              backgroundColor: Colors.red,
-              duration: Duration(seconds: 2),
-            ),
-          );
-        },
-      );
+            if (isVerified) {
+              Navigator.pop(context);
+            }
+          },
+          verificationFailed: (FirebaseAuthException e) {
+            _timeoutTimer?.cancel();
+            if (mounted) {
+              setState(() {
+                _isLoading = false;
+              });
+            }
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(text.snackbarVerifyFailed),
+                backgroundColor: Colors.red,
+                duration: Duration(seconds: 2),
+              ),
+            );
+          },
+          codeAutoRetrievalTimeout: (verificationId) {
+            _timeoutTimer?.cancel();
+            if (mounted) {
+              setState(() {
+                _isLoading = false;
+              });
+            }
+          },
+        );
       } catch (e) {
         _timeoutTimer?.cancel();
-        setState(() {
-          _isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -175,7 +196,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
       body: LoadingOverlay(
         isLoading: _isLoading,
         child: GestureDetector(
-          onTap:() => FocusScope.of(context).unfocus(),
+          onTap: () => FocusScope.of(context).unfocus(),
           behavior: HitTestBehavior.opaque,
           child: Padding(
             padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
@@ -194,7 +215,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
                         controller: _phoneNumberController,
                         keyboardType: TextInputType.phone,
                         decoration: InputDecoration(
-                          border: OutlineInputBorder(  
+                          border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
                           ),
                           hintText: text.phoneNumberPlaceholder,
@@ -217,7 +238,10 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
                     onPressed: _verifyNumber,
                     child: Text(
                       text.updatePhoneNumber,
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ),

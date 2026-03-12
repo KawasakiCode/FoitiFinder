@@ -1021,6 +1021,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Request timed out. Please try again'**
   String get requestTimedOut;
+
+  /// No description provided for @numberAlreadyLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'This number is already linked to your account'**
+  String get numberAlreadyLinked;
 }
 
 class _AppLocalizationsDelegate

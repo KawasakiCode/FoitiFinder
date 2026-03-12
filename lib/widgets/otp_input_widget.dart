@@ -1,6 +1,63 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+/// Controller that gives a parent widget programmatic control over [OtpInputWidget].
+///
+/// Works the same way as Flutter's own [TextEditingController] — create one,
+/// pass it to the widget, then call methods on it from anywhere in the parent.
+///
+/// Remember to call [dispose] in your parent State's `dispose()` method.
+///
+/// Usage:
+/// ```dart
+/// final _otpController = OtpController();
+///
+/// // Clear all boxes and return focus to box 1 (e.g. after a failed attempt)
+/// _otpController.clear();
+///
+/// // Read the current code without waiting for onCompleted
+/// final code = _otpController.currentCode;
+/// ```
+class OtpController {
+  // Instead of storing a reference to the private state object (which causes
+  // analyser errors), we store only the specific functions we need.
+  // The state assigns these callbacks in initState and nulls them in dispose.
+  VoidCallback? _clearCallback;
+  String Function()? _codeGetter;
+ 
+  /// Clears all digit boxes and moves focus back to the first box.
+  ///
+  /// Typical use-case: the server rejected the code — wipe the field so the
+  /// user can try again without having to manually delete each digit.
+  void clear() {
+    // assert fires only in debug/dev builds — stripped out in release.
+    // It catches the mistake of calling clear() before the widget has mounted
+    // or after it has been disposed, which would otherwise fail silently.
+    assert(_clearCallback != null, 'OtpController.clear() called before the widget mounted or after it was disposed.');
+    _clearCallback?.call();
+  }
+ 
+  /// Returns whatever digits have been entered so far as a plain string.
+  ///
+  /// Returns an empty string if no digits have been entered yet.
+  String get currentCode => _codeGetter?.call() ?? '';
+ 
+  /// Releases the callback references held by this controller.
+  ///
+  /// Call this inside your parent State's `dispose()`:
+  /// ```dart
+  /// @override
+  /// void dispose() {
+  ///   _otpController.dispose();
+  ///   super.dispose();
+  /// }
+  /// ```
+  void dispose() {
+    _clearCallback = null;
+    _codeGetter = null;
+  }
+}
+
 /// A reusable 6-digit OTP input widget.
 ///
 /// Features:
@@ -11,12 +68,22 @@ import 'package:flutter/services.dart';
 ///
 /// Usage:
 /// ```dart
+/// final _otpController = OtpController();
+///
 /// OtpInputWidget(
+///   controller: _otpController,
 ///   onCompleted: (code) => print('OTP: $code'),
 ///   onChanged: (code) => print('Current: $code'),
 /// )
+///
+/// // Later — e.g. inside a "wrong code" error handler:
+/// _otpController.clear();
 /// ```
 class OtpInputWidget extends StatefulWidget {
+  /// Optional controller for programmatic actions such as [OtpController.clear].
+  ///
+  /// If omitted the widget manages itself with no external control needed.
+  final OtpController? controller;
   /// Called when all 6 digits have been entered. Receives the full code string.
   final void Function(String code)? onCompleted;
 
@@ -40,6 +107,7 @@ class OtpInputWidget extends StatefulWidget {
 
   const OtpInputWidget({
     super.key,
+    this.controller,
     this.onCompleted,
     this.onChanged,
     this.length = 6,

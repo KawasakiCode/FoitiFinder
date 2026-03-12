@@ -31,13 +31,10 @@ class _OtpVerificationPage extends State<OtpVerificationPage> {
   Timer? _timer;
   late String _currentVerificationId;
 
+  final OtpController _otpController = OtpController();
+
   bool _isLoading = false;
   AppLocalizations get  text => AppLocalizations.of(context)!;
-  // final List<TextEditingController> controllers = List.generate(
-  //   6,
-  //   (_) => TextEditingController(),
-  // );
-  // final List<FocusNode> focusNodes = List.generate(6, (_) => FocusNode());
 
   @override
   void initState() {
@@ -48,43 +45,10 @@ class _OtpVerificationPage extends State<OtpVerificationPage> {
 
   @override
   void dispose() {
-    // for (var c in controllers) {
-    //   c.dispose();
-    // }
-    // for (var f in focusNodes) {
-    //   f.dispose();
-    // }
     _timer?.cancel();
+    _otpController.dispose();
     super.dispose();
   }
-
-//When a number is inserted into the controllers sent focus to the next one
-  // void _onDigitEntered(int index, String value) {
-  //   if (value.length == 1 && index < 5) {
-  //     FocusScope.of(context).requestFocus(focusNodes[index + 1]);
-  //   } else if (value.isEmpty && index > 0) {
-  //     FocusScope.of(context).requestFocus(focusNodes[index - 1]);
-  //   }
-  // }
-
-//Build the 6 controllers
-  // Widget _buildBox(int index) {
-  //   return SizedBox(
-  //     width: 45,
-  //     child: TextFormField(
-  //       controller: controllers[index],
-  //       focusNode: focusNodes[index],
-  //       maxLength: 1,
-  //       textAlign: TextAlign.center,
-  //       keyboardType: TextInputType.number,
-  //       decoration: const InputDecoration(
-  //         counterText: "",
-  //         border: OutlineInputBorder(),
-  //       ),
-  //       onChanged: (value) => _onDigitEntered(index, value),
-  //     ),
-  //   );
-  // }
 
   void _startTimer() {
     setState(() {
@@ -150,7 +114,6 @@ class _OtpVerificationPage extends State<OtpVerificationPage> {
 
 //After pressing verify
   Future<void> _submitOtp(String code) async {
-    // final code = controllers.map((c) => c.text).join();
     //if code less than 6 try again
     if (code.length < 6) {
       setState(() {
@@ -199,14 +162,54 @@ class _OtpVerificationPage extends State<OtpVerificationPage> {
         _isLoading = false;
       },);
       Navigator.pop(context);
-    } on FirebaseAuthException {
+    } on FirebaseAuthException catch (e) {
       setState(() {
         _isLoading = false;
-      },);
+      });
       if (!mounted) return;
+      print(e.code);
+      String errorMessage;
+      switch (e.code) {
+        case 'credential-already-in-use':
+          errorMessage = text.phoneAlreadyInUse;
+          Navigator.pop(context);
+          break;
+        case 'provider-already-linked':
+          errorMessage = text.phoneAlreadyInUse;
+          break;
+        case 'invalid-verification-code':
+          errorMessage = text.invalidOtpCode;
+          break;
+        case 'network-request-failed':
+          errorMessage = text.lostInternet;
+          break;
+        case 'too-many-requests':
+          errorMessage = text.tooManyRequests;
+          Navigator.pop(context);
+        default:
+          errorMessage = text.errorOccured;
+      }
+      if (e.code == 'invalid-verification-code' || e.code == 'credential-already-in-use' || e.code == 'provider-already-linked') {
+        _otpController.clear();
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(text.invalidOtpCode),
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      // Fallback for any non-Firebase errors
+      setState(() {
+        _isLoading = false;
+      });
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text.errorOccured),
           backgroundColor: Colors.red,
           duration: Duration(seconds: 2),
         ),
@@ -241,12 +244,9 @@ class _OtpVerificationPage extends State<OtpVerificationPage> {
                 onCompleted: (String code) {
                   _submitOtp(code);
                 },
-                focusedBorderColor: Color(0xFF8A2BE2)
+                focusedBorderColor: Color(0xFF8A2BE2),
+                controller: _otpController,
               ),
-              // Row(
-              //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              //   children: List.generate(6, (index) => _buildBox(index)),
-              // ),
             ),
             Padding(
               padding: const EdgeInsets.only(top: 10),
@@ -264,16 +264,6 @@ class _OtpVerificationPage extends State<OtpVerificationPage> {
                 ),
               ),
             ),
-            // Padding(
-            //   padding: const EdgeInsets.only(top: 15),
-            //   child: TextButton(
-            //     onPressed: _submitOtp,
-            //     child: Text(
-            //       text.verify,
-            //       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            //     ),
-            //   ),
-            // ),
           ],
         ),
       ),

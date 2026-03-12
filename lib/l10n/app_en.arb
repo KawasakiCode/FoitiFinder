@@ -152,5 +152,6 @@
   "newCodeSent": "New code sent",
   "resendCode": "Resend Code",
   "resendIn": "Resend in",
-  "requestTimedOut": "Request timed out. Please try again"
+  "requestTimedOut": "Request timed out. Please try again",
+  "numberAlreadyLinked": "This number is already linked to your account"
 }
