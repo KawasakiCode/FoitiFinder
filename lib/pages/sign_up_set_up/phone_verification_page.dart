@@ -87,13 +87,15 @@ class _PhoneVerificationPage extends State<PhoneVerificationPage> {
             _timeoutTimer?.cancel();
             Provider.of<SettingsProvider>(context, listen: false).verifyPhone();
 
+            setState(() {
+              _isLoading = false;
+            },);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(text.snackbarVerified),
                 backgroundColor: Colors.green,
               ),
             );
-
             if (!mounted) return;
             Navigator.pop(context);
           },

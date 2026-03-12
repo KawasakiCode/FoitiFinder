@@ -1,10 +1,13 @@
 //In this page the user enters the OTP code from the sms sent to them
 //for phone number verification
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:foitifinder/widgets/loading_overlay.dart';
+import 'package:foitifinder/widgets/otp_input_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 
@@ -23,61 +26,136 @@ class OtpVerificationPage extends StatefulWidget {
 }
 
 class _OtpVerificationPage extends State<OtpVerificationPage> {
+  int _countdown = 60;
+  bool _canResend = false;
+  Timer? _timer;
+  late String _currentVerificationId;
+
   bool _isLoading = false;
   AppLocalizations get  text => AppLocalizations.of(context)!;
-  final List<TextEditingController> controllers = List.generate(
-    6,
-    (_) => TextEditingController(),
-  );
-  final List<FocusNode> focusNodes = List.generate(6, (_) => FocusNode());
+  // final List<TextEditingController> controllers = List.generate(
+  //   6,
+  //   (_) => TextEditingController(),
+  // );
+  // final List<FocusNode> focusNodes = List.generate(6, (_) => FocusNode());
+
+  @override
+  void initState() {
+    super.initState();
+    _currentVerificationId = widget.verificationId;
+    _startTimer();
+  }
 
   @override
   void dispose() {
-    for (var c in controllers) {
-      c.dispose();
-    }
-    for (var f in focusNodes) {
-      f.dispose();
-    }
+    // for (var c in controllers) {
+    //   c.dispose();
+    // }
+    // for (var f in focusNodes) {
+    //   f.dispose();
+    // }
+    _timer?.cancel();
     super.dispose();
   }
 
 //When a number is inserted into the controllers sent focus to the next one
-  void _onDigitEntered(int index, String value) {
-    if (value.length == 1 && index < 5) {
-      FocusScope.of(context).requestFocus(focusNodes[index + 1]);
-    } else if (value.isEmpty && index > 0) {
-      FocusScope.of(context).requestFocus(focusNodes[index - 1]);
-    }
-  }
+  // void _onDigitEntered(int index, String value) {
+  //   if (value.length == 1 && index < 5) {
+  //     FocusScope.of(context).requestFocus(focusNodes[index + 1]);
+  //   } else if (value.isEmpty && index > 0) {
+  //     FocusScope.of(context).requestFocus(focusNodes[index - 1]);
+  //   }
+  // }
 
 //Build the 6 controllers
-  Widget _buildBox(int index) {
-    return SizedBox(
-      width: 45,
-      child: TextFormField(
-        controller: controllers[index],
-        focusNode: focusNodes[index],
-        maxLength: 1,
-        textAlign: TextAlign.center,
-        keyboardType: TextInputType.number,
-        decoration: const InputDecoration(
-          counterText: "",
-          border: OutlineInputBorder(),
-        ),
-        onChanged: (value) => _onDigitEntered(index, value),
-      ),
+  // Widget _buildBox(int index) {
+  //   return SizedBox(
+  //     width: 45,
+  //     child: TextFormField(
+  //       controller: controllers[index],
+  //       focusNode: focusNodes[index],
+  //       maxLength: 1,
+  //       textAlign: TextAlign.center,
+  //       keyboardType: TextInputType.number,
+  //       decoration: const InputDecoration(
+  //         counterText: "",
+  //         border: OutlineInputBorder(),
+  //       ),
+  //       onChanged: (value) => _onDigitEntered(index, value),
+  //     ),
+  //   );
+  // }
+
+  void _startTimer() {
+    setState(() {
+      _countdown = 60;
+      _canResend = false;
+    });
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_countdown == 0) {
+        setState(() {
+          _canResend = true;
+        });
+        timer.cancel();
+      } else {
+        setState(() {
+          _countdown--;
+        });
+      }
+    });
+  }
+
+  Future<void> _resendCode() async {
+    if(!_canResend)return;
+
+    setState(() {
+      _isLoading = true;
+    });
+    await FirebaseAuth.instance.verifyPhoneNumber(  
+      phoneNumber: widget.phoneNumber,
+      verificationCompleted: (PhoneAuthCredential credential) {
+
+      },
+      verificationFailed: (FirebaseAuthException e) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(text.snackbarVerifyFailed), // You can customize this error
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      },
+      codeSent: (String verificationId, int? resendToken) {
+        setState(() {
+          _isLoading = false;
+          _currentVerificationId = verificationId;
+        });
+        _startTimer();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(text.newCodeSent),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      },
+      codeAutoRetrievalTimeout: (String verificationId) {
+        _currentVerificationId = verificationId;
+      }
     );
   }
 
 //After pressing verify
-  Future<void> _submitOtp() async {
-    setState(() {
-      _isLoading = true;
-    },);
-    final code = controllers.map((c) => c.text).join();
+  Future<void> _submitOtp(String code) async {
+    // final code = controllers.map((c) => c.text).join();
     //if code less than 6 try again
     if (code.length < 6) {
+      setState(() {
+        _isLoading = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(text.enterOtpCode),
@@ -89,10 +167,9 @@ class _OtpVerificationPage extends State<OtpVerificationPage> {
     }
 
     PhoneAuthCredential credential = PhoneAuthProvider.credential(
-      verificationId: widget.verificationId,
+      verificationId: _currentVerificationId,
       smsCode: code,
     );
-
 
     try {
       User? currentUser = FirebaseAuth.instance.currentUser;
@@ -108,6 +185,9 @@ class _OtpVerificationPage extends State<OtpVerificationPage> {
         return;
       }
 
+      setState(() {
+        _isLoading = true;
+      });
       //Link phone number to user
       await currentUser.linkWithCredential(credential);
       if(!mounted)return;
@@ -119,7 +199,6 @@ class _OtpVerificationPage extends State<OtpVerificationPage> {
         _isLoading = false;
       },);
       Navigator.pop(context);
-
     } on FirebaseAuthException {
       setState(() {
         _isLoading = false;
@@ -157,21 +236,44 @@ class _OtpVerificationPage extends State<OtpVerificationPage> {
             ),
             Padding(
               padding: const EdgeInsets.only(top: 15, bottom: 5),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: List.generate(6, (index) => _buildBox(index)),
+              child: OtpInputWidget(  
+                length: 6,
+                onCompleted: (String code) {
+                  _submitOtp(code);
+                },
+                focusedBorderColor: Color(0xFF8A2BE2)
               ),
+              // Row(
+              //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              //   children: List.generate(6, (index) => _buildBox(index)),
+              // ),
             ),
             Padding(
-              padding: const EdgeInsets.only(top: 15),
+              padding: const EdgeInsets.only(top: 10),
               child: TextButton(
-                onPressed: _submitOtp,
+                onPressed: _canResend ? _resendCode : null,
                 child: Text(
-                  text.verify,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  _canResend 
+                      ? text.resendCode
+                      : "${text.resendIn} ${_countdown}s", 
+                  style: TextStyle(
+                    fontSize: 14, 
+                    fontWeight: FontWeight.w500,
+                    color: _canResend ? null : Colors.grey,
+                  ),
                 ),
               ),
             ),
+            // Padding(
+            //   padding: const EdgeInsets.only(top: 15),
+            //   child: TextButton(
+            //     onPressed: _submitOtp,
+            //     child: Text(
+            //       text.verify,
+            //       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            //     ),
+            //   ),
+            // ),
           ],
         ),
       ),

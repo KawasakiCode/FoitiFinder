@@ -1,6 +1,8 @@
 //This is the page where the user can change their phone number
 //after the initial sign up 
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:foitifinder/pages/settings/otp_verification_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -22,6 +24,14 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
   AppLocalizations get  text => AppLocalizations.of(context)!;
   final TextEditingController _phoneNumberController = TextEditingController();
   bool _isValid = false;
+
+  Timer? _timeoutTimer;
+
+  @override 
+  void dispose() {
+    _timeoutTimer?.cancel();
+    super.dispose();
+  }
 
   //Validate phone number and return it to sent to otp page
   String _validateNumber() {
@@ -47,35 +57,50 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
   }
 
   Future<void> _verifyNumber() async {
-    setState(() {
-      _isLoading = true;
-    },);
     FocusScope.of(context).unfocus();
     String? phoneNumber = _validateNumber();
     //if phone number is valid
     if (_isValid && phoneNumber != "") {
+      setState(() {
+        _isLoading = true;
+      },);
+      _timeoutTimer?.cancel();
+      _timeoutTimer = Timer(const Duration(seconds: 10), () {
+        if (mounted && _isLoading) {
+          setState(() {
+            _isLoading = false;
+          },);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(text.requestTimedOut), 
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      });
+      try{
       await FirebaseAuth.instance.verifyPhoneNumber(
         phoneNumber: phoneNumber,
         verificationCompleted: (phoneAuthCredential) async {
+          _timeoutTimer?.cancel();
         Provider.of<SettingsProvider>(context, listen: false).verifyPhone();
 
+        setState(() {
+          _isLoading = false;
+        },);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(text.snackbarVerified),
             backgroundColor: Colors.green,
           ),
         );
-        setState(() {
-          _isLoading = false;
-        },);
         if (!mounted) return;
         Navigator.pop(context);
       },
       codeSent: (String verificationId, int? resendToken) async {
+        _timeoutTimer?.cancel();
         // Wait for the user to finish on the OTP page
-        setState(() {
-          _isLoading = false;
-        },);
         await Navigator.push(
           context,
           MaterialPageRoute(
@@ -85,18 +110,18 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
             ),
           ),
         );
-
+        setState(() {
+            _isLoading = false;
+        },);
         if (!mounted) return;
         final isVerified = Provider.of<SettingsProvider>(context, listen: false).isPhoneVerified;
 
         if (isVerified) {
-          setState(() {
-            _isLoading = false;
-          },);
           Navigator.pop(context); 
         }
       },
         verificationFailed: (FirebaseAuthException e) {
+          _timeoutTimer?.cancel();
           setState(() {
             _isLoading = false;
           },);
@@ -109,6 +134,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
           );
         },
         codeAutoRetrievalTimeout: (verificationId) {
+          _timeoutTimer?.cancel();
           setState(() {
             _isLoading = false;
           },);
@@ -121,6 +147,20 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
           );
         },
       );
+      } catch (e) {
+        _timeoutTimer?.cancel();
+        setState(() {
+          _isLoading = false;
+        });
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(text.generalError),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
     }
   }
 

@@ -31,7 +31,6 @@ class _OtpCodePage extends State<OtpCodePage> {
   bool _canResend = false;
   Timer? _timer;
   late String _currentVerificationId;
-  String _currentCode = '';
 
   bool _isLoading = false;
   AppLocalizations get text => AppLocalizations.of(context)!;
@@ -238,9 +237,6 @@ class _OtpCodePage extends State<OtpCodePage> {
               padding: const EdgeInsets.only(top: 15, bottom: 5),
               child: OtpInputWidget(  
                 length: 6,
-                onChanged: (String code) {
-                  _currentCode = code;
-                },
                 onCompleted: (String code) {
                   _submitOtp(code);
                 },
