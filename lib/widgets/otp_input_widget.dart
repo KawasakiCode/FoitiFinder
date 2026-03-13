@@ -24,6 +24,18 @@ class OtpController {
   // The state assigns these callbacks in initState and nulls them in dispose.
   VoidCallback? _clearCallback;
   String Function()? _codeGetter;
+
+  /// Internal use: assigned by [OtpInputWidget] so it can wire up the clear
+  /// behaviour from its State object. Public so the widget can set it, but
+  /// callers should use [clear] instead of invoking this directly.
+  set clearCallback(VoidCallback? cb) => _clearCallback = cb;
+
+  /// Internal use: assigned by [OtpInputWidget] to expose the current code.
+  /// Callers should read [currentCode] instead of using this directly.
+  set codeGetter(String Function()? getter) => _codeGetter = getter;
+
+  // Checks if the controller's callback is registered
+  bool get isReady => _clearCallback != null;
  
   /// Clears all digit boxes and moves focus back to the first box.
   ///
@@ -130,10 +142,19 @@ class _OtpInputWidgetState extends State<OtpInputWidget> {
     super.initState();
     _controllers = List.generate(widget.length, (_) => TextEditingController());
     _focusNodes = List.generate(widget.length, (_) => FocusNode());
+
+    // Hand the controller the two functions it needs.
+    // This avoids storing a reference to the private state type, which
+    // causes Dart analyser errors when the controller tries to call methods on it.
+    widget.controller?.clearCallback = _clearAll;
+    widget.controller?.codeGetter = () => _currentCode;
   }
 
   @override
   void dispose() {
+    widget.controller?.clearCallback = null;
+    widget.controller?.codeGetter = null;
+
     for (final c in _controllers) {
       c.dispose();
     }
@@ -144,6 +165,15 @@ class _OtpInputWidgetState extends State<OtpInputWidget> {
   }
 
   // ─── helpers ────────────────────────────────────────────────────────────────
+
+  void _clearAll() {
+    for (final c in _controllers) {
+      c.clear();
+    }
+    // After clearing, move focus back to the first box so the user can retype.
+    _moveFocusTo(0);
+    widget.onChanged?.call(_currentCode);
+  }
 
   String get _currentCode =>
       _controllers.map((c) => c.text).join();

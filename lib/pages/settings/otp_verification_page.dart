@@ -167,12 +167,10 @@ class _OtpVerificationPage extends State<OtpVerificationPage> {
         _isLoading = false;
       });
       if (!mounted) return;
-      print(e.code);
       String errorMessage;
       switch (e.code) {
         case 'credential-already-in-use':
           errorMessage = text.phoneAlreadyInUse;
-          Navigator.pop(context);
           break;
         case 'provider-already-linked':
           errorMessage = text.phoneAlreadyInUse;
@@ -185,10 +183,10 @@ class _OtpVerificationPage extends State<OtpVerificationPage> {
           break;
         case 'too-many-requests':
           errorMessage = text.tooManyRequests;
-          Navigator.pop(context);
         default:
           errorMessage = text.errorOccured;
       }
+
       if (e.code == 'invalid-verification-code' || e.code == 'credential-already-in-use' || e.code == 'provider-already-linked') {
         _otpController.clear();
       }
