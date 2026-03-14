@@ -32,6 +32,8 @@ class _OtpCodePage extends State<OtpCodePage> {
   Timer? _timer;
   late String _currentVerificationId;
 
+  final OtpController _otpController = OtpController();
+
   bool _isLoading = false;
   AppLocalizations get text => AppLocalizations.of(context)!;
 
@@ -174,7 +176,9 @@ class _OtpCodePage extends State<OtpCodePage> {
       switch (e.code) {
         case 'credential-already-in-use':
           errorMessage = text.phoneAlreadyInUse;
-          Navigator.pop(context);
+          break;
+        case 'provider-already-linked':
+          errorMessage = text.phoneAlreadyInUse;
           break;
         case 'invalid-verification-code':
           errorMessage = text.invalidOtpCode;
@@ -184,9 +188,12 @@ class _OtpCodePage extends State<OtpCodePage> {
           break;
         case 'too-many-requests':
           errorMessage = text.tooManyRequests;
-          Navigator.pop(context);
         default:
           errorMessage = text.errorOccured;
+      }
+
+      if (e.code == 'invalid-verification-code' || e.code == 'credential-already-in-use' || e.code == 'provider-already-linked') {
+        _otpController.clear();
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -240,7 +247,8 @@ class _OtpCodePage extends State<OtpCodePage> {
                 onCompleted: (String code) {
                   _submitOtp(code);
                 },
-                focusedBorderColor: Color(0xFF8A2BE2)
+                focusedBorderColor: Color(0xFF8A2BE2),
+                controller: _otpController,
               )
             ),
             Padding(
