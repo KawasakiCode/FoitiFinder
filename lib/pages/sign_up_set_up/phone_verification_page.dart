@@ -142,9 +142,29 @@ class _PhoneVerificationPage extends State<PhoneVerificationPage> {
                 _isLoading = false;
               });
             }
+            if(!mounted)return;
+            String errorMessage;
+            switch (e.code) {
+              case 'credential-already-in-use':
+                errorMessage = text.phoneAlreadyInUse;
+                break;
+              case 'provider-already-linked':
+                errorMessage = text.phoneAlreadyInUse;
+                break;
+              case 'invalid-verification-code':
+                errorMessage = text.invalidOtpCode;
+                break;
+              case 'network-request-failed':
+                errorMessage = text.lostInternet;
+                break;
+              case 'too-many-requests':
+                errorMessage = text.tooManyRequests;
+              default:
+                errorMessage = text.errorOccured;
+            }
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(text.snackbarVerifyFailed),
+                content: Text(errorMessage),
                 backgroundColor: Colors.red,
                 duration: Duration(seconds: 2),
               ),
@@ -169,7 +189,7 @@ class _PhoneVerificationPage extends State<PhoneVerificationPage> {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(text.generalError),
+            content: Text(text.errorOccured),
             backgroundColor: Colors.red,
             duration: Duration(seconds: 2),
           ),

@@ -65,7 +65,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
       if(currentUser != null && currentUser.phoneNumber == phoneNumber) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(text.numberAlreadyLinked), // Translate this to Greek
+            content: Text(text.numberAlreadyLinked),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 3),
           ),
@@ -149,9 +149,29 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
                 _isLoading = false;
               });
             }
+            if(!mounted)return;
+            String errorMessage;
+            switch (e.code) {
+              case 'credential-already-in-use':
+                errorMessage = text.phoneAlreadyInUse;
+                break;
+              case 'provider-already-linked':
+                errorMessage = text.phoneAlreadyInUse;
+                break;
+              case 'invalid-verification-code':
+                errorMessage = text.invalidOtpCode;
+                break;
+              case 'network-request-failed':
+                errorMessage = text.lostInternet;
+                break;
+              case 'too-many-requests':
+                errorMessage = text.tooManyRequests;
+              default:
+                errorMessage = text.errorOccured;
+            }
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(text.snackbarVerifyFailed),
+                content: Text(errorMessage),
                 backgroundColor: Colors.red,
                 duration: Duration(seconds: 2),
               ),
@@ -166,6 +186,41 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
             }
           },
         );
+      } on FirebaseAuthException catch (e) {
+        _timeoutTimer?.cancel();
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+
+        if(!mounted)return;
+        String errorMessage;
+        switch (e.code) {
+          case 'credential-already-in-use':
+            errorMessage = text.phoneAlreadyInUse;
+            break;
+          case 'provider-already-linked':
+            errorMessage = text.phoneAlreadyInUse;
+            break;
+          case 'invalid-verification-code':
+            errorMessage = text.invalidOtpCode;
+            break;
+          case 'network-request-failed':
+            errorMessage = text.lostInternet;
+            break;
+          case 'too-many-requests':
+            errorMessage = text.tooManyRequests;
+          default:
+            errorMessage = text.errorOccured;
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
+          ),
+        );
       } catch (e) {
         _timeoutTimer?.cancel();
         if (mounted) {
@@ -176,7 +231,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(text.generalError),
+            content: Text(text.errorOccured),
             backgroundColor: Colors.red,
             duration: Duration(seconds: 2),
           ),

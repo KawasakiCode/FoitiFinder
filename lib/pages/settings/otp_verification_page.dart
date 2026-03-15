@@ -152,7 +152,7 @@ class _OtpVerificationPage extends State<OtpVerificationPage> {
         _isLoading = true;
       });
       //Link phone number to user
-      await currentUser.linkWithCredential(credential);
+      await currentUser.updatePhoneNumber(credential);
       if(!mounted)return;
       final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
       settingsProvider.verifyPhone();
