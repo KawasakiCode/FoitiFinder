@@ -977,7 +977,7 @@ abstract class AppLocalizations {
   /// No description provided for @lostInternet.
   ///
   /// In en, this message translates to:
-  /// **'Lost Internet connection'**
+  /// **'You are offline'**
   String get lostInternet;
 
   /// No description provided for @usernameRestrictions.
@@ -1027,6 +1027,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This number is already linked to your account'**
   String get numberAlreadyLinked;
+
+  /// No description provided for @backOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'You are back online'**
+  String get backOnline;
+
+  /// No description provided for @unsupportedFileType.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsupported file type. Please select a JPG or PNG'**
+  String get unsupportedFileType;
 }
 
 class _AppLocalizationsDelegate

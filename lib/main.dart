@@ -65,6 +65,7 @@ class FoitiFinder extends StatelessWidget {
     final settings = Provider.of<SettingsProvider>(context);
     return MaterialApp(
       title: 'FoitiFinder',
+      scaffoldMessengerKey: globalMessengerKey,
       routes: {
         '/login': (context) => const LoginPage(),
       },
@@ -233,9 +234,10 @@ class FoitiFinder extends StatelessWidget {
       ],
       //app launch flow is main -> authwrapper -> mainscreen (load from disk) -> load from db if different
       //or main -> authwrapper -> login if no user in firebase cache
-      home: InternetWrapper(  
-        child: const AuthWrapper(),
-      ),
+      builder: (context, child) {
+        return InternetWrapper(child: child!);
+      },
+      home: const AuthWrapper(),
     );
   }
 }

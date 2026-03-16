@@ -3,54 +3,84 @@
 //when the wifi comes back again it automatically returns to the page it was
 
 import 'package:flutter/material.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'dart:async';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
-class InternetWrapper extends StatelessWidget{
+final GlobalKey<ScaffoldMessengerState> globalMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
+class InternetWrapper extends StatefulWidget {
   final Widget child;
-  
+
   const InternetWrapper({super.key, required this.child});
 
   @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<List<ConnectivityResult>>(  
-      stream: Connectivity().onConnectivityChanged,
-      builder: (context, snapshot) {
-        if(snapshot.connectionState == ConnectionState.waiting) {
-          return child;
-        }
+  State<InternetWrapper> createState() => _InternetWrapperState();
+}
 
-        final results = snapshot.data;
-        final text = AppLocalizations.of(context)!;
-        bool isConnected = results != null && results.isNotEmpty && !results.contains(ConnectivityResult.none);
-        //if not internet return no wifi page
-        if(!isConnected) {
-          return Scaffold(  
-            body: Center(  
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.wifi_off, size: 100, color: Colors.grey),
-                  SizedBox(height: 20),
-                  Text(text.noWifi,
-                    style: TextStyle(  
-                      fontSize: 20, 
-                      fontWeight: FontWeight.bold,
-                  )),
-                  SizedBox(height: 10),
-                  Text(text.turnWifiOn, 
-                    style: TextStyle(  
-                      fontSize: 14, 
-                      fontWeight: FontWeight.w400,
-                  ))
-                ]
-              )
-            )
-          );
-        }
-        //else return the current app page
-        return child;
+class _InternetWrapperState extends State<InternetWrapper> {
+  late StreamSubscription<List<ConnectivityResult>> _subscription;
+  bool _wasOffline = false; 
+
+  AppLocalizations get text => AppLocalizations.of(context)!;
+
+  @override
+  void initState() {
+    super.initState();
+    // Start listening in the background
+    _subscription = Connectivity().onConnectivityChanged.listen(_updateConnectionStatus);
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+
+  void _updateConnectionStatus(List<ConnectivityResult> results) {
+    // Determine if we have absolutely no connection
+    final bool isOffline = results.isEmpty || results.contains(ConnectivityResult.none);
+
+    if (isOffline) {
+      _wasOffline = true;
+      _showSnackBar(
+        message: text.lostInternet,
+        color: const Color.fromARGB(255, 79, 215, 233),
+        duration: const Duration(seconds: 3),
+      );
+    } else {
+      // Only show the green success message if they were previously offline
+      if (_wasOffline) {
+        _wasOffline = false;
+        
+        // Hide the persistent red SnackBar first
+        globalMessengerKey.currentState?.hideCurrentSnackBar();
+        
+        _showSnackBar(
+          message: text.backOnline,
+          color: const Color.fromARGB(255, 79, 215, 233),
+          duration: const Duration(seconds: 3),
+        );
       }
+    }
+  }
+
+  void _showSnackBar({required String message, required Color color, required Duration duration}) {
+    globalMessengerKey.currentState?.showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: const TextStyle(fontWeight: FontWeight.w500),
+        ),
+        backgroundColor: color,
+        duration: duration,
+      ),
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // We always return the child. The UI never gets destroyed.
+    return widget.child; 
   }
 }

@@ -481,7 +481,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get emptyFields => 'Παρακαλώ συμπληρώστε τα στοιχεία σας';
 
   @override
-  String get lostInternet => 'Απώλεια σύνδεσης στο διαδίκτυο';
+  String get lostInternet => 'Είστε εκτός σύνδεσης';
 
   @override
   String get usernameRestrictions =>
@@ -510,4 +510,11 @@ class AppLocalizationsEl extends AppLocalizations {
   @override
   String get numberAlreadyLinked =>
       'Αυτός ο αριθμός είναι ήδη συνδεδεμένος με αυτόν τον λογαργιασμό';
+
+  @override
+  String get backOnline => 'Είστε ξανά σε σύνδεση';
+
+  @override
+  String get unsupportedFileType =>
+      'Unsupported file type. Please select a JPG or PNG';
 }

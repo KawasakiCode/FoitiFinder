@@ -39,7 +39,19 @@ class _AddPhotos extends State<AddPhotos> {
       source: ImageSource.gallery,
       maxWidth: 1080,
       imageQuality: 85);
-  
+
+    if(image != null) {
+      final String extension = image.path.split('.').last.toLowerCase();
+      final List<String> allowedFormats = ['jpg', 'jpeg', 'png'];
+
+      if(!allowedFormats.contains(extension)) {
+        if(!mounted)return;
+        ScaffoldMessenger.of(context).showSnackBar(  
+          SnackBar(content: Text(text.unsupportedFileType), duration: Duration(seconds: 3))
+        );
+      }
+    }
+
     if(image != null) {
       setState(() {
         _photos[index] = File(image.path);
@@ -54,13 +66,14 @@ class _AddPhotos extends State<AddPhotos> {
     //if no photos in the list exit submit
     if(_photos.every((img) => img == null)) {
       ScaffoldMessenger.of(context).showSnackBar(  
-        SnackBar(content: Text(text.addPhotoText)),
+        SnackBar(content: Text(text.addPhotoText), duration: Duration(seconds: 3)),
       );
+      setState(() {
+        _isLoading = false;
+      },);
       return;
     }
 
-    //lock the uploading stream 
-    setState(() => _isUploading = true);
     final uid = FirebaseAuth.instance.currentUser!.uid;
     
     try {

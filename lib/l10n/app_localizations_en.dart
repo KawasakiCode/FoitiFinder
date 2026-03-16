@@ -474,7 +474,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get emptyFields => 'Please enter your credentials';
 
   @override
-  String get lostInternet => 'Lost Internet connection';
+  String get lostInternet => 'You are offline';
 
   @override
   String get usernameRestrictions =>
@@ -503,4 +503,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get numberAlreadyLinked =>
       'This number is already linked to your account';
+
+  @override
+  String get backOnline => 'You are back online';
+
+  @override
+  String get unsupportedFileType =>
+      'Unsupported file type. Please select a JPG or PNG';
 }

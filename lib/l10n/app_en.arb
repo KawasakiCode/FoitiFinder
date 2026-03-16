@@ -145,7 +145,7 @@
   "emptyEmail": "Please enter an email",
   "emptyPassword": "Please enter a password",
   "emptyFields": "Please enter your credentials",
-  "lostInternet": "Lost Internet connection",
+  "lostInternet": "You are offline",
   "usernameRestrictions": "Usernames must be between 3 and 20 characters and use only letters, numbers and underscores",
   "fullNameRestriction": "Full Names can only contain letters, spaces, dashes and apostrophes and begin with a letter",
   "phoneAlreadyInUse": "This phone is already linked with another account. Try to login",
@@ -153,5 +153,7 @@
   "resendCode": "Resend Code",
   "resendIn": "Resend in",
   "requestTimedOut": "Request timed out. Please try again",
-  "numberAlreadyLinked": "This number is already linked to your account"
+  "numberAlreadyLinked": "This number is already linked to your account",
+  "backOnline": "You are back online",
+  "unsupportedFileType": "Unsupported file type. Please select a JPG or PNG"
 }
