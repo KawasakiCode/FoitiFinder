@@ -77,20 +77,37 @@ class _AddPhotos extends State<AddPhotos> {
     final uid = FirebaseAuth.instance.currentUser!.uid;
     
     try {
+      List<Future<void>> uploadTasks = [];
+
       for(int i = 0; i < _photos.length; i++) {
         if(_photos[i] != null) {
           //upload photo file to firebase cloud storage
-          String? firebaseUrl = await ApiService.uploadToFirebase(_photos[i]!, uid);
-          //if successful store the link to the file inside the database
-          if(firebaseUrl != null) {
-            await ApiService.uploadPhoto(  
-              uid: uid,
-              photoUrl: firebaseUrl,
-              displayOrder: i,
-            );
-          }
+          Future<void> uploadSinglePhoto = () async {
+            String? firebaseUrl = await ApiService.uploadToFirebase(_photos[i]!, uid);
+
+            if (firebaseUrl != null) {
+              await ApiService.uploadPhoto(  
+                uid: uid,
+                photoUrl: firebaseUrl,
+                displayOrder: i,
+              );
+            }
+          } (); //The parentheses trigger the function immediately
+
+          uploadTasks.add(uploadSinglePhoto);
+          // String? firebaseUrl = await ApiService.uploadToFirebase(_photos[i]!, uid);
+          // //if successful store the link to the file inside the database
+          // if(firebaseUrl != null) {
+          //   await ApiService.uploadPhoto(  
+          //     uid: uid,
+          //     photoUrl: firebaseUrl,
+          //     displayOrder: i,
+          //   );
+          // }
         }
       }
+
+      await Future.wait(uploadTasks);
       if(_photos.isNotEmpty) {
         await ApiService.updateUserData(
           uid: uid, 
