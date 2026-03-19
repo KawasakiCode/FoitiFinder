@@ -8,6 +8,7 @@ import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/models/photos_model.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/services/api_services.dart';
+import 'package:foitifinder/widgets/loading_overlay.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
@@ -33,12 +34,14 @@ class _EditProfileState extends State<EditProfile> {
   //duplicates allowed
   final List<File?> _photos = List.filled(6, null);
   final ImagePicker _picker = ImagePicker();
+  late final text = AppLocalizations.of(context)!;
+
+  bool _isLoading = false;
 
   @override
   //grab existing data from firebase and provider(database)
   void initState() {
     super.initState();
-
     final user = Provider.of<ProfileProvider>(
       context,
       listen: false,
@@ -279,6 +282,7 @@ class _EditProfileState extends State<EditProfile> {
     if (mounted) Navigator.pop(context);
   }
 
+  //Function to add a photo in the list
   Future<void> _pickImage(int index) async {
     //store the image in smaller resolution to improve loading times
     final XFile? image = await _picker.pickImage(
@@ -288,43 +292,119 @@ class _EditProfileState extends State<EditProfile> {
     );
 
     if (image != null) {
+      final String extension = image.path.split('.').last.toLowerCase();
+      final List<String> allowedFormats = ['jpg', 'jpeg', 'png'];
+
+      if (!allowedFormats.contains(extension)) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(text.unsupportedFileType),
+            duration: Duration(seconds: 3),
+          ),
+        );
+        return;
+      }
+    }
+
+    if (image != null) {
       setState(() {
         _photos[index] = File(image.path);
       });
     }
+
+    // If the file is valid, save it and compact the grid
+    setState(() {
+      // 1. Put the new photo into the tapped slot
+      _photos[index] = File(image!.path);
+
+      // 2. Gather all photos that currently exist in the array
+      List<File?> validPhotos = _photos.where((photo) => photo != null).toList();
+
+      // 3. Re-deal them left-to-right to eliminate any gaps
+      for (int i = 0; i < _photos.length; i++) {
+        if (i < validPhotos.length) {
+          _photos[i] = validPhotos[i]; // Fill front slots with photos
+        } else {
+          _photos[i] = null; // Fill remaining back slots with null
+        }
+      }
+    });
   }
 
   Future<void> _submitPhotos() async {
+    setState(() {
+      _isLoading = true;
+    });
     //if no photos in the list exit submit
     if (_photos.every((img) => img == null)) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Please add at least one photo")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text.addPhotoText),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      setState(() {
+        _isLoading = false;
+      });
       return;
     }
 
     final uid = FirebaseAuth.instance.currentUser!.uid;
 
     try {
+      List<Future<void>> uploadTasks = [];
+
       for (int i = 0; i < _photos.length; i++) {
         if (_photos[i] != null) {
           //upload photo file to firebase cloud storage
-          String? firebaseUrl = await ApiService.uploadToFirebase(
-            _photos[i]!,
-            uid,
-          );
-          //if successful store the link to the file inside the database
-          if (firebaseUrl != null) {
-            await ApiService.uploadPhoto(
-              uid: uid,
-              photoUrl: firebaseUrl,
-              displayOrder: i,
+          Future<void> uploadSinglePhoto = () async {
+            String? firebaseUrl = await ApiService.uploadToFirebase(
+              _photos[i]!,
+              uid,
             );
-          }
+
+            if (firebaseUrl != null) {
+              await ApiService.uploadPhoto(
+                uid: uid,
+                photoUrl: firebaseUrl,
+                displayOrder: i,
+              );
+            }
+          }(); //The parentheses trigger the function immediately
+
+          uploadTasks.add(uploadSinglePhoto);
         }
       }
+
+      await Future.wait(uploadTasks);
+      if (_photos.isNotEmpty) {
+        await ApiService.updateUserData(uid: uid, hasPhotos: true);
+      }
+
+      //sent the request to the ai model to give the user a score
+      await ApiService.giveUserScore(uid);
+      setState(() {
+        _isLoading = false;
+      });
     } catch (e) {
-      throw Exception("There was an error $e");
+      setState(() {
+        _isLoading = false;
+      });
+      if(!mounted)return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text.errorOccured),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    } finally {
+      //unlock uploading stream
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -340,60 +420,63 @@ class _EditProfileState extends State<EditProfile> {
           await _saveAndExit();
         },
         child: SafeArea(
-          child: Scaffold(
-            appBar: AppBar(
-              title: Text(text.editProfile),
-              automaticallyImplyLeading: true,
-            ),
-            body: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 10, left: 10, right: 10, bottom: 10),
-                child: Column(
-                  spacing: 20,
-                  children: [
-                    //GridView builder for the 6 photo slots
-                    GridView.builder(
-                      padding: const EdgeInsets.all(10),
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 10,
-                            mainAxisSpacing: 10,
-                            childAspectRatio: 0.7,
-                          ),
-                      itemCount: 6,
-                      itemBuilder: (context, index) {
-                        return _buildPhotoSlot(index);
-                      },
-                    ),
-                    //Username TextField
-                    TextField(
-                      controller: _usernameController,
-                      decoration: InputDecoration(labelText: text.username),
-                    ),
-                    //Email TextField
-                    TextField(
-                      controller: _emailController,
-                      decoration: InputDecoration(labelText: text.email),
-                    ),
-                    //FullName TextField
-                    TextField(
-                      controller: _fullNameController,
-                      decoration: InputDecoration(labelText: text.fullName),
-                    ),
-                    //Age TextField
-                    TextField(
-                      controller: _ageController,
-                      decoration: InputDecoration(labelText: text.age),
-                    ),
-                    //Bio TextField
-                    TextField(
-                      controller: _bioController,
-                      decoration: InputDecoration(labelText: "Bio"),
-                    ),
-                  ],
+          child: LoadingOverlay(
+            isLoading: _isLoading,
+            child: Scaffold(
+              appBar: AppBar(
+                title: Text(text.editProfile),
+                automaticallyImplyLeading: true,
+              ),
+              body: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 10, left: 10, right: 10, bottom: 10),
+                  child: Column(
+                    spacing: 20,
+                    children: [
+                      //GridView builder for the 6 photo slots
+                      GridView.builder(
+                        padding: const EdgeInsets.all(10),
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 10,
+                              mainAxisSpacing: 10,
+                              childAspectRatio: 0.7,
+                            ),
+                        itemCount: 6,
+                        itemBuilder: (context, index) {
+                          return _buildPhotoSlot(index);
+                        },
+                      ),
+                      //Username TextField
+                      TextField(
+                        controller: _usernameController,
+                        decoration: InputDecoration(labelText: text.username),
+                      ),
+                      //Email TextField
+                      TextField(
+                        controller: _emailController,
+                        decoration: InputDecoration(labelText: text.email),
+                      ),
+                      //FullName TextField
+                      TextField(
+                        controller: _fullNameController,
+                        decoration: InputDecoration(labelText: text.fullName),
+                      ),
+                      //Age TextField
+                      TextField(
+                        controller: _ageController,
+                        decoration: InputDecoration(labelText: text.age),
+                      ),
+                      //Bio TextField
+                      TextField(
+                        controller: _bioController,
+                        decoration: InputDecoration(labelText: "Bio"),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -404,25 +487,97 @@ class _EditProfileState extends State<EditProfile> {
   }
 
   //build the actual photo slot that goes inside the grid builder
+  // Widget _buildPhotoSlot(int index) {
+  //   final photo = _photos[index];
+
+  //   return GestureDetector(
+  //     onTap: () => _pickImage(index),
+  //     child: Container(
+  //       decoration: BoxDecoration(
+  //         color: Colors.grey[200],
+  //         borderRadius: BorderRadius.circular(10),
+  //       ),
+  //       child: photo != null
+  //           ? ClipRRect(
+  //               borderRadius: BorderRadius.circular(10),
+  //               child: Image.file(photo, fit: BoxFit.cover),
+  //             )
+  //           : const Center(
+  //               child: Icon(Icons.add, color: Colors.grey, size: 30),
+  //             ),
+  //     ),
+  //   );
+  // }
+
+    //build the actual photo slot that goes inside the grid builder
   Widget _buildPhotoSlot(int index) {
     final photo = _photos[index];
 
-    return GestureDetector(
-      onTap: () => _pickImage(index),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.grey[200],
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: photo != null
-            ? ClipRRect(
+    return Stack(
+      clipBehavior:
+          Clip.none, // Allows the button to slightly overhang the edge
+      children: [
+        // 1. The Main Photo Slot
+        Positioned.fill(
+          child: GestureDetector(
+            onTap: () => _pickImage(index),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
                 borderRadius: BorderRadius.circular(10),
-                child: Image.file(photo, fit: BoxFit.cover),
-              )
-            : const Center(
-                child: Icon(Icons.add, color: Colors.grey, size: 30),
               ),
-      ),
+              child: photo != null
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.file(photo, fit: BoxFit.cover),
+                    )
+                  : const Center(
+                      child: Icon(Icons.add, color: Colors.grey, size: 30),
+                    ),
+            ),
+          ),
+        ),
+
+        // 2. The Top-Left Remove Button (Only renders if a photo exists)
+        if (photo != null)
+          Positioned(
+            top: -5,
+            left: -5,
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  // 1. Set the removed photo's slot to null
+                  _photos[index] = null;
+
+                  // 2. Gather all the photos that are still left
+                  List<File?> remainingPhotos = _photos
+                      .where((photo) => photo != null)
+                      .toList();
+
+                  // 3. Re-deal them into the fixed array from left to right
+                  for (int i = 0; i < _photos.length; i++) {
+                    if (i < remainingPhotos.length) {
+                      _photos[i] =
+                          remainingPhotos[i]; // Fill with remaining photos
+                    } else {
+                      _photos[i] = null; // Fill the rest with empty slots
+                    }
+                  }
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.close, color: Colors.white, size: 16),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
+
+

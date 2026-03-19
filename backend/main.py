@@ -144,7 +144,7 @@ def get_user_data(firebase_token: str, db: Session = Depends(get_db)):
 
     if not db_user: 
         raise HTTPException(status_code=404, detail="User not found")
-    
+    print(db_user.has_photos)
     return db_user
 
 #update one/multiple user attributes without altering the others

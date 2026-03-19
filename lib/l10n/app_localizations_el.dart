@@ -516,5 +516,5 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get unsupportedFileType =>
-      'Unsupported file type. Please select a JPG or PNG';
+      'Μη υποστηριζόμενος τύπος αρχείου. Παρακαλώ επιλέξτε JPG ή PNG';
 }
