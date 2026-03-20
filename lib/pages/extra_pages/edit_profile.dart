@@ -4,6 +4,7 @@
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/models/photos_model.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
@@ -58,19 +59,21 @@ class _EditProfileState extends State<EditProfile> {
 
     _refreshFirebaseUser();
 
-    if(user.hasPhotos) {
+    if (user.hasPhotos) {
       _getUserPhotos();
     }
   }
 
   Future<void> _getUserPhotos() async {
     try {
-      List<PhotosModel> backendPhotos = await ApiService.getPhotos(FirebaseAuth.instance.currentUser!.uid);
-      for(int i = 0; i < backendPhotos.length; i++) {
-        if(i >= 6) break;
+      List<PhotosModel> backendPhotos = await ApiService.getPhotos(
+        FirebaseAuth.instance.currentUser!.uid,
+      );
+      for (int i = 0; i < backendPhotos.length; i++) {
+        if (i >= 6) break;
         File file = await urlToFile(backendPhotos[i].photoUrl);
 
-        if(mounted) {
+        if (mounted) {
           setState(() {
             _photos[i] = file;
           });
@@ -87,7 +90,7 @@ class _EditProfileState extends State<EditProfile> {
     final filename = path.basename(imageUrl);
     final file = File('${directory.path}/$filename');
 
-    if(await file.exists()) {
+    if (await file.exists()) {
       return file;
     }
     final response = await http.get(Uri.parse(imageUrl));
@@ -161,6 +164,111 @@ class _EditProfileState extends State<EditProfile> {
   Future<void>? _saveAndExit() async {
     final text = AppLocalizations.of(context)!;
 
+    // final profileProvider = Provider.of<ProfileProvider>(
+    //   context,
+    //   listen: false,
+    // );
+    // final user = profileProvider.currentUser!;
+    // final firebaseUser = FirebaseAuth.instance.currentUser!;
+
+    // String? newUsername;
+    // String? newBio;
+    // String? newFullName;
+    // int? newAge;
+    // String? newEmail;
+
+    // //check which variables changed
+    // if (_usernameController.text != user.username) {
+    //   newUsername = _usernameController.text;
+    // }
+    // if (_emailController.text != firebaseUser.email) {
+    //   newEmail = _emailController.text;
+    // }
+    // if (_bioController.text != user.bio) {
+    //   newBio = _bioController.text;
+    // }
+    // if (_fullNameController.text != user.fullName) {
+    //   newFullName = _fullNameController.text;
+    // }
+    // if (_ageController.text != user.age.toString() &&
+    //     _ageController.text.isNotEmpty) {
+    //   newAge = int.tryParse(_ageController.text);
+    // }
+
+    // //check if something changed at all
+    // if (newUsername != null ||
+    //     newBio != null ||
+    //     newAge != null ||
+    //     newFullName != null) {
+    //   await ApiService.updateUserData(
+    //     uid: user.uid,
+    //     username: newUsername,
+    //     bio: newBio,
+    //     age: newAge,
+    //     fullName: newFullName,
+    //   );
+    // }
+
+    // //change email
+    // if (_emailController.text != firebaseUser.email &&
+    //     _emailController.text.isNotEmpty) {
+    //   try {
+    //     await firebaseUser.verifyBeforeUpdateEmail(_emailController.text);
+
+    //     if (mounted) {
+    //       ScaffoldMessenger.of(context).showSnackBar(
+    //         SnackBar(
+    //           content: Text("${text.verifySend} $newEmail. ${text.checkInbox}"),
+    //           duration: const Duration(seconds: 5),
+    //         ),
+    //       );
+    //     }
+    //   } on FirebaseAuthException catch (e) {
+    //     if (e.code == "requires-recent-login") {
+    //       String? password = await _askForPassword();
+    //       if (password != null && password.isNotEmpty) {
+    //         try {
+    //           AuthCredential credential = EmailAuthProvider.credential(
+    //             email: firebaseUser.email!,
+    //             password: password,
+    //           );
+
+    //           await firebaseUser.reauthenticateWithCredential(credential);
+    //           await firebaseUser.verifyBeforeUpdateEmail(_emailController.text);
+    //           if (mounted) {
+    //             ScaffoldMessenger.of(context).showSnackBar(
+    //               SnackBar(
+    //                 content: Text(
+    //                   "${text.verifySend} $newEmail. ${text.checkInbox}",
+    //                 ),
+    //                 duration: const Duration(seconds: 5),
+    //               ),
+    //             );
+    //           }
+    //         } catch (reAuthError) {
+    //           if (mounted) {
+    //             ScaffoldMessenger.of(context).showSnackBar(
+    //               SnackBar(
+    //                 content: Text("${text.securityCheckFailed} $reAuthError"),
+    //                 duration: const Duration(seconds: 2),
+    //               ),
+    //             );
+    //             return;
+    //           }
+    //         }
+    //       }
+    //     }
+    //   } catch (e) {
+    //     if (mounted) {
+    //       ScaffoldMessenger.of(context).showSnackBar(
+    //         SnackBar(
+    //           content: Text("${text.failedVerifyEmail} $e"),
+    //           duration: const Duration(seconds: 2),
+    //         ),
+    //       );
+    //     }
+    //   }
+    // }
     final profileProvider = Provider.of<ProfileProvider>(
       context,
       listen: false,
@@ -168,31 +276,115 @@ class _EditProfileState extends State<EditProfile> {
     final user = profileProvider.currentUser!;
     final firebaseUser = FirebaseAuth.instance.currentUser!;
 
+    // 1. THE REQUIRED FIELDS SHIELD
+    // If they are completely empty, block the save, show a warning, and throw to stop navigation.
+    if (_usernameController.text.trim().isEmpty ||
+        _emailController.text.trim().isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              text.emptyFields,
+            ), // Add to your translation file
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+      throw Exception('Validation failed: Required fields cannot be empty');
+    }
+
+    // 2. THE REGEX GATEKEEPERS
+    final RegExp nameRegExp = RegExp(r"^(?=.*[a-zA-Z])[a-zA-Z\s\-']+$");
+    final RegExp usernameRegExp = RegExp(r'^[a-zA-Z0-9][a-zA-Z0-9_]{2,19}$');
+    final RegExp emailRegExp = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+
+    if (_fullNameController.text.isNotEmpty &&
+        !nameRegExp.hasMatch(_fullNameController.text.trim())) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(text.fullNameRestriction),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+      throw Exception('Validation failed: Invalid name format');
+    }
+
+    if (!usernameRegExp.hasMatch(_usernameController.text.trim())) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(text.usernameRestrictions),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+      throw Exception('Validation failed: Invalid username format');
+    }
+
+    if (!emailRegExp.hasMatch(_emailController.text.trim())) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(text.invalidEmail),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+      throw Exception('Validation failed: Invalid email format');
+    }
+
+    // 3. TRACKING CHANGES & GHOST DATA FIX
     String? newUsername;
     String? newBio;
     String? newFullName;
     int? newAge;
     String? newEmail;
 
-    //check which variables changed
-    if (_usernameController.text != user.username) {
-      newUsername = _usernameController.text;
+    if (_usernameController.text.trim() != user.username) {
+      newUsername = _usernameController.text.trim();
     }
-    if (_emailController.text != firebaseUser.email) {
-      newEmail = _emailController.text;
-    }
-    if (_bioController.text != user.bio) {
-      newBio = _bioController.text;
-    }
-    if (_fullNameController.text != user.fullName) {
-      newFullName = _fullNameController.text;
-    }
-    if (_ageController.text != user.age.toString() &&
-        _ageController.text.isNotEmpty) {
-      newAge = int.tryParse(_ageController.text);
+    if (_emailController.text.trim() != firebaseUser.email) {
+      newEmail = _emailController.text.trim();
     }
 
-    //check if something changed at all
+    if (_bioController.text != (user.bio ?? "")) {
+      newBio = _bioController.text;
+    }
+    if (_fullNameController.text.trim() != (user.fullName ?? "")) {
+      newFullName = _fullNameController.text.trim();
+    }
+
+    String currentAgeStr = (user.age != null && user.age != 0)
+        ? user.age.toString()
+        : "";
+    if (_ageController.text != currentAgeStr) {
+      if (_ageController.text.isEmpty) {
+        newAge = null;
+      } else {
+        newAge = int.tryParse(_ageController.text);
+      }
+      if(newAge != null && (newAge > 100 || newAge < 18)) {
+        if(mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(text.invalidAge), // Add to translations
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 3),
+            ),
+          );          
+        }
+        throw Exception('Validation failed: Age exceeds limit');
+      }
+
+    }
+
+    // 4. DATABASE UPDATE
     if (newUsername != null ||
         newBio != null ||
         newAge != null ||
@@ -206,11 +398,12 @@ class _EditProfileState extends State<EditProfile> {
       );
     }
 
-    //change email
-    if (_emailController.text != firebaseUser.email &&
-        _emailController.text.isNotEmpty) {
+    // 5. EMAIL CHANGE (Firebase Auth)
+    if (newEmail != null) {
       try {
-        await firebaseUser.verifyBeforeUpdateEmail(_emailController.text);
+        await firebaseUser.verifyBeforeUpdateEmail(
+          _emailController.text.trim(),
+        );
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -231,14 +424,16 @@ class _EditProfileState extends State<EditProfile> {
               );
 
               await firebaseUser.reauthenticateWithCredential(credential);
-              await firebaseUser.verifyBeforeUpdateEmail(_emailController.text);
+              await firebaseUser.verifyBeforeUpdateEmail(
+                _emailController.text.trim(),
+              );
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
                       "${text.verifySend} $newEmail. ${text.checkInbox}",
                     ),
-                    duration: const Duration(seconds: 5),
+                    duration: const Duration(seconds: 3),
                   ),
                 );
               }
@@ -247,25 +442,35 @@ class _EditProfileState extends State<EditProfile> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text("${text.securityCheckFailed} $reAuthError"),
-                    duration: const Duration(seconds: 2),
+                    duration: const Duration(seconds: 3),
+                    backgroundColor: Colors.red,
                   ),
                 );
-                return;
               }
+              throw Exception(
+                'Reauthentication failed',
+              ); // Added throw to stop navigation on failure
             }
+          } else {
+            throw Exception(
+              'Password required for email change',
+            ); // Added throw if they cancel password prompt
           }
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("${text.failedVerifyEmail} $e"),
-              duration: const Duration(seconds: 2),
-            ),
-          );
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("${text.failedVerifyEmail} $e"),
+                duration: const Duration(seconds: 3),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+          throw Exception('Email verification failed');
         }
       }
     }
+
     //update Provider
     profileProvider.updateLocalUser(
       username: newUsername,
@@ -273,13 +478,22 @@ class _EditProfileState extends State<EditProfile> {
       bio: newBio,
       age: newAge,
     );
-    await _submitPhotos();
-    if (mounted) {
-      setState(() {
-        _allowExit = true;
-      });
+    try {
+      await _submitPhotos();
+
+      if (mounted) {
+        setState(() {
+          _allowExit = true;
+        });
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _allowExit = true;
+        });
+      }
     }
-    if (mounted) Navigator.pop(context);
   }
 
   //Function to add a photo in the list
@@ -319,7 +533,9 @@ class _EditProfileState extends State<EditProfile> {
       _photos[index] = File(image!.path);
 
       // 2. Gather all photos that currently exist in the array
-      List<File?> validPhotos = _photos.where((photo) => photo != null).toList();
+      List<File?> validPhotos = _photos
+          .where((photo) => photo != null)
+          .toList();
 
       // 3. Re-deal them left-to-right to eliminate any gaps
       for (int i = 0; i < _photos.length; i++) {
@@ -347,7 +563,7 @@ class _EditProfileState extends State<EditProfile> {
       setState(() {
         _isLoading = false;
       });
-      return;
+      throw Exception("Validation failed: no photos");
     }
 
     final uid = FirebaseAuth.instance.currentUser!.uid;
@@ -391,13 +607,14 @@ class _EditProfileState extends State<EditProfile> {
       setState(() {
         _isLoading = false;
       });
-      if(!mounted)return;
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(text.errorOccured),
           duration: Duration(seconds: 3),
         ),
       );
+      rethrow;
     } finally {
       //unlock uploading stream
       if (mounted) {
@@ -429,7 +646,12 @@ class _EditProfileState extends State<EditProfile> {
               ),
               body: SingleChildScrollView(
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 10, left: 10, right: 10, bottom: 10),
+                  padding: const EdgeInsets.only(
+                    top: 10,
+                    left: 10,
+                    right: 10,
+                    bottom: 10,
+                  ),
                   child: Column(
                     spacing: 20,
                     children: [
@@ -469,6 +691,10 @@ class _EditProfileState extends State<EditProfile> {
                       TextField(
                         controller: _ageController,
                         decoration: InputDecoration(labelText: text.age),
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
                       ),
                       //Bio TextField
                       TextField(
@@ -509,7 +735,7 @@ class _EditProfileState extends State<EditProfile> {
   //   );
   // }
 
-    //build the actual photo slot that goes inside the grid builder
+  //build the actual photo slot that goes inside the grid builder
   Widget _buildPhotoSlot(int index) {
     final photo = _photos[index];
 
@@ -579,5 +805,3 @@ class _EditProfileState extends State<EditProfile> {
     );
   }
 }
-
-

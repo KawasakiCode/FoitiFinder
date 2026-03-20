@@ -510,4 +510,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get unsupportedFileType =>
       'Unsupported file type. Please select a JPG or PNG';
+
+  @override
+  String get invalidAge => 'Age must be between 18 and 99 years old';
 }

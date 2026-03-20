@@ -1039,6 +1039,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unsupported file type. Please select a JPG or PNG'**
   String get unsupportedFileType;
+
+  /// No description provided for @invalidAge.
+  ///
+  /// In en, this message translates to:
+  /// **'Age must be between 18 and 99 years old'**
+  String get invalidAge;
 }
 
 class _AppLocalizationsDelegate

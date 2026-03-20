@@ -517,4 +517,7 @@ class AppLocalizationsEl extends AppLocalizations {
   @override
   String get unsupportedFileType =>
       'Μη υποστηριζόμενος τύπος αρχείου. Παρακαλώ επιλέξτε JPG ή PNG';
+
+  @override
+  String get invalidAge => 'Η ηλικία πρέπει να είναι μεταξύ 18 και 99 ετών';
 }
