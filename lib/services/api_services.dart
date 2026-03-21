@@ -76,6 +76,7 @@ class ApiService {
   //Update user data
   static Future<void> updateUserData({
     required String uid,
+    Map<String, dynamic>? updates,
     String? username,
     String? fullName,
     bool? hasFinishedSetUp,
@@ -108,13 +109,14 @@ class ApiService {
     if (interests != null) data['interests'] = interests;
     if (hasPhotos != null) data['has_photos'] = hasPhotos;
 
+    // if(data.isEmpty)return;
     if(data.isEmpty)return;
 
     try {
       final response = await http.patch(  
         url,
         headers: {"Content-type": "application/json"},
-        body: jsonEncode(data),
+        body: jsonEncode(updates),
       );
       if(response.statusCode != 200) {
         throw Exception("failed to update image in db ${response.body}");

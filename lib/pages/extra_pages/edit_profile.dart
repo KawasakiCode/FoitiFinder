@@ -164,6 +164,8 @@ class _EditProfileState extends State<EditProfile> {
   Future<void>? _saveAndExit() async {
     final text = AppLocalizations.of(context)!;
 
+    Map<String, dynamic> updatePayload = {};
+
     // final profileProvider = Provider.of<ProfileProvider>(
     //   context,
     //   listen: false,
@@ -347,6 +349,7 @@ class _EditProfileState extends State<EditProfile> {
     String? newEmail;
 
     if (_usernameController.text.trim() != user.username) {
+      updatePayload['username'] = _usernameController.text.trim();
       newUsername = _usernameController.text.trim();
     }
     if (_emailController.text.trim() != firebaseUser.email) {
@@ -354,9 +357,11 @@ class _EditProfileState extends State<EditProfile> {
     }
 
     if (_bioController.text != (user.bio ?? "")) {
+      updatePayload['bio'] = _usernameController.text.trim();
       newBio = _bioController.text;
     }
     if (_fullNameController.text.trim() != (user.fullName ?? "")) {
+      updatePayload['full_name'] = _usernameController.text.trim();
       newFullName = _fullNameController.text.trim();
     }
 
@@ -369,6 +374,7 @@ class _EditProfileState extends State<EditProfile> {
       } else {
         newAge = int.tryParse(_ageController.text);
       }
+      updatePayload['age'] = _usernameController.text.trim();
       if(newAge != null && (newAge > 100 || newAge < 18)) {
         if(mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -391,10 +397,7 @@ class _EditProfileState extends State<EditProfile> {
         newFullName != null) {
       await ApiService.updateUserData(
         uid: user.uid,
-        username: newUsername,
-        bio: newBio,
-        age: newAge,
-        fullName: newFullName,
+        updates: updatePayload,
       );
     }
 
