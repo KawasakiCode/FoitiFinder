@@ -17,7 +17,7 @@ class ApiService {
   //Test for emulator
   // static const String baseUrl = "http://10.0.2.2:8000";
   //Test for real phone
-  static const String baseUrl = "http://192.168.1.4:8000";
+  static const String baseUrl = "http://192.168.1.3:8000";
 
   //Create new user (only runs on sign up)
   static Future<void> createUser({
@@ -76,7 +76,6 @@ class ApiService {
   //Update user data
   static Future<void> updateUserData({
     required String uid,
-    Map<String, dynamic>? updates,
     String? username,
     String? fullName,
     bool? hasFinishedSetUp,
@@ -99,7 +98,12 @@ class ApiService {
     if (fullName != null) data['full_name'] = fullName;
     if (hasFinishedSetUp != null) data['has_finished_set_up'] = hasFinishedSetUp;
     if (bio != null) data['bio'] = bio;
-    if (age != null) data['age'] = age;
+    if (age == 0) {
+      data['age'] = null;
+    }
+    else if (age != null) {
+      data['age'] = age;
+    }
     if (imageUrl != null) data['profile_picture'] = imageUrl;
     if (gender != null) data['gender'] = gender;
     if (minAgeRange != null) data['min_age_range'] = minAgeRange;
@@ -109,14 +113,13 @@ class ApiService {
     if (interests != null) data['interests'] = interests;
     if (hasPhotos != null) data['has_photos'] = hasPhotos;
 
-    // if(data.isEmpty)return;
     if(data.isEmpty)return;
 
     try {
       final response = await http.patch(  
         url,
         headers: {"Content-type": "application/json"},
-        body: jsonEncode(updates),
+        body: jsonEncode(data),
       );
       if(response.statusCode != 200) {
         throw Exception("failed to update image in db ${response.body}");

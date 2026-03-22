@@ -164,113 +164,6 @@ class _EditProfileState extends State<EditProfile> {
   Future<void>? _saveAndExit() async {
     final text = AppLocalizations.of(context)!;
 
-    Map<String, dynamic> updatePayload = {};
-
-    // final profileProvider = Provider.of<ProfileProvider>(
-    //   context,
-    //   listen: false,
-    // );
-    // final user = profileProvider.currentUser!;
-    // final firebaseUser = FirebaseAuth.instance.currentUser!;
-
-    // String? newUsername;
-    // String? newBio;
-    // String? newFullName;
-    // int? newAge;
-    // String? newEmail;
-
-    // //check which variables changed
-    // if (_usernameController.text != user.username) {
-    //   newUsername = _usernameController.text;
-    // }
-    // if (_emailController.text != firebaseUser.email) {
-    //   newEmail = _emailController.text;
-    // }
-    // if (_bioController.text != user.bio) {
-    //   newBio = _bioController.text;
-    // }
-    // if (_fullNameController.text != user.fullName) {
-    //   newFullName = _fullNameController.text;
-    // }
-    // if (_ageController.text != user.age.toString() &&
-    //     _ageController.text.isNotEmpty) {
-    //   newAge = int.tryParse(_ageController.text);
-    // }
-
-    // //check if something changed at all
-    // if (newUsername != null ||
-    //     newBio != null ||
-    //     newAge != null ||
-    //     newFullName != null) {
-    //   await ApiService.updateUserData(
-    //     uid: user.uid,
-    //     username: newUsername,
-    //     bio: newBio,
-    //     age: newAge,
-    //     fullName: newFullName,
-    //   );
-    // }
-
-    // //change email
-    // if (_emailController.text != firebaseUser.email &&
-    //     _emailController.text.isNotEmpty) {
-    //   try {
-    //     await firebaseUser.verifyBeforeUpdateEmail(_emailController.text);
-
-    //     if (mounted) {
-    //       ScaffoldMessenger.of(context).showSnackBar(
-    //         SnackBar(
-    //           content: Text("${text.verifySend} $newEmail. ${text.checkInbox}"),
-    //           duration: const Duration(seconds: 5),
-    //         ),
-    //       );
-    //     }
-    //   } on FirebaseAuthException catch (e) {
-    //     if (e.code == "requires-recent-login") {
-    //       String? password = await _askForPassword();
-    //       if (password != null && password.isNotEmpty) {
-    //         try {
-    //           AuthCredential credential = EmailAuthProvider.credential(
-    //             email: firebaseUser.email!,
-    //             password: password,
-    //           );
-
-    //           await firebaseUser.reauthenticateWithCredential(credential);
-    //           await firebaseUser.verifyBeforeUpdateEmail(_emailController.text);
-    //           if (mounted) {
-    //             ScaffoldMessenger.of(context).showSnackBar(
-    //               SnackBar(
-    //                 content: Text(
-    //                   "${text.verifySend} $newEmail. ${text.checkInbox}",
-    //                 ),
-    //                 duration: const Duration(seconds: 5),
-    //               ),
-    //             );
-    //           }
-    //         } catch (reAuthError) {
-    //           if (mounted) {
-    //             ScaffoldMessenger.of(context).showSnackBar(
-    //               SnackBar(
-    //                 content: Text("${text.securityCheckFailed} $reAuthError"),
-    //                 duration: const Duration(seconds: 2),
-    //               ),
-    //             );
-    //             return;
-    //           }
-    //         }
-    //       }
-    //     }
-    //   } catch (e) {
-    //     if (mounted) {
-    //       ScaffoldMessenger.of(context).showSnackBar(
-    //         SnackBar(
-    //           content: Text("${text.failedVerifyEmail} $e"),
-    //           duration: const Duration(seconds: 2),
-    //         ),
-    //       );
-    //     }
-    //   }
-    // }
     final profileProvider = Provider.of<ProfileProvider>(
       context,
       listen: false,
@@ -285,9 +178,7 @@ class _EditProfileState extends State<EditProfile> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              text.emptyFields,
-            ), // Add to your translation file
+            content: Text(text.emptyFields), // Add to your translation file
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 3),
           ),
@@ -299,7 +190,9 @@ class _EditProfileState extends State<EditProfile> {
     // 2. THE REGEX GATEKEEPERS
     final RegExp nameRegExp = RegExp(r"^(?=.*[a-zA-Z])[a-zA-Z\s\-']+$");
     final RegExp usernameRegExp = RegExp(r'^[a-zA-Z0-9][a-zA-Z0-9_]{2,19}$');
-    final RegExp emailRegExp = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    final RegExp emailRegExp = RegExp(
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+    );
 
     if (_fullNameController.text.isNotEmpty &&
         !nameRegExp.hasMatch(_fullNameController.text.trim())) {
@@ -349,7 +242,6 @@ class _EditProfileState extends State<EditProfile> {
     String? newEmail;
 
     if (_usernameController.text.trim() != user.username) {
-      updatePayload['username'] = _usernameController.text.trim();
       newUsername = _usernameController.text.trim();
     }
     if (_emailController.text.trim() != firebaseUser.email) {
@@ -357,11 +249,9 @@ class _EditProfileState extends State<EditProfile> {
     }
 
     if (_bioController.text != (user.bio ?? "")) {
-      updatePayload['bio'] = _usernameController.text.trim();
       newBio = _bioController.text;
     }
     if (_fullNameController.text.trim() != (user.fullName ?? "")) {
-      updatePayload['full_name'] = _usernameController.text.trim();
       newFullName = _fullNameController.text.trim();
     }
 
@@ -370,24 +260,22 @@ class _EditProfileState extends State<EditProfile> {
         : "";
     if (_ageController.text != currentAgeStr) {
       if (_ageController.text.isEmpty) {
-        newAge = null;
+        newAge = 0;
       } else {
         newAge = int.tryParse(_ageController.text);
-      }
-      updatePayload['age'] = _usernameController.text.trim();
-      if(newAge != null && (newAge > 100 || newAge < 18)) {
-        if(mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(text.invalidAge), // Add to translations
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 3),
-            ),
-          );          
+        if (newAge != null && (newAge > 100 || newAge < 18)) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(text.invalidAge), // Add to translations
+                backgroundColor: Colors.red,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+          throw Exception('Validation failed: Age exceeds limit');
         }
-        throw Exception('Validation failed: Age exceeds limit');
       }
-
     }
 
     // 4. DATABASE UPDATE
@@ -397,7 +285,10 @@ class _EditProfileState extends State<EditProfile> {
         newFullName != null) {
       await ApiService.updateUserData(
         uid: user.uid,
-        updates: updatePayload,
+        username: newUsername,
+        bio: newBio,
+        age: newAge,
+        fullName: newFullName,
       );
     }
 
