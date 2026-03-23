@@ -71,7 +71,8 @@ class _SetupWrapperState extends State<SetupWrapper> {
       }
       //setup not done completely, send to setup after phone number
       else if (hasPhone && !currentUser!.hasPhotos) {
-        return const AddPhotos();
+        // return const AddPhotos();
+        return const SetUpPage();
       }
       //setup not done completely, send to photos page since user has no photos
       else if (currentUser!.hasPhotos) {

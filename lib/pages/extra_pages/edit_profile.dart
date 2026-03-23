@@ -606,28 +606,6 @@ class _EditProfileState extends State<EditProfile> {
     );
   }
 
-  //build the actual photo slot that goes inside the grid builder
-  // Widget _buildPhotoSlot(int index) {
-  //   final photo = _photos[index];
-
-  //   return GestureDetector(
-  //     onTap: () => _pickImage(index),
-  //     child: Container(
-  //       decoration: BoxDecoration(
-  //         color: Colors.grey[200],
-  //         borderRadius: BorderRadius.circular(10),
-  //       ),
-  //       child: photo != null
-  //           ? ClipRRect(
-  //               borderRadius: BorderRadius.circular(10),
-  //               child: Image.file(photo, fit: BoxFit.cover),
-  //             )
-  //           : const Center(
-  //               child: Icon(Icons.add, color: Colors.grey, size: 30),
-  //             ),
-  //     ),
-  //   );
-  // }
 
   //build the actual photo slot that goes inside the grid builder
   Widget _buildPhotoSlot(int index) {

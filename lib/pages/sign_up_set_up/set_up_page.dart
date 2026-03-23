@@ -9,6 +9,7 @@
 //launch here next time
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/main_screen.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
@@ -46,46 +47,96 @@ class _SetUpPageState extends State<SetUpPage> {
 
   //Put user data if available in the database
   void confirmAndExit() async {
+    final text = AppLocalizations.of(context)!;
     setState(() {
-        _isLoading = true;
-      },);
-    final user = Provider.of<ProfileProvider>(context, listen: false).currentUser!;
+      _isLoading = true;
+    });
+    final user = Provider.of<ProfileProvider>(
+      context,
+      listen: false,
+    ).currentUser!;
 
     String? newBio;
     int? newAge;
 
-    if(_bioController.text != user.bio) {
+    if (_bioController.text != user.bio) {
       newBio = _bioController.text;
     }
-    if(_ageController.text != user.age.toString() && _ageController.text.isNotEmpty) {
+    if (_ageController.text != user.age.toString() &&
+        _ageController.text.isNotEmpty) {
       newAge = int.tryParse(_ageController.text);
+      if (newAge != null && (newAge > 100 || newAge < 18)) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(text.invalidAge), // Add to translations
+                backgroundColor: Colors.red,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+          setState(() {
+            _isLoading = false;
+          });
+          throw Exception('Validation failed: Age exceeds limit');
+        }
     }
 
-    if(newBio != null || newAge != null) {
-      await ApiService.updateUserData(  
+    if (newBio != null || newAge != null) {
+      await ApiService.updateUserData(
         uid: user.uid,
         bio: newBio,
         age: newAge,
         hasFinishedSetUp: true,
       );
-    } else {
-      await ApiService.updateUserData(
-        uid: user.uid,
-        hasFinishedSetUp: true,);
     }
 
+    if (!mounted) return;
     setState(() {
-        _isLoading = false;
-    },);
+      _isLoading = false;
+    });
 
-    if(!mounted)return;
-    Navigator.pushAndRemoveUntil( 
+    if (!mounted) return;
+    Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(  
-        builder: (context) => MainScreen(uid: user.uid)
-      ),
+      MaterialPageRoute(builder: (context) => MainScreen(uid: user.uid)),
       (route) => false,
     );
+  }
+
+  void skipSetUp() async {
+    final text = AppLocalizations.of(context)!;
+    final user = Provider.of<ProfileProvider>(
+      context,
+      listen: false,
+    ).currentUser!;
+
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      await ApiService.updateUserData(uid: user.uid, hasFinishedSetUp: true);
+
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (!mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => MainScreen(uid: user.uid)),
+        (route) => false,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(text.errorOccured), backgroundColor: Colors.red),
+      );
+    }
   }
 
   //UI
@@ -102,10 +153,10 @@ class _SetUpPageState extends State<SetUpPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(text.editProfile, style: TextStyle(fontSize: 20)),
-                TextButton(  
-                  onPressed: () => confirmAndExit(),
+                TextButton(
+                  onPressed: () => skipSetUp(),
                   child: Text("Skip", style: TextStyle(fontSize: 20)),
-                )
+                ),
               ],
             ),
             automaticallyImplyLeading: true,
@@ -134,6 +185,10 @@ class _SetUpPageState extends State<SetUpPage> {
                       child: TextField(
                         controller: _ageController,
                         decoration: InputDecoration(labelText: text.age),
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
                       ),
                     ),
                     //Bio controller
@@ -426,25 +481,26 @@ class _SetUpPageState extends State<SetUpPage> {
                       padding: const EdgeInsets.only(top: 20),
                       child: Align(
                         alignment: Alignment.center,
-                        child: TextButton(  
+                        child: TextButton(
                           onPressed: () => confirmAndExit(),
                           style: TextButton.styleFrom(
                             backgroundColor: const Color(0xFF8A2BE2),
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(
                               vertical: 10,
-                              horizontal: 10
+                              horizontal: 10,
                             ),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                12,
-                              ),
+                              borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: Text(text.confirm, style: TextStyle(fontSize: 16)),
+                          child: Text(
+                            text.confirm,
+                            style: TextStyle(fontSize: 16),
+                          ),
                         ),
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),

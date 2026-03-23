@@ -317,7 +317,7 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   //Add or remove interests
-  void addRemoveInterests(String interest) {
+  void addRemoveInterests(String interest, {bool saveToDb = true}) {
     if(_interests.contains(interest)) {
       _interests.remove(interest);
     }
@@ -325,7 +325,9 @@ class SettingsProvider extends ChangeNotifier {
       _interests.add(interest);
     }
     notifyListeners();
-    _saveInterests();
+    if(saveToDb) {
+      _saveInterests();
+    }
   }
 
   //Store interests into disk
