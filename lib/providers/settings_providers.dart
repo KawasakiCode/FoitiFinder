@@ -338,14 +338,19 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   //Split range values to save them to disk
-  Future<void> saveAgeRange(RangeValues values) async {
+  Future<void> saveAgeRange(RangeValues values, {bool saveToDb = true}) async {
     _ageRange = values;
-    _prefs.setInt('min_age', values.start.round());
-    _prefs.setInt('max_age', values.end.round());
-    notifyListeners();
-    await ApiService.updateUserData(uid: FirebaseAuth.instance.currentUser!.uid, 
-      minAgeRange: values.start.round(),
-      maxAgeRange: values.end.round());
+    if(saveToDb) {
+       _prefs.setInt('min_age', values.start.round());
+      _prefs.setInt('max_age', values.end.round());
+      notifyListeners();
+      await ApiService.updateUserData(uid: FirebaseAuth.instance.currentUser!.uid, 
+        minAgeRange: values.start.round(),
+        maxAgeRange: values.end.round());
+    } 
+    else {
+      notifyListeners();
+    }    
   }
 
   //Store out of range switch state
@@ -380,15 +385,20 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void changeGender(String gender) async {
+  void changeGender(String gender, {bool saveToDb = true}) async {
     if(gender == "") {
       _gender = "";
     } else {
       _gender = gender;
     }
-    notifyListeners();
-    _prefs.setString('gender', _gender);
-    await ApiService.updateUserData(uid: FirebaseAuth.instance.currentUser!.uid, gender: _gender);
+    if(saveToDb) {
+      notifyListeners();
+      _prefs.setString('gender', _gender);
+      await ApiService.updateUserData(uid: FirebaseAuth.instance.currentUser!.uid, gender: _gender);
+    } else {
+      notifyListeners();
+    }
+    
   }
 
   //Does os give permission for notifications
@@ -405,6 +415,13 @@ class SettingsProvider extends ChangeNotifier {
       return false;
     }
     return false;
+  }
+
+  void clearSkipOnSetUp() async {
+    _ageRange = RangeValues(18, 30);
+    _interests = {};
+    _gender = "";
+    notifyListeners();
   }
 }
 
