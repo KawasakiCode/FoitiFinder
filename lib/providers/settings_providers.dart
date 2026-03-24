@@ -398,7 +398,6 @@ class SettingsProvider extends ChangeNotifier {
     } else {
       notifyListeners();
     }
-    
   }
 
   //Does os give permission for notifications
@@ -417,11 +416,17 @@ class SettingsProvider extends ChangeNotifier {
     return false;
   }
 
-  void clearSkipOnSetUp() async {
+  Future<void> clearSkipOnSetUp() async {
     _ageRange = RangeValues(18, 30);
     _interests = {};
     _gender = "";
     notifyListeners();
+  }
+
+  Future<void> confirmOnSetUp() async {
+    changeGender(_gender);
+    _saveInterests();
+    saveAgeRange(_ageRange);
   }
 }
 

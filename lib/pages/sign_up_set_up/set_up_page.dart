@@ -48,13 +48,14 @@ class _SetUpPageState extends State<SetUpPage> {
   //Put user data if available in the database
   void confirmAndExit() async {
     final text = AppLocalizations.of(context)!;
-    setState(() {
-      _isLoading = true;
-    });
     final user = Provider.of<ProfileProvider>(
       context,
       listen: false,
     ).currentUser!;
+    final settings = Provider.of<SettingsProvider>(  
+      context, 
+      listen: false,
+    );
 
     String? newBio;
     int? newAge;
@@ -82,6 +83,10 @@ class _SetUpPageState extends State<SetUpPage> {
         }
     }
 
+    setState(() {
+      _isLoading = true;
+    });
+
     if (newBio != null || newAge != null) {
       await ApiService.updateUserData(
         uid: user.uid,
@@ -91,11 +96,13 @@ class _SetUpPageState extends State<SetUpPage> {
       );
     }
 
+    await settings.confirmOnSetUp();
+
     if (!mounted) return;
     setState(() {
       _isLoading = false;
     });
-
+  
     if (!mounted) return;
     Navigator.pushAndRemoveUntil(
       context,
@@ -106,6 +113,10 @@ class _SetUpPageState extends State<SetUpPage> {
 
   void skipSetUp() async {
     final text = AppLocalizations.of(context)!;
+    final settings = Provider.of<SettingsProvider>(  
+      context,
+      listen: false,
+    );
     final user = Provider.of<ProfileProvider>(
       context,
       listen: false,
@@ -116,6 +127,7 @@ class _SetUpPageState extends State<SetUpPage> {
     });
     try {
       await ApiService.updateUserData(uid: user.uid, hasFinishedSetUp: true);
+      await settings.clearSkipOnSetUp();
 
       if (!mounted) return;
       setState(() {
@@ -231,7 +243,7 @@ class _SetUpPageState extends State<SetUpPage> {
                         clipBehavior: Clip.antiAlias,
                         child: DelayedInkWell(
                           delayMs: 170,
-                          onTap: () => settings.addRemoveInterests("Men"),
+                          onTap: () => settings.addRemoveInterests("Men", saveToDb: false),
                           child: Padding(
                             padding: const EdgeInsets.only(
                               top: 8,
@@ -274,7 +286,7 @@ class _SetUpPageState extends State<SetUpPage> {
                         clipBehavior: Clip.antiAlias,
                         child: DelayedInkWell(
                           delayMs: 170,
-                          onTap: () => settings.addRemoveInterests("Women"),
+                          onTap: () => settings.addRemoveInterests("Women", saveToDb: false),
                           child: Padding(
                             padding: const EdgeInsets.only(
                               top: 8,
@@ -317,7 +329,7 @@ class _SetUpPageState extends State<SetUpPage> {
                         clipBehavior: Clip.antiAlias,
                         child: DelayedInkWell(
                           delayMs: 170,
-                          onTap: () => settings.addRemoveInterests("Everyone"),
+                          onTap: () => settings.addRemoveInterests("Everyone", saveToDb: false),
                           child: Padding(
                             padding: const EdgeInsets.only(
                               top: 8,
@@ -377,7 +389,7 @@ class _SetUpPageState extends State<SetUpPage> {
                       min: 18,
                       max: 100,
                       divisions: 82,
-                      onChanged: (v) => settings.saveAgeRange(v),
+                      onChanged: (v) => settings.saveAgeRange(v, saveToDb: false),
                     ),
                     //Gender
                     Padding(
@@ -401,7 +413,7 @@ class _SetUpPageState extends State<SetUpPage> {
                         clipBehavior: Clip.antiAlias,
                         child: DelayedInkWell(
                           delayMs: 150,
-                          onTap: () => settings.changeGender("Male"),
+                          onTap: () => settings.changeGender("Male", saveToDb: false),
                           child: Padding(
                             padding: const EdgeInsets.only(
                               top: 8,
@@ -444,7 +456,7 @@ class _SetUpPageState extends State<SetUpPage> {
                         clipBehavior: Clip.antiAlias,
                         child: DelayedInkWell(
                           delayMs: 150,
-                          onTap: () => settings.changeGender("Female"),
+                          onTap: () => settings.changeGender("Female", saveToDb: false),
                           child: Padding(
                             padding: const EdgeInsets.only(
                               top: 8,
