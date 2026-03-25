@@ -331,7 +331,7 @@ class AppLocalizationsEl extends AppLocalizations {
       'Απέτυχε η αποστολή του email επαλήθευσης. Παρακαλώ δοκιμάστε ξανά.';
 
   @override
-  String get sentVerificationEmail => 'Στάλθηκε Email Επαλήθευσης';
+  String get sentVerificationEmail => 'Στείλτε Email Επαλήθευσης';
 
   @override
   String get backToLogin => 'Επιστροφή στη σύνδεση';
@@ -520,4 +520,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get invalidAge => 'Η ηλικία πρέπει να είναι μεταξύ 18 και 99 ετών';
+
+  @override
+  String get mailVerified => 'Επαληθευμένο mail';
 }

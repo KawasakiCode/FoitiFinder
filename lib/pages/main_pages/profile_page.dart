@@ -4,7 +4,6 @@
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:foitifinder/dummy_user_data.dart';
 import 'package:foitifinder/pages/extra_pages/edit_profile.dart';
 import 'package:foitifinder/pages/settings/settings.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
@@ -142,12 +141,6 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ],
           ),
-          //TODO to be deleted. Only for test purposes
-          FloatingActionButton(
-            onPressed: () async {
-              await DummyDataService().generateDummyUsers(15);
-            }
-          )
         ],
       ),
     );

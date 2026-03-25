@@ -1045,6 +1045,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Age must be between 18 and 99 years old'**
   String get invalidAge;
+
+  /// No description provided for @mailVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified Email'**
+  String get mailVerified;
 }
 
 class _AppLocalizationsDelegate

@@ -156,5 +156,6 @@
   "numberAlreadyLinked": "This number is already linked to your account",
   "backOnline": "You are back online",
   "unsupportedFileType": "Unsupported file type. Please select a JPG or PNG",
-  "invalidAge": "Age must be between 18 and 99 years old"
+  "invalidAge": "Age must be between 18 and 99 years old",
+  "mailVerified": "Verified Email"
 }

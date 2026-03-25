@@ -66,13 +66,13 @@ class _SetupWrapperState extends State<SetupWrapper> {
           widget.firebaseUser!.phoneNumber != null &&
           widget.firebaseUser!.phoneNumber!.isNotEmpty;
       //setup done completely, send to mainscreen
-      if (hasFinishedSetUp && hasPhone && false) {
+      if (hasFinishedSetUp && hasPhone) {
         return MainScreen(uid: widget.firebaseUser!.uid);
       }
       //setup not done completely, send to setup after phone number
       else if (hasPhone && !currentUser!.hasPhotos) {
         // return const AddPhotos();
-        return const SetUpPage();
+        return const AddPhotos();
       }
       //setup not done completely, send to photos page since user has no photos
       else if (currentUser!.hasPhotos) {

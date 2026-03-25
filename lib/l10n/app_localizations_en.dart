@@ -513,4 +513,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get invalidAge => 'Age must be between 18 and 99 years old';
+
+  @override
+  String get mailVerified => 'Verified Email';
 }

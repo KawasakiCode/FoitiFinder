@@ -97,7 +97,7 @@
   "verificationEmailSent": "Το email επαλήθευσης στάλθηκε! Παρακαλώ ελέγξτε τα εισερχόμενά σας.",
   "snackbarSuccessVerifyEmail": "Το email επαλήθευσης στάλθηκε με επιτυχία!",
   "snackbarFailedVerifyEmail": "Απέτυχε η αποστολή του email επαλήθευσης. Παρακαλώ δοκιμάστε ξανά.",
-  "sentVerificationEmail": "Στάλθηκε Email Επαλήθευσης",
+  "sentVerificationEmail": "Στείλτε Email Επαλήθευσης",
   "backToLogin": "Επιστροφή στη σύνδεση",
   "cannotRewind": "Αδυναμία επαναφοράς",
   "age": "Ηλικία",
@@ -157,5 +157,6 @@
   "numberAlreadyLinked": "Αυτός ο αριθμός είναι ήδη συνδεδεμένος με αυτόν τον λογαργιασμό",
   "backOnline": "Είστε ξανά σε σύνδεση",
   "unsupportedFileType": "Μη υποστηριζόμενος τύπος αρχείου. Παρακαλώ επιλέξτε JPG ή PNG",
-  "invalidAge": "Η ηλικία πρέπει να είναι μεταξύ 18 και 99 ετών"
+  "invalidAge": "Η ηλικία πρέπει να είναι μεταξύ 18 και 99 ετών",
+  "mailVerified": "Επαληθευμένο mail"
 }

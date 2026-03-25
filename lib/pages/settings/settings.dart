@@ -26,20 +26,45 @@ class SettingsPage extends StatefulWidget {
   State<SettingsPage> createState() => _SettingsPageState();
 }
 
-class _SettingsPageState extends State<SettingsPage> {
-  void _navigateToAddPhone() async {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const PhoneNumberPage()),
-    );
+class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver{
+  final user = FirebaseAuth.instance.currentUser;
+  AppLocalizations get text => AppLocalizations.of(context)!;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
   }
 
-  //UI
+  @override 
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    super.didChangeAppLifecycleState(state);
+    
+    if(state == AppLifecycleState.resumed) {
+      if(user != null && !user!.emailVerified) {
+        try {
+          await user!.reload();
+
+          if(user!.emailVerified && mounted) {
+            setState(() {});
+          }
+        } catch (e) {
+          rethrow;
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
     final settings = Provider.of<SettingsProvider>(context);
-    final text = AppLocalizations.of(context)!;
+
     //Interests start as a map because language can change 
     //and we need to display the correct language 
     final Map<String, String> interestsMap = {
@@ -84,7 +109,12 @@ class _SettingsPageState extends State<SettingsPage> {
                   clipBehavior: Clip.antiAlias,
                   child: InkWell(
                     borderRadius: BorderRadius.circular(10),
-                    onTap: _navigateToAddPhone,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const PhoneNumberPage()),
+                      );
+                    },
                     child: Padding(
                       padding: const EdgeInsets.only(
                         top: 8,
@@ -192,7 +222,9 @@ class _SettingsPageState extends State<SettingsPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    text.verifyyourEmail,
+                                    FirebaseAuth.instance.currentUser!.emailVerified
+                                    ? text.mailVerified
+                                    : text.verifyyourEmail,
                                     style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w500,
