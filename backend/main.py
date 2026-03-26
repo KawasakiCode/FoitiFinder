@@ -344,12 +344,19 @@ def get_matches(firebase_token: str, db: Session = Depends(get_db)):
         other_user = db.query(models.User).filter(models.User.id == other_user_id).first()
 
         if other_user: 
+            last_msg = db.query(models.Messages).filter(  
+                models.Messages.match_id == match.id,
+                models.Messages.sender == other_user.id,
+            ).order_by(models.Messages.created_at.desc()).first()
+
+            last_msg_text = last_msg.content if last_msg else None
+
             results.append({  
                 "match_id": match.id,
                 "other_user_id": other_user.id,
                 "other_user_name": other_user.username,
                 "image_url": other_user.profile_picture,
-                #"last_message": for later
+                "last_message": last_msg_text
             })
         else: 
             raise HTTPException(status_code=404, detail="Other User not found")

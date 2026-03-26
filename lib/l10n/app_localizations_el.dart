@@ -523,4 +523,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get mailVerified => 'Επαληθευμένο mail';
+
+  @override
+  String get noLikes => 'Τα like σου θα εμφανίζονται εδώ';
 }

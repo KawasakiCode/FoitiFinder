@@ -516,4 +516,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mailVerified => 'Verified Email';
+
+  @override
+  String get noLikes => 'Your likes will appear here';
 }

@@ -1,4 +1,4 @@
-//The likes page is where the user can see who liked him 
+//The likes page is where the user can see who liked him
 //Here he can like another user back and make a match or pass on them
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -10,15 +10,16 @@ import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/widgets/animated_swipe_button.dart';
 import 'package:foitifinder/widgets/photo_card.dart';
 
-class LikesPage extends StatefulWidget{
+class LikesPage extends StatefulWidget {
   const LikesPage({super.key});
 
   @override
   State<LikesPage> createState() => LikesPageState();
 }
 
-class LikesPageState extends State<LikesPage>{
+class LikesPageState extends State<LikesPage> {
   List<LikerModel> _likes = [];
+  AppLocalizations get text => AppLocalizations.of(context)!;
 
   @override
   initState() {
@@ -27,8 +28,10 @@ class LikesPageState extends State<LikesPage>{
   }
 
   void loadLikes() async {
-    final likes = await ApiService.getLikes(FirebaseAuth.instance.currentUser!.uid);
-    if(mounted) {
+    final likes = await ApiService.getLikes(
+      FirebaseAuth.instance.currentUser!.uid,
+    );
+    if (mounted) {
       setState(() {
         _likes = likes;
       });
@@ -45,94 +48,104 @@ class LikesPageState extends State<LikesPage>{
       barrierColor: Colors.black87,
       transitionDuration: const Duration(milliseconds: 200),
       pageBuilder: (ctx, anim1, anim2) {
-        return Center(  
+        return Center(
           child: Material(
             type: MaterialType.transparency,
-            child: Container(  
+            child: Container(
               width: MediaQuery.of(context).size.width * 0.9,
               height: MediaQuery.of(context).size.height * 0.75,
-              decoration: BoxDecoration(  
+              decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: FutureBuilder<CardData>(  
+              child: FutureBuilder<CardData>(
                 future: ApiService.getSingleUser(userId),
                 builder: (context, snapshot) {
-                  if(snapshot.connectionState == ConnectionState.waiting) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
                   }
-                  if(snapshot.hasError) {
+                  if (snapshot.hasError) {
                     return Center(child: Text("${snapshot.error}"));
                   }
                   final user = snapshot.data!;
-            
-                  return Stack(  
+
+                  return Stack(
                     children: [
                       Positioned(
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 90, // Leave room for buttons
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(20),
-                          topRight: Radius.circular(20),
-                          // Optional: round bottom corners or keep flat
-                          bottomLeft: Radius.circular(20), 
-                          bottomRight: Radius.circular(20),
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 90, // Leave room for buttons
+                        child: ClipRRect(
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(20),
+                            topRight: Radius.circular(20),
+                            // Optional: round bottom corners or keep flat
+                            bottomLeft: Radius.circular(20),
+                            bottomRight: Radius.circular(20),
+                          ),
+                          child: PhotoCard(card: user),
                         ),
-                        child: PhotoCard(card: user),
                       ),
-                    ),
-            
+
                       Positioned(
-                      bottom: 15,
-                      left: 0,
-                      right: 0,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          AnimatedSwipeButton(
-                            icon: Icons.close,
-                            activeColor: Colors.red,
-                            size: 65,
-                            onPressed: () async {
-                              await ApiService.registerSwipe(FirebaseAuth.instance.currentUser!.uid, _likes[index].id, "pass");
-                              if (context.mounted) Navigator.pop(ctx, true);
-                            },
-                          ),
-                          AnimatedSwipeButton(
-                            icon: Icons.favorite,
-                            activeColor: Colors.green,
-                            size: 65,
-                            onPressed: () async {
-                              bool isMatch = await ApiService.registerSwipe(FirebaseAuth.instance.currentUser!.uid, _likes[index].id, "like");
-                              if(isMatch) {
-                                if(!context.mounted)return;
-                                await showDialog(  
-                                  context: context,
-                                  builder: (context) => AlertDialog(  
-                                    title: Text(text.itsAMatch),
-                                    content: Text("${text.matchText1}${_likes[index].username}${text.matchText2}"),
-                                  )
+                        bottom: 15,
+                        left: 0,
+                        right: 0,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            AnimatedSwipeButton(
+                              icon: Icons.close,
+                              activeColor: Colors.red,
+                              size: 65,
+                              onPressed: () async {
+                                await ApiService.registerSwipe(
+                                  FirebaseAuth.instance.currentUser!.uid,
+                                  _likes[index].id,
+                                  "pass",
                                 );
-                              }
-                              if (context.mounted) Navigator.pop(ctx, true);
-                            },
-                          ),
-                        ],
+                                if (context.mounted) Navigator.pop(ctx, true);
+                              },
+                            ),
+                            AnimatedSwipeButton(
+                              icon: Icons.favorite,
+                              activeColor: Colors.green,
+                              size: 65,
+                              onPressed: () async {
+                                bool isMatch = await ApiService.registerSwipe(
+                                  FirebaseAuth.instance.currentUser!.uid,
+                                  _likes[index].id,
+                                  "like",
+                                );
+                                if (isMatch) {
+                                  if (!context.mounted) return;
+                                  await showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: Text(text.itsAMatch),
+                                      content: Text(
+                                        "${text.matchText1}${_likes[index].username}${text.matchText2}",
+                                      ),
+                                    ),
+                                  );
+                                }
+                                if (context.mounted) Navigator.pop(ctx, true);
+                              },
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    ]
+                    ],
                   );
-                }
-              )
+                },
+              ),
             ),
-          )
+          ),
         );
-      }
+      },
     );
 
-    if(result == true) {
+    if (result == true) {
       setState(() {
         _likes.removeAt(index);
       });
@@ -141,65 +154,74 @@ class LikesPageState extends State<LikesPage>{
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(  
+    return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: true,
         title: Text("FoitiFinder"),
       ),
-      body: SingleChildScrollView(  
-        child: Column(  
+      body: SingleChildScrollView(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            GridView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 5),
-              itemCount: _likes.length,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-                childAspectRatio: 0.75,
-              ),
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              itemBuilder: (_, index) => Material(
-                color: Colors.red,
-                borderRadius: BorderRadius.circular(15),
-                clipBehavior: Clip.antiAlias,
-                child: Ink.image(
-                  image: NetworkImage(_likes[index].imageUrl),
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  height: double.infinity,
-                  child: InkWell(
-                    onTap: () {
-                      _showUserDialog(_likes[index].id, index);
-                    },
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(left: 5, bottom: 5),
-                          child: Align(
-                            alignment: Alignment.bottomLeft,
-                            child: Text(
-                              "${_likes[index].username}, ${_likes[index].age}",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
+            if (_likes.isEmpty) ...[
+              Center(
+                child: Padding(
+                  padding: EdgeInsets.only(left: 10, right: 10),
+                  child: Text(text.noLikes,
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+              ),)
+            ] else ...[
+              GridView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 5),
+                itemCount: _likes.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                  childAspectRatio: 0.75,
+                ),
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemBuilder: (_, index) => Material(
+                  color: Colors.red,
+                  borderRadius: BorderRadius.circular(15),
+                  clipBehavior: Clip.antiAlias,
+                  child: Ink.image(
+                    image: NetworkImage(_likes[index].imageUrl),
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                    child: InkWell(
+                      onTap: () {
+                        _showUserDialog(_likes[index].id, index);
+                      },
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(left: 5, bottom: 5),
+                            child: Align(
+                              alignment: Alignment.bottomLeft,
+                              child: Text(
+                                "${_likes[index].username}, ${_likes[index].age}",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ]
-        )
-      )
+            ],
+          ],
+        ),
+      ),
     );
   }
 }

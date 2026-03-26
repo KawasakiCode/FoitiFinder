@@ -1051,6 +1051,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Verified Email'**
   String get mailVerified;
+
+  /// No description provided for @noLikes.
+  ///
+  /// In en, this message translates to:
+  /// **'Your likes will appear here'**
+  String get noLikes;
 }
 
 class _AppLocalizationsDelegate

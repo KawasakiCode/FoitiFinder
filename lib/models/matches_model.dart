@@ -6,12 +6,14 @@ class MatchModel {
   final int userBid;
   final String userBname;
   final String? imageUrl;
+  final String? lastMessage;
 
   MatchModel({
     required this.matchId,
     required this.userBid,
     required this.userBname,
     required this.imageUrl,
+    this.lastMessage,
   });
 
   factory MatchModel.fromJson(Map<String, dynamic> json) {
@@ -20,6 +22,7 @@ class MatchModel {
       userBid: json['other_user_id'],
       userBname: json['other_user_name'],
       imageUrl: json['image_url'],
+      lastMessage: json['last_message']
     );
   }
 }
