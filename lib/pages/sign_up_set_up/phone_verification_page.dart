@@ -85,6 +85,7 @@ class _PhoneVerificationPage extends State<PhoneVerificationPage> {
         }
       });
       try {
+        //await FirebaseAuth.instance.setSettings(appVerificationDisabledForTesting: true);
         await FirebaseAuth.instance.verifyPhoneNumber(
           phoneNumber: phoneNumber,
           verificationCompleted: (phoneAuthCredential) async {
@@ -164,9 +165,9 @@ class _PhoneVerificationPage extends State<PhoneVerificationPage> {
             }
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(errorMessage),
+                content: Text("$errorMessage, $e"),
                 backgroundColor: Colors.red,
-                duration: Duration(seconds: 2),
+                duration: Duration(seconds: 5),
               ),
             );
           },

@@ -9,6 +9,7 @@ import 'package:foitifinder/pages/settings/settings.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:foitifinder/dummy_user_data.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -18,6 +19,7 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  final dummy = DummyDataService();
   @override
   Widget build(BuildContext context) {
     final profileProvider = Provider.of<ProfileProvider>(context);
@@ -136,6 +138,11 @@ class _ProfilePageState extends State<ProfilePage> {
                           );
                         },
                       ),
+                  ),
+                  FloatingActionButton(  
+                    onPressed: () {
+                      dummy.generateDummyUsers(30);
+                    },
                   ),
                 ],
               ),
