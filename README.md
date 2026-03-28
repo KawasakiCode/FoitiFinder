@@ -122,8 +122,18 @@ Install dependancies: flutter pub get
 
 Generate Translations: flutter gen-l10n
 
-Setup Firebase: Add your google-services.json (Android) and GoogleService-Info.plist (iOS) to the respective folders
+### Firebase (required)
 
-Run the App: flutter run
+Run `dart pub global activate flutterfire_cli` then `flutterfire configure` to generate `lib/firebase_options.dart`, or copy your Firebase project’s `google-services.json` into `android/app/` and `GoogleService-Info.plist` into `ios/Runner/` as documented in the [FlutterFire setup](https://firebase.google.com/docs/flutter/setup). Those generated files are gitignored and must not be committed.
+
+### API backend URL
+
+The app talks to a FastAPI server. Defaults are `http://127.0.0.1:8000` (HTTP) and matching `ws://…` for chat. Override when needed, for example:
+
+- Physical device on the same LAN: `flutter run --dart-define=API_BASE_URL=http://YOUR_PC_LAN_IP:8000`
+- Android emulator (host loopback): `--dart-define=API_BASE_URL=http://10.0.2.2:8000`
+- Custom WebSocket base only: add `--dart-define=WS_BASE_URL=ws://host:8000`
+
+Run the App: `flutter run` (with any `--dart-define` flags above if your backend is not on localhost).
 
 

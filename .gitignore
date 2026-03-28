@@ -33,6 +33,10 @@ migrate_working_dir/
 .pub/
 /build/
 
+# Android Gradle build output (machine-specific paths in reports)
+/android/build/
+/android/gradle/wrapper/build/
+
 # Symbolication related
 app.*.symbols
 
@@ -70,10 +74,9 @@ android/local.properties
 backend/venv/
 backend/.venv/
 backend/__pycache__/
+backend/matchmaker/__pycache__/
+**/__pycache__/
 backend/.env
 .vscode/
 .idea/
-matchmaker/venv/
-matchmaker/.venv/
-matchmaker/__pycacke__/
 backend/serviceAccountKey.json

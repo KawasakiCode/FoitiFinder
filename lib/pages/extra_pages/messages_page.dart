@@ -37,7 +37,7 @@ class _MessagesPages extends State<MessagesPage> {
     //where the connection happens
     _channel = WebSocketChannel.connect(
       Uri.parse(
-        'ws://192.168.1.2:8000/ws/chat/${Provider.of<ProfileProvider>(context, listen: false).currentUser!.id!}',
+        '${ApiService.wsBaseUrl}/ws/chat/${Provider.of<ProfileProvider>(context, listen: false).currentUser!.id!}',
       ),
     );
 

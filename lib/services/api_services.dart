@@ -14,10 +14,28 @@ import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 
 class ApiService {
-  //Test for emulator
-  // static const String baseUrl = "http://10.0.2.2:8000";
-  //Test for real phone
-  static const String baseUrl = "http://192.168.1.4:8000";
+  /// HTTP base for the FastAPI backend. Override at compile time, e.g.
+  /// `flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000` (Android emulator).
+  static const String baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://127.0.0.1:8000',
+  );
+
+  /// WebSocket base for chat. Set `WS_BASE_URL` if it must differ from [baseUrl]
+  /// (otherwise `http`→`ws`, `https`→`wss` on the same host).
+  static const String _wsBaseOverride = String.fromEnvironment('WS_BASE_URL');
+
+  static String get wsBaseUrl {
+    if (_wsBaseOverride.isNotEmpty) return _wsBaseOverride;
+    final b = baseUrl;
+    if (b.startsWith('https://')) {
+      return b.replaceFirst('https://', 'wss://');
+    }
+    if (b.startsWith('http://')) {
+      return b.replaceFirst('http://', 'ws://');
+    }
+    return 'ws://127.0.0.1:8000';
+  }
 
   //Create new user (only runs on sign up)
   static Future<void> createUser({
