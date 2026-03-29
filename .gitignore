@@ -57,6 +57,7 @@ lib/dummy_user_data.dart
 
 # Android local properties (machine-specific paths)
 android/local.properties
+android/key.properties
 
 # Keystore files (for signing apps - contains private keys)
 *.keystore
