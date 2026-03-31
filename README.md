@@ -74,7 +74,7 @@ The scoring algorithm utilizes a **Transfer Learning** approach, leveraging a pr
 4.  **Inference:** The 128-d vector is passed to a custom **Linear Regression** model.
 5.  **Output:** The model predicts a score (1.0 - 10.0) based on the learned weights from the training dataset.
 
-### 📊 Data & Methodology
+### Data & Methodology
 
 To ensure the model is culturally relevant to the app's initial target demographic (Europe), we curated a specific subset of data:
 
