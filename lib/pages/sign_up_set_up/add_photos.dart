@@ -124,15 +124,6 @@ class _AddPhotos extends State<AddPhotos> {
           }(); //The parentheses trigger the function immediately
 
           uploadTasks.add(uploadSinglePhoto);
-          // String? firebaseUrl = await ApiService.uploadToFirebase(_photos[i]!, uid);
-          // //if successful store the link to the file inside the database
-          // if(firebaseUrl != null) {
-          //   await ApiService.uploadPhoto(
-          //     uid: uid,
-          //     photoUrl: firebaseUrl,
-          //     displayOrder: i,
-          //   );
-          // }
         }
       }
 
@@ -142,10 +133,10 @@ class _AddPhotos extends State<AddPhotos> {
       }
 
       //sent the request to the ai model to give the user a score
-      await ApiService.giveUserScore(uid);
-      setState(() {
-        _isLoading = false;
-      });
+      // await ApiService.giveUserScore(uid);
+      // setState(() {
+      //   _isLoading = false;
+      // });
 
       //if all successful send the user to the setup page to complete sign up
       if (mounted) {
