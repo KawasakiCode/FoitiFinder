@@ -141,15 +141,12 @@ class _PhotoCardState extends State<PhotoCard> {
                     child: Padding(  
                       padding: const EdgeInsets.symmetric(horizontal: 2),
                       child: Container(  
-                        height: 4, 
+                        height: 3, 
                         decoration: BoxDecoration(  
                           color: index == _currentIndex 
                           ? Colors.white 
-                          : Colors.white.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(2),
-                        boxShadow: [
-                          BoxShadow(color: Colors.black26, blurRadius: 2)
-                        ]
+                          : Colors.white.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(2),
                         )
                       ),
                     ),

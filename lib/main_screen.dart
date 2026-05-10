@@ -133,7 +133,7 @@ class _MainScreenState extends State<MainScreen> {
               iconPath,
               width: 28,
               height: 28,
-              color: isSelected ? kBrandPurple : Colors.grey[600],
+              color: isSelected ? kBrandPurple : Colors.grey[600]
             ),
             const SizedBox(height: 4),
             AnimatedDefaultTextStyle(
@@ -176,8 +176,19 @@ class _MainScreenState extends State<MainScreen> {
         bottomNavigationBar: SafeArea(
           child: Container(
             height: 70,
-            color: Colors.transparent,
-          
+            decoration: BoxDecoration(  
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? kDarkSurface
+                  : kLightSurface,
+              border: Border(  
+                top: BorderSide(  
+                  color: Theme.of(context).brightness == Brightness.dark  
+                    ? kDarkCard
+                    : kLightSurface,
+                  width: 0.5,
+                ),
+              ),
+            ),
             child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [

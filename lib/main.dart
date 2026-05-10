@@ -28,10 +28,11 @@ const Color kLightTextPrimary = Color(0xFF1A1B1E);
 const Color kLightTextSecondary = Color(0xFF65676B); 
 
 // --- DARK THEME PALETTE ---
-const Color kDarkBackground = Color(0xFF111418);
-const Color kDarkSurface = Color(0xFF1F2228); 
+const Color kDarkBackground = Color(0xFF0D0D0D);
+const Color kDarkSurface    = Color(0xFF1C1C1E);
 const Color kDarkTextPrimary = Color(0xFFE4E6EB); 
 const Color kDarkTextSecondary = Color(0xFFB0B3B8); 
+const Color kDarkCard = Color(0xFF2C2C2E);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -107,7 +108,8 @@ class FoitiFinder extends StatelessWidget {
           backgroundColor: kLightSurface,
           elevation: 0,
           indicatorColor: Colors.transparent,
-          indicatorShape: const CircleBorder(),          
+          indicatorShape: const CircleBorder(),    
+          shadowColor: Colors.transparent,      
           iconTheme: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
               return const IconThemeData(color: kBrandPurple, size: 30);
@@ -136,6 +138,12 @@ class FoitiFinder extends StatelessWidget {
           shadowColor:  WidgetStateProperty.all(Colors.black),
           elevation: WidgetStateProperty.all(0)
         ),
+
+        textTheme: const TextTheme(  
+          titleLarge: TextStyle(fontWeight: FontWeight.w700, letterSpacing: -0.5),
+          bodyMedium: TextStyle(fontWeight: FontWeight.w400),
+          labelSmall: TextStyle(fontWeight: FontWeight.w500, letterSpacing: 0.5),
+        ),
       ),
 
       darkTheme: ThemeData(
@@ -148,6 +156,7 @@ class FoitiFinder extends StatelessWidget {
           surface: kDarkSurface,
           onSurface: Colors.white,
           surfaceTint: Colors.transparent,
+          surfaceContainerHighest: kDarkCard,
         ),
 
         switchTheme: SwitchThemeData(
@@ -174,7 +183,7 @@ class FoitiFinder extends StatelessWidget {
 
         navigationBarTheme: NavigationBarThemeData(
           backgroundColor: kDarkSurface,
-          
+          shadowColor: Colors.transparent,      
           elevation: 0,
           indicatorColor: Colors.transparent, 
           indicatorShape: const CircleBorder(),
@@ -218,6 +227,12 @@ class FoitiFinder extends StatelessWidget {
           surfaceTintColor:  WidgetStateProperty.all(Colors.transparent),
           shadowColor:  WidgetStateProperty.all(Colors.black),
           elevation: WidgetStateProperty.all(0),
+        ),
+
+        textTheme: const TextTheme(  
+          titleLarge: TextStyle(fontWeight: FontWeight.w700, letterSpacing: -0.5),
+          bodyMedium: TextStyle(fontWeight: FontWeight.w400),
+          labelSmall: TextStyle(fontWeight: FontWeight.w500, letterSpacing: 0.5),
         ),
       ),
       themeMode: settings.themeMode,
