@@ -104,9 +104,10 @@ class _PhotoCardState extends State<PhotoCard> {
                 gradient: LinearGradient(  
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
+                  stops: const [0.45, 1.0],
                   colors: [
                     Colors.transparent,
-                    Colors.black.withValues(alpha: 0.8),
+                    Colors.black.withValues(alpha: 0.85),
                   ]
                 )
               )
@@ -168,22 +169,26 @@ class _PhotoCardState extends State<PhotoCard> {
                     '${widget.card.username}, ${widget.card.age}',
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 26,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.5,
                     ),
                   )
                   : Text(
                     widget.card.username,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 26,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.5,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                   widget.card.bio != null ? widget.card.bio! : "",
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.85),
+                    fontSize: 15),
                   ),                
                 ],
               ),
