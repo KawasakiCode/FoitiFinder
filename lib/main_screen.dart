@@ -178,13 +178,13 @@ class _MainScreenState extends State<MainScreen> {
             height: 70,
             decoration: BoxDecoration(  
               color: Theme.of(context).brightness == Brightness.dark
-                  ? kDarkSurface
+                  ? kDarkBackground
                   : kLightSurface,
               border: Border(  
                 top: BorderSide(  
                   color: Theme.of(context).brightness == Brightness.dark  
-                    ? kDarkCard
-                    : kLightSurface,
+                    ? Colors.white.withValues(alpha: 0.06)
+                    : Colors.black.withValues(alpha: 0.08),
                   width: 0.5,
                 ),
               ),

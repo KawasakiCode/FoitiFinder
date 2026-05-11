@@ -577,7 +577,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               // Rewind button
               AnimatedSwipeButton(
                 icon: Icons.replay,
-                activeColor: Colors.orange,
+                activeColor: const Color(0xFFFF9500),
                 size: 50,
                 // If no history, pass null to disable it visually
                 onPressed: currentIndex > 0
@@ -590,7 +590,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 // Pass button
                 AnimatedSwipeButton(
                   icon: Icons.close,
-                  activeColor: Colors.red,
+                  activeColor: const Color.fromARGB(255, 255, 41, 29),
                   size: 65, // Main buttons are bigger
                   forcePressed: isPassActive,
                   onPressed: () {
@@ -602,7 +602,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 // Super like button
                 AnimatedSwipeButton(
                   icon: Icons.star,
-                  activeColor: Colors.blueAccent,
+                  activeColor: const Color(0xFF0599FC),
                   size: 50,
                   forcePressed: isSuperLikeActive,
                   onPressed: () {
@@ -614,7 +614,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 // Like button
                 AnimatedSwipeButton(
                   icon: Icons.favorite,
-                  activeColor: Colors.green,
+                  activeColor: Color(0xFF02F533),
                   size: 65,
                   forcePressed: isLikeActive,
                   onPressed: () {
@@ -626,7 +626,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 // DM button
                 AnimatedSwipeButton(
                   icon: Icons.message,
-                  activeColor: Colors.blueAccent,
+                  activeColor: const Color(0xFF0599FC),
                   size: 50,
                   onPressed: () {
                     // Handle DM
