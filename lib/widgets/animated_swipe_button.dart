@@ -38,14 +38,14 @@ class _AnimatedSwipeButtonState extends State<AnimatedSwipeButton> {
         : surfaceColor;
         
     final Color iconColor = isActive 
-        ? surfaceColor // Contrast color when pressed
+        ? surfaceColor
         : (isDisabled ? Colors.grey : widget.activeColor);
 
     final List<BoxShadow> shadows = isActive || isDisabled
-        ? [] // No shadow when pressed (feels like it's pushed in)
+        ? []
         : [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.25),
+              color: Colors.black.withValues(alpha: 0.20),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -80,7 +80,7 @@ class _AnimatedSwipeButtonState extends State<AnimatedSwipeButton> {
                 offset: const Offset(0, 1.5),
                 child: Icon(
                   widget.icon,
-                  color: Colors.black.withValues(alpha: 0.25),
+                  color: Colors.black.withValues(alpha: 0.2),
                   size: widget.size * 0.65,
                 ),
               ),
