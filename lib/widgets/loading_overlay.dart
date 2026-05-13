@@ -9,10 +9,12 @@ import 'package:flutter/material.dart';
 
 class LoadingOverlay extends StatelessWidget {
   final bool isLoading;
+  final bool? slowLoading;
   final Widget child;
 
   const LoadingOverlay({
     super.key,
+    this.slowLoading,
     required this.isLoading,
     required this.child,
   });
@@ -29,8 +31,18 @@ class LoadingOverlay extends StatelessWidget {
           Positioned.fill(
             child: Container(
               color: Colors.black.withValues(alpha: 0.4),
-              child: const Center(
-                child: CircularProgressIndicator(),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const CircularProgressIndicator(),
+                  if (slowLoading == true) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      'This is taking longer than usual...',
+                      style: TextStyle(color: Colors.grey[400], fontSize: 13),
+                    ),
+                  ],
+                ],
               ),
             ),
           ),

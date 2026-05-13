@@ -1,6 +1,8 @@
 //The login page of the app
 //Uses firebase with email and password as available sign in methods for now
 
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/pages/auth_pages/signup.dart';
@@ -21,6 +23,9 @@ class _LoginPageState extends State<LoginPage> {
   late final TextEditingController _password;
   bool _isPasswordVisible = false;
 
+  Timer? _timer;
+  bool _isSlowConnection = false;
+
   @override
   void initState() {
     super.initState();
@@ -35,8 +40,18 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  //The function that actually logs in the user
+  void _startTimer() {
+    _timer = Timer(const Duration(seconds: 5), () {
+      if(mounted) setState(() => _isSlowConnection = true);
+    });
+  }
 
+  void _cancelTimer() {
+    _timer?.cancel();
+    if(mounted) setState(() => _isSlowConnection = false);
+  }
+
+  //The function that actually logs in the user
   //If login is successful sent user to MainScreen (HomePage)
   //If login fails notify the user
   void _login() async {
@@ -93,10 +108,13 @@ class _LoginPageState extends State<LoginPage> {
       isLoading = true;
     });
     try {
+      _startTimer();
       final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
+
+      _cancelTimer();
 
       final user = credential.user;
       if (user == null) {
@@ -151,6 +169,8 @@ class _LoginPageState extends State<LoginPage> {
           duration: Duration(seconds: 3),
         ),
       );
+    } finally {
+      _cancelTimer();
     }
   }
 
@@ -162,6 +182,7 @@ class _LoginPageState extends State<LoginPage> {
       child: Scaffold(
         body: LoadingOverlay(
           isLoading: isLoading,
+          slowLoading: _isSlowConnection,
           child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
             child: ConstrainedBox(
@@ -181,6 +202,9 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.grey, width: 1),
+                        borderRadius: BorderRadius.all(  
+                          Radius.circular(12)
+                        )
                       ),
                       child: Column(
                         children: [
