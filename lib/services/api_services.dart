@@ -229,11 +229,8 @@ class ApiService {
         List<CardData> cards = body.map((dynamic item) => CardData.fromPostgresRow(item)).toList();
         return cards;
       }
-      else if(response.statusCode != 200) {
-        return [];
-      }
       else {
-        throw Exception("Failed to get data ${response.body}");
+        return [];
       }
     } catch (e) {
       rethrow;

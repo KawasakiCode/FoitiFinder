@@ -17,6 +17,7 @@ import firebase_admin
 import tempfile
 import requests
 from matchmaker.ai_rater import get_face_score
+from matchmaker.preferences import interests_to_genders
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -48,6 +49,7 @@ class Messages(BaseModel):
 class LikerProfile(BaseModel):
     id: int
     username: str
+    age: Optional[int] = None
     image_url: str
 
     class Config:
@@ -166,19 +168,6 @@ def update_user(firebase_token: str, user_update: schemas.UserUpdate, db: Sessio
     db.refresh(db_user)
     return db_user
 
-#maps the viewer's "interests" selection (who they want to see) to the
-#gender values stored on candidate profiles. Returns None when there is no
-#restriction (Everyone or unset) so the feed stays unfiltered in that case.
-def _interests_to_genders(interests: Optional[str]):
-    if not interests:
-        return None
-    selected = {i.strip() for i in interests.split(",") if i.strip()}
-    if not selected or "Everyone" in selected:
-        return None
-    mapping = {"Men": "Male", "Women": "Female"}
-    genders = [mapping[s] for s in selected if s in mapping]
-    return genders or None
-
 #get multiple users for the homepage
 @app.get("/users/feed/{firebase_token}", response_model = List[UserCards])
 def get_swipe_feed(firebase_token: str, db: Session = Depends(get_db)):
@@ -220,7 +209,7 @@ def get_swipe_feed(firebase_token: str, db: Session = Depends(get_db)):
 
     #gender preference filter derived from the viewer's interests. Candidates
     #with no gender set are kept so incomplete profiles still surface.
-    wanted_genders = _interests_to_genders(me.interests)
+    wanted_genders = interests_to_genders(me.interests)
     if wanted_genders is not None:
         filters.append(or_(models.User.gender.in_(wanted_genders), models.User.gender.is_(None)))
 
@@ -293,7 +282,8 @@ def get_likes(firebase_token: str, db: Session = Depends(get_db)):
     liked_by_users = db.query(
         models.User.id,
         models.User.username,
-        models.Photos.photo_url.label("image_url") 
+        models.User.age,
+        models.Photos.photo_url.label("image_url")
     ).join(
         Incoming, 
         Incoming.user_id == models.User.id

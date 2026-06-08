@@ -166,7 +166,6 @@ class SettingsProvider extends ChangeNotifier {
     bool likePushNotifications;
     bool messagePushNotifications;
     if(_prefs.getBool('like_notifications_enabled') == null) {
-      SettingsModel data = await ApiService.getUsersSettings(FirebaseAuth.instance.currentUser!.uid);
       //Does the os give permission?
       bool osPermission = await checkNotificationPermission();
       _osPermission = osPermission;
@@ -181,7 +180,7 @@ class SettingsProvider extends ChangeNotifier {
         messagePushNotifications = true;
         likePushNotifications = false;
         _prefs.setBool('message_notifications_enabled', true);
-        _prefs.setBool('like_notifications_enabled', true);
+        _prefs.setBool('like_notifications_enabled', false);
       }
       else {
         likePushNotifications = false;

@@ -48,7 +48,7 @@ class UserModel{
       uid: json['firebase_token'] ?? (throw Exception("Critical: uid missing")),
       username: json['username'] ?? (throw Exception("Critical: username missing")),
       hasFinishedSetUp: json['has_finished_set_up'] ?? (throw Exception("Critical: finishedSetUp missing")),
-      score: json['score'],
+      score: (json['score'] ?? 0).toDouble(),
       fullName: json['full_name'],
       id: json['id'],
       bio: json['bio'],

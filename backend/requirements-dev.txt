@@ -1,0 +1,4 @@
+# Development-only dependencies (test tooling). Install with:
+#   ./venv/Scripts/python.exe -m pip install -r requirements-dev.txt
+# Kept separate from requirements.txt so production installs stay lean.
+pytest==9.0.3

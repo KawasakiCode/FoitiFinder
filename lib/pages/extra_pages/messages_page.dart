@@ -46,15 +46,19 @@ class _MessagesPages extends State<MessagesPage> {
       final data = jsonDecode(incomingData);
       if(!mounted)return;
       final MessageModel decodedMessage = MessageModel.fromJson(data, Provider.of<ProfileProvider>(context, listen: false).currentUser!.id!);
+      //the socket is per-user so every conversation's messages flow through it.
+      //only show the ones that belong to THIS chat.
+      if (decodedMessage.matchId != widget.match.matchId) return;
       setState(() {
         messages.insert(0, decodedMessage);
       });
     });
-    _loadMessages();
   }
 
   @override
   dispose() {
+    _channel.sink.close();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -125,16 +129,12 @@ class _MessagesPages extends State<MessagesPage> {
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context)!;
-    final profileProvider = Provider.of<ProfileProvider>(
-      context,
-      listen: false,
-    );
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: true,
-          title: Text(profileProvider.currentUser!.username),
+          title: Text(widget.match.userBname),
           elevation: 0,
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(1.0),

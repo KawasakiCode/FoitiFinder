@@ -155,41 +155,44 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 }
 
   //swiping functions
-  void _swipeRight() async {
-    final cardName = cards[currentIndex].username;
-    _animateCardOut(1.0, cardName, true);
-    bool isMatch = await ApiService.registerSwipe(FirebaseAuth.instance.currentUser!.uid, cards[currentIndex].id, "like");
+  //These are shared by the gestures AND the action buttons so a swipe is always
+  //registered with the backend no matter how it was triggered.
+  void _swipeRight({bool fromButton = false}) async {
+    //capture the card before the animation advances currentIndex
+    final card = cards[currentIndex];
+    _animateCardOut(1.0, card.username, true, fromButton: fromButton);
+    bool isMatch = await ApiService.registerSwipe(FirebaseAuth.instance.currentUser!.uid, card.id, "like");
 
     if(isMatch) {
       if(!mounted)return;
-      showDialog(  
+      showDialog(
         context: context,
-        builder: (context) => AlertDialog(  
+        builder: (context) => AlertDialog(
           title: Text(text.itsAMatch),
-          content: Text("${text.matchText1}${cards[currentIndex].username}${text.matchText2}"),
+          content: Text("${text.matchText1}${card.username}${text.matchText2}"),
         )
       );
     }
   }
 
-  void _swipeLeft() async {
-    final cardName = cards[currentIndex].username;
-    await ApiService.registerSwipe(FirebaseAuth.instance.currentUser!.uid, cards[currentIndex].id, "pass");
-    _animateCardOut(-1.0, cardName, false);
+  void _swipeLeft({bool fromButton = false}) async {
+    final card = cards[currentIndex];
+    await ApiService.registerSwipe(FirebaseAuth.instance.currentUser!.uid, card.id, "pass");
+    _animateCardOut(-1.0, card.username, false, fromButton: fromButton);
   }
 
-  void _swipeUp() async {
-    final cardName = cards[currentIndex].username;
-    _animateCardOut(0.0, cardName, true, isSuperLike: true);
-    bool isMatch = await ApiService.registerSwipe(FirebaseAuth.instance.currentUser!.uid, cards[currentIndex].id, "super_like");
+  void _swipeUp({bool fromButton = false}) async {
+    final card = cards[currentIndex];
+    _animateCardOut(0.0, card.username, true, fromButton: fromButton, isSuperLike: true);
+    bool isMatch = await ApiService.registerSwipe(FirebaseAuth.instance.currentUser!.uid, card.id, "super_like");
 
     if(isMatch) {
       if(!mounted)return;
-      showDialog(  
+      showDialog(
         context: context,
-        builder: (context) => AlertDialog(  
+        builder: (context) => AlertDialog(
           title: Text(text.itsAMatch),
-          content: Text("${text.matchText1}${cards[currentIndex].username}${text.matchText2}"),
+          content: Text("${text.matchText1}${card.username}${text.matchText2}"),
         )
       );
     }
@@ -593,34 +596,25 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   activeColor: const Color.fromARGB(255, 255, 41, 29),
                   size: 65, // Main buttons are bigger
                   forcePressed: isPassActive,
-                  onPressed: () {
-                    final cardName = cards[currentIndex].username;
-                    _animateCardOut(-1.0, cardName, false, fromButton: true);
-                  },
+                  onPressed: () => _swipeLeft(fromButton: true),
                 ),
-          
+
                 // Super like button
                 AnimatedSwipeButton(
                   icon: Icons.star,
                   activeColor: const Color(0xFF0599FC),
                   size: 50,
                   forcePressed: isSuperLikeActive,
-                  onPressed: () {
-                    final cardName = cards[currentIndex].username;
-                    _animateCardOut(1.0, cardName, true, fromButton: true, isSuperLike: true);
-                  },
+                  onPressed: () => _swipeUp(fromButton: true),
                 ),
-          
+
                 // Like button
                 AnimatedSwipeButton(
                   icon: Icons.favorite,
                   activeColor: Color(0xFF02F533),
                   size: 65,
                   forcePressed: isLikeActive,
-                  onPressed: () {
-                    final cardName = cards[currentIndex].username;
-                    _animateCardOut(1.0, cardName, true, fromButton: true);
-                  },
+                  onPressed: () => _swipeRight(fromButton: true),
                 ),
           
                 // DM button

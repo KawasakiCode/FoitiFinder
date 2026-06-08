@@ -289,7 +289,9 @@ class DMPageState extends State<DMPage> {
                                           ),
                                         ),
                                         Text(
-                                          'Last Message',
+                                          dm.lastMessage ?? '',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
                                             fontSize: 14,
                                             color: Colors.grey,
