@@ -1,9 +1,13 @@
 # Face Scoring Methodology
 
-## Note: The requirements.txt are to be imported for the notebook file.
-## You should preferably run the notebook for model training using google collab and google drive to upload the files
+## Reproducing the model
 
-## Don't forget to zip the scut database images before uploading to drive
+The trained model (`backend/matchmaker/rating_model.pkl`) ships with the repo, so you only need this if you want to retrain it. Files referenced below live in this `research/` folder.
+
+1. **Get the dataset.** Download the [SCUT-FBP5500 dataset](https://github.com/HCIILAB/SCUT-FBP5500-Database-Release). You need the face images and the `All_Ratings.xlsx` ratings file.
+2. **Filter the ratings.** Put `All_Ratings.xlsx` next to [`filter_data.py`](filter_data.py) and run it (`python filter_data.py`). It keeps the ~1,500 Caucasian images and averages the 60 raters' scores, producing `clean_caucasian_averages.csv`. To include or switch to the Asian subset, change `startswith('C')` inside the script (see its comments).
+3. **Train.** Open [`rating_model_train.ipynb`](rating_model_train.ipynb). Training is heavy (FaceNet embeddings via DeepFace/TensorFlow), so running it on **Google Colab** is recommended: zip the dataset images, upload the zip and `clean_caucasian_averages.csv` to Google Drive, and mount Drive from the notebook. The notebook installs its own dependencies in its first cells.
+4. **Install the model.** The notebook outputs `rating_model.pkl`. Copy it to `backend/matchmaker/rating_model.pkl` to make the backend use your newly trained model.
 
 ## 1. Objective
 To create a lightweight, privacy-focused facial attractiveness scoring system for a dating application, capable of running efficiently on a standard backend CPU.
