@@ -9,7 +9,7 @@ from notifications import send_smart_notification
 from database import models
 from database.database import SessionLocal, engine, get_db
 from database import schemas
-from sqlalchemy.orm import Session, aliased
+from sqlalchemy.orm import Session, aliased, selectinload
 from sqlalchemy import and_, or_, case
 import json
 from firebase_admin import messaging, credentials, firestore
@@ -80,6 +80,7 @@ class MatchResponse(BaseModel):
     other_user_id: int
     other_user_name: str
     image_url: Optional[str] = None
+    last_message: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -142,9 +143,8 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 def get_user_data(firebase_token: str, db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
 
-    if not db_user: 
+    if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
-    print(db_user.has_photos)
     return db_user
 
 #update one/multiple user attributes without altering the others
@@ -166,14 +166,27 @@ def update_user(firebase_token: str, user_update: schemas.UserUpdate, db: Sessio
     db.refresh(db_user)
     return db_user
 
+#maps the viewer's "interests" selection (who they want to see) to the
+#gender values stored on candidate profiles. Returns None when there is no
+#restriction (Everyone or unset) so the feed stays unfiltered in that case.
+def _interests_to_genders(interests: Optional[str]):
+    if not interests:
+        return None
+    selected = {i.strip() for i in interests.split(",") if i.strip()}
+    if not selected or "Everyone" in selected:
+        return None
+    mapping = {"Men": "Male", "Women": "Female"}
+    genders = [mapping[s] for s in selected if s in mapping]
+    return genders or None
+
 #get multiple users for the homepage
 @app.get("/users/feed/{firebase_token}", response_model = List[UserCards])
 def get_swipe_feed(firebase_token: str, db: Session = Depends(get_db)):
-    #first get the current user id to exclude it 
+    #first get the current user id to exclude it
     me = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
     if not me:
         raise HTTPException(status_code=404, detail='Current User not found')
-    
+
     if me.score is not None and me.score != 0:
         min_score = me.score - 1.5
         max_score = me.score + 1.5
@@ -182,19 +195,40 @@ def get_swipe_feed(firebase_token: str, db: Session = Depends(get_db)):
         max_score = 10
 
     #get users other than you and not users we already saw
-    seen_ids = db.query(models.UserSwipes.target_id).filter(  
+    seen_ids = db.query(models.UserSwipes.target_id).filter(
         models.UserSwipes.user_id == me.id
     ).all()
 
     seen_ids_list = [x[0] for x in seen_ids]
 
     seen_ids_list.append(me.id)
-    #order the users randomly for now and limit then at 10
-    users = db.query(models.User).filter(  
+
+    #base filters: skip already swiped users and stay within the score band
+    filters = [
         models.User.id.notin_(seen_ids_list),
         models.User.score >= min_score,
-        models.User.score <= max_score
-    ).order_by(func.random()).limit(10).all()
+        models.User.score <= max_score,
+    ]
+
+    #age range filter, only applied when the user hasn't opted to see people
+    #outside their range. Profiles without an age are kept so they still show.
+    if not me.show_out_of_range:
+        if me.min_age_range is not None:
+            filters.append(or_(models.User.age >= me.min_age_range, models.User.age.is_(None)))
+        if me.max_age_range is not None:
+            filters.append(or_(models.User.age <= me.max_age_range, models.User.age.is_(None)))
+
+    #gender preference filter derived from the viewer's interests. Candidates
+    #with no gender set are kept so incomplete profiles still surface.
+    wanted_genders = _interests_to_genders(me.interests)
+    if wanted_genders is not None:
+        filters.append(or_(models.User.gender.in_(wanted_genders), models.User.gender.is_(None)))
+
+    #order the users randomly for now and limit then at 10
+    #selectinload pulls every user's photos in a single extra query (no N+1)
+    users = db.query(models.User).options(
+        selectinload(models.User.photos)
+    ).filter(*filters).order_by(func.random()).limit(10).all()
 
     results = []
     for user in users:
@@ -334,32 +368,53 @@ def get_matches(firebase_token: str, db: Session = Depends(get_db)):
     if not me:
         raise HTTPException(status_code=404, detail="Current User not found")
     
-    matches = db.query(models.Matches).filter(  
+    matches = db.query(models.Matches).filter(
         (models.Matches.user_a_id == me.id) | (models.Matches.user_b_id == me.id),
     ).all()
 
+    if not matches:
+        return []
+
+    #figure out the "other" user for each match in one pass
+    other_ids = [
+        match.user_b_id if match.user_a_id == me.id else match.user_a_id
+        for match in matches
+    ]
+
+    #one query for every other user instead of one per match
+    users_by_id = {
+        user.id: user
+        for user in db.query(models.User).filter(models.User.id.in_(other_ids)).all()
+    }
+
+    #one query for the latest message of every match. We grab the max id per
+    #match (ids grow with time) then fetch those rows in a single round trip.
+    match_ids = [match.id for match in matches]
+    latest_msg_ids = db.query(func.max(models.Messages.id)).filter(
+        models.Messages.match_id.in_(match_ids)
+    ).group_by(models.Messages.match_id).subquery()
+
+    last_msg_by_match = {
+        msg.match_id: msg.content
+        for msg in db.query(models.Messages).filter(models.Messages.id.in_(latest_msg_ids)).all()
+    }
+
     results = []
     for match in matches:
-        other_user_id = match.user_a_id if match.user_a_id != me.id else match.user_b_id
-        other_user = db.query(models.User).filter(models.User.id == other_user_id).first()
+        other_user_id = match.user_b_id if match.user_a_id == me.id else match.user_a_id
+        other_user = users_by_id.get(other_user_id)
 
-        if other_user: 
-            last_msg = db.query(models.Messages).filter(  
-                models.Messages.match_id == match.id,
-                models.Messages.sender == other_user.id,
-            ).order_by(models.Messages.created_at.desc()).first()
+        #a match with a deleted user is skipped rather than failing the whole call
+        if not other_user:
+            continue
 
-            last_msg_text = last_msg.content if last_msg else None
-
-            results.append({  
-                "match_id": match.id,
-                "other_user_id": other_user.id,
-                "other_user_name": other_user.username,
-                "image_url": other_user.profile_picture,
-                "last_message": last_msg_text
-            })
-        else: 
-            raise HTTPException(status_code=404, detail="Other User not found")
+        results.append({
+            "match_id": match.id,
+            "other_user_id": other_user.id,
+            "other_user_name": other_user.username,
+            "image_url": other_user.profile_picture,
+            "last_message": last_msg_by_match.get(match.id)
+        })
 
     return results
     
@@ -380,7 +435,7 @@ def upload_messages(message: Messages, db: Session = Depends(get_db)):
     elif match.user_b_id == me.id:
         other_user_id = match.user_a_id
 
-    new_message = models.Messages(  
+    new_message = models.Messages(
         sender = me.id,
         match_id = message.match_id,
         content = message.content
@@ -388,45 +443,43 @@ def upload_messages(message: Messages, db: Session = Depends(get_db)):
 
     db.add(new_message)
     db.commit()
+    db.refresh(new_message)
 
+    #The message is already saved. Notifying the recipient is best-effort: a
+    #missing user, missing fcm token or disabled notifications must NOT turn a
+    #successful send into an error for the sender.
     target_user = db.query(models.User).filter(models.User.id == other_user_id).first()
-    if not target_user:
-        raise HTTPException(status_code=404, detail="Target User not found")
+    if target_user:
+        try:
+            send_smart_notification(target_user.firebase_token, 'message', firestore_db)
+        except Exception:
+            pass
 
-    user_ref = firestore_db.collection('users').document(target_user.firebase_token)
-    user_doc = user_ref.get()
-
-    if user_doc.exists:
-        user_data = user_doc.to_dict()
-
-        target_fcm_token = user_data.get('fcm_token')
-
-        if target_fcm_token:
-            if new_message:
-                #notify_user_of_like_or_match_or_message(target_fcm_token, 'message')
-                send_smart_notification(target_user.firebase_token, 'message', firestore_db)
-            else: 
-                raise HTTPException(status_code=404, detail="Target User not found")
-        else: 
-            raise HTTPException(status_code=404, detail="Target User not found")
+    return {"status": "ok", "message_id": new_message.id}
 
 #get messages from db
 @app.get("/messages/{match_id}")
-def get_messages(match_id: int, firebase_token: str, db: Session = Depends(get_db)):
+def get_messages(match_id: int, firebase_token: str, limit: Optional[int] = None, offset: int = 0, db: Session = Depends(get_db)):
     me = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
     if not me:
         raise HTTPException(status_code=404, detail="Current User not found")
-    
+
     match = db.query(models.Matches).filter(models.Matches.id == match_id).first()
 
     if not match:
         raise HTTPException(status_code = 404, detail="Match not found")
 
-    messages = db.query(models.Messages).filter(  
+    #newest first. limit/offset are optional so existing callers that pass
+    #neither keep getting the full history (backwards compatible), while a
+    #paginating client can request a page at a time.
+    query = db.query(models.Messages).filter(
         models.Messages.match_id == match_id
-    ).order_by(models.Messages.created_at.desc()).all()
+    ).order_by(models.Messages.created_at.desc())
 
-    return messages
+    if limit is not None:
+        query = query.offset(offset).limit(limit)
+
+    return query.all()
 
 #get users photos
 @app.get("/photos/{firebase_token}")
@@ -475,11 +528,11 @@ def record_swipe(swipe: SwipeRequest, db: Session = Depends(get_db)):
     is_match = False
 
     if existing:
-        if existing.action == swipe.action:
-            db.commit()
-        else: 
+        #only write when the action actually changed (re-swiping the same way
+        #is a no-op). datetime is imported as a module, hence datetime.datetime.
+        if existing.action != swipe.action:
             query.update({models.UserSwipes.action: swipe.action,
-                        models.UserSwipes.timestamp: datetime.utcnow()}, synchronize_session=False)
+                        models.UserSwipes.timestamp: datetime.datetime.now(datetime.timezone.utc)}, synchronize_session=False)
             db.commit()
     else:
         new_swipe = models.UserSwipes(  
@@ -634,9 +687,11 @@ def calculate_user_rating(firebase_token: str, db: Session = Depends(get_db)):
             if temp_path and os.path.exists(temp_path):
                 os.remove(temp_path)
 
-    if score is None:
+    #fall back to 0 when no face was found in any photo. Use final_score (not
+    #the loop variable, which may be unbound if every download failed).
+    if final_score is None:
         final_score = 0
-    
+
     me.score = final_score
     db.commit()
 
@@ -687,23 +742,16 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
                     raise HTTPException(status_code=404, detail="Current User not found")
 
                 match_id = message_payload.get("match_id")
-                message = message_payload.get("content")
                 receiver_id = message_payload.get("to_user")
-                
-                #Validate that the user is part of the conversation and sent message
-                # match = db.query(models.Matches).filter(models.Matches.id == match_id).first()
-                # if match and (match.user_a_id == me.id or match.user_b_id == me.id):
-                new_message = models.Messages(  
-                    sender = me.id,
-                    match_id = match_id,
-                    content = message
-                )
 
-                db.add(new_message)
-                db.commit()
-
-                message_payload["sender"] = me.id
-                await manager.send_personal_message(message_payload, receiver_id)
+                #Validate that the sender is actually part of this match before
+                #relaying anything. We only relay here, persistence is handled by
+                #the REST /messages/store endpoint the client also calls, so we
+                #must NOT insert again or every message ends up stored twice.
+                match = db.query(models.Matches).filter(models.Matches.id == match_id).first()
+                if match and (match.user_a_id == me.id or match.user_b_id == me.id):
+                    message_payload["sender"] = me.id
+                    await manager.send_personal_message(message_payload, receiver_id)
             except Exception as e:
                 print(e)
             finally:
@@ -724,12 +772,13 @@ def notify_user_of_like_or_match_or_message(target_user_firebase_token: str, cal
             token = target_user_firebase_token
         )
     elif caller == "message":
-        message = messaging.Message(  
+        message = messaging.Message(
             data = {
                 'type': 'new_message',
                 'count': '1',
                 'click_action': 'FLUTTER_NOTIFICATION_CLICK'
-            }
+            },
+            token = target_user_firebase_token
         )
     else:
         message = messaging.Message(  

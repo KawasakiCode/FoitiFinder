@@ -5,8 +5,15 @@ from pathlib import Path
 from deepface import DeepFace
 import numpy as np
 
-#Load the model
+#Load the model once at import time. Loading/unpickling it on every call (and
+#this function is called once per photo) was needlessly hitting the disk
+#repeatedly for what is an immutable model.
 MODEL_PATH = Path(__file__).parent / 'rating_model.pkl'
+
+try:
+    rating_model = joblib.load(MODEL_PATH)
+except Exception:
+    rating_model = None
 
 def get_face_score(image_path: str):
     """
@@ -15,15 +22,9 @@ def get_face_score(image_path: str):
     Returns None if no face is found or if an error occurs
     """
 
-    try: 
-        rating_model = joblib.load(MODEL_PATH)
-    except Exception:
-
-        rating_model = None
-
     if rating_model is None:
         return None
-    
+
     if not os.path.exists(image_path):
         return None
     

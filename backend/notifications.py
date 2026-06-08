@@ -29,22 +29,29 @@ def send_smart_notification(target_uid: str, notification_type: str, db_firestor
 
     like_notifications = user_data.get('like_notifications', True)
     message_notifications = user_data.get('message_notifications', True)
-    #Check if user allows notifications of the specific type we send
-    should_send = False
 
-    if notification_type in ['like', 'match', 'message']:
-        if like_notifications:
-            should_send = True
-        elif message_notifications:
-            should_send = True
-        else: 
-            #User has disabled notifications
-            return
-    
+    #Map each category to the toggle that governs it: likes and matches are
+    #gated by the like toggle, messages by the message toggle. (Previously a
+    #message could be sent based on the like setting, and vice versa.)
+    if notification_type in ('like', 'match'):
+        should_send = like_notifications
+    elif notification_type == 'message':
+        should_send = message_notifications
+    else:
+        should_send = False
+
+    if not should_send:
+        #User has disabled this category of notification
+        return
+
     notification_content = {
         'like': {
             'title': 'New Like!',
             'body': 'Someone just liked your profile. Open the app to see who!'
+        },
+        'match': {
+            'title': "It's a Match!",
+            'body': 'You have a new match. Say hi!'
         },
         'message': {
             'title': 'New Message',
