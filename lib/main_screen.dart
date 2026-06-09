@@ -4,7 +4,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:foitifinder/main.dart';
+import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/pages/main_pages/home_page.dart';
 import 'package:foitifinder/pages/main_pages/dm_page.dart';
 import 'package:foitifinder/pages/main_pages/profile_page.dart';
@@ -133,7 +133,7 @@ class _MainScreenState extends State<MainScreen> {
               iconPath,
               width: 28,
               height: 28,
-              color: isSelected ? kBrandPurple : Colors.grey[600]
+              color: isSelected ? AppColors.primary : Colors.grey[600]
             ),
             const SizedBox(height: 4),
             AnimatedDefaultTextStyle(
@@ -178,8 +178,8 @@ class _MainScreenState extends State<MainScreen> {
             height: 70,
             decoration: BoxDecoration(  
               color: Theme.of(context).brightness == Brightness.dark
-                  ? kDarkBackground
-                  : kLightSurface,
+                  ? AppColors.darkBackground
+                  : AppColors.lightSurface,
               border: Border(  
                 top: BorderSide(  
                   color: Theme.of(context).brightness == Brightness.dark  

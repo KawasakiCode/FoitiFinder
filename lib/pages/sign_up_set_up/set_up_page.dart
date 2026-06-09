@@ -18,6 +18,7 @@ import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/widgets/delayed_inkwell.dart';
 import 'package:provider/provider.dart';
 import 'package:foitifinder/widgets/loading_overlay.dart';
+import 'package:foitifinder/widgets/primary_button.dart';
 
 class SetUpPage extends StatefulWidget {
   const SetUpPage({super.key});
@@ -490,27 +491,10 @@ class _SetUpPageState extends State<SetUpPage> {
                     ),
                     //Confirm button
                     Padding(
-                      padding: const EdgeInsets.only(top: 20),
-                      child: Align(
-                        alignment: Alignment.center,
-                        child: TextButton(
-                          onPressed: () => confirmAndExit(),
-                          style: TextButton.styleFrom(
-                            backgroundColor: const Color(0xFF8A2BE2),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 10,
-                              horizontal: 10,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: Text(
-                            text.confirm,
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ),
+                      padding: const EdgeInsets.only(top: 20, right: 15),
+                      child: PrimaryButton(
+                        label: text.confirm,
+                        onPressed: () => confirmAndExit(),
                       ),
                     ),
                   ],

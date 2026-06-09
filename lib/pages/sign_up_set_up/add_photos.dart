@@ -12,6 +12,7 @@ import 'package:foitifinder/pages/sign_up_set_up/set_up_page.dart';
 import 'package:foitifinder/services/api_services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:foitifinder/widgets/loading_overlay.dart';
+import 'package:foitifinder/widgets/primary_button.dart';
 
 class AddPhotos extends StatefulWidget {
   const AddPhotos({super.key});
@@ -224,13 +225,9 @@ class _AddPhotos extends State<AddPhotos> {
               ),
               Padding(
                 padding: const EdgeInsets.all(15),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: _isUploading ? null : _submitPhotos,
-                    child: Text(text.submit),
-                  ),
+                child: PrimaryButton(
+                  label: text.submit,
+                  onPressed: _isUploading ? null : _submitPhotos,
                 ),
               ),
             ],

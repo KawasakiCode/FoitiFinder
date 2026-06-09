@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:foitifinder/pages/auth_pages/signup.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/widgets/loading_overlay.dart';
+import 'package:foitifinder/widgets/primary_button.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -299,22 +300,10 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                           //Login button
-                          SizedBox(
-                            width: double.infinity,
-                            child: TextButton(
-                              onPressed: _login,
-                              style: TextButton.styleFrom(
-                                backgroundColor: const Color(0xFF8A2BE2),
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 10,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              child: Text(text.login),
-                            ),
+                          PrimaryButton(
+                            label: text.login,
+                            onPressed: isLoading ? null : _login,
+                            isLoading: isLoading,
                           ),
                           SizedBox(height: 10),
                           //Or text with dividers

@@ -11,6 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/widgets/loading_overlay.dart';
+import 'package:foitifinder/widgets/primary_button.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -418,26 +419,10 @@ class _SignUpPageState extends State<SignUpPage> {
                           //sign up button
                           Padding(
                             padding: const EdgeInsets.only(top: 10),
-                            child: SizedBox(
-                              width: double.infinity,
-                              child: TextButton(
-                                onPressed: _isLoading
-                                    ? null
-                                    : () async {
-                                        signUp();
-                                      },
-                                style: TextButton.styleFrom(
-                                  backgroundColor: const Color(0xFF8A2BE2),
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 10,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                                child: Text(text.signUp),
-                              ),
+                            child: PrimaryButton(
+                              label: text.signUp,
+                              onPressed: _isLoading ? null : signUp,
+                              isLoading: _isLoading,
                             ),
                           ),
                         ],

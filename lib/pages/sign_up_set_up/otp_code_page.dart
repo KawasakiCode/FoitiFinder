@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:foitifinder/widgets/otp_input_widget.dart';
+import 'package:foitifinder/theme/app_colors.dart';
 import 'package:provider/provider.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/widgets/loading_overlay.dart';
@@ -247,7 +248,7 @@ class _OtpCodePage extends State<OtpCodePage> {
                 onCompleted: (String code) {
                   _submitOtp(code);
                 },
-                focusedBorderColor: Color(0xFF8A2BE2),
+                focusedBorderColor: AppColors.primary,
                 controller: _otpController,
               )
             ),

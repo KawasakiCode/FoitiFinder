@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/loading_overlay.dart';
 
 class VerifyEmail extends StatefulWidget {
@@ -148,7 +149,7 @@ class _VerifyEmailState extends State<VerifyEmail> {
                           }
                         },
                   style: TextButton.styleFrom(
-                    backgroundColor: Color(0xFF8A2BE2),
+                    backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
                       vertical: 10,

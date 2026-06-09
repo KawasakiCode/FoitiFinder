@@ -33,26 +33,46 @@ class _SetupWrapperState extends State<SetupWrapper> {
   }
 
   Future<void> _loadData() async {
-    final user = await fetchFromApi(widget.firebaseUser);
-
-    if(mounted) {
-      setState(() {
-        currentUser = user;
-        isLoading = false;
-      },);
+    UserModel? user;
+    try {
+      //hard cap so a slow/unreachable backend (or a 404) can't leave us stuck
+      //on the spinner forever
+      user = await fetchFromApi(widget.firebaseUser)
+          .timeout(const Duration(seconds: 15));
+    } catch (e) {
+      //timeout or backend failure -> treat as "no usable profile"
+      user = null;
     }
+
+    if (!mounted) return;
+
+    //Authenticated in Firebase but no backend profile (orphaned account, e.g.
+    //created against a different database) or the load failed. Sign out so we
+    //land on a clean login instead of spinning or showing a half-loaded state.
+    if (user == null) {
+      await FirebaseAuth.instance.signOut();
+      return; //authStateChanges rebuilds AuthWrapper -> LoginPage
+    }
+
+    setState(() {
+      currentUser = user;
+      isLoading = false;
+    });
   }
-  
+
   Future<UserModel?> fetchFromApi(User? user) async {
     final userProvider = Provider.of<ProfileProvider>(context, listen: false);
     final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
 
     await userProvider.loadUser();
     if (user != null) {
-      await settingsProvider.fetchSettingsFromApi(user.uid);
+      //settings are secondary; a failure here must not break routing
+      try {
+        await settingsProvider.fetchSettingsFromApi(user.uid);
+      } catch (_) {}
     }
 
-    return userProvider.currentUser; 
+    return userProvider.currentUser;
   }
 
   @override

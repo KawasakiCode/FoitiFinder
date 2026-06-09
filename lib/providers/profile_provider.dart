@@ -45,8 +45,11 @@ class ProfileProvider extends ChangeNotifier {
       }
     }
     else {
-      if(FirebaseAuth.instance.currentUser != null) {
-        fetchUserFromApi(FirebaseAuth.instance.currentUser!.uid);
+      final fbUser = FirebaseAuth.instance.currentUser;
+      if(fbUser != null) {
+        //await so currentUser is actually populated before callers read it
+        //(SetupWrapper routes based on the return value of this)
+        await fetchUserFromApi(fbUser.uid);
       }
     }
   }

@@ -10,6 +10,7 @@ import 'package:foitifinder/models/matches_model.dart';
 import 'package:foitifinder/models/message_model.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/services/api_services.dart';
+import 'package:foitifinder/theme/app_colors.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 
@@ -171,7 +172,7 @@ class _MessagesPages extends State<MessagesPage> {
                         //the text container (only has the text inside)
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Color(0xFF8A2BE2),
+                            color: AppColors.primary,
                             borderRadius: BorderRadius.circular(24),
                           ),
                           padding: const EdgeInsets.all(10),
@@ -208,7 +209,7 @@ class _MessagesPages extends State<MessagesPage> {
                     ),
                     suffixIcon: IconButton(
                       key: UniqueKey(),
-                      icon: const Icon(Icons.send, color: Color(0xFF8A2BE2)),
+                      icon: const Icon(Icons.send, color: AppColors.primary),
                       onPressed: () {
                         FocusScope.of(context).unfocus();
                         _handleSend();
