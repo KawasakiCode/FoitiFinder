@@ -135,8 +135,10 @@ class _VerifyEmailState extends State<VerifyEmail> {
                                 duration: Duration(seconds: 3),
                               ),
                             );
+                            //re-enable the button so the user can retry,
+                            //otherwise it stays disabled with no timer running
                             setState(() {
-                              _canResend = false;
+                              _canResend = true;
                             },);
                           } finally {
                             setState(() {

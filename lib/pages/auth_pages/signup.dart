@@ -207,13 +207,17 @@ class _SignUpPageState extends State<SignUpPage> {
       },);
       //Delete firebase user if db failed
       //If user doesn't get deleted we run in the problem where the user exists in firebase but not in db
+      //The delete itself can throw (e.g. network); swallow that so it doesn't
+      //hide the original error from the user.
       if (userCredential != null) {
-        await userCredential.user?.delete();
+        try {
+          await userCredential.user?.delete();
+        } catch (_) {}
       }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("${text.errorOccured}, $e"),
+          content: Text(text.signUpError),
           backgroundColor: Colors.red,
           duration: Duration(seconds: 3),
         ),

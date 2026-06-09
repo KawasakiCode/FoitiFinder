@@ -10,7 +10,11 @@ import 'package:foitifinder/models/user_model.dart';
 import 'package:foitifinder/services/image_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class ProfileProvider extends ChangeNotifier { 
+//Outcome of a profile picture update so the UI can give proper feedback.
+//cancelled = user backed out of the picker (no error to show).
+enum ProfilePictureUpdate { success, cancelled, failed }
+
+class ProfileProvider extends ChangeNotifier {
   final SharedPreferences _prefs; 
   File? _tempprofileImage; //to preview updates and check for changes
   UserModel? _currentUser;
@@ -60,26 +64,49 @@ class ProfileProvider extends ChangeNotifier {
     }
   }
 
-  //Pick the image file, store it temporarily and upload it to cloud and get the url back
-  Future<void> updateProfilePicture() async {
-    File? file = await ImageService.pickImage();
-    if(file == null)return;
+  //Pick the image file, store it temporarily and upload it to cloud and get the url back.
+  //Returns a result so the caller can show feedback instead of failing silently.
+  Future<ProfilePictureUpdate> updateProfilePicture() async {
+    File? file;
+    try {
+      file = await ImageService.pickImage();
+    } catch (e) {
+      //picker can throw (e.g. denied gallery permission)
+      return ProfilePictureUpdate.failed;
+    }
+    //user cancelled the picker
+    if (file == null) return ProfilePictureUpdate.cancelled;
 
     _tempprofileImage = file;
     notifyListeners();
 
-    //Upload to cloud
-    String? uid = _currentUser?.uid;
-    if(uid != null) {
-      String? url = await ImageService.uploadImage(file, uid);
-      //Update the db user data and local user data
-      if(url != null) {
-        await ApiService.updateUserData(uid: uid, imageUrl: url);
-        updateLocalUser(imageUrl: url);
-        //Clean temp file
+    final String? uid = _currentUser?.uid;
+    if (uid == null) {
+      _tempprofileImage = null;
+      notifyListeners();
+      return ProfilePictureUpdate.failed;
+    }
+
+    try {
+      final String? url = await ImageService.uploadImage(file, uid);
+      //upload failed: drop the preview so the UI doesn't show an unsaved image
+      if (url == null) {
         _tempprofileImage = null;
+        notifyListeners();
+        return ProfilePictureUpdate.failed;
       }
-    }     
+
+      await ApiService.updateUserData(uid: uid, imageUrl: url);
+      //clear the temp preview before refreshing so the UI shows the saved url
+      _tempprofileImage = null;
+      updateLocalUser(imageUrl: url);
+      return ProfilePictureUpdate.success;
+    } catch (e) {
+      //db update or upload threw, undo the preview and report failure
+      _tempprofileImage = null;
+      notifyListeners();
+      return ProfilePictureUpdate.failed;
+    }
   }
 
   //Register new user on sign up

@@ -165,7 +165,7 @@ class _PhoneVerificationPage extends State<PhoneVerificationPage> {
             }
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text("$errorMessage, $e"),
+                content: Text(errorMessage),
                 backgroundColor: Colors.red,
                 duration: Duration(seconds: 5),
               ),

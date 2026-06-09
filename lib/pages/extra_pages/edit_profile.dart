@@ -80,7 +80,16 @@ class _EditProfileState extends State<EditProfile> {
         }
       }
     } catch (e) {
-      throw Exception("Failed to fetch photo from db $e");
+      //called fire-and-forget from initState, so surface the error instead of
+      //throwing into an unhandled future
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text.errorOccured),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
     }
   }
 
@@ -94,6 +103,10 @@ class _EditProfileState extends State<EditProfile> {
       return file;
     }
     final response = await http.get(Uri.parse(imageUrl));
+    //don't write a failed response (e.g. an error page) as if it were an image
+    if (response.statusCode != 200) {
+      throw Exception('Failed to download image (${response.statusCode})');
+    }
 
     await file.writeAsBytes(response.bodyBytes);
     return file;
@@ -393,51 +406,50 @@ class _EditProfileState extends State<EditProfile> {
   //Function to add a photo in the list
   Future<void> _pickImage(int index) async {
     //store the image in smaller resolution to improve loading times
-    final XFile? image = await _picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 1080,
-      imageQuality: 85,
-    );
-
-    if (image != null) {
-      final String extension = image.path.split('.').last.toLowerCase();
-      final List<String> allowedFormats = ['jpg', 'jpeg', 'png'];
-
-      if (!allowedFormats.contains(extension)) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(text.unsupportedFileType),
-            duration: Duration(seconds: 3),
-          ),
-        );
-        return;
-      }
+    final XFile? image;
+    try {
+      image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1080,
+        imageQuality: 85,
+      );
+    } catch (e) {
+      //picker can throw (e.g. denied gallery permission)
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text.errorOccured),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
     }
 
-    if (image != null) {
-      setState(() {
-        _photos[index] = File(image.path);
-      });
+    //user cancelled the picker, nothing to do
+    if (image == null) return;
+
+    final String extension = image.path.split('.').last.toLowerCase();
+    const List<String> allowedFormats = ['jpg', 'jpeg', 'png'];
+    if (!allowedFormats.contains(extension)) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text.unsupportedFileType),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
     }
 
-    // If the file is valid, save it and compact the grid
+    // Save the valid photo and compact the grid (no gaps)
     setState(() {
-      // 1. Put the new photo into the tapped slot
       _photos[index] = File(image!.path);
 
-      // 2. Gather all photos that currently exist in the array
       List<File?> validPhotos = _photos
           .where((photo) => photo != null)
           .toList();
-
-      // 3. Re-deal them left-to-right to eliminate any gaps
       for (int i = 0; i < _photos.length; i++) {
-        if (i < validPhotos.length) {
-          _photos[i] = validPhotos[i]; // Fill front slots with photos
-        } else {
-          _photos[i] = null; // Fill remaining back slots with null
-        }
+        _photos[i] = i < validPhotos.length ? validPhotos[i] : null;
       }
     });
   }

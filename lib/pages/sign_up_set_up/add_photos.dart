@@ -35,49 +35,48 @@ class _AddPhotos extends State<AddPhotos> {
   //Function to add a photo in the list
   Future<void> _pickImage(int index) async {
     //store the image in smaller resolution to improve loading times
-    final XFile? image = await _picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 1080,
-      imageQuality: 85,
-    );
-
-    if (image != null) {
-      final String extension = image.path.split('.').last.toLowerCase();
-      final List<String> allowedFormats = ['jpg', 'jpeg', 'png'];
-
-      if (!allowedFormats.contains(extension)) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(text.unsupportedFileType),
-            duration: Duration(seconds: 3),
-          ),
-        );
-        return;
-      }
+    final XFile? image;
+    try {
+      image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1080,
+        imageQuality: 85,
+      );
+    } catch (e) {
+      //picker can throw (e.g. denied gallery permission)
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text.errorOccured),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
     }
 
-    if (image != null) {
-      setState(() {
-        _photos[index] = File(image.path);
-      });
+    //user cancelled the picker, nothing to do
+    if (image == null) return;
+
+    final String extension = image.path.split('.').last.toLowerCase();
+    const List<String> allowedFormats = ['jpg', 'jpeg', 'png'];
+    if (!allowedFormats.contains(extension)) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text.unsupportedFileType),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
     }
 
-    // If the file is valid, save it and compact the grid
+    // Save the valid photo and compact the grid (no gaps)
     setState(() {
-      // 1. Put the new photo into the tapped slot
       _photos[index] = File(image!.path);
 
-      // 2. Gather all photos that currently exist in the array
       List<File?> validPhotos = _photos.where((photo) => photo != null).toList();
-
-      // 3. Re-deal them left-to-right to eliminate any gaps
       for (int i = 0; i < _photos.length; i++) {
-        if (i < validPhotos.length) {
-          _photos[i] = validPhotos[i]; // Fill front slots with photos
-        } else {
-          _photos[i] = null; // Fill remaining back slots with null
-        }
+        _photos[i] = i < validPhotos.length ? validPhotos[i] : null;
       }
     });
   }
@@ -103,42 +102,63 @@ class _AddPhotos extends State<AddPhotos> {
     final uid = FirebaseAuth.instance.currentUser!.uid;
 
     try {
-      List<Future<void>> uploadTasks = [];
+      List<Future<bool>> uploadTasks = [];
 
       for (int i = 0; i < _photos.length; i++) {
         if (_photos[i] != null) {
-          //upload photo file to firebase cloud storage
-          Future<void> uploadSinglePhoto = () async {
-            String? firebaseUrl = await ApiService.uploadToFirebase(
-              _photos[i]!,
+          final int order = i;
+          //upload photo file to firebase cloud storage. Returns true only if
+          //both the cloud upload AND the db record succeeded.
+          Future<bool> uploadSinglePhoto = () async {
+            final String? firebaseUrl = await ApiService.uploadToFirebase(
+              _photos[order]!,
               uid,
             );
-
-            if (firebaseUrl != null) {
-              await ApiService.uploadPhoto(
-                uid: uid,
-                photoUrl: firebaseUrl,
-                displayOrder: i,
-              );
-            }
+            if (firebaseUrl == null) return false;
+            return await ApiService.uploadPhoto(
+              uid: uid,
+              photoUrl: firebaseUrl,
+              displayOrder: order,
+            );
           }(); //The parentheses trigger the function immediately
 
           uploadTasks.add(uploadSinglePhoto);
         }
       }
 
-      await Future.wait(uploadTasks);
-      if (_photos.isNotEmpty) {
-        await ApiService.updateUserData(uid: uid, hasPhotos: true);
+      final results = await Future.wait(uploadTasks);
+      final int succeeded = results.where((ok) => ok).length;
+
+      //nothing uploaded: keep the user here so they can retry instead of
+      //silently moving on with zero photos
+      if (succeeded == 0) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(text.errorOccured),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+        return; //finally resets the loading flags
       }
+
+      await ApiService.updateUserData(uid: uid, hasPhotos: true);
 
       //sent the request to the ai model to give the user a score
       // await ApiService.giveUserScore(uid);
-      // setState(() {
-      //   _isLoading = false;
-      // });
 
-      //if all successful send the user to the setup page to complete sign up
+      //some (but not all) photos failed: let them continue but warn
+      if (succeeded < results.length && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(text.errorOccured),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+
+      //if at least one photo uploaded send the user to the setup page
       if (mounted) {
         Navigator.of(
           context,

@@ -83,7 +83,17 @@ class _ProfilePageState extends State<ProfilePage> {
                 padding: EdgeInsets.fromLTRB(20, 20, 15, 15),
                 child: GestureDetector(
                   onTap: () async {
-                    await profileProvider.updateProfilePicture();
+                    final result = await profileProvider.updateProfilePicture();
+                    if (!context.mounted) return;
+                    if (result == ProfilePictureUpdate.failed) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(text.errorOccured),
+                          backgroundColor: Colors.red,
+                          duration: const Duration(seconds: 3),
+                        ),
+                      );
+                    }
                   },
                   child: CircleAvatar(  
                     radius: 40,

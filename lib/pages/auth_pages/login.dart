@@ -109,10 +109,14 @@ class _LoginPageState extends State<LoginPage> {
     });
     try {
       _startTimer();
-      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      //hard stop so a hung connection can't leave the user waiting forever.
+      //sign in is side-effect free, so abandoning it on timeout is safe.
+      final credential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(
+            email: email,
+            password: password,
+          )
+          .timeout(const Duration(seconds: 30));
 
       _cancelTimer();
 
@@ -123,6 +127,18 @@ class _LoginPageState extends State<LoginPage> {
           message: text.errorOccured,
         );
       }
+    } on TimeoutException {
+      setState(() {
+        isLoading = false;
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text.requestTimedOut),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
     } on FirebaseAuthException catch (e) {
       String errorMessage;
       setState(() {
@@ -343,10 +359,29 @@ class _LoginPageState extends State<LoginPage> {
                                 alignment: Alignment.center,
                                 child: TextButton(
                                   onPressed: () async {
+                                    //validate the email before asking Firebase
+                                    //to send a reset, otherwise an empty/invalid
+                                    //field just produces a generic error
+                                    final resetEmail = _email.text.trim();
+                                    final resetEmailRegex = RegExp(
+                                      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                                    );
+                                    if (resetEmail.isEmpty ||
+                                        !resetEmailRegex.hasMatch(resetEmail)) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(text.invalidEmail),
+                                          backgroundColor: Colors.red,
+                                          duration: Duration(seconds: 3),
+                                        ),
+                                      );
+                                      return;
+                                    }
+                                    setState(() => isLoading = true);
                                     try {
                                       await FirebaseAuth.instance
                                           .sendPasswordResetEmail(
-                                            email: _email.text,
+                                            email: resetEmail,
                                           );
                                       if (!context.mounted) return;
                                       ScaffoldMessenger.of(
@@ -371,6 +406,10 @@ class _LoginPageState extends State<LoginPage> {
                                           duration: Duration(seconds: 3),
                                         ),
                                       );
+                                    } finally {
+                                      if (mounted) {
+                                        setState(() => isLoading = false);
+                                      }
                                     }
                                   },
                                   style: TextButton.styleFrom(
