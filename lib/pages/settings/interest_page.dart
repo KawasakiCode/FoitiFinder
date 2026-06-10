@@ -3,6 +3,7 @@
 //also stored in the database and Shared Preferences
 
 import 'package:flutter/material.dart';
+import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:provider/provider.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
@@ -79,6 +80,7 @@ class _InterestPageState extends State<InterestPage> {
                                   'assets/icons/check.png',
                                   width: 20,
                                   height: 20,
+                                  color: AppColors.primary,
                                 )
                           else
                             const SizedBox(width: 20, height: 20),
@@ -122,6 +124,7 @@ class _InterestPageState extends State<InterestPage> {
                                   'assets/icons/check.png',
                                   width: 20,
                                   height: 20,
+                                  color: AppColors.primary,
                                 )
                           else
                             const SizedBox(width: 20, height: 20),
@@ -165,6 +168,7 @@ class _InterestPageState extends State<InterestPage> {
                                   'assets/icons/check.png',
                                   width: 20,
                                   height: 20,
+                                  color: AppColors.primary,
                                 )
                           else
                             const SizedBox(width: 20, height: 20),

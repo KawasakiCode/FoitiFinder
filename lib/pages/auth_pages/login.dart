@@ -7,7 +7,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/pages/auth_pages/signup.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
-import 'package:foitifinder/widgets/loading_overlay.dart';
 import 'package:foitifinder/widgets/primary_button.dart';
 
 class LoginPage extends StatefulWidget {
@@ -24,9 +23,6 @@ class _LoginPageState extends State<LoginPage> {
   late final TextEditingController _password;
   bool _isPasswordVisible = false;
 
-  Timer? _timer;
-  bool _isSlowConnection = false;
-
   @override
   void initState() {
     super.initState();
@@ -39,17 +35,6 @@ class _LoginPageState extends State<LoginPage> {
     _email.dispose();
     _password.dispose();
     super.dispose();
-  }
-
-  void _startTimer() {
-    _timer = Timer(const Duration(seconds: 5), () {
-      if(mounted) setState(() => _isSlowConnection = true);
-    });
-  }
-
-  void _cancelTimer() {
-    _timer?.cancel();
-    if(mounted) setState(() => _isSlowConnection = false);
   }
 
   //The function that actually logs in the user
@@ -109,7 +94,6 @@ class _LoginPageState extends State<LoginPage> {
       isLoading = true;
     });
     try {
-      _startTimer();
       //hard stop so a hung connection can't leave the user waiting forever.
       //sign in is side-effect free, so abandoning it on timeout is safe.
       final credential = await FirebaseAuth.instance
@@ -118,8 +102,6 @@ class _LoginPageState extends State<LoginPage> {
             password: password,
           )
           .timeout(const Duration(seconds: 30));
-
-      _cancelTimer();
 
       final user = credential.user;
       if (user == null) {
@@ -186,8 +168,6 @@ class _LoginPageState extends State<LoginPage> {
           duration: Duration(seconds: 3),
         ),
       );
-    } finally {
-      _cancelTimer();
     }
   }
 
@@ -197,9 +177,10 @@ class _LoginPageState extends State<LoginPage> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        body: LoadingOverlay(
-          isLoading: isLoading,
-          slowLoading: _isSlowConnection,
+        //AbsorbPointer locks the screen while logging in; the spinner now lives
+        //in the button itself (PrimaryButton) so we don't show a second one.
+        body: AbsorbPointer(
+          absorbing: isLoading,
           child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
             child: ConstrainedBox(

@@ -84,6 +84,8 @@ class DMPageState extends State<DMPage> {
         ),
       ),
       body: GestureDetector(
+        //opaque so taps on empty areas are caught and dismiss the search focus
+        behavior: HitTestBehavior.opaque,
         onTap: () => FocusScope.of(context).unfocus(),
         child: Column(
           children: [

@@ -19,6 +19,7 @@ import 'package:foitifinder/widgets/delayed_inkwell.dart';
 import 'package:provider/provider.dart';
 import 'package:foitifinder/widgets/loading_overlay.dart';
 import 'package:foitifinder/widgets/primary_button.dart';
+import 'package:foitifinder/theme/app_colors.dart';
 
 class SetUpPage extends StatefulWidget {
   const SetUpPage({super.key});
@@ -267,6 +268,7 @@ class _SetUpPageState extends State<SetUpPage> {
                                     'assets/icons/check.png',
                                     width: 20,
                                     height: 20,
+                                    color: AppColors.primary,
                                   )
                                 else
                                   const SizedBox(width: 20, height: 20),
@@ -310,6 +312,7 @@ class _SetUpPageState extends State<SetUpPage> {
                                     'assets/icons/check.png',
                                     width: 20,
                                     height: 20,
+                                    color: AppColors.primary,
                                   )
                                 else
                                   const SizedBox(width: 20, height: 20),
@@ -353,6 +356,7 @@ class _SetUpPageState extends State<SetUpPage> {
                                     'assets/icons/check.png',
                                     width: 20,
                                     height: 20,
+                                    color: AppColors.primary,
                                   )
                                 else
                                   const SizedBox(width: 20, height: 20),
@@ -437,6 +441,7 @@ class _SetUpPageState extends State<SetUpPage> {
                                     'assets/icons/check.png',
                                     width: 20,
                                     height: 20,
+                                    color: AppColors.primary,
                                   )
                                 else
                                   const SizedBox(width: 20, height: 20),
@@ -480,6 +485,7 @@ class _SetUpPageState extends State<SetUpPage> {
                                     'assets/icons/check.png',
                                     width: 20,
                                     height: 20,
+                                    color: AppColors.primary,
                                   )
                                 else
                                   const SizedBox(width: 20, height: 20),

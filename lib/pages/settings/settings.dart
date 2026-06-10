@@ -9,6 +9,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/pages/auth_pages/verify_email.dart';
 import 'package:foitifinder/pages/settings/interest_page.dart';
 import 'package:foitifinder/pages/settings/phone_number_page.dart';
@@ -453,6 +454,7 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
                                   'assets/icons/check.png',
                                   width: 20,
                                   height: 20,
+                                  color: AppColors.primary,
                                 )
                               else
                                 const SizedBox(width: 20, height: 20),
@@ -513,6 +515,7 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
                                   'assets/icons/check.png',
                                   width: 20,
                                   height: 20,
+                                  color: AppColors.primary,
                                 )
                               else
                                 const SizedBox(width: 20, height: 20),
@@ -762,6 +765,7 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
                                   'assets/icons/check.png',
                                   width: 20,
                                   height: 20,
+                                  color: AppColors.primary,
                                 )
                               else
                                 const SizedBox(width: 20, height: 20),
@@ -806,6 +810,7 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
                                   'assets/icons/check.png',
                                   width: 20,
                                   height: 20,
+                                  color: AppColors.primary,
                                 )
                               else
                                 const SizedBox(width: 20, height: 20),

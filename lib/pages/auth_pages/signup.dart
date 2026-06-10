@@ -4,13 +4,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:foitifinder/debug_flags.dart';
+import 'package:foitifinder/main_screen.dart';
 import 'package:foitifinder/pages/sign_up_set_up/phone_verification_page.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
-import 'package:foitifinder/widgets/loading_overlay.dart';
 import 'package:foitifinder/widgets/primary_button.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -159,12 +160,24 @@ class _SignUpPageState extends State<SignUpPage> {
       setState(() {
         _isLoading = false;
       },);
-      // If successful, navigate to phone verification page
       if (!mounted) return;
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => PhoneVerificationPage()),
-      );
+      //TESTING: when kBypassOnboarding is on, skip phone + photo onboarding and
+      //go straight to the homepage. Otherwise run the normal phone flow.
+      if (kBypassOnboarding) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                MainScreen(uid: FirebaseAuth.instance.currentUser!.uid),
+          ),
+          (route) => false,
+        );
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => PhoneVerificationPage()),
+        );
+      }
     } on FirebaseAuthException catch (e) {
       setState(() {
         _isLoading = false;
@@ -232,8 +245,10 @@ class _SignUpPageState extends State<SignUpPage> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        body: LoadingOverlay(
-          isLoading: _isLoading,
+        //AbsorbPointer locks the screen while signing up; the spinner now lives
+        //in the button itself (PrimaryButton) so we don't show a second one.
+        body: AbsorbPointer(
+          absorbing: _isLoading,
           child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
             child: ConstrainedBox(

@@ -62,6 +62,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 'assets/icons/settings.png',
                 width: 25,
                 height: 25,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
               onPressed: () {
                 Navigator.push(

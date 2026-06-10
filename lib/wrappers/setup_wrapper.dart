@@ -3,6 +3,7 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:foitifinder/debug_flags.dart';
 import 'package:foitifinder/main_screen.dart';
 import 'package:foitifinder/models/user_model.dart';
 import 'package:foitifinder/pages/auth_pages/login.dart';
@@ -38,7 +39,7 @@ class _SetupWrapperState extends State<SetupWrapper> {
       //hard cap so a slow/unreachable backend (or a 404) can't leave us stuck
       //on the spinner forever
       user = await fetchFromApi(widget.firebaseUser)
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 8));
     } catch (e) {
       //timeout or backend failure -> treat as "no usable profile"
       user = null;
@@ -80,6 +81,10 @@ class _SetupWrapperState extends State<SetupWrapper> {
     if (!isLoading) {
       if (currentUser == null) {
         return const LoginPage();
+      }
+      //TESTING: skip phone + photo onboarding and land on the homepage.
+      if (kBypassOnboarding) {
+        return MainScreen(uid: widget.firebaseUser!.uid);
       }
       bool hasFinishedSetUp = currentUser!.hasFinishedSetUp;
       bool hasPhone =

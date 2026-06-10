@@ -268,7 +268,10 @@ class AppTheme {
           TextStyle(fontWeight: FontWeight.w700, letterSpacing: -0.3, color: primary),
       titleMedium: TextStyle(fontWeight: FontWeight.w600, color: primary),
       bodyLarge: TextStyle(fontWeight: FontWeight.w400, color: primary),
-      bodyMedium: TextStyle(fontWeight: FontWeight.w400, color: secondary),
+      //default text style for most widgets -> use the visible primary color,
+      //not the faint secondary (that was making labels look washed out)
+      bodyMedium: TextStyle(fontWeight: FontWeight.w400, color: primary),
+      bodySmall: TextStyle(fontWeight: FontWeight.w400, color: secondary),
       labelLarge:
           TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.2, color: primary),
     ).apply(fontFamily: fontFamily);

@@ -32,7 +32,7 @@ class AppColors {
   static const Color lightSurface = Color(0xFFFFFFFF);
   static const Color lightSurfaceVariant = Color(0xFFF1F1F4);
   static const Color lightBorder = Color(0xFFE6E6EA);
-  static const Color lightTextPrimary = Color(0xFF18181B);
+  static const Color lightTextPrimary = Color(0xFF2A2A30); // dark gray, softer than pure black
   static const Color lightTextSecondary = Color(0xFF6B6B74);
 
   // ---- Dark neutrals ----
