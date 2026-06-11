@@ -27,9 +27,14 @@ class _MainScreenState extends State<MainScreen> {
   final GlobalKey<LikesPageState> _likesPageKey = GlobalKey<LikesPageState>();
   final GlobalKey<DMPageState> _dmPageKey = GlobalKey<DMPageState>();
 
+  //drives the swipeable PageView; kept in sync with the bottom nav bar
+  final PageController _pageController = PageController();
 
-  //list to hold where the user went so back button doesnt close the app
-  final List<int> _navigationHistory = [0];
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -102,15 +107,20 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
-  //switching tabs
+  //bottom nav tap -> slide the PageView there (onPageChanged syncs the index)
   void _onItemTapped(int index) {
     if (_selectedIndex == index) return;
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeInOut,
+    );
+  }
 
-    setState(() {
-      _selectedIndex = index;
-      _navigationHistory.remove(index);
-      _navigationHistory.add(index);
-    });
+  //fired when the page settles (from a swipe OR a nav tap) -> sync the nav bar
+  void _onPageChanged(int index) {
+    if (_selectedIndex == index) return;
+    setState(() => _selectedIndex = index);
   }
 
   Widget _buildNavItem(int index, String iconPath, String label) {
@@ -163,16 +173,28 @@ class _MainScreenState extends State<MainScreen> {
     ];
 
     return PopScope(
-      canPop: _selectedIndex == 0 && _navigationHistory.length == 1,
+      //on home a back press exits; on any other tab it returns to home first
+      canPop: _selectedIndex == 0,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        setState(() {
-          _navigationHistory.removeLast();
-          _selectedIndex = _navigationHistory.last;
-        });
+        _pageController.animateToPage(
+          0,
+          duration: const Duration(milliseconds: 280),
+          curve: Curves.easeInOut,
+        );
       },
       child: Scaffold(
-        body: IndexedStack(index: _selectedIndex, children: pages),
+        body: PageView(
+          controller: _pageController,
+          onPageChanged: _onPageChanged,
+          //on the home page the swipe-deck owns horizontal drags, so page
+          //swiping is disabled there; it's enabled on the other three pages
+          physics: _selectedIndex == 0
+              ? const NeverScrollableScrollPhysics()
+              : const ClampingScrollPhysics(),
+          children:
+              pages.map((page) => _KeepAlivePage(child: page)).toList(),
+        ),
         bottomNavigationBar: SafeArea(
           child: Container(
             height: 70,
@@ -202,5 +224,27 @@ class _MainScreenState extends State<MainScreen> {
         ),
       ),
     );
+  }
+}
+
+//Keeps a PageView child alive when it's scrolled off-screen, so the 4 tabs
+//preserve their state (like the swipe deck) just like the old IndexedStack did.
+class _KeepAlivePage extends StatefulWidget {
+  final Widget child;
+  const _KeepAlivePage({required this.child});
+
+  @override
+  State<_KeepAlivePage> createState() => _KeepAlivePageState();
+}
+
+class _KeepAlivePageState extends State<_KeepAlivePage>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
   }
 }
