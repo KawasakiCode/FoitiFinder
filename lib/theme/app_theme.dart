@@ -38,6 +38,10 @@ class AppTheme {
       onSurface: textPrimary,
       surfaceTint: Colors.transparent,
       error: AppColors.error,
+      //the "card" colour used by the settings cards: white on the gray light
+      //canvas, and a dark gray (low contrast with near-black) in dark mode.
+      surfaceContainerHighest:
+          isDark ? const Color(0xFF1A1A1E) : Colors.white,
     );
 
     return ThemeData(

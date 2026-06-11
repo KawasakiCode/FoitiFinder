@@ -16,8 +16,10 @@ from firebase_admin import messaging, credentials, firestore
 import firebase_admin
 import tempfile
 import requests
-from matchmaker.ai_rater import get_face_score
 from matchmaker.preferences import interests_to_genders
+#NOTE: get_face_score (which pulls in DeepFace/TensorFlow) is imported lazily
+#inside the calculate-rating endpoint, so the server boots fast instead of
+#loading the whole ML stack (~40s) on startup.
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -649,6 +651,10 @@ def calculate_user_rating(firebase_token: str, db: Session = Depends(get_db)):
 
     if not photo_urls:
         raise HTTPException(status_code=400, detail="User has no photos")
+
+    #Lazy import: loads DeepFace/TensorFlow only now, the first time scoring is
+    #actually requested, instead of at server startup.
+    from matchmaker.ai_rater import get_face_score
 
     final_score = None
 

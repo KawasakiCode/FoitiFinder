@@ -8,6 +8,7 @@ import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/models/card_data_model.dart';
 import 'package:foitifinder/pages/settings/settings.dart';
 import 'package:foitifinder/services/api_services.dart';
+import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/animated_swipe_button.dart';
 import 'package:foitifinder/widgets/photo_card.dart';
 
@@ -499,10 +500,15 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   left: 60,
                   child: Transform.rotate(
                     angle: -0.3,
-                    child: const Icon(
-                      Icons.favorite,
-                      color: Colors.green,
-                      size: 120,
+                    child: ShaderMask(
+                      shaderCallback: (bounds) =>
+                          AppColors.likeGradient.createShader(bounds),
+                      blendMode: BlendMode.srcIn,
+                      child: const Icon(
+                        Icons.favorite,
+                        color: Colors.white,
+                        size: 120,
+                      ),
                     ),
                   ),
                 ),
@@ -514,10 +520,15 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   right: 60,
                   child: Transform.rotate(
                     angle: 0.3,
-                    child: const Icon(
-                      Icons.close,
-                      color: Colors.red,
-                      size: 120,
+                    child: ShaderMask(
+                      shaderCallback: (bounds) =>
+                          AppColors.passGradient.createShader(bounds),
+                      blendMode: BlendMode.srcIn,
+                      child: const Icon(
+                        Icons.close,
+                        color: Colors.white,
+                        size: 120,
+                      ),
                     ),
                   ),
                 ),
@@ -529,12 +540,17 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   left: 0, 
                   right: 0,
                   child: Center(  
-                    child: Transform.rotate(  
+                    child: Transform.rotate(
                       angle: 0,
-                      child: const Icon(
-                        Icons.star,
-                        color: Colors.blueAccent,
-                        size: 120,
+                      child: ShaderMask(
+                        shaderCallback: (bounds) =>
+                            AppColors.superLikeGradient.createShader(bounds),
+                        blendMode: BlendMode.srcIn,
+                        child: const Icon(
+                          Icons.star,
+                          color: Colors.white,
+                          size: 120,
+                        ),
                       )
                     )
                   )
@@ -592,20 +608,20 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               // Rewind button
               AnimatedSwipeButton(
                 icon: Icons.replay,
-                activeColor: const Color(0xFFFF9500),
+                gradient: AppColors.rewindGradient,
                 size: 50,
                 // If no history, pass null to disable it visually
                 onPressed: currentIndex > 0
                     ? _rewindCard
                     : null
               ),
-          
+
               // Only show other buttons if there are cards to swipe
               if (currentIndex < cards.length) ...[
                 // Pass button
                 AnimatedSwipeButton(
                   icon: Icons.close,
-                  activeColor: const Color.fromARGB(255, 255, 41, 29),
+                  gradient: AppColors.passGradient,
                   size: 65, // Main buttons are bigger
                   forcePressed: isPassActive,
                   onPressed: () => _swipeLeft(fromButton: true),
@@ -614,7 +630,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 // Super like button
                 AnimatedSwipeButton(
                   icon: Icons.star,
-                  activeColor: const Color(0xFF0599FC),
+                  gradient: AppColors.superLikeGradient,
                   size: 50,
                   forcePressed: isSuperLikeActive,
                   onPressed: () => _swipeUp(fromButton: true),
@@ -623,16 +639,16 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 // Like button
                 AnimatedSwipeButton(
                   icon: Icons.favorite,
-                  activeColor: Color(0xFF02F533),
+                  gradient: AppColors.likeGradient,
                   size: 65,
                   forcePressed: isLikeActive,
                   onPressed: () => _swipeRight(fromButton: true),
                 ),
-          
+
                 // DM button
                 AnimatedSwipeButton(
                   icon: Icons.message,
-                  activeColor: const Color(0xFF0599FC),
+                  gradient: AppColors.dmGradient,
                   size: 50,
                   onPressed: () {
                     // Handle DM

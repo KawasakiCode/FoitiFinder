@@ -1,6 +1,6 @@
-//The app's flagship call-to-action button: a full-width gradient pill with a
-//soft brand glow. Use this for the main action on a screen (login, sign up,
-//confirm, submit...). Solid/secondary buttons stay as themed ElevatedButton etc.
+//The app's flagship call-to-action button: a gradient pill. Use this for the
+//main action on a screen. Set expand:false for an inline, content-width button
+//(e.g. an "Edit profile" chip); expand defaults to full width for form CTAs.
 
 import 'package:flutter/material.dart';
 import 'package:foitifinder/theme/app_colors.dart';
@@ -10,6 +10,7 @@ class PrimaryButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool isLoading;
   final IconData? icon;
+  final bool expand;
 
   const PrimaryButton({
     super.key,
@@ -17,6 +18,7 @@ class PrimaryButton extends StatelessWidget {
     required this.onPressed,
     this.isLoading = false,
     this.icon,
+    this.expand = true,
   });
 
   @override
@@ -36,23 +38,26 @@ class PrimaryButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppRadius.md),
             onTap: enabled ? onPressed : null,
             child: SizedBox(
-              //full width: callers place this in width-bounded contexts (a
-              //SizedBox/Padding/Column), which is always the case for a CTA.
-              width: double.infinity,
+              //full width for form CTAs; wraps content when expand:false
+              width: expand ? double.infinity : null,
               height: 54,
-              child: Center(
-                child: isLoading
-                    ? const SizedBox(
-                        height: 22,
-                        width: 22,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.4,
-                          color: Colors.white,
-                        ),
-                      )
-                    : Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: expand ? 16 : 28),
+                child: Row(
+                  mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: isLoading
+                      ? const [
+                          SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.4,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ]
+                      : [
                           if (icon != null) ...[
                             Icon(icon, color: Colors.white, size: 20),
                             const SizedBox(width: 8),
@@ -67,7 +72,7 @@ class PrimaryButton extends StatelessWidget {
                             ),
                           ),
                         ],
-                      ),
+                ),
               ),
             ),
           ),

@@ -27,18 +27,34 @@ class SettingsPage extends StatefulWidget {
   State<SettingsPage> createState() => _SettingsPageState();
 }
 
-class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver{
+class _SettingsPageState extends State<SettingsPage>
+    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   final user = FirebaseAuth.instance.currentUser;
   AppLocalizations get text => AppLocalizations.of(context)!;
+
+  //one-shot entrance animation (fade + slight slide-up) played on open
+  late final AnimationController _entrance;
+  late final Animation<double> _fade;
+  late final Animation<Offset> _slide;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+
+    _entrance = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 420),
+    );
+    _fade = CurvedAnimation(parent: _entrance, curve: Curves.easeOut);
+    _slide = Tween<Offset>(begin: const Offset(0, 0.04), end: Offset.zero)
+        .animate(CurvedAnimation(parent: _entrance, curve: Curves.easeOutCubic));
+    _entrance.forward();
   }
 
-  @override 
+  @override
   void dispose() {
+    _entrance.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -85,7 +101,11 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
         automaticallyImplyLeading: true,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: FadeTransition(
+          opacity: _fade,
+          child: SlideTransition(
+            position: _slide,
+            child: SingleChildScrollView(
           child: Column(
             children: [
               //Account settings and phone number
@@ -102,9 +122,9 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
               Padding(
                 padding: const EdgeInsets.only(left: 15, right: 15, top: 20),
                 child: Material(
-                  color: Colors.transparent,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   shape: RoundedRectangleBorder(
-                    side: const BorderSide(color: Colors.grey, width: 1),
+                    side: BorderSide.none,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   clipBehavior: Clip.antiAlias,
@@ -134,10 +154,15 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
                             ),
                           ),
                           Text(
-                            user?.phoneNumber ?? '69xxxxxxxx',
+                            //handle null AND empty (an unverified account has no
+                            //phone, which can come back as "")
+                            (user?.phoneNumber?.isNotEmpty ?? false)
+                                ? user!.phoneNumber!
+                                : '69X XXX XXXX',
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w500,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -181,9 +206,9 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
               Padding(
                 padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
                 child: Material(
-                  color: Colors.transparent,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   shape: RoundedRectangleBorder(
-                    side: const BorderSide(color: Colors.grey, width: 1),
+                    side: BorderSide.none,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   clipBehavior: Clip.antiAlias,
@@ -255,9 +280,9 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
               Padding(
                 padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
                 child: Material(
-                  color: Colors.transparent,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   shape: RoundedRectangleBorder(
-                    side: const BorderSide(color: Colors.grey, width: 1),
+                    side: BorderSide.none,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   clipBehavior: Clip.antiAlias,
@@ -322,7 +347,7 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
                     bottom: 10,
                   ),
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey, width: 1),
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Column(
@@ -394,9 +419,9 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
               Padding(
                 padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
                 child: Material(
-                  color: Colors.transparent,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   shape: RoundedRectangleBorder(
-                    side: const BorderSide(color: Colors.grey, width: 1),
+                    side: BorderSide.none,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   clipBehavior: Clip.antiAlias,
@@ -462,10 +487,12 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
                           ),
                         ),
                       ),
-                      const Divider(
+                      Divider(
                         height: 1,
                         thickness: 1,
-                        color: Colors.grey,
+                        color: Colors.grey.withValues(alpha: 0.35),
+                        indent: MediaQuery.of(context).size.width * 0.10,
+                        endIndent: MediaQuery.of(context).size.width * 0.10,
                       ),
                       DelayedInkWell(
                         delayMs: 170,
@@ -531,15 +558,14 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
               Padding(
                 padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
                 child: Material(
-                  color: Colors.transparent,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   shape: RoundedRectangleBorder(
-                    side: const BorderSide(color: Colors.grey, width: 1),
+                    side: BorderSide.none,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: Container(
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey, width: 1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Padding(
@@ -600,7 +626,7 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
                 padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
                 child: Container(
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey, width: 1),
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   padding: const EdgeInsets.only(left: 10, right: 10),
@@ -657,7 +683,7 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
                 padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
                 child: Container(
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey, width: 1),
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   padding: const EdgeInsets.only(left: 10, right: 10),
@@ -724,9 +750,9 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
               Padding(
                 padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
                 child: Material(
-                  color: Colors.transparent,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   shape: RoundedRectangleBorder(
-                    side: const BorderSide(color: Colors.grey, width: 1),
+                    side: BorderSide.none,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   clipBehavior: Clip.antiAlias,
@@ -773,10 +799,12 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
                           ),
                         ),
                       ),
-                      const Divider(
+                      Divider(
                         height: 1,
                         thickness: 1,
-                        color: Colors.grey,
+                        color: Colors.grey.withValues(alpha: 0.35),
+                        indent: MediaQuery.of(context).size.width * 0.10,
+                        endIndent: MediaQuery.of(context).size.width * 0.10,
                       ),
                       DelayedInkWell(
                         delayMs: 170,
@@ -836,9 +864,9 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
               Padding(
                 padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
                 child: Material(
-                  color: Colors.transparent,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   shape: RoundedRectangleBorder(
-                    side: const BorderSide(color: Colors.grey, width: 1),
+                    side: BorderSide.none,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   clipBehavior: Clip.antiAlias,
@@ -879,10 +907,12 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
                           ),
                         ),
                       ),
-                      const Divider(
+                      Divider(
                         height: 1,
                         thickness: 1,
-                        color: Colors.grey,
+                        color: Colors.grey.withValues(alpha: 0.35),
+                        indent: MediaQuery.of(context).size.width * 0.10,
+                        endIndent: MediaQuery.of(context).size.width * 0.10,
                       ),
                       DelayedInkWell(
                         delayMs: 150,
@@ -936,9 +966,9 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
               Padding(
                 padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
                 child: Material(
-                  color: Colors.transparent,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   shape: RoundedRectangleBorder(
-                    side: const BorderSide(color: Colors.grey, width: 1),
+                    side: BorderSide.none,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   clipBehavior: Clip.antiAlias,
@@ -979,10 +1009,12 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
                           ),
                         ),
                       ),
-                      const Divider(
+                      Divider(
                         height: 1,
                         thickness: 1,
-                        color: Colors.grey,
+                        color: Colors.grey.withValues(alpha: 0.35),
+                        indent: MediaQuery.of(context).size.width * 0.10,
+                        endIndent: MediaQuery.of(context).size.width * 0.10,
                       ),
                       DelayedInkWell(
                         delayMs: 150,
@@ -1036,9 +1068,9 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
               Padding(
                 padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
                 child: Material(
-                  color: Theme.of(context).scaffoldBackgroundColor,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   shape: RoundedRectangleBorder(
-                    side: const BorderSide(color: Colors.grey, width: 1),
+                    side: BorderSide.none,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   clipBehavior: Clip.antiAlias,
@@ -1132,6 +1164,8 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
                 ),
               ),
             ],
+          ),
+            ),
           ),
         ),
       ),

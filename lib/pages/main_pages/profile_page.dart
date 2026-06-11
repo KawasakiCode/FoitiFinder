@@ -8,6 +8,7 @@ import 'package:foitifinder/pages/extra_pages/edit_profile.dart';
 import 'package:foitifinder/pages/settings/settings.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
+import 'package:foitifinder/widgets/primary_button.dart';
 import 'package:provider/provider.dart';
 import 'package:foitifinder/dummy_user_data.dart';
 
@@ -132,24 +133,17 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 5),
-                    child: FloatingActionButton.extended(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        label: Text(
-                          text.editProfile,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                        onPressed: () {
-                          Navigator.push(  
-                            context,
-                            MaterialPageRoute(builder:(context) => EditProfile(),)
-                          );
-                        },
-                      ),
+                    child: PrimaryButton(
+                      label: text.editProfile,
+                      icon: Icons.edit_outlined,
+                      expand: false,
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => EditProfile()),
+                        );
+                      },
+                    ),
                   ),
                   FloatingActionButton(  
                     onPressed: () {

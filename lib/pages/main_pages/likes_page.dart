@@ -7,6 +7,7 @@ import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/models/card_data_model.dart';
 import 'package:foitifinder/models/liker_model.dart';
 import 'package:foitifinder/services/api_services.dart';
+import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/animated_swipe_button.dart';
 import 'package:foitifinder/widgets/photo_card.dart';
 
@@ -96,7 +97,7 @@ class LikesPageState extends State<LikesPage> {
                           children: [
                             AnimatedSwipeButton(
                               icon: Icons.close,
-                              activeColor: Colors.red,
+                              gradient: AppColors.passGradient,
                               size: 65,
                               onPressed: () async {
                                 await ApiService.registerSwipe(
@@ -109,7 +110,7 @@ class LikesPageState extends State<LikesPage> {
                             ),
                             AnimatedSwipeButton(
                               icon: Icons.favorite,
-                              activeColor: Colors.green,
+                              gradient: AppColors.likeGradient,
                               size: 65,
                               onPressed: () async {
                                 bool isMatch = await ApiService.registerSwipe(
