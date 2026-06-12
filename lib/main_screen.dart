@@ -30,6 +30,33 @@ class _MainScreenState extends State<MainScreen> {
   //drives the swipeable PageView; kept in sync with the bottom nav bar
   final PageController _pageController = PageController();
 
+  //measures the home swipe-card region so we can block page-swiping only over
+  //the card (plus a small margin); the rest of home stays swipeable
+  final GlobalKey _homeCardAreaKey = GlobalKey();
+  //true = page-swipe is currently blocked (a touch landed on the card)
+  bool _lockHomeSwipe = true;
+  static const double _cardSwipeMargin = 12; // extra no-swipe px above/below card
+
+  //On every touch, if we're on the home page, decide whether the press landed
+  //on the card region (then block page-swipe so the deck owns the drag) or
+  //elsewhere (then allow page-swipe).
+  void _handleHomePointerDown(PointerDownEvent event) {
+    if (_selectedIndex != 0) return;
+
+    bool onCard = true; // default to locked if we can't measure yet (card-safe)
+    final RenderObject? obj = _homeCardAreaKey.currentContext?.findRenderObject();
+    if (obj is RenderBox && obj.hasSize) {
+      final double top = obj.localToGlobal(Offset.zero).dy;
+      final double bottom = top + obj.size.height;
+      final double y = event.position.dy;
+      onCard = y >= (top - _cardSwipeMargin) && y <= (bottom + _cardSwipeMargin);
+    }
+
+    if (onCard != _lockHomeSwipe) {
+      setState(() => _lockHomeSwipe = onCard);
+    }
+  }
+
   @override
   void dispose() {
     _pageController.dispose();
@@ -166,7 +193,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     final List<Widget> pages = [
-      const MyHomePage(),
+      MyHomePage(cardAreaKey: _homeCardAreaKey),
       LikesPage(key: _likesPageKey),
       DMPage(key: _dmPageKey),
       const ProfilePage(),
@@ -184,16 +211,21 @@ class _MainScreenState extends State<MainScreen> {
         );
       },
       child: Scaffold(
-        body: PageView(
-          controller: _pageController,
-          onPageChanged: _onPageChanged,
-          //on the home page the swipe-deck owns horizontal drags, so page
-          //swiping is disabled there; it's enabled on the other three pages
-          physics: _selectedIndex == 0
-              ? const NeverScrollableScrollPhysics()
-              : const ClampingScrollPhysics(),
-          children:
-              pages.map((page) => _KeepAlivePage(child: page)).toList(),
+        //Listener (passive, doesn't claim gestures) lets us see where each touch
+        //lands so we can block page-swiping only over the home card.
+        body: Listener(
+          onPointerDown: _handleHomePointerDown,
+          child: PageView(
+            controller: _pageController,
+            onPageChanged: _onPageChanged,
+            //home: block swiping only when the touch landed on the card region
+            //(_lockHomeSwipe); the rest of home and the other pages stay swipeable
+            physics: (_selectedIndex == 0 && _lockHomeSwipe)
+                ? const NeverScrollableScrollPhysics()
+                : const ClampingScrollPhysics(),
+            children:
+                pages.map((page) => _KeepAlivePage(child: page)).toList(),
+          ),
         ),
         bottomNavigationBar: SafeArea(
           child: Container(

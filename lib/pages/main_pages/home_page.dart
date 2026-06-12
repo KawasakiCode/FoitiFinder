@@ -18,11 +18,15 @@ class MyHomePage extends StatefulWidget {
     this.showSettings = true,
     this.title = 'FoitiFinder',
     this.automaticallyImplyLeading = false,
+    this.cardAreaKey,
   });
 
   final bool showSettings;
   final String title;
   final bool automaticallyImplyLeading;
+  //attached to the swipe-card region so the parent (MainScreen) can measure its
+  //pixel bounds and disable page-swiping only over the card
+  final Key? cardAreaKey;
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -384,9 +388,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             Column(
               children: [
                 Expanded(
-                  child: cards.isNotEmpty && currentIndex < cards.length
-                      ? _buildSwipeCards()
-                      : _buildNoMoreCards(),
+                  child: KeyedSubtree(
+                    key: widget.cardAreaKey,
+                    child: cards.isNotEmpty && currentIndex < cards.length
+                        ? _buildSwipeCards()
+                        : _buildNoMoreCards(),
+                  ),
                 ),
                 _buildActionButtons(),
               ],
