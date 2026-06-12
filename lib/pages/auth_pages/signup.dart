@@ -136,11 +136,14 @@ class _SignUpPageState extends State<SignUpPage> {
     try {
       userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
+      //capture the uid now: a concurrent SetupWrapper load could sign us out
+      //while registerUser is in flight, making currentUser null later
+      final String newUid = userCredential.user!.uid;
       if (!mounted) return;
       //Manually add hasFinishedSetUp and hasPhotos as false since they are non-nullable inside the db
       //and if a user signs up obviously has no photos or finished setup
       await Provider.of<ProfileProvider>(context, listen: false).registerUser(
-        uid: FirebaseAuth.instance.currentUser!.uid,
+        uid: newUid,
         username: username,
         fullName: fullName,
         hasFinishedSetUp: false,
@@ -167,8 +170,7 @@ class _SignUpPageState extends State<SignUpPage> {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
-            builder: (_) =>
-                MainScreen(uid: FirebaseAuth.instance.currentUser!.uid),
+            builder: (_) => MainScreen(uid: newUid),
           ),
           (route) => false,
         );

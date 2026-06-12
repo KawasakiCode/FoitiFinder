@@ -34,6 +34,10 @@ class ProfileProvider extends ChangeNotifier {
 
   //Load from disk
   Future<void> loadUser() async {
+    //already have the user in memory (e.g. just registered during signup) ->
+    //nothing to load, and crucially nothing to 404 on
+    if (_currentUser != null) return;
+
     String? userJson = _prefs.getString('user_data');
 
     if(userJson != null) {
@@ -132,13 +136,17 @@ class ProfileProvider extends ChangeNotifier {
   }) async {
       isLoading = true;
 
-      await  ApiService.createUser(  
+      //Optimistically set the local user + cache BEFORE the backend round-trip,
+      //so the auth router (SetupWrapper) immediately treats us as a valid,
+      //logged-in user and doesn't sign us out while createUser is still in
+      //flight (a GET would 404 until the POST commits).
+      _currentUser = UserModel(
         uid: uid,
         username: username,
+        fullName: fullName,
         hasFinishedSetUp: hasFinishedSetUp,
         score: score,
         bio: bio,
-        fullName: fullName,
         age: age,
         imageUrl: imageUrl,
         gender: gender,
@@ -149,30 +157,38 @@ class ProfileProvider extends ChangeNotifier {
         interests: interests,
         hasPhotos: hasPhotos,
       );
-
-      //Store users data locally
-      _currentUser = UserModel(  
-        uid: uid,
-        username: username,
-        fullName: fullName,
-        hasFinishedSetUp: hasFinishedSetUp,
-        score: score,
-        bio: bio,
-        age: age,
-        imageUrl: imageUrl,
-        gender: gender,
-        minAgeRange: minAgeRange,
-        maxAgeRange: maxAgeRange,
-        showOutOfRange: showOutOfRange,
-        isBalanced: isBalanced,
-        interests: interests,
-        hasPhotos: hasPhotos
-      );
-
       notifyListeners();
-      isLoading = false;
       await _prefs.setString('user_data', jsonEncode(_currentUser!.toMap()));
-      
+
+      try {
+        await ApiService.createUser(
+          uid: uid,
+          username: username,
+          hasFinishedSetUp: hasFinishedSetUp,
+          score: score,
+          bio: bio,
+          fullName: fullName,
+          age: age,
+          imageUrl: imageUrl,
+          gender: gender,
+          minAgeRange: minAgeRange,
+          maxAgeRange: maxAgeRange,
+          showOutOfRange: showOutOfRange,
+          isBalanced: isBalanced,
+          interests: interests,
+          hasPhotos: hasPhotos,
+        );
+      } catch (e) {
+        //creation failed -> roll back the optimistic state; signUp deletes the
+        //Firebase user and shows the error
+        _currentUser = null;
+        await _prefs.remove('user_data');
+        notifyListeners();
+        isLoading = false;
+        rethrow;
+      }
+
+      isLoading = false;
   }
 
   //Update users data (sync with database)

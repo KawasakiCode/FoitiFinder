@@ -50,8 +50,10 @@ class SettingsProvider extends ChangeNotifier {
   String get gender => _gender;
 
   void _loadDefaults() {
-    //The logic is reversed because the default is dark mode
-    _themeMode = (_prefs.getBool('isDark') ?? false) ? ThemeMode.light : ThemeMode.dark;
+    //isDark==true means DARK (matches toggleTheme + fetchSettingsFromApi);
+    //default (no saved pref) is dark. This was previously inverted, which made
+    //the app flash/stick in light mode for users who actually had dark on.
+    _themeMode = (_prefs.getBool('isDark') ?? true) ? ThemeMode.dark : ThemeMode.light;
     _likeNotificationsEnabled = (_prefs.getBool('like_notifications_enabled') ?? false) ? true : false;
     _messageNotificationsEnabled = (_prefs.getBool('message_notifications_enabled') ?? false) ? true : false;
     _locale = _prefs.getString('language') == 'en' ? Locale('en') : Locale('el');

@@ -34,46 +34,39 @@ class _SetupWrapperState extends State<SetupWrapper> {
   }
 
   Future<void> _loadData() async {
-    UserModel? user;
+    final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+
+    //CRITICAL path: load the profile (from disk cache, or the backend). Only
+    //this is allowed to time out and decide whether we're really logged in.
+    //A disk-cached user resolves instantly; only a cache miss touches the network.
     try {
-      //hard cap so a slow/unreachable backend (or a 404) can't leave us stuck
-      //on the spinner forever
-      user = await fetchFromApi(widget.firebaseUser)
-          .timeout(const Duration(seconds: 8));
-    } catch (e) {
-      //timeout or backend failure -> treat as "no usable profile"
-      user = null;
-    }
+      await profileProvider.loadUser().timeout(const Duration(seconds: 8));
+    } catch (_) {}
 
     if (!mounted) return;
 
-    //Authenticated in Firebase but no backend profile (orphaned account, e.g.
-    //created against a different database) or the load failed. Sign out so we
-    //land on a clean login instead of spinning or showing a half-loaded state.
+    final user = profileProvider.currentUser;
+
+    //Genuinely no profile (cache miss AND backend unreachable) -> sign out.
     if (user == null) {
       await FirebaseAuth.instance.signOut();
       return; //authStateChanges rebuilds AuthWrapper -> LoginPage
+    }
+
+    //Settings are SECONDARY: fire-and-forget so a slow/booting backend can't
+    //hang the load and sign a valid, cached user out (that was the bug). It
+    //updates the theme/notifications in the background once it returns.
+    if (widget.firebaseUser != null) {
+      settingsProvider
+          .fetchSettingsFromApi(widget.firebaseUser!.uid)
+          .catchError((_) {});
     }
 
     setState(() {
       currentUser = user;
       isLoading = false;
     });
-  }
-
-  Future<UserModel?> fetchFromApi(User? user) async {
-    final userProvider = Provider.of<ProfileProvider>(context, listen: false);
-    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
-
-    await userProvider.loadUser();
-    if (user != null) {
-      //settings are secondary; a failure here must not break routing
-      try {
-        await settingsProvider.fetchSettingsFromApi(user.uid);
-      } catch (_) {}
-    }
-
-    return userProvider.currentUser;
   }
 
   @override
