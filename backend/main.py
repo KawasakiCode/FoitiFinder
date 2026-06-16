@@ -17,9 +17,9 @@ import firebase_admin
 import tempfile
 import requests
 from matchmaker.preferences import interests_to_genders
-#NOTE: get_face_score (which pulls in DeepFace/TensorFlow) is imported lazily
+#NOTE: get_face_score (Odin: MediaPipe landmarks + XGBoost) is imported lazily
 #inside the calculate-rating endpoint, so the server boots fast instead of
-#loading the whole ML stack (~40s) on startup.
+#loading the ML stack on startup.
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -652,9 +652,17 @@ def calculate_user_rating(firebase_token: str, db: Session = Depends(get_db)):
     if not photo_urls:
         raise HTTPException(status_code=400, detail="User has no photos")
 
-    #Lazy import: loads DeepFace/TensorFlow only now, the first time scoring is
+    #Lazy import: loads MediaPipe/XGBoost only now, the first time scoring is
     #actually requested, instead of at server startup.
-    from matchmaker.ai_rater import get_face_score
+    from Odin.main import get_face_score
+
+    #The Odin pipeline needs to know which sex-specific model to use. Gender is
+    #stored capitalised ("Male"/"Female"); the models are keyed "male"/"female".
+    #Default to "male" when gender is missing/unrecognised so a photo still gets
+    #scored rather than silently skipped.
+    sex = (me.gender or "").lower()
+    if sex not in ("male", "female"):
+        sex = "male"
 
     final_score = None
 
@@ -672,7 +680,7 @@ def calculate_user_rating(firebase_token: str, db: Session = Depends(get_db)):
                     temp_file.write(chunk)
                 temp_path = temp_file.name
             
-            score = get_face_score(temp_path)
+            score = get_face_score(temp_path, sex)
 
             if score is not None:
                 final_score = score

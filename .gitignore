@@ -81,3 +81,7 @@ backend/.env
 .vscode/
 .idea/
 backend/serviceAccountKey.json
+
+# Rating Model
+/backend/Odin
+/backend/models
