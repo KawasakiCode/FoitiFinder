@@ -85,3 +85,6 @@ backend/serviceAccountKey.json
 # Rating Model
 /backend/Odin
 /backend/models
+
+# Debug Flag
+/lib/debug_flags.dart
