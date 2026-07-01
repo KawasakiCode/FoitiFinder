@@ -2,6 +2,12 @@
 
 **FoitiFinder** is a modern social discovery application built with Flutter, designed to connect people. It features a high-performance, physics-based card swipe interface, robust state management, and full internationalization support.
 
+### 🎥 Demo
+
+[![Watch the FoitiFinder demo](https://img.youtube.com/vi/nyg57k5ma9A/hqdefault.jpg)](https://youtu.be/nyg57k5ma9A) 
+
+> ▶️ **[Watch the full demo on YouTube](https://youtu.be/nyg57k5ma9A)**
+
 ### Key Features
 
 #### Core Experience

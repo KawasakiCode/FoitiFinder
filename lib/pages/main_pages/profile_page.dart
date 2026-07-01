@@ -145,11 +145,11 @@ class _ProfilePageState extends State<ProfilePage> {
                       },
                     ),
                   ),
-                  FloatingActionButton(  
-                    onPressed: () {
-                      dummy.generateDummyUsers(30);
-                    },
-                  ),
+                  // FloatingActionButton(  
+                  //   onPressed: () {
+                  //     dummy.generateDummyUsers(30);
+                  //   },
+                  // ),
                 ],
               ),
             ],
