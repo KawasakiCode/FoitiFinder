@@ -24,10 +24,54 @@ class _VerifyEmailState extends State<VerifyEmail> {
   int _countdown = 60;
   bool _canResend = true;
 
+  //Live-verification polling: reload() pulls the latest emailVerified flag from
+  //Firebase's servers, so the screen flips the instant the user taps the link
+  //in their inbox — no manual refresh, no re-opening the page.
+  Timer? _pollTimer;
+  bool _isVerified = false;
+
+  @override
+  void initState() {
+    super.initState();
+    //check once immediately (covers the already-verified case), then poll
+    _checkVerified();
+    _pollTimer = Timer.periodic(
+      const Duration(seconds: 3),
+      (_) => _checkVerified(),
+    );
+  }
+
   @override
   void dispose() {
     _timer?.cancel();
+    _pollTimer?.cancel();
     super.dispose();
+  }
+
+  //Ask Firebase for the freshest user state and flip the UI when verified.
+  Future<void> _checkVerified() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || _isVerified) return;
+
+    try {
+      await user.reload();
+    } catch (_) {
+      //transient network error — the next tick retries
+      return;
+    }
+
+    final refreshed = FirebaseAuth.instance.currentUser;
+    if (!mounted || !(refreshed?.emailVerified ?? false)) return;
+
+    _pollTimer?.cancel();
+    //force a token refresh so the verified claim propagates to the rest of the
+    //app/backend, not just this screen's cached flag
+    try {
+      await refreshed!.getIdToken(true);
+    } catch (_) {}
+    if (!mounted) return;
+
+    setState(() => _isVerified = true);
   }
 
   void _startTimer() {
@@ -68,7 +112,7 @@ class _VerifyEmailState extends State<VerifyEmail> {
               Padding(
                 padding: EdgeInsets.only(left: 10, right: 10),
                 child: Text(
-                  text.verifyEmail,
+                  _isVerified ? text.mailVerified : text.verifyEmail,
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
@@ -79,7 +123,7 @@ class _VerifyEmailState extends State<VerifyEmail> {
                 FirebaseAuth.instance.currentUser?.email ?? '',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
-              if (_isEmailSent)
+              if (_isEmailSent && !_isVerified)
                 //Confirmation that verification email was sent
                 Padding(
                   padding: const EdgeInsets.only(top: 10, bottom: 5),
@@ -96,7 +140,8 @@ class _VerifyEmailState extends State<VerifyEmail> {
                     ),
                   ),
                 ),
-              //Sent verification email button
+              //Sent verification email button — hidden once verified
+              if (!_isVerified)
               Padding(
                 padding: const EdgeInsets.only(top: 5),
                 child: TextButton(

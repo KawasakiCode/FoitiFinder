@@ -271,6 +271,9 @@ class _SignUpPageState extends State<SignUpPage> {
                       ),
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.grey, width: 1),
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(12),
+                        ),
                       ),
                       child: Column(
                         children: [
@@ -452,6 +455,9 @@ class _SignUpPageState extends State<SignUpPage> {
                         padding: const EdgeInsets.only(top: 7, bottom: 7),
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.grey, width: 1),
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(12),
+                          ),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,

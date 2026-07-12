@@ -62,20 +62,28 @@ class _SettingsPageState extends State<SettingsPage>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     super.didChangeAppLifecycleState(state);
-    
-    if(state == AppLifecycleState.resumed) {
-      if(user != null && !user!.emailVerified) {
-        try {
-          await user!.reload();
 
-          if(user!.emailVerified && mounted) {
-            setState(() {});
-          }
-        } catch (e) {
-          rethrow;
-        }
-      }
+    //When the app returns to the foreground (e.g. right after the user tapped
+    //the verification link in their mail app) pull the fresh status.
+    if (state == AppLifecycleState.resumed) {
+      await _refreshEmailVerified();
     }
+  }
+
+  //Reload the signed-in user and rebuild so the verified indicator reflects the
+  //latest server state. Crucially we re-read FirebaseAuth.instance.currentUser
+  //AFTER reload(): reload swaps in a fresh user object, so the `user` field
+  //captured in initState stays stale and can't be trusted here.
+  Future<void> _refreshEmailVerified() async {
+    final current = FirebaseAuth.instance.currentUser;
+    if (current == null || current.emailVerified) return;
+    try {
+      await current.reload();
+    } catch (_) {
+      //network hiccup — try again on the next resume / page return
+      return;
+    }
+    if (mounted) setState(() {});
   }
 
   @override
@@ -228,10 +236,13 @@ class _SettingsPageState extends State<SettingsPage>
                             );
                           }
                             else {
-                              Navigator.push(  
+                              await Navigator.push(
                               (context),
                               MaterialPageRoute(builder: (context) => VerifyEmail())
                             );
+                            //coming back from the verify page — reflect any
+                            //verification that happened while it was open
+                            await _refreshEmailVerified();
                           }
                         },
                         child: Padding(

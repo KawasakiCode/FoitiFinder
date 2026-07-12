@@ -407,6 +407,9 @@ class _LoginPageState extends State<LoginPage> {
                         padding: const EdgeInsets.only(top: 7, bottom: 7),
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.grey, width: 1),
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(12),
+                          ),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
