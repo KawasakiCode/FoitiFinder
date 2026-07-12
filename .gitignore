@@ -81,10 +81,11 @@ backend/.env
 .vscode/
 .idea/
 backend/serviceAccountKey.json
-
-# Rating Model
-/backend/Odin
-/backend/models
+backend/.pytest_cache
 
 # Debug Flag
 /lib/debug_flags.dart
+
+#models
+/Odin
+/models
