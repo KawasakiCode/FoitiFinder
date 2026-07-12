@@ -654,13 +654,6 @@ def calculate_user_rating(firebase_token: str, db: Session = Depends(get_db)):
 
     #Lazy import: loads MediaPipe/XGBoost only now, the first time scoring is
     #actually requested, instead of at server startup.
-    #Odin lives at the repo root (one level above backend/), while this process
-    #runs with backend/ as its working dir — so put the repo root on sys.path
-    #before importing, otherwise a bare `from Odin...` can't be resolved.
-    import sys
-    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    if repo_root not in sys.path:
-        sys.path.insert(0, repo_root)
     from Odin.main import get_face_score
 
     #The Odin pipeline needs to know which sex-specific model to use. Gender is

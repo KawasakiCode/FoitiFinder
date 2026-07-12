@@ -87,5 +87,5 @@ backend/.pytest_cache
 /lib/debug_flags.dart
 
 #models
-/Odin
-/models
+/backend/Odin
+/backend/models

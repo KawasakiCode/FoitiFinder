@@ -6,7 +6,7 @@
 #If it's false (or the code throws), the test fails (red) and pytest shows you
 #exactly which case broke. That's it.
 
-from matchmaker.preferences import interests_to_genders
+from preferences.preferences import interests_to_genders
 
 
 def test_no_interest_means_no_filter():
