@@ -674,7 +674,7 @@ def calculate_user_rating(firebase_token: str, db: Session = Depends(get_db)):
             response = requests.get(url, stream=True)
             response.raise_for_status()
 
-            #Create a temp file for facenet to use
+            #Create a temp file for the Odin scorer to read
             with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as temp_file:
                 for chunk in response.iter_content(chunk_size=8192):
                     temp_file.write(chunk)

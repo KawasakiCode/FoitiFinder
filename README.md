@@ -64,62 +64,6 @@
 
 The app uses a strict styling system defined in `main.dart` to prevent default Material 3 color
 
-## AI Scoring Engine
-
-The core feature of this application is an AI-driven attractiveness scoring system designed to run efficiently on standard CPU backends.
-
-### How it Works (The Pipeline)
-
-The scoring algorithm utilizes a **Transfer Learning** approach, leveraging a pre-trained face recognition model as a feature extractor for a custom regression head.
-
-
-1.  **Input:** User uploads a selfie (JPEG/PNG).
-2.  **Preprocessing:** The image is passed through **MTCNN** (Multi-task Cascaded Convolutional Networks) to detect, align, and crop the face.
-3.  **Feature Extraction:** The cropped face is fed into **FaceNet (InceptionResnetV1)**, which maps the facial features into a **128-dimensional Euclidean embedding**.
-    * *Note:* We use FaceNet because it is robust to minor lighting and pose variations.
-4.  **Inference:** The 128-d vector is passed to a custom **Linear Regression** model.
-5.  **Output:** The model predicts a score (1.0 - 10.0) based on the learned weights from the training dataset.
-
-### Data & Methodology
-
-To ensure the model is culturally relevant to the app's initial target demographic (Europe), we curated a specific subset of data:
-
-* **Source:** [SCUT-FBP5500 Dataset](https://github.com/HCIILAB/SCUT-FBP5500-Database-Release)
-* **Filtering:** We filtered the dataset to use only the **~1,500 Caucasian** images to reduce demographic noise and improve relative ranking accuracy for the target user base.
-* **Labeling:** The ground-truth labels (originally 1-5) were averaged from 60 human raters and linearly scaled to a 1-10 range.
-* **Performance:** The model achieves a **Mean Absolute Error (MAE) of 0.61** on the test set.
-
----
-
-## Ethical & Technical Limitations
-
-Please note that "beauty" is subjective and culturally dependent. This model has the following inherent biases:
-1.  **Rater Bias:** The model mimics the preferences of the original 60 raters (university students), favoring specific aesthetic traits like neoteny (youthfulness).
-2.  **Lens Distortion:** The model was trained on portrait-focal-length photos. Wide-angle selfie camera shots may result in lower scores due to geometric distortion (e.g., nose enlargement).
-
----
-
-## Credits & Citations
-
-This project is made possible by the **SCUT-FBP5500 Database**. We gratefully acknowledge the researchers at South China University of Technology for providing this dataset for academic and research use.
-
-**Citation:**
-> Liang, L., Lin, L., Jin, L., Xie, D., & Li, M. (2018). **SCUT-FBP5500: A Diverse Benchmark Dataset for Multi-Paradigm Facial Beauty Prediction.** *In 2018 24th International Conference on Pattern Recognition (ICPR)* (pp. 1598-1603). IEEE.
-
-**Repository:** [SCUT-FBP5500 Database Release](https://github.com/HCIILAB/SCUT-FBP5500-Database-Release)
-
-## Disclaimer: Educational Purposes Only
-
-This AI scoring engine was built strictly for **educational and portfolio demonstration purposes**. It should *not* be taken seriously or used as a genuine measure of human attractiveness. 
-
-If you test the model with your own photo, please be aware that the algorithm is **extremely sensitive** to the following factors:
-
-* **Facial Orientation (Pose):** The model was trained on straight-facing, passport-style images. Tilted heads, profile shots, or looking away from the camera will severely artificially lower the score.
-* **Photo Quality & Lighting:** Harsh shadows, poor lighting, or camera lens distortion (such as wide-angle selfie lenses making noses appear larger) will negatively skew the mathematical embedding.
-* **Phenotype & Rater Bias:** The ground-truth data relies on a specific subset of the SCUT-FBP5500 dataset, meaning the model is hardcoded to the subjective, culturally-dependent biases of the original raters which were chinese college students so they gave harsher ratings to caucasian people.
-
-**TL;DR:** The scoring mechanism is highly rigid. If you upload a photo and receive a low rating, blame the dataset variance and the camera angle, not your face!
-
 ## Getting Started
 
 The project has two parts that run together: a **Flutter app** (`lib/`) and a **Python FastAPI backend** (`backend/`) backed by PostgreSQL. Both use the same Firebase project. The steps below take you from an empty folder to a running app.
@@ -157,7 +101,7 @@ venv\Scripts\Activate.ps1
 # macOS / Linux:
 # source venv/bin/activate
 
-# Install backend dependencies (this is large — it includes TensorFlow/DeepFace)
+# Install backend dependencies
 pip install -r requirements.txt
 ```
 
@@ -223,9 +167,5 @@ flutter gen-l10n         # generate localization (English + Greek)
 ```bash
 flutter run              # add any --dart-define flags from above
 ```
-
-### 5. AI scoring model
-
-The trained model (`backend/matchmaker/rating_model.pkl`) is **already included** in the repo, so the scoring endpoint works out of the box. To retrain or reproduce it from scratch, see [`research/methodology.md`](research/methodology.md).
 
 
