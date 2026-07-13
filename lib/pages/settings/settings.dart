@@ -136,8 +136,8 @@ class _SettingsPageState extends State<SettingsPage>
                     borderRadius: BorderRadius.circular(10),
                   ),
                   clipBehavior: Clip.antiAlias,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(10),
+                  child: DelayedInkWell(
+                    delayMs: 150,
                     onTap: () {
                       Navigator.push(
                         context,
@@ -297,8 +297,8 @@ class _SettingsPageState extends State<SettingsPage>
                     borderRadius: BorderRadius.circular(10),
                   ),
                   clipBehavior: Clip.antiAlias,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(10),
+                  child: DelayedInkWell(
+                    delayMs: 150,
                     onTap: () {
                       Navigator.push(
                         context,

@@ -168,6 +168,26 @@ class ApiService {
     }
   }
 
+  //Ask the backend (Firebase Admin) whether a phone number is already linked to
+  //another account, so we can warn before sending an OTP. Returns false on any
+  //error so a backend hiccup never blocks a legitimate phone change — the
+  //link-time check still catches a real collision.
+  static Future<bool> isPhoneInUse(String phoneNumber, String uid) async {
+    final url = Uri.parse(
+      '$baseUrl/auth/phone-in-use?phone_number=${Uri.encodeComponent(phoneNumber)}&firebase_token=${Uri.encodeComponent(uid)}',
+    );
+    try {
+      final response = await http.get(url).timeout(const Duration(seconds: 8));
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        return data['in_use'] == true;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
   //Update user's  settings
   static Future<void> updateUsersSettings({
     required String uid,

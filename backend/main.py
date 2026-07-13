@@ -12,7 +12,7 @@ from database import schemas
 from sqlalchemy.orm import Session, aliased, selectinload
 from sqlalchemy import and_, or_, case
 import json
-from firebase_admin import messaging, credentials, firestore
+from firebase_admin import messaging, credentials, firestore, auth
 import firebase_admin
 import tempfile
 import requests
@@ -150,6 +150,24 @@ def get_user_data(firebase_token: str, db: Session = Depends(get_db)):
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
+
+#Check if a phone number is already linked to another Firebase account, so the
+#client can warn BEFORE sending an SMS/OTP. Firebase only surfaces this at link
+#time (updatePhoneNumber), and there is no client-side API to look it up — but
+#Firebase Auth is the source of truth (we don't store phones in Postgres), so we
+#query it here with the Admin SDK. `firebase_token` is the caller's own uid, so
+#their own number isn't reported as taken.
+@app.get("/auth/phone-in-use")
+def phone_in_use(phone_number: str, firebase_token: str):
+    try:
+        record = auth.get_user_by_phone_number(phone_number)
+    except auth.UserNotFoundError:
+        return {"in_use": False}
+    except Exception:
+        #lookup failed (e.g. malformed number / transient) — don't block the
+        #flow; the link-time check still guards against a real collision
+        raise HTTPException(status_code=503, detail="phone check unavailable")
+    return {"in_use": record.uid != firebase_token}
 
 #update one/multiple user attributes without altering the others
 @app.patch("/users/{firebase_token}")
