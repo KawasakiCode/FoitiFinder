@@ -138,11 +138,18 @@ class _SettingsPageState extends State<SettingsPage>
                   clipBehavior: Clip.antiAlias,
                   child: DelayedInkWell(
                     delayMs: 150,
-                    onTap: () {
-                      Navigator.push(
+                    onTap: () async {
+                      await Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => const PhoneNumberPage()),
                       );
+                      //the number may have just changed — reload so the row
+                      //reflects it without leaving and re-opening settings
+                      if (!mounted) return;
+                      try {
+                        await FirebaseAuth.instance.currentUser?.reload();
+                      } catch (_) {}
+                      if (mounted) setState(() {});
                     },
                     child: Padding(
                       padding: const EdgeInsets.only(
@@ -163,9 +170,13 @@ class _SettingsPageState extends State<SettingsPage>
                           ),
                           Text(
                             //handle null AND empty (an unverified account has no
-                            //phone, which can come back as "")
-                            (user?.phoneNumber?.isNotEmpty ?? false)
-                                ? user!.phoneNumber!
+                            //phone, which can come back as ""). Read currentUser
+                            //fresh, not the captured `user`, so a just-changed
+                            //number shows immediately.
+                            (FirebaseAuth.instance.currentUser?.phoneNumber
+                                        ?.isNotEmpty ??
+                                    false)
+                                ? FirebaseAuth.instance.currentUser!.phoneNumber!
                                 : '69X XXX XXXX',
                             style: TextStyle(
                               fontSize: 15,

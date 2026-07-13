@@ -143,6 +143,11 @@ class _OtpInputWidgetState extends State<OtpInputWidget> {
     _controllers = List.generate(widget.length, (_) => TextEditingController());
     _focusNodes = List.generate(widget.length, (_) => FocusNode());
 
+    //SMS autofill drops the whole code into the first box programmatically,
+    //which doesn't always fire onChanged — listen so we still spread it out
+    //instead of leaving all digits crammed (and clipped) in box 1.
+    _controllers[0].addListener(_onFirstBoxAutofill);
+
     // Hand the controller the two functions it needs.
     // This avoids storing a reference to the private state type, which
     // causes Dart analyser errors when the controller tries to call methods on it.
@@ -186,27 +191,52 @@ class _OtpInputWidgetState extends State<OtpInputWidget> {
 
   // ─── feature 1 & 3: auto-advance + paste ────────────────────────────────────
 
-  void _onChanged(int index, String value) {
-    // ── Feature 3: Paste handling ───────────────────────────────────────────
-    // When the user pastes a string that is longer than 1 character we distribute
-    // the digits across all controllers and dismiss the keyboard.
-    if (value.length > 1) {
-      final digits = value.replaceAll(RegExp(r'\D'), ''); // keep only digits
-      for (int i = 0; i < widget.length; i++) {
-        _controllers[i].text = i < digits.length ? digits[i] : '';
-      }
+  //Guards against re-entrancy while we programmatically rewrite the boxes.
+  bool _handlingBulk = false;
 
-      // Dismiss keyboard after a successful paste
+  //Spread a multi-digit string (paste / autofill / burst) across the boxes, one
+  //digit each, then park focus on the first empty box (or dismiss the keyboard
+  //if the code is complete). This is the ONLY place a box gets more than one
+  //character, and it always resolves to single digits — so nothing looks cut.
+  void _distribute(String value) {
+    final digits = value.replaceAll(RegExp(r'\D'), ''); // keep only digits
+    _handlingBulk = true;
+    for (int i = 0; i < widget.length; i++) {
+      _controllers[i].text = i < digits.length ? digits[i] : '';
+    }
+    _handlingBulk = false;
+
+    final firstEmpty = _controllers.indexWhere((c) => c.text.isEmpty);
+    if (firstEmpty == -1) {
       FocusScope.of(context).unfocus();
+    } else {
+      _moveFocusTo(firstEmpty);
+    }
 
-      widget.onChanged?.call(_currentCode);
-      if (digits.length >= widget.length) {
-        widget.onCompleted?.call(_currentCode);
-      }
+    widget.onChanged?.call(_currentCode);
+    if (_controllers.every((c) => c.text.length == 1)) {
+      widget.onCompleted?.call(_currentCode);
+    }
+  }
+
+  //Catches autofill, which fills box 1 programmatically and can skip onChanged.
+  void _onFirstBoxAutofill() {
+    if (_handlingBulk) return;
+    if (_controllers[0].text.length > 1) {
+      _distribute(_controllers[0].text);
+    }
+  }
+
+  void _onChanged(int index, String value) {
+    if (_handlingBulk) return;
+
+    // Paste / autofill / fast-typing burst landed in this box — spread it out.
+    if (value.length > 1) {
+      _distribute(value);
       return;
     }
 
-    // ── Feature 1: Auto-advance ─────────────────────────────────────────────
+    // ── Auto-advance ────────────────────────────────────────────────────────
     if (value.length == 1) {
       if (index < widget.length - 1) {
         _moveFocusTo(index + 1);
@@ -261,8 +291,12 @@ class _OtpInputWidgetState extends State<OtpInputWidget> {
         child: TextFormField(
           controller: _controllers[index],
           focusNode: _focusNodes[index],
-          maxLength: 6, // allow >1 so paste can be detected in onChanged
+          //only box 1 needs to hold the whole code (autofill/paste drop it there
+          //and _distribute spreads it); the rest hold a single digit, so a burst
+          //can never leave a box showing multiple, clipped characters.
+          maxLength: index == 0 ? widget.length : 1,
           textAlign: TextAlign.center,
+          textAlignVertical: TextAlignVertical.center,
           keyboardType: TextInputType.number,
           style: widget.digitStyle ??
               const TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
@@ -275,6 +309,10 @@ class _OtpInputWidgetState extends State<OtpInputWidget> {
           ],
           decoration: InputDecoration(
             counterText: '', // hide the "0/6" counter Flutter adds
+            isDense: true,
+            //symmetric padding + centered alignment keeps the single digit
+            //dead-centre in the box instead of sitting high or off to one side
+            contentPadding: const EdgeInsets.symmetric(vertical: 14),
             filled: widget.fillColor != null,
             fillColor: widget.fillColor,
             border: OutlineInputBorder(
