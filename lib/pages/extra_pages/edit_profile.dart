@@ -33,7 +33,10 @@ class _EditProfileState extends State<EditProfile> {
 
   //allow up to 6 photos
   //duplicates allowed
-  final List<File?> _photos = List.filled(6, null);
+  final List<_PhotoSlot?> _photos = List.filled(6, null);
+  //true once the user actually adds/removes a photo — so we only re-upload &
+  //re-score when the photo set really changed, never on a plain profile edit.
+  bool _photosChanged = false;
   final ImagePicker _picker = ImagePicker();
   late final text = AppLocalizations.of(context)!;
 
@@ -75,7 +78,8 @@ class _EditProfileState extends State<EditProfile> {
 
         if (mounted) {
           setState(() {
-            _photos[i] = file;
+            //existing photo: remember its backend URL so we never re-upload it
+            _photos[i] = _PhotoSlot(file, existingUrl: backendPhotos[i].photoUrl);
           });
         }
       }
@@ -443,9 +447,10 @@ class _EditProfileState extends State<EditProfile> {
 
     // Save the valid photo and compact the grid (no gaps)
     setState(() {
-      _photos[index] = File(image!.path);
+      _photos[index] = _PhotoSlot(File(image!.path)); // new pick, needs upload
+      _photosChanged = true;
 
-      List<File?> validPhotos = _photos
+      List<_PhotoSlot?> validPhotos = _photos
           .where((photo) => photo != null)
           .toList();
       for (int i = 0; i < _photos.length; i++) {
@@ -455,64 +460,51 @@ class _EditProfileState extends State<EditProfile> {
   }
 
   Future<void> _submitPhotos() async {
+    //Nothing changed in the photo grid — don't re-upload or re-score. This is
+    //what stops the old behaviour of duplicating every photo on each save.
+    if (!_photosChanged) return;
+
     setState(() {
       _isLoading = true;
     });
-    //if no photos in the list exit submit
-    if (_photos.every((img) => img == null)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(text.addPhotoText),
-          duration: Duration(seconds: 3),
-        ),
-      );
-      setState(() {
-        _isLoading = false;
-      });
-      throw Exception("Validation failed: no photos");
-    }
 
     final uid = FirebaseAuth.instance.currentUser!.uid;
 
     try {
-      List<Future<void>> uploadTasks = [];
+      //Final ordered list of slots the user wants to keep.
+      final orderedSlots = _photos.whereType<_PhotoSlot>().toList();
 
-      for (int i = 0; i < _photos.length; i++) {
-        if (_photos[i] != null) {
-          //upload photo file to firebase cloud storage
-          Future<void> uploadSinglePhoto = () async {
-            String? firebaseUrl = await ApiService.uploadToFirebase(
-              _photos[i]!,
-              uid,
-            );
+      //Upload ONLY the freshly-picked files; existing photos keep their URL, so
+      //nothing already saved is re-uploaded. Preserves slot order.
+      final List<String?> resolvedUrls = await Future.wait(
+        orderedSlots.map((slot) async {
+          if (!slot.isNew) return slot.existingUrl; // reuse — no upload
+          return await ApiService.uploadToFirebase(slot.file, uid);
+        }),
+      );
 
-            if (firebaseUrl != null) {
-              await ApiService.uploadPhoto(
-                uid: uid,
-                photoUrl: firebaseUrl,
-                displayOrder: i,
-              );
-            }
-          }(); //The parentheses trigger the function immediately
+      //Drop any failed upload (null) so we never sync a broken URL.
+      final photoUrls = resolvedUrls.whereType<String>().toList();
 
-          uploadTasks.add(uploadSinglePhoto);
-        }
+      //Safety: the user always keeps at least one photo, so an empty result can
+      //only mean every upload failed. Abort rather than wiping their photos.
+      if (photoUrls.isEmpty) {
+        throw Exception('All photo uploads failed');
       }
 
-      await Future.wait(uploadTasks);
-      if (_photos.isNotEmpty) {
-        await ApiService.updateUserData(uid: uid, hasPhotos: true);
-      }
+      //Reconcile the backend to exactly this ordered list: keeps unchanged
+      //photos, inserts new ones, deletes removed ones — no duplicates.
+      await ApiService.syncPhotos(uid: uid, photoUrls: photoUrls);
+      await ApiService.updateUserData(
+        uid: uid,
+        hasPhotos: photoUrls.isNotEmpty,
+      );
 
-      //sent the request to the ai model to give the user a score
+      //Re-score only because the photos actually changed.
       await ApiService.giveUserScore(uid);
-      setState(() {
-        _isLoading = false;
-      });
+
+      _photosChanged = false;
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -639,7 +631,7 @@ class _EditProfileState extends State<EditProfile> {
               child: photo != null
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(10),
-                      child: Image.file(photo, fit: BoxFit.cover),
+                      child: Image.file(photo.file, fit: BoxFit.cover),
                     )
                   : const Center(
                       child: Icon(Icons.add, color: Colors.grey, size: 30),
@@ -655,12 +647,27 @@ class _EditProfileState extends State<EditProfile> {
             left: -5,
             child: GestureDetector(
               onTap: () {
+                // A user must always keep at least one photo — block removing
+                // the last one instead of relying on an exit-time warning.
+                final photoCount =
+                    _photos.where((photo) => photo != null).length;
+                if (photoCount <= 1) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(text.addAtLeastAPhoto),
+                      backgroundColor: Colors.red,
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                  return;
+                }
                 setState(() {
                   // 1. Set the removed photo's slot to null
                   _photos[index] = null;
+                  _photosChanged = true;
 
                   // 2. Gather all the photos that are still left
-                  List<File?> remainingPhotos = _photos
+                  List<_PhotoSlot?> remainingPhotos = _photos
                       .where((photo) => photo != null)
                       .toList();
 
@@ -688,4 +695,14 @@ class _EditProfileState extends State<EditProfile> {
       ],
     );
   }
+}
+
+//A photo shown in the edit grid: either one already saved on the backend
+//(existingUrl != null, so it never needs re-uploading) or a freshly-picked
+//local file that still has to be uploaded on save.
+class _PhotoSlot {
+  final File file; // local file used for display (a downloaded copy for existing)
+  final String? existingUrl; // backend URL if already saved; null = new pick
+  const _PhotoSlot(this.file, {this.existingUrl});
+  bool get isNew => existingUrl == null;
 }

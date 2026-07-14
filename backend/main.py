@@ -521,6 +521,38 @@ def upload_photo(user_photos: UserPhotos, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_photo)
 
+#body for replacing a user's whole photo set in order
+class PhotoSync(BaseModel):
+    firebase_token: str
+    photo_urls: List[str]
+
+#Reconcile a user's photos to the given ordered list. The edit-profile page
+#uploads only NEW files to Firebase Storage (existing photos keep their URL),
+#then sends the final ordered URLs here. We wipe and re-insert the rows so
+#unchanged photos are never duplicated, removed ones are deleted, and
+#display_order matches the order the user arranged. Only the photo rows are
+#touched — the Firebase Storage objects of kept photos are reused via their URL.
+@app.put("/photos/sync")
+def sync_photos(payload: PhotoSync, db: Session = Depends(get_db)):
+    me = db.query(models.User).filter(models.User.firebase_token == payload.firebase_token).first()
+    if not me:
+        raise HTTPException(status_code=404, detail="Current User not found")
+
+    db.query(models.Photos).filter(
+        models.Photos.user_id == me.id
+    ).delete(synchronize_session=False)
+
+    for order, photo_url in enumerate(payload.photo_urls):
+        db.add(models.Photos(
+            user_id=me.id,
+            photo_url=photo_url,
+            display_order=order,
+        ))
+
+    me.has_photos = len(payload.photo_urls) > 0
+    db.commit()
+    return {"message": "photos synced"}
+
 #register a swipe
 @app.post("/swipes")
 def record_swipe(swipe: SwipeRequest, db: Session = Depends(get_db)):

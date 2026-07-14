@@ -390,6 +390,30 @@ class ApiService {
     }
   }
 
+  //Replace the user's photos with this exact ordered list in one call. New
+  //files must already be uploaded to Firebase Storage (their URLs passed here);
+  //existing photos keep their URLs. The backend reconciles rows: keeps
+  //unchanged, inserts new, deletes removed — so nothing gets duplicated.
+  static Future<bool> syncPhotos({
+    required String uid,
+    required List<String> photoUrls,
+  }) async {
+    final url = Uri.parse("$baseUrl/photos/sync");
+    try {
+      final response = await http.put(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "firebase_token": uid,
+          "photo_urls": photoUrls,
+        }),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
   //Upload the photo file to firebase cloud and return the url
   static Future<String?> uploadToFirebase(File imageFile, String uid) async {
     try {
