@@ -164,7 +164,7 @@ class _SettingsPageState extends State<SettingsPage>
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: DelayedInkWell(
-                    delayMs: 500,
+                    delayMs: 225,
                     onTap: () async {
                       await Navigator.push(
                         context,
@@ -262,7 +262,7 @@ class _SettingsPageState extends State<SettingsPage>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       DelayedInkWell(
-                        delayMs: 500,
+                        delayMs: 225,
                         onTap: () async {
                           if(FirebaseAuth.instance.currentUser?.emailVerified == true) {
                             _showAlreadyVerifiedSnack();
@@ -330,7 +330,7 @@ class _SettingsPageState extends State<SettingsPage>
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: DelayedInkWell(
-                    delayMs: 500,
+                    delayMs: 225,
                     onTap: () {
                       Navigator.push(
                         context,
@@ -475,7 +475,7 @@ class _SettingsPageState extends State<SettingsPage>
                         //borderRadius: const BorderRadius.vertical(
                         //top: Radius.circular(10),
                         //),
-                        delayMs: 500,
+                        delayMs: 225,
                         onTap: () async {
                           settings.changeRecommendationPreference(
                             RecommendationPreference.balanced,
@@ -538,7 +538,7 @@ class _SettingsPageState extends State<SettingsPage>
                         endIndent: MediaQuery.of(context).size.width * 0.10,
                       ),
                       DelayedInkWell(
-                        delayMs: 500,
+                        delayMs: 225,
                         onTap: () {
                           settings.changeRecommendationPreference(
                             RecommendationPreference.recentlyActive,
@@ -803,7 +803,7 @@ class _SettingsPageState extends State<SettingsPage>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       DelayedInkWell(
-                        delayMs: 500,
+                        delayMs: 225,
                         onTap: () {
                           settings.changeLanguage('el');
                         },
@@ -850,7 +850,7 @@ class _SettingsPageState extends State<SettingsPage>
                         endIndent: MediaQuery.of(context).size.width * 0.10,
                       ),
                       DelayedInkWell(
-                        delayMs: 500,
+                        delayMs: 225,
                         onTap: () {
                           settings.changeLanguage('en');
                         },
@@ -917,7 +917,7 @@ class _SettingsPageState extends State<SettingsPage>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       DelayedInkWell(
-                        delayMs: 500,
+                        delayMs: 225,
                         onTap: () async {
                           final url = Uri.parse('https://google.com');
                           if (await canLaunchUrl(url)) {
@@ -958,7 +958,7 @@ class _SettingsPageState extends State<SettingsPage>
                         endIndent: MediaQuery.of(context).size.width * 0.10,
                       ),
                       DelayedInkWell(
-                        delayMs: 500,
+                        delayMs: 225,
                         onTap: () async {
                           final url = Uri.parse('https://google.com');
                           if (await canLaunchUrl(url)) {
@@ -1019,7 +1019,7 @@ class _SettingsPageState extends State<SettingsPage>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       DelayedInkWell(
-                        delayMs: 500,
+                        delayMs: 225,
                         onTap: () async {
                           final url = Uri.parse('https://google.com');
                           if (await canLaunchUrl(url)) {
@@ -1060,7 +1060,7 @@ class _SettingsPageState extends State<SettingsPage>
                         endIndent: MediaQuery.of(context).size.width * 0.10,
                       ),
                       DelayedInkWell(
-                        delayMs: 500,
+                        delayMs: 225,
                         onTap: () async {
                           final url = Uri.parse('https://google.com');
                           if (await canLaunchUrl(url)) {

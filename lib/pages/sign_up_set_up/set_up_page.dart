@@ -244,7 +244,7 @@ class _SetUpPageState extends State<SetUpPage> {
                         ),
                         clipBehavior: Clip.antiAlias,
                         child: DelayedInkWell(
-                          delayMs: 500,
+                          delayMs: 225,
                           onTap: () => settings.addRemoveInterests("Men", saveToDb: false),
                           child: Padding(
                             padding: const EdgeInsets.only(
@@ -288,7 +288,7 @@ class _SetUpPageState extends State<SetUpPage> {
                         ),
                         clipBehavior: Clip.antiAlias,
                         child: DelayedInkWell(
-                          delayMs: 500,
+                          delayMs: 225,
                           onTap: () => settings.addRemoveInterests("Women", saveToDb: false),
                           child: Padding(
                             padding: const EdgeInsets.only(
@@ -332,7 +332,7 @@ class _SetUpPageState extends State<SetUpPage> {
                         ),
                         clipBehavior: Clip.antiAlias,
                         child: DelayedInkWell(
-                          delayMs: 500,
+                          delayMs: 225,
                           onTap: () => settings.addRemoveInterests("Everyone", saveToDb: false),
                           child: Padding(
                             padding: const EdgeInsets.only(
@@ -417,7 +417,7 @@ class _SetUpPageState extends State<SetUpPage> {
                         ),
                         clipBehavior: Clip.antiAlias,
                         child: DelayedInkWell(
-                          delayMs: 500,
+                          delayMs: 225,
                           onTap: () => settings.changeGender("Male", saveToDb: false),
                           child: Padding(
                             padding: const EdgeInsets.only(
@@ -461,7 +461,7 @@ class _SetUpPageState extends State<SetUpPage> {
                         ),
                         clipBehavior: Clip.antiAlias,
                         child: DelayedInkWell(
-                          delayMs: 500,
+                          delayMs: 225,
                           onTap: () => settings.changeGender("Female", saveToDb: false),
                           child: Padding(
                             padding: const EdgeInsets.only(

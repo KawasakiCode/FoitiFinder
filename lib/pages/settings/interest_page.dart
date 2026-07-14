@@ -56,7 +56,7 @@ class _InterestPageState extends State<InterestPage> {
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: DelayedInkWell(
-                    delayMs: 500,
+                    delayMs: 225,
                     onTap: () => settings.addRemoveInterests("Men"),
                     child: Padding(
                       padding: const EdgeInsets.only(
@@ -100,7 +100,7 @@ class _InterestPageState extends State<InterestPage> {
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: DelayedInkWell(
-                    delayMs: 500,
+                    delayMs: 225,
                     onTap: () => settings.addRemoveInterests("Women"),
                     child: Padding(
                       padding: const EdgeInsets.only(
@@ -144,7 +144,7 @@ class _InterestPageState extends State<InterestPage> {
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: DelayedInkWell(
-                    delayMs: 500,
+                    delayMs: 225,
                     onTap: () => settings.addRemoveInterests("Everyone"),
                     child: Padding(
                       padding: const EdgeInsets.only(
