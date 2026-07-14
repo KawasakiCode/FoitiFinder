@@ -8,6 +8,7 @@ import 'package:foitifinder/pages/sign_up_set_up/add_photos.dart';
 import 'package:foitifinder/pages/sign_up_set_up/otp_code_page.dart';
 import 'package:provider/provider.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
+import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/widgets/loading_overlay.dart';
 
@@ -66,9 +67,34 @@ class _PhoneVerificationPage extends State<PhoneVerificationPage> {
           _isLoading = true;
         });
       }
+
+      //Early collision check via the backend (Firebase Admin): tell the user the
+      //number is taken NOW, before any SMS / reCAPTCHA / OTP entry. Fails open,
+      //so a backend hiccup never blocks signup — the link-time check still guards.
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        final inUse =
+            await ApiService.isPhoneInUse(phoneNumber, currentUser.uid);
+        if (!mounted) return;
+        if (inUse) {
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(text.phoneAlreadyInUse),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+          return;
+        }
+      }
+
       _timeoutTimer?.cancel();
-      //If the spinner still loads after timer end kill it and show error
-      _timeoutTimer = Timer(const Duration(seconds: 10), () {
+      //60s, not 10s: the reCAPTCHA challenge needs user interaction and easily
+      //takes longer than 10s, which was firing this "timed out" error even
+      //though the flow then succeeded. verifyPhoneNumber's callbacks handle the
+      //real terminal states; this is only a safety net for a true hang.
+      _timeoutTimer = Timer(const Duration(seconds: 60), () {
         if (mounted && _isLoading) {
           if (mounted) {
             setState(() {
@@ -90,6 +116,29 @@ class _PhoneVerificationPage extends State<PhoneVerificationPage> {
           phoneNumber: phoneNumber,
           verificationCompleted: (phoneAuthCredential) async {
             _timeoutTimer?.cancel();
+            //Auto-retrieval / instant verification fired. Actually LINK the
+            //number to the account — without this the phone is only marked
+            //verified locally but never saved on Firebase.
+            try {
+              await FirebaseAuth.instance.currentUser
+                  ?.updatePhoneNumber(phoneAuthCredential);
+            } on FirebaseAuthException catch (e) {
+              if (mounted) setState(() => _isLoading = false);
+              if (!mounted) return;
+              final msg = (e.code == 'credential-already-in-use' ||
+                      e.code == 'provider-already-linked')
+                  ? text.phoneAlreadyInUse
+                  : text.errorOccured;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(msg),
+                  backgroundColor: Colors.red,
+                  duration: const Duration(seconds: 3),
+                ),
+              );
+              return;
+            }
+            if (!mounted) return;
             Provider.of<SettingsProvider>(context, listen: false).verifyPhone();
 
             if (mounted) {
@@ -104,7 +153,11 @@ class _PhoneVerificationPage extends State<PhoneVerificationPage> {
               ),
             );
             if (!mounted) return;
-            Navigator.pop(context);
+            //onboarding continues to the photo step, same as the OTP success path
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => AddPhotos()),
+            );
           },
           codeSent: (String verificationId, int? resendToken) async {
             _timeoutTimer?.cancel();
