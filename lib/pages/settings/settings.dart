@@ -32,6 +32,11 @@ class _SettingsPageState extends State<SettingsPage>
   final user = FirebaseAuth.instance.currentUser;
   AppLocalizations get text => AppLocalizations.of(context)!;
 
+  //how many "email already verified" snackbars are currently queued/showing, so
+  //spamming the button can't stack more than a couple of identical toasts
+  int _verifiedSnackCount = 0;
+  static const int _maxVerifiedSnacks = 2;
+
   //one-shot entrance animation (fade + slight slide-up) played on open
   late final AnimationController _entrance;
   late final Animation<double> _fade;
@@ -74,14 +79,36 @@ class _SettingsPageState extends State<SettingsPage>
   //latest server state. Crucially we re-read FirebaseAuth.instance.currentUser
   //AFTER reload(): reload swaps in a fresh user object, so the `user` field
   //captured in initState stays stale and can't be trusted here.
+  //Show the "email already verified" toast, but never stack more than
+  //_maxVerifiedSnacks of them if the button is spammed. The counter drops back
+  //down as each toast closes.
+  void _showAlreadyVerifiedSnack() {
+    if (_verifiedSnackCount >= _maxVerifiedSnacks) return;
+    _verifiedSnackCount++;
+    final controller = ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(text.mailAlreadyVerified),
+        backgroundColor: Colors.grey,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+    controller.closed.then((_) => _verifiedSnackCount--);
+  }
+
   Future<void> _refreshEmailVerified() async {
     final current = FirebaseAuth.instance.currentUser;
-    if (current == null || current.emailVerified) return;
+    if (current == null) return;
+    //Only hit the network if we still believe it's unverified — but ALWAYS
+    //rebuild afterwards. Coming back from the verify-email page it's already
+    //verified (that page reloaded), so an early-return-on-verified would skip
+    //the setState and leave the settings row stale until the next visit — which
+    //is exactly the "only changes after I leave and come back" bug.
     try {
-      await current.reload();
+      if (!current.emailVerified) {
+        await current.reload();
+      }
     } catch (_) {
-      //network hiccup — try again on the next resume / page return
-      return;
+      //network hiccup — fall through and still rebuild with what we have
     }
     if (mounted) setState(() {});
   }
@@ -137,7 +164,7 @@ class _SettingsPageState extends State<SettingsPage>
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: DelayedInkWell(
-                    delayMs: 150,
+                    delayMs: 500,
                     onTap: () async {
                       await Navigator.push(
                         context,
@@ -235,16 +262,10 @@ class _SettingsPageState extends State<SettingsPage>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       DelayedInkWell(
-                        delayMs: 150,
+                        delayMs: 500,
                         onTap: () async {
                           if(FirebaseAuth.instance.currentUser?.emailVerified == true) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(text.mailAlreadyVerified),
-                                backgroundColor: Colors.grey,
-                                duration: Duration(seconds: 2),
-                              ),
-                            );
+                            _showAlreadyVerifiedSnack();
                           }
                             else {
                               await Navigator.push(
@@ -309,7 +330,7 @@ class _SettingsPageState extends State<SettingsPage>
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: DelayedInkWell(
-                    delayMs: 150,
+                    delayMs: 500,
                     onTap: () {
                       Navigator.push(
                         context,
@@ -454,7 +475,7 @@ class _SettingsPageState extends State<SettingsPage>
                         //borderRadius: const BorderRadius.vertical(
                         //top: Radius.circular(10),
                         //),
-                        delayMs: 170,
+                        delayMs: 500,
                         onTap: () async {
                           settings.changeRecommendationPreference(
                             RecommendationPreference.balanced,
@@ -517,7 +538,7 @@ class _SettingsPageState extends State<SettingsPage>
                         endIndent: MediaQuery.of(context).size.width * 0.10,
                       ),
                       DelayedInkWell(
-                        delayMs: 170,
+                        delayMs: 500,
                         onTap: () {
                           settings.changeRecommendationPreference(
                             RecommendationPreference.recentlyActive,
@@ -782,7 +803,7 @@ class _SettingsPageState extends State<SettingsPage>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       DelayedInkWell(
-                        delayMs: 170,
+                        delayMs: 500,
                         onTap: () {
                           settings.changeLanguage('el');
                         },
@@ -829,7 +850,7 @@ class _SettingsPageState extends State<SettingsPage>
                         endIndent: MediaQuery.of(context).size.width * 0.10,
                       ),
                       DelayedInkWell(
-                        delayMs: 170,
+                        delayMs: 500,
                         onTap: () {
                           settings.changeLanguage('en');
                         },
@@ -896,7 +917,7 @@ class _SettingsPageState extends State<SettingsPage>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       DelayedInkWell(
-                        delayMs: 150,
+                        delayMs: 500,
                         onTap: () async {
                           final url = Uri.parse('https://google.com');
                           if (await canLaunchUrl(url)) {
@@ -937,7 +958,7 @@ class _SettingsPageState extends State<SettingsPage>
                         endIndent: MediaQuery.of(context).size.width * 0.10,
                       ),
                       DelayedInkWell(
-                        delayMs: 150,
+                        delayMs: 500,
                         onTap: () async {
                           final url = Uri.parse('https://google.com');
                           if (await canLaunchUrl(url)) {
@@ -998,7 +1019,7 @@ class _SettingsPageState extends State<SettingsPage>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       DelayedInkWell(
-                        delayMs: 150,
+                        delayMs: 500,
                         onTap: () async {
                           final url = Uri.parse('https://google.com');
                           if (await canLaunchUrl(url)) {
@@ -1039,7 +1060,7 @@ class _SettingsPageState extends State<SettingsPage>
                         endIndent: MediaQuery.of(context).size.width * 0.10,
                       ),
                       DelayedInkWell(
-                        delayMs: 150,
+                        delayMs: 500,
                         onTap: () async {
                           final url = Uri.parse('https://google.com');
                           if (await canLaunchUrl(url)) {
