@@ -1,7 +1,8 @@
 import os
 import datetime
 from typing import List, Optional
-from fastapi import FastAPI, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Depends, HTTPException, WebSocket, WebSocketDisconnect, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from sqlalchemy import func
@@ -34,15 +35,45 @@ if not firebase_admin._apps:
 
 firestore_db = firestore.client()
 
-#class that handles the likes 
-class LikeRequest(BaseModel):
-    firebase_token: str
-    liked_id: int 
-    is_super_like: bool = False
+# --- Authentication ---------------------------------------------------------
+# A Firebase UID is an IDENTIFIER, not a credential: trusting one sent by the
+# client means anyone who knows a uid can act as that user. Instead the client
+# sends the Firebase ID token (a short-lived JWT signed by Google) as
+# `Authorization: Bearer <token>`. We verify the signature here and take the uid
+# from the VERIFIED claims, so it can't be forged. Every endpoint that needs to
+# know "who is calling" must get it from this dependency — never from a path,
+# query or body parameter.
+bearer_scheme = HTTPBearer()
+
+
+def current_uid(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+) -> str:
+    """Verify the caller's Firebase ID token and return their uid."""
+    try:
+        decoded = auth.verify_id_token(credentials.credentials)
+    except Exception:
+        # expired, tampered with, wrong project, or not a token at all
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+        )
+    return decoded["uid"]
+
+
+def uid_from_token(token: str) -> Optional[str]:
+    """
+    Same check for places that can't use a header (the chat WebSocket, where
+    Flutter's client can't set one). Returns None instead of raising.
+    """
+    try:
+        return auth.verify_id_token(token)["uid"]
+    except Exception:
+        return None
 
 #class that handles the messsages
+#NOTE: no firebase_token here — the sender is taken from the verified ID token
 class Messages(BaseModel):
-    firebase_token: str
     match_id: int
     content: str
 
@@ -59,8 +90,8 @@ class LikerProfile(BaseModel):
         from_attributes = True
 
 #class that handles sending back users photos
+#NOTE: no firebase_token — the owner is taken from the verified ID token
 class UserPhotos(BaseModel):
-    firebase_token: str
     photo_url: str
     display_order: int
 
@@ -90,24 +121,26 @@ class MatchResponse(BaseModel):
         from_attributes = True
 
 #class that sends swipe record data
+#NOTE: no firebase_uid — the swiper is taken from the verified ID token; only
+#the target (someone else) may come from the client
 class SwipeRequest(BaseModel):
-    firebase_uid: str
     target_id: int
     action: str
 
 #create new user and initialize default settings table for the new user
 @app.post("/users/", response_model=schemas.User)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    #check if user with the same firebase.uid already is registered and return and exception if yes
-    db_user = db.query(models.User).filter(models.User.firebase_token == user.firebase_token).first()
-    if db_user: 
+def create_user(user: schemas.UserCreate, uid: str = Depends(current_uid), db: Session = Depends(get_db)):
+    #the row is keyed to the VERIFIED uid, so a caller can only ever create their
+    #own account — any firebase_token in the body is ignored
+    db_user = db.query(models.User).filter(models.User.firebase_token == uid).first()
+    if db_user:
         raise HTTPException(status_code = 400, detail="User already exists")
-    
-    new_user = models.User(  
+
+    new_user = models.User(
         username = user.username,
         full_name=user.full_name,
         has_finished_set_up=user.has_finished_set_up,
-        firebase_token=user.firebase_token,
+        firebase_token=uid,
         profile_picture=user.profile_picture,
         bio=user.bio,
         age=user.age,
@@ -143,9 +176,9 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return new_user
 
 #get users data
-@app.get("/users/{firebase_token}")
-def get_user_data(firebase_token: str, db: Session = Depends(get_db)):
-    db_user = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
+@app.get("/users/me")
+def get_user_data(uid: str = Depends(current_uid), db: Session = Depends(get_db)):
+    db_user = db.query(models.User).filter(models.User.firebase_token == uid).first()
 
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -155,10 +188,11 @@ def get_user_data(firebase_token: str, db: Session = Depends(get_db)):
 #client can warn BEFORE sending an SMS/OTP. Firebase only surfaces this at link
 #time (updatePhoneNumber), and there is no client-side API to look it up — but
 #Firebase Auth is the source of truth (we don't store phones in Postgres), so we
-#query it here with the Admin SDK. `firebase_token` is the caller's own uid, so
-#their own number isn't reported as taken.
+#query it here with the Admin SDK. The caller's own uid comes from their verified
+#token, so their own number isn't reported as taken — and only signed-in users
+#can probe, which limits phone-number enumeration.
 @app.get("/auth/phone-in-use")
-def phone_in_use(phone_number: str, firebase_token: str):
+def phone_in_use(phone_number: str, uid: str = Depends(current_uid)):
     try:
         record = auth.get_user_by_phone_number(phone_number)
     except auth.UserNotFoundError:
@@ -167,12 +201,12 @@ def phone_in_use(phone_number: str, firebase_token: str):
         #lookup failed (e.g. malformed number / transient) — don't block the
         #flow; the link-time check still guards against a real collision
         raise HTTPException(status_code=503, detail="phone check unavailable")
-    return {"in_use": record.uid != firebase_token}
+    return {"in_use": record.uid != uid}
 
 #update one/multiple user attributes without altering the others
-@app.patch("/users/{firebase_token}")
-def update_user(firebase_token: str, user_update: schemas.UserUpdate, db: Session = Depends(get_db)):
-    db_user = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
+@app.patch("/users/me")
+def update_user(user_update: schemas.UserUpdate, uid: str = Depends(current_uid), db: Session = Depends(get_db)):
+    db_user = db.query(models.User).filter(models.User.firebase_token == uid).first()
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -189,10 +223,10 @@ def update_user(firebase_token: str, user_update: schemas.UserUpdate, db: Sessio
     return db_user
 
 #get multiple users for the homepage
-@app.get("/users/feed/{firebase_token}", response_model = List[UserCards])
-def get_swipe_feed(firebase_token: str, db: Session = Depends(get_db)):
+@app.get("/users/feed", response_model = List[UserCards])
+def get_swipe_feed(uid: str = Depends(current_uid), db: Session = Depends(get_db)):
     #first get the current user id to exclude it
-    me = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
+    me = db.query(models.User).filter(models.User.firebase_token == uid).first()
     if not me:
         raise HTTPException(status_code=404, detail='Current User not found')
 
@@ -258,9 +292,9 @@ def get_swipe_feed(firebase_token: str, db: Session = Depends(get_db)):
     return results
 
 #update one/multiple settings without altering the other
-@app.patch("/users/settings/{firebase_token}")
-def update_settings(firebase_token: str, settings_update: schemas.SettingsUpdate, db: Session = Depends(get_db)):
-    db_user =  db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
+@app.patch("/users/settings")
+def update_settings(settings_update: schemas.SettingsUpdate, uid: str = Depends(current_uid), db: Session = Depends(get_db)):
+    db_user =  db.query(models.User).filter(models.User.firebase_token == uid).first()
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
     #since we defined relationship in models.py we can instantly grab the settings 
@@ -279,18 +313,18 @@ def update_settings(firebase_token: str, settings_update: schemas.SettingsUpdate
     return db_user_settings
 
 #get user's settings
-@app.get("/users/settings/{firebase_token}")
-def get_users_settings(firebase_token: str, db: Session = Depends(get_db)):
-    db_user = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
+@app.get("/users/settings")
+def get_users_settings(uid: str = Depends(current_uid), db: Session = Depends(get_db)):
+    db_user = db.query(models.User).filter(models.User.firebase_token == uid).first()
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
     
     return db_user.settings
 
 #like endpoints
-@app.get("/likes/{firebase_token}", response_model = List[LikerProfile])
-def get_likes(firebase_token: str, db: Session = Depends(get_db)):
-    me = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
+@app.get("/likes", response_model = List[LikerProfile])
+def get_likes(uid: str = Depends(current_uid), db: Session = Depends(get_db)):
+    me = db.query(models.User).filter(models.User.firebase_token == uid).first()
     if not me:
         raise HTTPException(status_code=404, detail="Current User not found")
     
@@ -334,8 +368,8 @@ def get_likes(firebase_token: str, db: Session = Depends(get_db)):
 
 #get all matches that the user hasnt seen yet
 @app.get("/matches/unseen")
-def get_unseen_matches(firebase_token: str, db: Session = Depends(get_db)):
-    me = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
+def get_unseen_matches(uid: str = Depends(current_uid), db: Session = Depends(get_db)):
+    me = db.query(models.User).filter(models.User.firebase_token == uid).first()
     if not me:
        raise HTTPException(status_code=404, detail="Current User not found")
     
@@ -372,9 +406,9 @@ def get_unseen_matches(firebase_token: str, db: Session = Depends(get_db)):
     return results
 
 #get matches to load chats
-@app.get("/matches/{firebase_token}", response_model = List[MatchResponse])
-def get_matches(firebase_token: str, db: Session = Depends(get_db)):
-    me = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
+@app.get("/matches", response_model = List[MatchResponse])
+def get_matches(uid: str = Depends(current_uid), db: Session = Depends(get_db)):
+    me = db.query(models.User).filter(models.User.firebase_token == uid).first()
     if not me:
         raise HTTPException(status_code=404, detail="Current User not found")
     
@@ -430,8 +464,8 @@ def get_matches(firebase_token: str, db: Session = Depends(get_db)):
     
 #upload message to db
 @app.post("/messages/store")
-def upload_messages(message: Messages, db: Session = Depends(get_db)):
-    me = db.query(models.User).filter(models.User.firebase_token == message.firebase_token).first()
+def upload_messages(message: Messages, uid: str = Depends(current_uid), db: Session = Depends(get_db)):
+    me = db.query(models.User).filter(models.User.firebase_token == uid).first()
     if not me:
         raise HTTPException(status_code=404, detail="Current User not found")
     
@@ -469,8 +503,8 @@ def upload_messages(message: Messages, db: Session = Depends(get_db)):
 
 #get messages from db
 @app.get("/messages/{match_id}")
-def get_messages(match_id: int, firebase_token: str, limit: Optional[int] = None, offset: int = 0, db: Session = Depends(get_db)):
-    me = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
+def get_messages(match_id: int, limit: Optional[int] = None, offset: int = 0, uid: str = Depends(current_uid), db: Session = Depends(get_db)):
+    me = db.query(models.User).filter(models.User.firebase_token == uid).first()
     if not me:
         raise HTTPException(status_code=404, detail="Current User not found")
 
@@ -492,9 +526,9 @@ def get_messages(match_id: int, firebase_token: str, limit: Optional[int] = None
     return query.all()
 
 #get users photos
-@app.get("/photos/{firebase_token}")
-def get_user_photos(firebase_token: str, db: Session = Depends(get_db)):
-    me = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
+@app.get("/photos")
+def get_user_photos(uid: str = Depends(current_uid), db: Session = Depends(get_db)):
+    me = db.query(models.User).filter(models.User.firebase_token == uid).first()
     if not me:
         raise HTTPException(status_code=404, detail="Current User not found")
     
@@ -506,8 +540,8 @@ def get_user_photos(firebase_token: str, db: Session = Depends(get_db)):
 
 #store a photo inside the db
 @app.post("/photos")
-def upload_photo(user_photos: UserPhotos, db: Session = Depends(get_db)):
-    me = db.query(models.User).filter(models.User.firebase_token == user_photos.firebase_token).first()
+def upload_photo(user_photos: UserPhotos, uid: str = Depends(current_uid), db: Session = Depends(get_db)):
+    me = db.query(models.User).filter(models.User.firebase_token == uid).first()
     if not me:
         raise HTTPException(status_code=404, detail="Current User not found")
     
@@ -522,8 +556,8 @@ def upload_photo(user_photos: UserPhotos, db: Session = Depends(get_db)):
     db.refresh(new_photo)
 
 #body for replacing a user's whole photo set in order
+#NOTE: no firebase_token — the owner is taken from the verified ID token
 class PhotoSync(BaseModel):
-    firebase_token: str
     photo_urls: List[str]
 
 #Reconcile a user's photos to the given ordered list. The edit-profile page
@@ -533,8 +567,8 @@ class PhotoSync(BaseModel):
 #display_order matches the order the user arranged. Only the photo rows are
 #touched — the Firebase Storage objects of kept photos are reused via their URL.
 @app.put("/photos/sync")
-def sync_photos(payload: PhotoSync, db: Session = Depends(get_db)):
-    me = db.query(models.User).filter(models.User.firebase_token == payload.firebase_token).first()
+def sync_photos(payload: PhotoSync, uid: str = Depends(current_uid), db: Session = Depends(get_db)):
+    me = db.query(models.User).filter(models.User.firebase_token == uid).first()
     if not me:
         raise HTTPException(status_code=404, detail="Current User not found")
 
@@ -555,8 +589,8 @@ def sync_photos(payload: PhotoSync, db: Session = Depends(get_db)):
 
 #register a swipe
 @app.post("/swipes")
-def record_swipe(swipe: SwipeRequest, db: Session = Depends(get_db)):
-    me = db.query(models.User).filter(models.User.firebase_token == swipe.firebase_uid).first()
+def record_swipe(swipe: SwipeRequest, uid: str = Depends(current_uid), db: Session = Depends(get_db)):
+    me = db.query(models.User).filter(models.User.firebase_token == uid).first()
     if not me:
        raise HTTPException(status_code=404, detail="Current User not found")
 
@@ -649,8 +683,10 @@ def record_swipe(swipe: SwipeRequest, db: Session = Depends(get_db)):
     return {"data": is_match}
 
 #get single user by id
+#this one legitimately looks up ANOTHER user, but still requires a valid token so
+#only signed-in users can read profiles (uid unused beyond that gate)
 @app.get("/single/user/{user_id}")
-def get_single_user(user_id: int, db: Session = Depends(get_db)):
+def get_single_user(user_id: int, uid: str = Depends(current_uid), db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == user_id).first()
 
     if not user:
@@ -669,8 +705,8 @@ def get_single_user(user_id: int, db: Session = Depends(get_db)):
 
 #update match seen
 @app.patch("/matches/seen/{match_id}")
-def update_match_seen(match_id: int, firebase_token: str,db: Session = Depends(get_db)):
-    me = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
+def update_match_seen(match_id: int, uid: str = Depends(current_uid), db: Session = Depends(get_db)):
+    me = db.query(models.User).filter(models.User.firebase_token == uid).first()
     if not me: 
         raise HTTPException(status_code=404, detail="Current User not found")
 
@@ -689,9 +725,9 @@ def update_match_seen(match_id: int, firebase_token: str,db: Session = Depends(g
     return {"message": "Match seen updated"}
 
 #get user's score using the ai model
-@app.post("/users/{firebase_token}/calculate-rating")
-def calculate_user_rating(firebase_token: str, db: Session = Depends(get_db)):
-    me = db.query(models.User).filter(models.User.firebase_token == firebase_token).first()
+@app.post("/users/me/calculate-rating")
+def calculate_user_rating(uid: str = Depends(current_uid), db: Session = Depends(get_db)):
+    me = db.query(models.User).filter(models.User.firebase_token == uid).first()
     if not me: 
         raise HTTPException(status_code=404, detail="Current User not found")
     
@@ -777,24 +813,40 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 #websocket endpoint
-@app.websocket("/ws/chat/{user_id}")
-async def websocket_endpoint(websocket: WebSocket, user_id: int):
+#Flutter's WebSocket client can't set an Authorization header, so the Firebase ID
+#token comes as a query param and is verified here. The user id is DERIVED from
+#the verified token: this used to take a raw sequential user_id from the path, so
+#anyone could connect as user 1, 2, 3... and read their live messages.
+@app.websocket("/ws/chat")
+async def websocket_endpoint(websocket: WebSocket, token: str):
+    uid = uid_from_token(token)
+    if uid is None:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
+    #resolve the caller's own row once, at connect time
+    db: Session = SessionLocal()
+    try:
+        me = db.query(models.User).filter(models.User.firebase_token == uid).first()
+        user_id = me.id if me else None
+    finally:
+        db.close()
+
+    if user_id is None:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
     # 1. Open the tunnel
     await manager.connect(websocket, user_id)
-    
+
     try:
         while True:
             # 2. Wait indefinitely for a message from this user
             data = await websocket.receive_text()
             message_payload = json.loads(data)
-            
-            
-            db: Session = SessionLocal()
-            try: 
-                me = db.query(models.User).filter(models.User.id == user_id).first()
-                if not me:
-                    raise HTTPException(status_code=404, detail="Current User not found")
 
+            db: Session = SessionLocal()
+            try:
                 match_id = message_payload.get("match_id")
                 receiver_id = message_payload.get("to_user")
 
@@ -803,8 +855,9 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
                 #the REST /messages/store endpoint the client also calls, so we
                 #must NOT insert again or every message ends up stored twice.
                 match = db.query(models.Matches).filter(models.Matches.id == match_id).first()
-                if match and (match.user_a_id == me.id or match.user_b_id == me.id):
-                    message_payload["sender"] = me.id
+                if match and (match.user_a_id == user_id or match.user_b_id == user_id):
+                    #sender is the verified user, never whatever the client claims
+                    message_payload["sender"] = user_id
                     await manager.send_personal_message(message_payload, receiver_id)
             except Exception as e:
                 print(e)

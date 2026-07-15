@@ -26,7 +26,9 @@ class MessagesPage extends StatefulWidget {
 }
 
 class _MessagesPages extends State<MessagesPage> {
-  late WebSocketChannel _channel;
+  //nullable now: connecting needs an await (fetching the auth token), so the
+  //socket isn't available synchronously from initState any more
+  WebSocketChannel? _channel;
   final TextEditingController _controller = TextEditingController();
   late final texts = AppLocalizations.of(context)!;
   List<MessageModel> messages = [];
@@ -35,15 +37,27 @@ class _MessagesPages extends State<MessagesPage> {
   initState() {
     super.initState();
     _loadMessages();
-    //where the connection happens
-    _channel = WebSocketChannel.connect(
+    _connectSocket();
+  }
+
+  //The chat socket authenticates with the Firebase ID token. Flutter's WebSocket
+  //client can't set an Authorization header, so it goes in the query string and
+  //the backend verifies it there. The server derives the user from that verified
+  //token — it no longer trusts a user id passed in the URL (which used to let
+  //anyone connect as any user and read their messages).
+  Future<void> _connectSocket() async {
+    final token = await FirebaseAuth.instance.currentUser?.getIdToken();
+    if (token == null || !mounted) return;
+
+    final channel = WebSocketChannel.connect(
       Uri.parse(
-        '${ApiService.wsBaseUrl}/ws/chat/${Provider.of<ProfileProvider>(context, listen: false).currentUser!.id!}',
+        '${ApiService.wsBaseUrl}/ws/chat?token=${Uri.encodeComponent(token)}',
       ),
     );
+    _channel = channel;
 
     //get the json from the socket and convert it to add to messages
-    _channel.stream.listen((incomingData) {
+    channel.stream.listen((incomingData) {
       final data = jsonDecode(incomingData);
       if(!mounted)return;
       final MessageModel decodedMessage = MessageModel.fromJson(data, Provider.of<ProfileProvider>(context, listen: false).currentUser!.id!);
@@ -58,7 +72,8 @@ class _MessagesPages extends State<MessagesPage> {
 
   @override
   dispose() {
-    _channel.sink.close();
+    //may be null if we left before the socket finished connecting
+    _channel?.sink.close();
     _controller.dispose();
     super.dispose();
   }
@@ -93,8 +108,10 @@ class _MessagesPages extends State<MessagesPage> {
 
     final messagePayload = {"match_id": widget.match.matchId, "to_user": widget.match.userBid, "content": text};
 
-    //send the json message to the socket (for the other user to receive)
-    _channel.sink.add(jsonEncode(messagePayload));
+    //send the json message to the socket (for the other user to receive).
+    //If the socket isn't up yet the message is still persisted below via the
+    //REST call, so it isn't lost — the peer just won't see it live.
+    _channel?.sink.add(jsonEncode(messagePayload));
 
     final message = MessageModel(
       matchId: widget.match.matchId,

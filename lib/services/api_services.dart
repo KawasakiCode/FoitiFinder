@@ -11,6 +11,7 @@ import 'package:foitifinder/models/settings_model.dart';
 import 'package:foitifinder/models/user_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 class ApiService {
@@ -37,6 +38,26 @@ class ApiService {
     return 'ws://127.0.0.1:8000';
   }
 
+  /// Auth headers for every backend call.
+  ///
+  /// The backend derives WHO is calling from this Firebase ID token — a JWT
+  /// signed by Google — and no longer trusts any uid we put in a path or body.
+  /// That's what stops anyone from acting as anyone else just by knowing a uid.
+  ///
+  /// `getIdToken()` returns the cached token and refreshes it automatically once
+  /// it expires (~1h), so calling this per request is both safe and cheap.
+  ///
+  /// NOTE: several methods below still take a `uid` argument. Those are now
+  /// vestigial (identity comes from the token) and kept only to avoid churning
+  /// every call site in this change — they're safe to remove in a later pass.
+  static Future<Map<String, String>> _authHeaders() async {
+    final token = await FirebaseAuth.instance.currentUser?.getIdToken();
+    return {
+      "Content-Type": "application/json",
+      if (token != null) "Authorization": "Bearer $token",
+    };
+  }
+
   //Create new user (only runs on sign up)
   static Future<void> createUser({
     required String uid,
@@ -61,11 +82,8 @@ class ApiService {
     try {
       final response = await http.post(
         url,
-        headers: {
-          "Content-Type": "application/json", 
-        },
+        headers: await _authHeaders(),
         body: jsonEncode({
-          "firebase_token": uid,
           "username": username,
           "full_name": fullName,
           "has_finished_set_up": hasFinishedSetUp,
@@ -108,7 +126,7 @@ class ApiService {
     String? interests,
     bool? hasPhotos
   }) async {
-    final url = Uri.parse('$baseUrl/users/$uid');
+    final url = Uri.parse('$baseUrl/users/me');
 
     final Map<String, dynamic> data = {};
 
@@ -134,9 +152,9 @@ class ApiService {
     if(data.isEmpty)return;
 
     try {
-      final response = await http.patch(  
+      final response = await http.patch(
         url,
-        headers: {"Content-type": "application/json"},
+        headers: await _authHeaders(),
         body: jsonEncode(data),
       );
       if(response.statusCode != 200) {
@@ -149,9 +167,9 @@ class ApiService {
 
   //Get users data back
   static Future<UserModel?> getUserData(String uid) async {
-    final url = Uri.parse('$baseUrl/users/$uid');
+    final url = Uri.parse('$baseUrl/users/me');
     try {
-      final response = await http.get(url);
+      final response = await http.get(url, headers: await _authHeaders());
 
       if(response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
@@ -174,10 +192,12 @@ class ApiService {
   //link-time check still catches a real collision.
   static Future<bool> isPhoneInUse(String phoneNumber, String uid) async {
     final url = Uri.parse(
-      '$baseUrl/auth/phone-in-use?phone_number=${Uri.encodeComponent(phoneNumber)}&firebase_token=${Uri.encodeComponent(uid)}',
+      '$baseUrl/auth/phone-in-use?phone_number=${Uri.encodeComponent(phoneNumber)}',
     );
     try {
-      final response = await http.get(url).timeout(const Duration(seconds: 8));
+      final response = await http
+          .get(url, headers: await _authHeaders())
+          .timeout(const Duration(seconds: 8));
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
         return data['in_use'] == true;
@@ -196,7 +216,7 @@ class ApiService {
     bool? isMessageNotificationsOn,
     String? language,
   }) async {
-    final url =  Uri.parse('$baseUrl/users/settings/$uid');
+    final url =  Uri.parse('$baseUrl/users/settings');
 
     final Map<String, dynamic> data = {};
       if (isDarkMode  != null) data['is_dark_mode'] = isDarkMode;
@@ -207,9 +227,9 @@ class ApiService {
     if(data.isEmpty)return;
 
     try {
-      final response =  await http.patch( 
+      final response =  await http.patch(
         url,
-        headers: {"Content-type": "application/json"},
+        headers: await _authHeaders(),
         body: jsonEncode(data),
       );
       if(response.statusCode != 200) {
@@ -222,9 +242,9 @@ class ApiService {
 
   //Get user's settings back
   static Future<SettingsModel> getUsersSettings(String uid) async {
-    final url = Uri.parse("$baseUrl/users/settings/$uid");
+    final url = Uri.parse("$baseUrl/users/settings");
     try {
-      final response = await http.get(url);
+      final response = await http.get(url, headers: await _authHeaders());
 
       if(response.statusCode == 200) {
         final Map<String, dynamic> settings = jsonDecode(response.body);
@@ -240,9 +260,9 @@ class ApiService {
 
   //Get multiple users to display as cards
   static Future<List<CardData>> getMultipleUsers(String uid) async {
-    final url = Uri.parse("$baseUrl/users/feed/$uid");
+    final url = Uri.parse("$baseUrl/users/feed");
     try {
-      final response = await http.get(url);
+      final response = await http.get(url, headers: await _authHeaders());
 
       if(response.statusCode == 200) {
         final List<dynamic> body = jsonDecode(response.body);
@@ -261,10 +281,10 @@ class ApiService {
   static Future<List<MatchModel>> getMatches({
     required String uid,
   }) async {
-    final url = Uri.parse("$baseUrl/matches/$uid");
-    
+    final url = Uri.parse("$baseUrl/matches");
+
     try {
-      final response = await http.get(url);
+      final response = await http.get(url, headers: await _authHeaders());
 
       if(response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
@@ -288,11 +308,8 @@ class ApiService {
 
     try {
       final response = await http.post(url,
-        headers: {
-            "Content-Type": "application/json", 
-          },
+        headers: await _authHeaders(),
         body: jsonEncode({
-          "firebase_token": uid,
           "match_id": matchId,
           "content": content,
         }),
@@ -309,10 +326,10 @@ class ApiService {
 
   //Get all messages from a conversation in reverse chronological order (last to first)
   static Future<List<MessageModel>> getMessages(String uid, int myUserId, int matchId) async {
-    final url = Uri.parse("$baseUrl/messages/$matchId?firebase_token=$uid");
+    final url = Uri.parse("$baseUrl/messages/$matchId");
 
     try {
-      final response = await http.get(url);
+      final response = await http.get(url, headers: await _authHeaders());
 
       if(response.statusCode == 200) {
         List<dynamic> data = jsonDecode(response.body);
@@ -327,10 +344,10 @@ class ApiService {
 
   //Get all likes 
   static Future<List<LikerModel>> getLikes(String uid) async {
-    final url = Uri.parse("$baseUrl/likes/$uid");
+    final url = Uri.parse("$baseUrl/likes");
 
     try {
-      final response = await http.get(url);
+      final response = await http.get(url, headers: await _authHeaders());
 
       if(response.statusCode == 200) {
         List<dynamic> data = jsonDecode(response.body);
@@ -346,10 +363,10 @@ class ApiService {
 
   //Get user photos
   static Future<List<PhotosModel>> getPhotos(String uid) async {
-    final url = Uri.parse("$baseUrl/photos/$uid");
+    final url = Uri.parse("$baseUrl/photos");
 
     try {
-      final response = await http.get(url);
+      final response = await http.get(url, headers: await _authHeaders());
 
       if(response.statusCode == 200) {
         List<dynamic> data = jsonDecode(response.body);
@@ -373,9 +390,8 @@ class ApiService {
 
     try {
       final response = await http.post(url,
-      headers: {"Content-Type": "application/json"},
+      headers: await _authHeaders(),
       body: jsonEncode({
-        "firebase_token": uid,
         "photo_url": photoUrl,
         "display_order": displayOrder,
       })
@@ -402,9 +418,8 @@ class ApiService {
     try {
       final response = await http.put(
         url,
-        headers: {"Content-Type": "application/json"},
+        headers: await _authHeaders(),
         body: jsonEncode({
-          "firebase_token": uid,
           "photo_urls": photoUrls,
         }),
       );
@@ -436,10 +451,9 @@ class ApiService {
     final url = Uri.parse("$baseUrl/swipes");
 
     try {
-      final response = await http.post(url,  
-      headers: {"Content-Type": "application/json"},
+      final response = await http.post(url,
+      headers: await _authHeaders(),
       body: jsonEncode({
-        "firebase_uid": uid,
         "target_id": otherUserId,
         "action": action,
       }));
@@ -460,7 +474,7 @@ class ApiService {
     final url = Uri.parse("$baseUrl/single/user/$userId");
 
     try {
-      final response = await http.get(url);
+      final response = await http.get(url, headers: await _authHeaders());
 
       if(response.statusCode == 200) {
         Map<String, dynamic> data = jsonDecode(response.body);
@@ -477,10 +491,10 @@ class ApiService {
 
   //Get new matches
   static Future<List<MatchModel>> getNewMatches(String uid) async {
-    final url = Uri.parse("$baseUrl/matches/unseen?firebase_token=$uid");
+    final url = Uri.parse("$baseUrl/matches/unseen");
 
     try {
-      final response = await http.get(url);
+      final response = await http.get(url, headers: await _authHeaders());
 
       if(response.statusCode == 200) {
         List<dynamic> data = jsonDecode(response.body);
@@ -496,10 +510,10 @@ class ApiService {
 
   //Update match as seen
   static Future<void> updateMatchSeen(int matchId, String uid) async {
-    final url = Uri.parse("$baseUrl/matches/seen/$matchId?firebase_token=$uid");
+    final url = Uri.parse("$baseUrl/matches/seen/$matchId");
 
     try {
-      final response = await http.patch(url);
+      final response = await http.patch(url, headers: await _authHeaders());
 
       if(response.statusCode != 200) {
         throw Exception("Failed to update match seen: ${response.body}");
@@ -511,10 +525,10 @@ class ApiService {
 
   //Give score to a user
   static Future<void> giveUserScore(String uid) async {
-    final url = Uri.parse("$baseUrl/users/$uid/calculate-rating");
+    final url = Uri.parse("$baseUrl/users/me/calculate-rating");
 
     try {
-      final response = await http.post(url);
+      final response = await http.post(url, headers: await _authHeaders());
 
       if(response.statusCode != 200) {
         throw Exception("Failed to give user a score: ${response.body}");
