@@ -439,4 +439,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get noLikes => 'Τα like σου θα εμφανίζονται εδώ';
+
+  @override
+  String get notSupportedDomain => 'Μόνο ακαδημαικά email επιτρέπονται';
 }

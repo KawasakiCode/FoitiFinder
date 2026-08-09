@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:foitifinder/constants/university_domains.dart';
 import 'package:foitifinder/debug_flags.dart';
 import 'package:foitifinder/main_screen.dart';
 import 'package:foitifinder/pages/sign_up_set_up/add_photos.dart';
@@ -126,6 +127,22 @@ class _SignUpPageState extends State<SignUpPage> {
           backgroundColor: Colors.red,
           duration: Duration(seconds: 3),
         ),
+      );
+      return;
+    }
+
+    // Check email for correct domain
+    String domain = email.split('@').last.toLowerCase().trim();
+    bool isAllowed(String domain) => 
+      kUniversityDomains.any((d) => domain == d || domain.endsWith('.$d'));
+
+    if (!isAllowed(domain)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(  
+          content: Text(text.notSupportedDomain),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        )
       );
       return;
     }

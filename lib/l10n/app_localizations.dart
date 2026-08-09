@@ -895,6 +895,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your likes will appear here'**
   String get noLikes;
+
+  /// No description provided for @notSupportedDomain.
+  ///
+  /// In en, this message translates to:
+  /// **'Only university emails are allowed'**
+  String get notSupportedDomain;
 }
 
 class _AppLocalizationsDelegate

@@ -431,4 +431,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noLikes => 'Your likes will appear here';
+
+  @override
+  String get notSupportedDomain => 'Only university emails are allowed';
 }
