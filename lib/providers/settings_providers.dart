@@ -26,7 +26,6 @@ class SettingsProvider extends ChangeNotifier {
   //State variables (private)
   ThemeMode _themeMode = ThemeMode.light;
   bool _likeNotificationsEnabled = false;
-  bool _messageNotificationsEnabled = false;
   Set<String> _interests = {};
   RangeValues _ageRange = RangeValues(0, 0);
   bool _showOutOfRange = false;
@@ -38,7 +37,6 @@ class SettingsProvider extends ChangeNotifier {
   //Getters
   ThemeMode get themeMode => _themeMode;
   bool get likeNotificationsEnabled => _likeNotificationsEnabled;
-  bool get messageNotificationsEnabled => _messageNotificationsEnabled;
   Set<String> get interests => _interests;
   RangeValues get ageRange => _ageRange;
   bool get showOutOfRange => _showOutOfRange;
@@ -53,7 +51,6 @@ class SettingsProvider extends ChangeNotifier {
     //the app flash/stick in light mode for users who actually had dark on.
     _themeMode = (_prefs.getBool('isDark') ?? true) ? ThemeMode.dark : ThemeMode.light;
     _likeNotificationsEnabled = (_prefs.getBool('like_notifications_enabled') ?? false) ? true : false;
-    _messageNotificationsEnabled = (_prefs.getBool('message_notifications_enabled') ?? false) ? true : false;
     _locale = _prefs.getString('language') == 'en' ? Locale('en') : Locale('el');
     _ageRange = RangeValues(18, 30);
     _interests = {};
@@ -150,42 +147,28 @@ class SettingsProvider extends ChangeNotifier {
 
     //Notifications
     bool likePushNotifications;
-    bool messagePushNotifications;
     if(_prefs.getBool('like_notifications_enabled') == null) {
       //Does the os give permission?
       bool osPermission = await checkNotificationPermission();
       _osPermission = osPermission;
       //If os and db return true then enable notifications else keep false
-      if(osPermission && data.isLikeNotificationsOn! && data.isMessageNotificationsOn!) {
+      if(osPermission && data.isLikeNotificationsOn!) {
         likePushNotifications = true;
-        messagePushNotifications = true;
         _prefs.setBool('like_notifications_enabled', true);
-        _prefs.setBool('message_notifications_enabled', true);
-      }
-      else if(osPermission && data.isMessageNotificationsOn! && !data.isLikeNotificationsOn!) {
-        messagePushNotifications = true;
-        likePushNotifications = false;
-        _prefs.setBool('message_notifications_enabled', true);
-        _prefs.setBool('like_notifications_enabled', false);
       }
       else {
         likePushNotifications = false;
-        messagePushNotifications = false;
         _prefs.setBool('like_notifications_enabled', false);
-        _prefs.setBool('message_notifications_enabled', false);
       }
     }
     else {
       _osPermission = await checkNotificationPermission();
       if(_osPermission) {
         likePushNotifications = _prefs.getBool('like_notifications_enabled') ?? false;
-        messagePushNotifications = _prefs.getBool('message_notifications_enabled') ?? false;
       }
       else {
         likePushNotifications = false;
-        messagePushNotifications = false;
       }
-      
     }
     //Firebase code to give permission for push notifications
     try{
@@ -195,16 +178,11 @@ class SettingsProvider extends ChangeNotifier {
       if(settings.authorizationStatus == AuthorizationStatus.authorized && likePushNotifications) {
         _likeNotificationsEnabled = true;
       }
-      else if(settings.authorizationStatus == AuthorizationStatus.authorized && messagePushNotifications) {
-        _messageNotificationsEnabled = true;
-      }
       else {
         _likeNotificationsEnabled = false;
-        _messageNotificationsEnabled = false;
       }
     } catch (e) {
       _likeNotificationsEnabled = false;
-      _messageNotificationsEnabled = false;
     }
 
     notifyListeners();
@@ -265,33 +243,6 @@ class SettingsProvider extends ChangeNotifier {
 
     // Sync with Database
     await ApiService.updateUsersSettings(uid: FirebaseAuth.instance.currentUser!.uid, isLikeNotificationsOn: _likeNotificationsEnabled);
-  }
-
-  //Toggle message notifications
-  Future<void> toggleMessageNotifications(bool value) async {
-    // If turning ON, we must check OS permission first
-    if (value == true) {
-      bool hasPermission = await _ensureOsPermission();
-      if (!hasPermission) {
-        _messageNotificationsEnabled = false;
-        notifyListeners();
-        return;
-      }
-    }
-
-    // Update the specific variable
-    _messageNotificationsEnabled = value;
-    notifyListeners();
-
-    final uid = FirebaseAuth.instance.currentUser!.uid;
-    await FirebaseFirestore.instance.collection('users').doc(uid).update({
-      'message_notifications': _messageNotificationsEnabled,
-    });
-    // Save to local prefs
-    await _prefs.setBool('message_notifications_enabled', value);
-
-    // Sync with Database
-    await ApiService.updateUsersSettings(uid: FirebaseAuth.instance.currentUser!.uid, isMessageNotificationsOn: _messageNotificationsEnabled);
   }
 
   //Add or remove interests

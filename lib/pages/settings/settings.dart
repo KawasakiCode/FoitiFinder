@@ -637,63 +637,6 @@ class _SettingsPageState extends State<SettingsPage>
                   ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding: const EdgeInsets.only(left: 10, right: 10),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            text.messageNotifications,
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          Transform.scale(
-                            scale: 1,
-                            child: Switch(
-                              value: settings.messageNotificationsEnabled,
-                              onChanged: (bool enabled) async {
-                                await settings.toggleMessageNotifications(enabled);
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (!settings.osPermission)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 5),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.info_outline,
-                                size: 16,
-                                color: Colors.orange,
-                              ),
-                              Expanded(
-                                child: Text(
-                                  text.notificationsWarning,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
               //Language
               Align(
                 alignment: Alignment.centerLeft,

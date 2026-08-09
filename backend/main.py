@@ -85,7 +85,7 @@ class UserCards(BaseModel):
     class Config:
         from_attributes = True
 
-#class that sends the match data (chat removed — no last_message any more)
+#class that sends the match data
 class MatchResponse(BaseModel):
     match_id: int
     other_user_id: int
@@ -137,7 +137,6 @@ def create_user(user: schemas.UserCreate, uid: str = Depends(current_uid), db: S
             user_id=new_user.id,
             is_dark_mode=True,
             is_like_notifications_on=False,
-            is_message_notifications_on=False,
             language='el'
         )
 
@@ -550,10 +549,10 @@ def record_swipe(swipe: SwipeRequest, uid: str = Depends(current_uid), db: Sessi
 
             if target_fcm_token:
                 if is_match:
-                    notify_user_of_like_or_match_or_message(target_fcm_token, 'match')
+                    notify_user_of_like_or_match(target_fcm_token, 'match')
                     send_smart_notification(target_user.firebase_token, 'match', firestore_db)
                 elif not is_match:
-                    notify_user_of_like_or_match_or_message(target_fcm_token, 'like')
+                    notify_user_of_like_or_match(target_fcm_token, 'like')
                     send_smart_notification(target_user.firebase_token, 'like', firestore_db)
                 else: 
                     raise HTTPException(status_code=404, detail="Target User not found")
@@ -604,21 +603,12 @@ def update_match_seen(match_id: int, uid: str = Depends(current_uid), db: Sessio
     db.commit()
     return {"message": "Match seen updated"}
 
-def notify_user_of_like_or_match_or_message(target_user_firebase_token: str, caller: str):
+def notify_user_of_like_or_match(target_user_firebase_token: str, caller: str):
     #Make a data message not a notification
     if caller == "like":
-        message = messaging.Message(  
-            data = {
-                'type': 'new_like',
-                'count': '1',
-                'click_action': 'FLUTTER_NOTIFICATION_CLICK'
-            },
-            token = target_user_firebase_token
-        )
-    elif caller == "message":
         message = messaging.Message(
             data = {
-                'type': 'new_message',
+                'type': 'new_like',
                 'count': '1',
                 'click_action': 'FLUTTER_NOTIFICATION_CLICK'
             },

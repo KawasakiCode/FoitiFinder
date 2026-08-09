@@ -57,7 +57,6 @@ class Settings(Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), unique = True, nullable = False)
     is_dark_mode = Column(Boolean, nullable = False, default=False)
     is_like_notifications_on = Column(Boolean, nullable = False, default=False)
-    is_message_notifications_on = Column(Boolean, nullable = False, default=False)
     language = Column(String, nullable = False, default="en")
 
     user = relationship("User", back_populates="settings")

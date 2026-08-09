@@ -1,4 +1,4 @@
-#File that handles sending notifications about messages or like
+#File that handles sending notifications about likes and matches
 
 from firebase_admin import messaging, firestore
 
@@ -28,15 +28,10 @@ def send_smart_notification(target_uid: str, notification_type: str, db_firestor
     
 
     like_notifications = user_data.get('like_notifications', True)
-    message_notifications = user_data.get('message_notifications', True)
 
-    #Map each category to the toggle that governs it: likes and matches are
-    #gated by the like toggle, messages by the message toggle. (Previously a
-    #message could be sent based on the like setting, and vice versa.)
+    #Likes and matches are gated by the like toggle.
     if notification_type in ('like', 'match'):
         should_send = like_notifications
-    elif notification_type == 'message':
-        should_send = message_notifications
     else:
         should_send = False
 
@@ -52,10 +47,6 @@ def send_smart_notification(target_uid: str, notification_type: str, db_firestor
         'match': {
             'title': "It's a Match!",
             'body': 'You have a new match. Say hi!'
-        },
-        'message': {
-            'title': 'New Message',
-            'body': 'You received a new message. Tap to reply.'
     }}
 
 

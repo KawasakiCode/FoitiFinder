@@ -15,15 +15,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get account => 'Ρυθμίσεις Λογαριασμού';
 
   @override
-  String get phoneNumber => 'Αριθμός Τηλεφώνου';
-
-  @override
-  String get phoneVerified => 'Επαληθευμένος Αριθμός';
-
-  @override
-  String get phoneNotVerified => 'Μη Επαληθευμένος Αριθμός';
-
-  @override
   String get discovery => 'Ρυθμίσεις Ανακάλυψης';
 
   @override
@@ -124,53 +115,7 @@ class AppLocalizationsEl extends AppLocalizations {
       'Βρείτε άτομα με παρόμοιους στόχους ζωής και χόμπι';
 
   @override
-  String get newMatches => 'Νέα Ταιριάσματα';
-
-  @override
-  String get messages => 'Μηνύματα';
-
-  @override
   String get editProfile => 'Επεξεργασία Προφίλ';
-
-  @override
-  String get phoneNumberSettings => 'Ρυθμίσεις Αριθμού Τηλεφώνου';
-
-  @override
-  String get phoneNumberPlaceholder => 'Εισάγετε Αριθμό Τηλεφώνου';
-
-  @override
-  String get updatePhoneNumber => 'Ενημέρωση Αριθμού Τηλεφώνου';
-
-  @override
-  String get snackbarNonValidPhoneNumber =>
-      'Εισάγετε έναν έγκυρο τηλεφωνικό αριθμό 69xxxxxxxx';
-
-  @override
-  String get snackbarVerified => 'Το τηλέφωνο επαληθεύτηκε';
-
-  @override
-  String get snackbarCodeExpired => 'Ο κωδικός έληξε';
-
-  @override
-  String get snackbarVerifyFailed =>
-      'Απέτυχε η επαλήθευση του αριθμού. Επικοινωνήστε με την υποστήριξη';
-
-  @override
-  String get verifyPhoneNumber => 'Επαλήθευση Αριθμού';
-
-  @override
-  String get enterCode =>
-      'Εισάγετε τον κωδικό επαλήθευσης που στάλθηκε στο κινητό σας';
-
-  @override
-  String get verify => 'Επαλήθευση';
-
-  @override
-  String get codeLessThan6 => 'Εισάγετε τον πλήρη 6ψήφιο κωδικό';
-
-  @override
-  String get invalidCode =>
-      'Μη έγκυρος κωδικός ή παρουσιάστηκε σφάλμα. Παρακαλώ δοκιμάστε ξανά';
 
   @override
   String get interestedIn => 'Ενδιαφέρομαι για';
@@ -410,16 +355,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get addPhotoText => 'Πρόσθεσε τουλάχιστον μία φωτογραφία';
 
   @override
-  String get message => 'Μήνυμα...';
-
-  @override
-  String get failedToSendMessage => 'Αποτυχία αποστολής';
-
-  @override
   String get noMatches => 'Δεν έχεις νέα ταιριάσματα';
-
-  @override
-  String get noMessages => 'Δεν έχεις μηνύματα ακόμα';
 
   @override
   String get itsAMatch => 'Είναι Match!';
@@ -429,12 +365,6 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get matchText2 => ' αρέσετε ο ένας στον άλλον!';
-
-  @override
-  String get enterOtpCode => 'Εισήγαγε τον 6ψήφιο κωδικό';
-
-  @override
-  String get invalidOtpCode => 'Λάθος κωδικός ή σφάλμα. Προσπάθησε ξανά';
 
   @override
   String get uploadPhotos => 'Ανέβασε Φωτογραφίες';
@@ -466,9 +396,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get mailAlreadyVerified => 'Το email σου έχει ήδη επαληθευτεί';
 
   @override
-  String get messageNotifications => 'Ειδοποιήσεις μηνυμάτων';
-
-  @override
   String get likeNotifications => 'Ειδοποιήσεις για Like & Match';
 
   @override
@@ -492,24 +419,10 @@ class AppLocalizationsEl extends AppLocalizations {
       'Το ονοματεπώνυμο μπορεί να περιέχει μόνο γράμματα, κενά, παύλες και αποστρόφους και να ξεκινάει με γράμμα';
 
   @override
-  String get phoneAlreadyInUse =>
-      'Αυτό το τηλέφωνο είναι ήδη συνδεδεμένο με άλλον λογαριασμό. Δοκιμάστε να συνδεθείτε';
-
-  @override
-  String get newCodeSent => 'Νέος κωδικός στάλθηκε';
-
-  @override
-  String get resendCode => 'Επαναποστολή κωδικού';
-
-  @override
   String get resendIn => 'Επαναποστολή σε';
 
   @override
   String get requestTimedOut => 'Το αίτημα έληξε. Παρακαλώ δοκιμάστε ξανά';
-
-  @override
-  String get numberAlreadyLinked =>
-      'Αυτός ο αριθμός είναι ήδη συνδεδεμένος με αυτόν τον λογαργιασμό';
 
   @override
   String get backOnline => 'Είστε ξανά σε σύνδεση';

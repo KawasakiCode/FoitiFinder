@@ -96,8 +96,7 @@ class _MainScreenState extends State<MainScreen> {
           .set({  
             'fcm_token': token,
             'last_active': FieldValue.serverTimestamp(),
-            'like_notifications': settings.likeNotificationsEnabled,
-            'message_notifications': settings.messageNotificationsEnabled
+            'like_notifications': settings.likeNotificationsEnabled
           }, SetOptions(merge: true));
       }
     }

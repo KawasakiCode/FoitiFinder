@@ -15,15 +15,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get account => 'Account Settings';
 
   @override
-  String get phoneNumber => 'Phone Number';
-
-  @override
-  String get phoneVerified => 'Phone Number Verified';
-
-  @override
-  String get phoneNotVerified => 'Unverified Phone Number';
-
-  @override
   String get discovery => 'Discovery Settings';
 
   @override
@@ -124,53 +115,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Find people with similar life goals and hobbies';
 
   @override
-  String get newMatches => 'New Matches';
-
-  @override
-  String get messages => 'Messages';
-
-  @override
   String get editProfile => 'Edit Profile';
-
-  @override
-  String get phoneNumberSettings => 'Phone Number Settings';
-
-  @override
-  String get phoneNumberPlaceholder => 'Enter Phone Number';
-
-  @override
-  String get updatePhoneNumber => 'Update My Phone Number';
-
-  @override
-  String get snackbarNonValidPhoneNumber =>
-      'Enter a valid phone number 69xxxxxxxx';
-
-  @override
-  String get snackbarVerified => 'Phone Verified';
-
-  @override
-  String get snackbarCodeExpired => 'Code expired';
-
-  @override
-  String get snackbarVerifyFailed =>
-      'Failed to verify phone number. Please contact support';
-
-  @override
-  String get verifyPhoneNumber => 'Verify Phone Number';
-
-  @override
-  String get enterCode =>
-      'Enter the verification code sent to your phone number';
-
-  @override
-  String get verify => 'Verify';
-
-  @override
-  String get codeLessThan6 => 'Enter the full 6-digit code';
-
-  @override
-  String get invalidCode =>
-      'Invalid code or an error occured. Please try again';
 
   @override
   String get interestedIn => 'Interested In';
@@ -404,16 +349,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addPhotoText => 'Please add at least one photo';
 
   @override
-  String get message => 'Message...';
-
-  @override
-  String get failedToSendMessage => 'Failed to send message';
-
-  @override
   String get noMatches => 'You have no new matches';
-
-  @override
-  String get noMessages => 'You have no messages yet';
 
   @override
   String get itsAMatch => 'It\'s a match!';
@@ -423,13 +359,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get matchText2 => ' liked each other!';
-
-  @override
-  String get enterOtpCode => 'Enter the full 6-digit code';
-
-  @override
-  String get invalidOtpCode =>
-      'Invalid code or an error occured. Please try again';
 
   @override
   String get uploadPhotos => 'Upload Your Photos';
@@ -459,9 +388,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mailAlreadyVerified => 'Your email is already verified';
 
   @override
-  String get messageNotifications => 'Message Notifications';
-
-  @override
   String get likeNotifications => 'Like and Match Notifications';
 
   @override
@@ -485,24 +411,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Full Names can only contain letters, spaces, dashes and apostrophes and begin with a letter';
 
   @override
-  String get phoneAlreadyInUse =>
-      'This phone is already linked with another account. Try to login';
-
-  @override
-  String get newCodeSent => 'New code sent';
-
-  @override
-  String get resendCode => 'Resend Code';
-
-  @override
   String get resendIn => 'Resend in';
 
   @override
   String get requestTimedOut => 'Request timed out. Please try again';
-
-  @override
-  String get numberAlreadyLinked =>
-      'This number is already linked to your account';
 
   @override
   String get backOnline => 'You are back online';

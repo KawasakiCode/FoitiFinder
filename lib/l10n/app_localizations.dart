@@ -110,24 +110,6 @@ abstract class AppLocalizations {
   /// **'Account Settings'**
   String get account;
 
-  /// No description provided for @phoneNumber.
-  ///
-  /// In en, this message translates to:
-  /// **'Phone Number'**
-  String get phoneNumber;
-
-  /// No description provided for @phoneVerified.
-  ///
-  /// In en, this message translates to:
-  /// **'Phone Number Verified'**
-  String get phoneVerified;
-
-  /// No description provided for @phoneNotVerified.
-  ///
-  /// In en, this message translates to:
-  /// **'Unverified Phone Number'**
-  String get phoneNotVerified;
-
   /// No description provided for @discovery.
   ///
   /// In en, this message translates to:
@@ -326,95 +308,11 @@ abstract class AppLocalizations {
   /// **'Find people with similar life goals and hobbies'**
   String get similarPlansText;
 
-  /// No description provided for @newMatches.
-  ///
-  /// In en, this message translates to:
-  /// **'New Matches'**
-  String get newMatches;
-
-  /// No description provided for @messages.
-  ///
-  /// In en, this message translates to:
-  /// **'Messages'**
-  String get messages;
-
   /// No description provided for @editProfile.
   ///
   /// In en, this message translates to:
   /// **'Edit Profile'**
   String get editProfile;
-
-  /// No description provided for @phoneNumberSettings.
-  ///
-  /// In en, this message translates to:
-  /// **'Phone Number Settings'**
-  String get phoneNumberSettings;
-
-  /// No description provided for @phoneNumberPlaceholder.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter Phone Number'**
-  String get phoneNumberPlaceholder;
-
-  /// No description provided for @updatePhoneNumber.
-  ///
-  /// In en, this message translates to:
-  /// **'Update My Phone Number'**
-  String get updatePhoneNumber;
-
-  /// No description provided for @snackbarNonValidPhoneNumber.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter a valid phone number 69xxxxxxxx'**
-  String get snackbarNonValidPhoneNumber;
-
-  /// No description provided for @snackbarVerified.
-  ///
-  /// In en, this message translates to:
-  /// **'Phone Verified'**
-  String get snackbarVerified;
-
-  /// No description provided for @snackbarCodeExpired.
-  ///
-  /// In en, this message translates to:
-  /// **'Code expired'**
-  String get snackbarCodeExpired;
-
-  /// No description provided for @snackbarVerifyFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to verify phone number. Please contact support'**
-  String get snackbarVerifyFailed;
-
-  /// No description provided for @verifyPhoneNumber.
-  ///
-  /// In en, this message translates to:
-  /// **'Verify Phone Number'**
-  String get verifyPhoneNumber;
-
-  /// No description provided for @enterCode.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter the verification code sent to your phone number'**
-  String get enterCode;
-
-  /// No description provided for @verify.
-  ///
-  /// In en, this message translates to:
-  /// **'Verify'**
-  String get verify;
-
-  /// No description provided for @codeLessThan6.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter the full 6-digit code'**
-  String get codeLessThan6;
-
-  /// No description provided for @invalidCode.
-  ///
-  /// In en, this message translates to:
-  /// **'Invalid code or an error occured. Please try again'**
-  String get invalidCode;
 
   /// No description provided for @interestedIn.
   ///
@@ -836,29 +734,11 @@ abstract class AppLocalizations {
   /// **'Please add at least one photo'**
   String get addPhotoText;
 
-  /// No description provided for @message.
-  ///
-  /// In en, this message translates to:
-  /// **'Message...'**
-  String get message;
-
-  /// No description provided for @failedToSendMessage.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to send message'**
-  String get failedToSendMessage;
-
   /// No description provided for @noMatches.
   ///
   /// In en, this message translates to:
   /// **'You have no new matches'**
   String get noMatches;
-
-  /// No description provided for @noMessages.
-  ///
-  /// In en, this message translates to:
-  /// **'You have no messages yet'**
-  String get noMessages;
 
   /// No description provided for @itsAMatch.
   ///
@@ -877,18 +757,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **' liked each other!'**
   String get matchText2;
-
-  /// No description provided for @enterOtpCode.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter the full 6-digit code'**
-  String get enterOtpCode;
-
-  /// No description provided for @invalidOtpCode.
-  ///
-  /// In en, this message translates to:
-  /// **'Invalid code or an error occured. Please try again'**
-  String get invalidOtpCode;
 
   /// No description provided for @uploadPhotos.
   ///
@@ -944,12 +812,6 @@ abstract class AppLocalizations {
   /// **'Your email is already verified'**
   String get mailAlreadyVerified;
 
-  /// No description provided for @messageNotifications.
-  ///
-  /// In en, this message translates to:
-  /// **'Message Notifications'**
-  String get messageNotifications;
-
   /// No description provided for @likeNotifications.
   ///
   /// In en, this message translates to:
@@ -992,24 +854,6 @@ abstract class AppLocalizations {
   /// **'Full Names can only contain letters, spaces, dashes and apostrophes and begin with a letter'**
   String get fullNameRestriction;
 
-  /// No description provided for @phoneAlreadyInUse.
-  ///
-  /// In en, this message translates to:
-  /// **'This phone is already linked with another account. Try to login'**
-  String get phoneAlreadyInUse;
-
-  /// No description provided for @newCodeSent.
-  ///
-  /// In en, this message translates to:
-  /// **'New code sent'**
-  String get newCodeSent;
-
-  /// No description provided for @resendCode.
-  ///
-  /// In en, this message translates to:
-  /// **'Resend Code'**
-  String get resendCode;
-
   /// No description provided for @resendIn.
   ///
   /// In en, this message translates to:
@@ -1021,12 +865,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Request timed out. Please try again'**
   String get requestTimedOut;
-
-  /// No description provided for @numberAlreadyLinked.
-  ///
-  /// In en, this message translates to:
-  /// **'This number is already linked to your account'**
-  String get numberAlreadyLinked;
 
   /// No description provided for @backOnline.
   ///
