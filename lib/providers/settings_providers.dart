@@ -27,7 +27,6 @@ class SettingsProvider extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.light;
   bool _likeNotificationsEnabled = false;
   bool _messageNotificationsEnabled = false;
-  bool _isPhoneVerified = false;
   Set<String> _interests = {};
   RangeValues _ageRange = RangeValues(0, 0);
   bool _showOutOfRange = false;
@@ -39,8 +38,7 @@ class SettingsProvider extends ChangeNotifier {
   //Getters
   ThemeMode get themeMode => _themeMode;
   bool get likeNotificationsEnabled => _likeNotificationsEnabled;
-  bool get messageNotificationsEnabled => _messageNotificationsEnabled; 
-  bool get isPhoneVerified => _isPhoneVerified;
+  bool get messageNotificationsEnabled => _messageNotificationsEnabled;
   Set<String> get interests => _interests;
   RangeValues get ageRange => _ageRange;
   bool get showOutOfRange => _showOutOfRange;
@@ -61,7 +59,6 @@ class SettingsProvider extends ChangeNotifier {
     _interests = {};
     _currentOpt = RecommendationPreference.balanced;
     _showOutOfRange = false;
-    _isPhoneVerified = false;
     _gender = "";
   }
 
@@ -77,9 +74,6 @@ class SettingsProvider extends ChangeNotifier {
     else {
       _themeMode = _prefs.getBool('isDark')! ? ThemeMode.dark : ThemeMode.light;
     }
-
-    //Is phone verified
-    _isPhoneVerified = _prefs.getBool('isPhoneVerified') ?? false;
 
     //Interests
     if(_prefs.getStringList('user_interests') == null) {
@@ -152,16 +146,6 @@ class SettingsProvider extends ChangeNotifier {
       langCode = _prefs.getString('language_code')!;
       _locale = Locale(langCode);
 
-    }
-
-    bool diskVerified = _prefs.getBool('isPhoneVerified') ?? false;
-    final user = FirebaseAuth.instance.currentUser;
-    bool cloudVerified = user?.phoneNumber != null && user!.phoneNumber!.isNotEmpty;
-    if(cloudVerified) {
-      _isPhoneVerified = true;
-      if(!diskVerified) {
-        await _prefs.setBool('isPhoneVerified', true);
-      }
     }
 
     //Notifications
@@ -308,14 +292,6 @@ class SettingsProvider extends ChangeNotifier {
 
     // Sync with Database
     await ApiService.updateUsersSettings(uid: FirebaseAuth.instance.currentUser!.uid, isMessageNotificationsOn: _messageNotificationsEnabled);
-  }
-
-  //Phone number logic
-  void verifyPhone() async {
-    _isPhoneVerified = true;
-    notifyListeners();
-
-    await _prefs.setBool('isPhoneVerified', true);
   }
 
   //Add or remove interests

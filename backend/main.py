@@ -1,26 +1,19 @@
-import os
 import datetime
 from typing import List, Optional
-from fastapi import FastAPI, Depends, HTTPException, WebSocket, WebSocketDisconnect, status
+from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from sqlalchemy import func
 from notifications import send_smart_notification
 from database import models
-from database.database import SessionLocal, engine, get_db
+from database.database import engine, get_db
 from database import schemas
 from sqlalchemy.orm import Session, aliased, selectinload
 from sqlalchemy import and_, or_, case
-import json
 from firebase_admin import messaging, credentials, firestore, auth
 import firebase_admin
-import tempfile
-import requests
 from preferences.preferences import interests_to_genders
-#NOTE: get_face_score (Odin: MediaPipe landmarks + XGBoost) is imported lazily
-#inside the calculate-rating endpoint, so the server boots fast instead of
-#loading the ML stack on startup.
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -60,23 +53,6 @@ def current_uid(
         )
     return decoded["uid"]
 
-
-def uid_from_token(token: str) -> Optional[str]:
-    """
-    Same check for places that can't use a header (the chat WebSocket, where
-    Flutter's client can't set one). Returns None instead of raising.
-    """
-    try:
-        return auth.verify_id_token(token)["uid"]
-    except Exception:
-        return None
-
-#class that handles the messsages
-#NOTE: no firebase_token here — the sender is taken from the verified ID token
-class Messages(BaseModel):
-    match_id: int
-    content: str
-
 #class that handles the like data we need to sent
 #we dont return likes but data from the users that liked the currentuser
 class LikerProfile(BaseModel):
@@ -109,13 +85,12 @@ class UserCards(BaseModel):
     class Config:
         from_attributes = True
 
-#class that sends the match aka dm data
+#class that sends the match data (chat removed — no last_message any more)
 class MatchResponse(BaseModel):
     match_id: int
     other_user_id: int
     other_user_name: str
     image_url: Optional[str] = None
-    last_message: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -183,25 +158,6 @@ def get_user_data(uid: str = Depends(current_uid), db: Session = Depends(get_db)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
-
-#Check if a phone number is already linked to another Firebase account, so the
-#client can warn BEFORE sending an SMS/OTP. Firebase only surfaces this at link
-#time (updatePhoneNumber), and there is no client-side API to look it up — but
-#Firebase Auth is the source of truth (we don't store phones in Postgres), so we
-#query it here with the Admin SDK. The caller's own uid comes from their verified
-#token, so their own number isn't reported as taken — and only signed-in users
-#can probe, which limits phone-number enumeration.
-@app.get("/auth/phone-in-use")
-def phone_in_use(phone_number: str, uid: str = Depends(current_uid)):
-    try:
-        record = auth.get_user_by_phone_number(phone_number)
-    except auth.UserNotFoundError:
-        return {"in_use": False}
-    except Exception:
-        #lookup failed (e.g. malformed number / transient) — don't block the
-        #flow; the link-time check still guards against a real collision
-        raise HTTPException(status_code=503, detail="phone check unavailable")
-    return {"in_use": record.uid != uid}
 
 #update one/multiple user attributes without altering the others
 @app.patch("/users/me")
@@ -431,18 +387,6 @@ def get_matches(uid: str = Depends(current_uid), db: Session = Depends(get_db)):
         for user in db.query(models.User).filter(models.User.id.in_(other_ids)).all()
     }
 
-    #one query for the latest message of every match. We grab the max id per
-    #match (ids grow with time) then fetch those rows in a single round trip.
-    match_ids = [match.id for match in matches]
-    latest_msg_ids = db.query(func.max(models.Messages.id)).filter(
-        models.Messages.match_id.in_(match_ids)
-    ).group_by(models.Messages.match_id).subquery()
-
-    last_msg_by_match = {
-        msg.match_id: msg.content
-        for msg in db.query(models.Messages).filter(models.Messages.id.in_(latest_msg_ids)).all()
-    }
-
     results = []
     for match in matches:
         other_user_id = match.user_b_id if match.user_a_id == me.id else match.user_a_id
@@ -457,73 +401,9 @@ def get_matches(uid: str = Depends(current_uid), db: Session = Depends(get_db)):
             "other_user_id": other_user.id,
             "other_user_name": other_user.username,
             "image_url": other_user.profile_picture,
-            "last_message": last_msg_by_match.get(match.id)
         })
 
     return results
-    
-#upload message to db
-@app.post("/messages/store")
-def upload_messages(message: Messages, uid: str = Depends(current_uid), db: Session = Depends(get_db)):
-    me = db.query(models.User).filter(models.User.firebase_token == uid).first()
-    if not me:
-        raise HTTPException(status_code=404, detail="Current User not found")
-    
-    #check if the user running the query is actually one of the 2 from the conversation
-    match = db.query(models.Matches).filter(models.Matches.id == message.match_id).first()
-    if not match or (match.user_a_id != me.id and match.user_b_id != me.id):
-        raise HTTPException(status_code =403, detail="You are not part of this match")
-
-    if match.user_a_id == me.id:
-        other_user_id = match.user_b_id
-    elif match.user_b_id == me.id:
-        other_user_id = match.user_a_id
-
-    new_message = models.Messages(
-        sender = me.id,
-        match_id = message.match_id,
-        content = message.content
-    )
-
-    db.add(new_message)
-    db.commit()
-    db.refresh(new_message)
-
-    #The message is already saved. Notifying the recipient is best-effort: a
-    #missing user, missing fcm token or disabled notifications must NOT turn a
-    #successful send into an error for the sender.
-    target_user = db.query(models.User).filter(models.User.id == other_user_id).first()
-    if target_user:
-        try:
-            send_smart_notification(target_user.firebase_token, 'message', firestore_db)
-        except Exception:
-            pass
-
-    return {"status": "ok", "message_id": new_message.id}
-
-#get messages from db
-@app.get("/messages/{match_id}")
-def get_messages(match_id: int, limit: Optional[int] = None, offset: int = 0, uid: str = Depends(current_uid), db: Session = Depends(get_db)):
-    me = db.query(models.User).filter(models.User.firebase_token == uid).first()
-    if not me:
-        raise HTTPException(status_code=404, detail="Current User not found")
-
-    match = db.query(models.Matches).filter(models.Matches.id == match_id).first()
-
-    if not match:
-        raise HTTPException(status_code = 404, detail="Match not found")
-
-    #newest first. limit/offset are optional so existing callers that pass
-    #neither keep getting the full history (backwards compatible), while a
-    #paginating client can request a page at a time.
-    query = db.query(models.Messages).filter(
-        models.Messages.match_id == match_id
-    ).order_by(models.Messages.created_at.desc())
-
-    if limit is not None:
-        query = query.offset(offset).limit(limit)
-
-    return query.all()
 
 #get users photos
 @app.get("/photos")
@@ -723,149 +603,6 @@ def update_match_seen(match_id: int, uid: str = Depends(current_uid), db: Sessio
     
     db.commit()
     return {"message": "Match seen updated"}
-
-#get user's score using the ai model
-@app.post("/users/me/calculate-rating")
-def calculate_user_rating(uid: str = Depends(current_uid), db: Session = Depends(get_db)):
-    me = db.query(models.User).filter(models.User.firebase_token == uid).first()
-    if not me: 
-        raise HTTPException(status_code=404, detail="Current User not found")
-    
-    photo_urls = []
-    for photo in me.photos:
-        photo_urls.append(photo.photo_url)
-
-    if not photo_urls:
-        raise HTTPException(status_code=400, detail="User has no photos")
-
-    #Lazy import: loads MediaPipe/XGBoost only now, the first time scoring is
-    #actually requested, instead of at server startup.
-    from Odin.main import get_face_score
-
-    #The Odin pipeline needs to know which sex-specific model to use. Gender is
-    #stored capitalised ("Male"/"Female"); the models are keyed "male"/"female".
-    #Default to "male" when gender is missing/unrecognised so a photo still gets
-    #scored rather than silently skipped.
-    sex = (me.gender or "").lower()
-    if sex not in ("male", "female"):
-        sex = "male"
-
-    final_score = None
-
-    #Loop through photos
-    for url in photo_urls[:6]:
-        temp_path = None
-        try: 
-            #Download the image from Firebase Storage
-            response = requests.get(url, stream=True)
-            response.raise_for_status()
-
-            #Create a temp file for the Odin scorer to read
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as temp_file:
-                for chunk in response.iter_content(chunk_size=8192):
-                    temp_file.write(chunk)
-                temp_path = temp_file.name
-            
-            score = get_face_score(temp_path, sex)
-
-            if score is not None:
-                final_score = score
-                break #Face found stop iterating
-        except Exception:
-            continue
-        finally: 
-            if temp_path and os.path.exists(temp_path):
-                os.remove(temp_path)
-
-    #fall back to 0 when no face was found in any photo. Use final_score (not
-    #the loop variable, which may be unbound if every download failed).
-    if final_score is None:
-        final_score = 0
-
-    me.score = final_score
-    db.commit()
-
-    return {"message": "score given"}
-
-#Connection Manager manages websockets
-#Keeps online users and sends messages
-class ConnectionManager:
-    def __init__(self):
-        # Dictionary to map user_id -> active WebSocket connection
-        self.active_connections: dict[int, WebSocket] = {}
-
-    async def connect(self, websocket: WebSocket, user_id: int):
-        await websocket.accept()
-        self.active_connections[user_id] = websocket
-        print(f"User {user_id} connected. Total online: {len(self.active_connections)}")
-
-    def disconnect(self, user_id: int):
-        if user_id in self.active_connections:
-            del self.active_connections[user_id]
-            print(f"User {user_id} disconnected.")
-
-    async def send_personal_message(self, message: dict, receiver_id: int):
-        # Only send if the recipient is currently online
-        if receiver_id in self.active_connections:
-            websocket = self.active_connections[receiver_id]
-            await websocket.send_json(message)
-
-manager = ConnectionManager()
-
-#websocket endpoint
-#Flutter's WebSocket client can't set an Authorization header, so the Firebase ID
-#token comes as a query param and is verified here. The user id is DERIVED from
-#the verified token: this used to take a raw sequential user_id from the path, so
-#anyone could connect as user 1, 2, 3... and read their live messages.
-@app.websocket("/ws/chat")
-async def websocket_endpoint(websocket: WebSocket, token: str):
-    uid = uid_from_token(token)
-    if uid is None:
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-        return
-
-    #resolve the caller's own row once, at connect time
-    db: Session = SessionLocal()
-    try:
-        me = db.query(models.User).filter(models.User.firebase_token == uid).first()
-        user_id = me.id if me else None
-    finally:
-        db.close()
-
-    if user_id is None:
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-        return
-
-    # 1. Open the tunnel
-    await manager.connect(websocket, user_id)
-
-    try:
-        while True:
-            # 2. Wait indefinitely for a message from this user
-            data = await websocket.receive_text()
-            message_payload = json.loads(data)
-
-            db: Session = SessionLocal()
-            try:
-                match_id = message_payload.get("match_id")
-                receiver_id = message_payload.get("to_user")
-
-                #Validate that the sender is actually part of this match before
-                #relaying anything. We only relay here, persistence is handled by
-                #the REST /messages/store endpoint the client also calls, so we
-                #must NOT insert again or every message ends up stored twice.
-                match = db.query(models.Matches).filter(models.Matches.id == match_id).first()
-                if match and (match.user_a_id == user_id or match.user_b_id == user_id):
-                    #sender is the verified user, never whatever the client claims
-                    message_payload["sender"] = user_id
-                    await manager.send_personal_message(message_payload, receiver_id)
-            except Exception as e:
-                print(e)
-            finally:
-                db.close()
-    except WebSocketDisconnect:
-        # 4. Handle the user closing the app
-        manager.disconnect(user_id)
 
 def notify_user_of_like_or_match_or_message(target_user_firebase_token: str, caller: str):
     #Make a data message not a notification

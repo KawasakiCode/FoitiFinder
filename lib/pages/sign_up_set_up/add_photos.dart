@@ -146,9 +146,6 @@ class _AddPhotos extends State<AddPhotos> {
 
       await ApiService.updateUserData(uid: uid, hasPhotos: true);
 
-      //sent the request to the ai model to give the user a score
-      // await ApiService.giveUserScore(uid);
-
       //some (but not all) photos failed: let them continue but warn
       if (succeeded < results.length && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

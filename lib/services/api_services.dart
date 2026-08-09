@@ -5,7 +5,6 @@ import 'dart:convert';
 import 'package:foitifinder/models/card_data_model.dart';
 import 'package:foitifinder/models/liker_model.dart';
 import 'package:foitifinder/models/matches_model.dart';
-import 'package:foitifinder/models/message_model.dart';
 import 'package:foitifinder/models/photos_model.dart';
 import 'package:foitifinder/models/settings_model.dart';
 import 'package:foitifinder/models/user_model.dart';
@@ -21,22 +20,6 @@ class ApiService {
     'API_BASE_URL',
     defaultValue: 'http://127.0.0.1:8000',
   );
-
-  /// WebSocket base for chat. Set `WS_BASE_URL` if it must differ from [baseUrl]
-  /// (otherwise `http`→`ws`, `https`→`wss` on the same host).
-  static const String _wsBaseOverride = String.fromEnvironment('WS_BASE_URL');
-
-  static String get wsBaseUrl {
-    if (_wsBaseOverride.isNotEmpty) return _wsBaseOverride;
-    final b = baseUrl;
-    if (b.startsWith('https://')) {
-      return b.replaceFirst('https://', 'wss://');
-    }
-    if (b.startsWith('http://')) {
-      return b.replaceFirst('http://', 'ws://');
-    }
-    return 'ws://127.0.0.1:8000';
-  }
 
   /// Auth headers for every backend call.
   ///
@@ -186,28 +169,6 @@ class ApiService {
     }
   }
 
-  //Ask the backend (Firebase Admin) whether a phone number is already linked to
-  //another account, so we can warn before sending an OTP. Returns false on any
-  //error so a backend hiccup never blocks a legitimate phone change — the
-  //link-time check still catches a real collision.
-  static Future<bool> isPhoneInUse(String phoneNumber, String uid) async {
-    final url = Uri.parse(
-      '$baseUrl/auth/phone-in-use?phone_number=${Uri.encodeComponent(phoneNumber)}',
-    );
-    try {
-      final response = await http
-          .get(url, headers: await _authHeaders())
-          .timeout(const Duration(seconds: 8));
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = jsonDecode(response.body);
-        return data['in_use'] == true;
-      }
-      return false;
-    } catch (e) {
-      return false;
-    }
-  }
-
   //Update user's  settings
   static Future<void> updateUsersSettings({
     required String uid,
@@ -298,51 +259,7 @@ class ApiService {
     }
   }
 
-  //Post message to db
-  static Future<bool> postMessage({
-    required String uid,
-    required int matchId,
-    required String content,
-  }) async {
-    final url = Uri.parse("$baseUrl/messages/store");
-
-    try {
-      final response = await http.post(url,
-        headers: await _authHeaders(),
-        body: jsonEncode({
-          "match_id": matchId,
-          "content": content,
-        }),
-      );
-
-      if(response.statusCode != 200) {
-        return false;
-      }
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  //Get all messages from a conversation in reverse chronological order (last to first)
-  static Future<List<MessageModel>> getMessages(String uid, int myUserId, int matchId) async {
-    final url = Uri.parse("$baseUrl/messages/$matchId");
-
-    try {
-      final response = await http.get(url, headers: await _authHeaders());
-
-      if(response.statusCode == 200) {
-        List<dynamic> data = jsonDecode(response.body);
-        return data.map((json) => MessageModel.fromJson(json, myUserId)).toList();
-      } else {
-        throw Exception("Failed to get messages ${response.statusCode}");
-      }
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  //Get all likes 
+  //Get all likes
   static Future<List<LikerModel>> getLikes(String uid) async {
     final url = Uri.parse("$baseUrl/likes");
 
@@ -517,21 +434,6 @@ class ApiService {
 
       if(response.statusCode != 200) {
         throw Exception("Failed to update match seen: ${response.body}");
-      }
-    } catch (e) {
-      rethrow;
-    }
-  } 
-
-  //Give score to a user
-  static Future<void> giveUserScore(String uid) async {
-    final url = Uri.parse("$baseUrl/users/me/calculate-rating");
-
-    try {
-      final response = await http.post(url, headers: await _authHeaders());
-
-      if(response.statusCode != 200) {
-        throw Exception("Failed to give user a score: ${response.body}");
       }
     } catch (e) {
       rethrow;

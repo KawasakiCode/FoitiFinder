@@ -68,11 +68,6 @@ class Matches(BaseModel):
     user_a_saw: bool
     user_b_saw: bool
 
-class Messages(BaseModel):
-    sender: int
-    match_id: int
-    content: str
-
 class Photos(BaseModel):
     user_id: int
     photo_url: str

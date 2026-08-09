@@ -39,16 +39,6 @@ class Matches(Base):
     user_a_saw = Column(Boolean, nullable=False) #if user a saw the match 
     user_b_saw = Column(Boolean, nullable=False) #if user b saw the match
 
-class Messages(Base):
-    __tablename__ = "messages"
-
-    id = Column(Integer, primary_key = True, nullable = False)
-    sender = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable = False)
-    #no need for receiver id since we ask between the 2 that matched who send the message, so the other is the receiver
-    match_id = Column(Integer, ForeignKey("matches.id", ondelete="CASCADE"), nullable = False)
-    content = Column(String, nullable = False)
-    created_at = Column(TIMESTAMP(timezone=True), nullable = False, server_default = text('now()'))
-    
 class Photos(Base):
     __tablename__ = "photos"
 

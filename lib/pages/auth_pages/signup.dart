@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:foitifinder/debug_flags.dart';
 import 'package:foitifinder/main_screen.dart';
-import 'package:foitifinder/pages/sign_up_set_up/phone_verification_page.dart';
+import 'package:foitifinder/pages/sign_up_set_up/add_photos.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -164,8 +164,9 @@ class _SignUpPageState extends State<SignUpPage> {
         _isLoading = false;
       },);
       if (!mounted) return;
-      //TESTING: when kBypassOnboarding is on, skip phone + photo onboarding and
-      //go straight to the homepage. Otherwise run the normal phone flow.
+      //TESTING: when kBypassOnboarding is on, skip onboarding and go straight to
+      //the homepage. Otherwise start onboarding at the photo step (phone
+      //verification has been removed).
       if (kBypassOnboarding) {
         Navigator.pushAndRemoveUntil(
           context,
@@ -177,7 +178,7 @@ class _SignUpPageState extends State<SignUpPage> {
       } else {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => PhoneVerificationPage()),
+          MaterialPageRoute(builder: (context) => const AddPhotos()),
         );
       }
     } on FirebaseAuthException catch (e) {

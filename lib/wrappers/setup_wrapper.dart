@@ -8,7 +8,6 @@ import 'package:foitifinder/main_screen.dart';
 import 'package:foitifinder/models/user_model.dart';
 import 'package:foitifinder/pages/auth_pages/login.dart';
 import 'package:foitifinder/pages/sign_up_set_up/add_photos.dart';
-import 'package:foitifinder/pages/sign_up_set_up/phone_verification_page.dart';
 import 'package:foitifinder/pages/sign_up_set_up/set_up_page.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
@@ -75,29 +74,22 @@ class _SetupWrapperState extends State<SetupWrapper> {
       if (currentUser == null) {
         return const LoginPage();
       }
-      //TESTING: skip phone + photo onboarding and land on the homepage.
+      //TESTING: skip photo/setup onboarding and land on the homepage.
       if (kBypassOnboarding) {
         return MainScreen(uid: widget.firebaseUser!.uid);
       }
+      //Onboarding order (phone verification removed): photos -> profile setup.
       bool hasFinishedSetUp = currentUser!.hasFinishedSetUp;
-      bool hasPhone =
-          widget.firebaseUser!.phoneNumber != null &&
-          widget.firebaseUser!.phoneNumber!.isNotEmpty;
-      //setup done completely, send to mainscreen
-      if (hasFinishedSetUp && hasPhone) {
+      if (hasFinishedSetUp) {
         return MainScreen(uid: widget.firebaseUser!.uid);
       }
-      //setup not done completely, send to setup after phone number
-      else if (hasPhone && !currentUser!.hasPhotos) {
+      //no photos yet -> start with the photo step
+      else if (!currentUser!.hasPhotos) {
         return const AddPhotos();
       }
-      //setup not done completely, send to photos page since user has no photos
-      else if (currentUser!.hasPhotos) {
-        return const SetUpPage();
-      }
-      //setup not done neither phone, send to login
+      //has photos but hasn't finished the profile setup -> the setup step
       else {
-        return const PhoneVerificationPage();
+        return const SetUpPage();
       }
     } else {
       return Scaffold(body: Center(child: CircularProgressIndicator()));

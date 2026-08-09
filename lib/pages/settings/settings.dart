@@ -12,7 +12,6 @@ import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/pages/auth_pages/verify_email.dart';
 import 'package:foitifinder/pages/settings/interest_page.dart';
-import 'package:foitifinder/pages/settings/phone_number_page.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:provider/provider.dart';
@@ -143,7 +142,7 @@ class _SettingsPageState extends State<SettingsPage>
             child: SingleChildScrollView(
           child: Column(
             children: [
-              //Account settings and phone number
+              //Account settings
               Align(
                 alignment: Alignment.centerLeft,
                 child: Padding(
@@ -152,90 +151,6 @@ class _SettingsPageState extends State<SettingsPage>
                     text.account,
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
                   ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 15, right: 15, top: 20),
-                child: Material(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  shape: RoundedRectangleBorder(
-                    side: BorderSide.none,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: DelayedInkWell(
-                    delayMs: 225,
-                    onTap: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const PhoneNumberPage()),
-                      );
-                      //the number may have just changed — reload so the row
-                      //reflects it without leaving and re-opening settings
-                      if (!mounted) return;
-                      try {
-                        await FirebaseAuth.instance.currentUser?.reload();
-                      } catch (_) {}
-                      if (mounted) setState(() {});
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        top: 8,
-                        bottom: 8,
-                        left: 10,
-                        right: 10,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            text.phoneNumber,
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          Text(
-                            //handle null AND empty (an unverified account has no
-                            //phone, which can come back as ""). Read currentUser
-                            //fresh, not the captured `user`, so a just-changed
-                            //number shows immediately.
-                            (FirebaseAuth.instance.currentUser?.phoneNumber
-                                        ?.isNotEmpty ??
-                                    false)
-                                ? FirebaseAuth.instance.currentUser!.phoneNumber!
-                                : '69X XXX XXXX',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 15, right: 15, top: 5),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: (!settings.isPhoneVerified)
-                      ? Text(
-                          text.phoneNotVerified,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        )
-                      : Text(
-                          text.phoneVerified,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
                 ),
               ),
               //Verify email

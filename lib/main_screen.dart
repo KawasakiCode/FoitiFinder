@@ -1,4 +1,4 @@
-//the 4 main pages (home, likes, messages and profile) get build on top of mainScreen
+//the 3 main pages (home, likes and profile) get build on top of mainScreen
 //mainscreen makes it easier to handle the bottom nav bar by making it custom
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -6,7 +6,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/pages/main_pages/home_page.dart';
-import 'package:foitifinder/pages/main_pages/dm_page.dart';
 import 'package:foitifinder/pages/main_pages/profile_page.dart';
 import 'package:foitifinder/pages/main_pages/likes_page.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
@@ -25,7 +24,6 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
   final GlobalKey<LikesPageState> _likesPageKey = GlobalKey<LikesPageState>();
-  final GlobalKey<DMPageState> _dmPageKey = GlobalKey<DMPageState>();
 
   //drives the swipeable PageView; kept in sync with the bottom nav bar
   final PageController _pageController = PageController();
@@ -71,9 +69,6 @@ class _MainScreenState extends State<MainScreen> {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       if (message.data['type'] == 'new_like') {
         _likesPageKey.currentState?.loadLikes();
-      }
-      else if (message.data['type'] == 'new_match') {
-        _dmPageKey.currentState?.loadDMs();
       }
     });
 
@@ -195,7 +190,6 @@ class _MainScreenState extends State<MainScreen> {
     final List<Widget> pages = [
       MyHomePage(cardAreaKey: _homeCardAreaKey),
       LikesPage(key: _likesPageKey),
-      DMPage(key: _dmPageKey),
       const ProfilePage(),
     ];
 
@@ -248,8 +242,7 @@ class _MainScreenState extends State<MainScreen> {
                 children: [
                   Expanded(child: _buildNavItem(0, 'assets/icons/home_page.png', 'Home')),
                   Expanded(child: _buildNavItem(1, 'assets/icons/like.png', 'Likes')),
-                  Expanded(child: _buildNavItem(2, 'assets/icons/comment.png', 'Chat')),
-                  Expanded(child: _buildNavItem(3, 'assets/icons/user.png', 'Profile')),
+                  Expanded(child: _buildNavItem(2, 'assets/icons/user.png', 'Profile')),
                 ],
               ),
           ),

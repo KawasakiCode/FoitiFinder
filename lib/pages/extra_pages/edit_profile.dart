@@ -500,9 +500,6 @@ class _EditProfileState extends State<EditProfile> {
         hasPhotos: photoUrls.isNotEmpty,
       );
 
-      //Re-score only because the photos actually changed.
-      await ApiService.giveUserScore(uid);
-
       _photosChanged = false;
     } catch (e) {
       if (!mounted) return;
