@@ -10,8 +10,11 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/pages/sign_up_set_up/add_photos.dart';
+import 'package:foitifinder/providers/profile_provider.dart';
+import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/loading_overlay.dart';
+import 'package:provider/provider.dart';
 
 class VerifyEmail extends StatefulWidget {
   const VerifyEmail({super.key});
@@ -113,6 +116,114 @@ class _VerifyEmailState extends State<VerifyEmail> with WidgetsBindingObserver {
         });
       }
     });
+  }
+
+  //The escape button is destructive now, so confirm before deleting.
+  Future<void> _confirmAndDelete() async {
+    final text = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(text.sureDeleteAccount),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(text.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              text.deleteMyAccount,
+              style: const TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await _deleteAccount();
+    }
+  }
+
+  //Delete the unverified account so its email is freed (a mistyped address may
+  //belong to a real student who'd otherwise be locked out by "email already in
+  //use"). Deletes the Firebase user, wipes cached profile/settings, and the auth
+  //router then drops back to login. Re-auths first if the session is stale.
+  Future<void> _deleteAccount() async {
+    final text = AppLocalizations.of(context)!;
+    final profileProvider =
+        Provider.of<ProfileProvider>(context, listen: false);
+    final settings = Provider.of<SettingsProvider>(context, listen: false);
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    setState(() => _isLoading = true);
+    try {
+      try {
+        await user.delete();
+      } on FirebaseAuthException catch (e) {
+        if (e.code != 'requires-recent-login') rethrow;
+        //stale login — re-authenticate with the password, then retry delete
+        final password = await _promptPassword();
+        if (password == null || password.isEmpty) {
+          if (mounted) setState(() => _isLoading = false);
+          return;
+        }
+        final cred = EmailAuthProvider.credential(
+          email: user.email!,
+          password: password,
+        );
+        await user.reauthenticateWithCredential(cred);
+        await user.delete();
+      }
+
+      //clear cached profile/settings so a later login can't read stale data
+      await settings.clearData();
+      await profileProvider.clearData();
+      //authStateChanges -> AuthWrapper -> LoginPage (this page is its content)
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text.errorOccured),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  //Prompt for the account password to re-authenticate before deletion.
+  Future<String?> _promptPassword() async {
+    final text = AppLocalizations.of(context)!;
+    final controller = TextEditingController();
+    final password = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(text.securityCheck),
+        content: TextField(
+          controller: controller,
+          obscureText: true,
+          decoration: InputDecoration(
+            labelText: text.password,
+            border: const OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, null),
+            child: Text(text.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, controller.text),
+            child: Text(text.confirm),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    return password;
   }
 
   @override
@@ -235,13 +346,12 @@ class _VerifyEmailState extends State<VerifyEmail> with WidgetsBindingObserver {
                 ),
               ),
               SizedBox(height: 20),
-              //Escape hatch: sign out and return to login (e.g. signed up with
-              //the wrong address). The unverified account persists and the user
-              //lands back here on their next login until they verify.
+              //Escape hatch: signed up with the wrong address — e.g. a typo that
+              //is actually another student's email. Deleting the unverified
+              //account frees that address so its real owner can sign up, instead
+              //of leaving it locked behind an account nobody can verify.
               TextButton(
-                onPressed: () async {
-                  await FirebaseAuth.instance.signOut();
-                },
+                onPressed: _confirmAndDelete,
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.grey[600],
                   textStyle: TextStyle(fontSize: 14),
