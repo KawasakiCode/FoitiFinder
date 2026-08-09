@@ -7,6 +7,7 @@ import 'package:foitifinder/debug_flags.dart';
 import 'package:foitifinder/main_screen.dart';
 import 'package:foitifinder/models/user_model.dart';
 import 'package:foitifinder/pages/auth_pages/login.dart';
+import 'package:foitifinder/pages/auth_pages/verify_email.dart';
 import 'package:foitifinder/pages/sign_up_set_up/add_photos.dart';
 import 'package:foitifinder/pages/sign_up_set_up/set_up_page.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
@@ -78,7 +79,14 @@ class _SetupWrapperState extends State<SetupWrapper> {
       if (kBypassOnboarding) {
         return MainScreen(uid: widget.firebaseUser!.uid);
       }
-      //Onboarding order (phone verification removed): photos -> profile setup.
+      //Email verification is mandatory before any onboarding step. Read the
+      //live user (not the cached widget.firebaseUser) so a just-verified user
+      //passes without waiting for a new auth-state event.
+      final fbUser = FirebaseAuth.instance.currentUser;
+      if (fbUser != null && !fbUser.emailVerified) {
+        return const VerifyEmail();
+      }
+      //Onboarding order (email verified -> photos -> profile setup).
       bool hasFinishedSetUp = currentUser!.hasFinishedSetUp;
       if (hasFinishedSetUp) {
         return MainScreen(uid: widget.firebaseUser!.uid);

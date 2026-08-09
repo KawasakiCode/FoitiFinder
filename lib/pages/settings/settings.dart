@@ -1,5 +1,5 @@
 //The settings page
-//Here the user can change theme, language, verify their email
+//Here the user can change theme, language,
 //change interests, age range etc...
 
 //Most settings changed here are monitored by SettingsProvider 
@@ -10,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/theme/app_colors.dart';
-import 'package:foitifinder/pages/auth_pages/verify_email.dart';
 import 'package:foitifinder/pages/settings/interest_page.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
@@ -27,14 +26,8 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage>
-    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
-  final user = FirebaseAuth.instance.currentUser;
+    with SingleTickerProviderStateMixin {
   AppLocalizations get text => AppLocalizations.of(context)!;
-
-  //how many "email already verified" snackbars are currently queued/showing, so
-  //spamming the button can't stack more than a couple of identical toasts
-  int _verifiedSnackCount = 0;
-  static const int _maxVerifiedSnacks = 2;
 
   //one-shot entrance animation (fade + slight slide-up) played on open
   late final AnimationController _entrance;
@@ -44,7 +37,6 @@ class _SettingsPageState extends State<SettingsPage>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
 
     _entrance = AnimationController(
       vsync: this,
@@ -59,57 +51,7 @@ class _SettingsPageState extends State<SettingsPage>
   @override
   void dispose() {
     _entrance.dispose();
-    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) async {
-    super.didChangeAppLifecycleState(state);
-
-    //When the app returns to the foreground (e.g. right after the user tapped
-    //the verification link in their mail app) pull the fresh status.
-    if (state == AppLifecycleState.resumed) {
-      await _refreshEmailVerified();
-    }
-  }
-
-  //Reload the signed-in user and rebuild so the verified indicator reflects the
-  //latest server state. Crucially we re-read FirebaseAuth.instance.currentUser
-  //AFTER reload(): reload swaps in a fresh user object, so the `user` field
-  //captured in initState stays stale and can't be trusted here.
-  //Show the "email already verified" toast, but never stack more than
-  //_maxVerifiedSnacks of them if the button is spammed. The counter drops back
-  //down as each toast closes.
-  void _showAlreadyVerifiedSnack() {
-    if (_verifiedSnackCount >= _maxVerifiedSnacks) return;
-    _verifiedSnackCount++;
-    final controller = ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(text.mailAlreadyVerified),
-        backgroundColor: Colors.grey,
-        duration: const Duration(seconds: 2),
-      ),
-    );
-    controller.closed.then((_) => _verifiedSnackCount--);
-  }
-
-  Future<void> _refreshEmailVerified() async {
-    final current = FirebaseAuth.instance.currentUser;
-    if (current == null) return;
-    //Only hit the network if we still believe it's unverified — but ALWAYS
-    //rebuild afterwards. Coming back from the verify-email page it's already
-    //verified (that page reloaded), so an early-return-on-verified would skip
-    //the setState and leave the settings row stale until the next visit — which
-    //is exactly the "only changes after I leave and come back" bug.
-    try {
-      if (!current.emailVerified) {
-        await current.reload();
-      }
-    } catch (_) {
-      //network hiccup — fall through and still rebuild with what we have
-    }
-    if (mounted) setState(() {});
   }
 
   @override
@@ -142,88 +84,6 @@ class _SettingsPageState extends State<SettingsPage>
             child: SingleChildScrollView(
           child: Column(
             children: [
-              //Account settings
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 15, top: 10),
-                  child: Text(
-                    text.account,
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
-                  ),
-                ),
-              ),
-              //Verify email
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 15, top: 10),
-                  child: Text(
-                    text.verifyYourEmail,
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
-                child: Material(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  shape: RoundedRectangleBorder(
-                    side: BorderSide.none,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      DelayedInkWell(
-                        delayMs: 225,
-                        onTap: () async {
-                          if(FirebaseAuth.instance.currentUser?.emailVerified == true) {
-                            _showAlreadyVerifiedSnack();
-                          }
-                            else {
-                              await Navigator.push(
-                              (context),
-                              MaterialPageRoute(builder: (context) => VerifyEmail())
-                            );
-                            //coming back from the verify page — reflect any
-                            //verification that happened while it was open
-                            await _refreshEmailVerified();
-                          }
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                            top: 10,
-                            left: 10,
-                            right: 15,
-                            bottom: 12,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    FirebaseAuth.instance.currentUser!.emailVerified
-                                    ? text.mailVerified
-                                    : text.verifyyourEmail,
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
               //Discovery Settings (Interests)
               Align(
                 alignment: Alignment.centerLeft,

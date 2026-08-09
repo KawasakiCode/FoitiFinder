@@ -1,5 +1,5 @@
 //Edit profile page where user can change the following:
-//email, bio, age, fullName, username, photos
+//bio, age, fullName, username, photos
 
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -28,7 +28,6 @@ class _EditProfileState extends State<EditProfile> {
   late TextEditingController _bioController;
   late TextEditingController _ageController;
   late TextEditingController _fullNameController;
-  late TextEditingController _emailController;
   bool _allowExit = false;
 
   //allow up to 6 photos
@@ -50,7 +49,6 @@ class _EditProfileState extends State<EditProfile> {
       context,
       listen: false,
     ).currentUser!;
-    final firebaseUser = FirebaseAuth.instance.currentUser!;
 
     _usernameController = TextEditingController(text: user.username);
     _bioController = TextEditingController(text: user.bio ?? "");
@@ -58,9 +56,6 @@ class _EditProfileState extends State<EditProfile> {
       text: user.age != null ? user.age.toString() : "",
     );
     _fullNameController = TextEditingController(text: user.fullName ?? "");
-    _emailController = TextEditingController(text: firebaseUser.email ?? "");
-
-    _refreshFirebaseUser();
 
     if (user.hasPhotos) {
       _getUserPhotos();
@@ -116,67 +111,6 @@ class _EditProfileState extends State<EditProfile> {
     return file;
   }
 
-  //refresh firebase to show possibly updated email
-  Future<void> _refreshFirebaseUser() async {
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        await user.reload();
-
-        final freshUser = FirebaseAuth.instance.currentUser;
-
-        if (mounted &&
-            freshUser != null &&
-            freshUser.email != _emailController.text) {
-          _emailController.text = freshUser.email!;
-        }
-      }
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  //authenticate the user in case requires-recent-login exception happens
-  Future<String?> _askForPassword() async {
-    final text = AppLocalizations.of(context)!;
-
-    //show a dialog to grab users password
-    String? password;
-    return showDialog<String>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(text.securityCheck),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(text.confirmPassword),
-              const SizedBox(height: 10),
-              TextField(
-                obscureText: true,
-                onChanged: (value) => password = value,
-                decoration: InputDecoration(
-                  labelText: text.password,
-                  border: OutlineInputBorder(),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, null),
-              child: Text(text.cancel),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, password),
-              child: Text(text.confirm),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   //save new profile data to db and exit edit profile page
   Future<void>? _saveAndExit() async {
     final text = AppLocalizations.of(context)!;
@@ -186,12 +120,10 @@ class _EditProfileState extends State<EditProfile> {
       listen: false,
     );
     final user = profileProvider.currentUser!;
-    final firebaseUser = FirebaseAuth.instance.currentUser!;
 
     // 1. THE REQUIRED FIELDS SHIELD
-    // If they are completely empty, block the save, show a warning, and throw to stop navigation.
-    if (_usernameController.text.trim().isEmpty ||
-        _emailController.text.trim().isEmpty) {
+    // If username is empty, block the save, show a warning, and throw to stop navigation.
+    if (_usernameController.text.trim().isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -207,9 +139,6 @@ class _EditProfileState extends State<EditProfile> {
     // 2. THE REGEX GATEKEEPERS
     final RegExp nameRegExp = RegExp(r"^(?=.*[a-zA-Z])[a-zA-Z\s\-']+$");
     final RegExp usernameRegExp = RegExp(r'^[a-zA-Z0-9][a-zA-Z0-9_]{2,19}$');
-    final RegExp emailRegExp = RegExp(
-      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-    );
 
     if (_fullNameController.text.isNotEmpty &&
         !nameRegExp.hasMatch(_fullNameController.text.trim())) {
@@ -238,31 +167,14 @@ class _EditProfileState extends State<EditProfile> {
       throw Exception('Validation failed: Invalid username format');
     }
 
-    if (!emailRegExp.hasMatch(_emailController.text.trim())) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(text.invalidEmail),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
-      throw Exception('Validation failed: Invalid email format');
-    }
-
     // 3. TRACKING CHANGES & GHOST DATA FIX
     String? newUsername;
     String? newBio;
     String? newFullName;
     int? newAge;
-    String? newEmail;
 
     if (_usernameController.text.trim() != user.username) {
       newUsername = _usernameController.text.trim();
-    }
-    if (_emailController.text.trim() != firebaseUser.email) {
-      newEmail = _emailController.text.trim();
     }
 
     if (_bioController.text != (user.bio ?? "")) {
@@ -307,79 +219,6 @@ class _EditProfileState extends State<EditProfile> {
         age: newAge,
         fullName: newFullName,
       );
-    }
-
-    // 5. EMAIL CHANGE (Firebase Auth)
-    if (newEmail != null) {
-      try {
-        await firebaseUser.verifyBeforeUpdateEmail(
-          _emailController.text.trim(),
-        );
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("${text.verifySend} $newEmail. ${text.checkInbox}"),
-              duration: const Duration(seconds: 5),
-            ),
-          );
-        }
-      } on FirebaseAuthException catch (e) {
-        if (e.code == "requires-recent-login") {
-          String? password = await _askForPassword();
-          if (password != null && password.isNotEmpty) {
-            try {
-              AuthCredential credential = EmailAuthProvider.credential(
-                email: firebaseUser.email!,
-                password: password,
-              );
-
-              await firebaseUser.reauthenticateWithCredential(credential);
-              await firebaseUser.verifyBeforeUpdateEmail(
-                _emailController.text.trim(),
-              );
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      "${text.verifySend} $newEmail. ${text.checkInbox}",
-                    ),
-                    duration: const Duration(seconds: 3),
-                  ),
-                );
-              }
-            } catch (reAuthError) {
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("${text.securityCheckFailed} $reAuthError"),
-                    duration: const Duration(seconds: 3),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
-              throw Exception(
-                'Reauthentication failed',
-              ); // Added throw to stop navigation on failure
-            }
-          } else {
-            throw Exception(
-              'Password required for email change',
-            ); // Added throw if they cancel password prompt
-          }
-        } else {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text("${text.failedVerifyEmail} $e"),
-                duration: const Duration(seconds: 3),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-          throw Exception('Email verification failed');
-        }
-      }
     }
 
     //update Provider
@@ -571,11 +410,6 @@ class _EditProfileState extends State<EditProfile> {
                       TextField(
                         controller: _usernameController,
                         decoration: InputDecoration(labelText: text.username),
-                      ),
-                      //Email TextField
-                      TextField(
-                        controller: _emailController,
-                        decoration: InputDecoration(labelText: text.email),
                       ),
                       //FullName TextField
                       TextField(

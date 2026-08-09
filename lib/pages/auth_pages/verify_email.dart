@@ -1,11 +1,15 @@
-//Page to sent verification email to the user
-//Only accessible through the settings page
+//Email verification gate. Shown during onboarding (right after signup) and by
+//the auth router (SetupWrapper) whenever the signed-in user's email is not yet
+//verified. Polls Firebase live and also re-checks the instant the app resumes
+//(e.g. after the user tapped the link in their mail app), then moves on to the
+//photo step once verified.
 
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/pages/sign_up_set_up/add_photos.dart';
 import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/loading_overlay.dart';
 
@@ -16,7 +20,7 @@ class VerifyEmail extends StatefulWidget {
   State<VerifyEmail> createState() => _VerifyEmailState();
 }
 
-class _VerifyEmailState extends State<VerifyEmail> {
+class _VerifyEmailState extends State<VerifyEmail> with WidgetsBindingObserver {
   bool _isEmailSent = false;
   bool _isLoading = false;
 
@@ -33,6 +37,7 @@ class _VerifyEmailState extends State<VerifyEmail> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     //check once immediately (covers the already-verified case), then poll
     _checkVerified();
     _pollTimer = Timer.periodic(
@@ -43,9 +48,19 @@ class _VerifyEmailState extends State<VerifyEmail> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
     _pollTimer?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    //The user likely just came back from their mail app after tapping the
+    //verification link — re-check now instead of waiting for the next poll tick.
+    if (state == AppLifecycleState.resumed) {
+      _checkVerified();
+    }
   }
 
   //Ask Firebase for the freshest user state and flip the UI when verified.
@@ -63,6 +78,9 @@ class _VerifyEmailState extends State<VerifyEmail> {
     final refreshed = FirebaseAuth.instance.currentUser;
     if (!mounted || !(refreshed?.emailVerified ?? false)) return;
 
+    //set the guard before the await so a concurrent poll/resume tick can't
+    //double-navigate while the token refresh is in flight
+    _isVerified = true;
     _pollTimer?.cancel();
     //force a token refresh so the verified claim propagates to the rest of the
     //app/backend, not just this screen's cached flag
@@ -71,7 +89,11 @@ class _VerifyEmailState extends State<VerifyEmail> {
     } catch (_) {}
     if (!mounted) return;
 
-    setState(() => _isVerified = true);
+    //Verified — continue onboarding at the photo step. Uses pushReplacement so
+    //the user can't navigate back into the verification gate.
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const AddPhotos()),
+    );
   }
 
   void _startTimer() {
@@ -213,16 +235,18 @@ class _VerifyEmailState extends State<VerifyEmail> {
                 ),
               ),
               SizedBox(height: 20),
-              //Back button
+              //Escape hatch: sign out and return to login (e.g. signed up with
+              //the wrong address). The unverified account persists and the user
+              //lands back here on their next login until they verify.
               TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
+                onPressed: () async {
+                  await FirebaseAuth.instance.signOut();
                 },
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.grey[600],
                   textStyle: TextStyle(fontSize: 14),
                 ),
-                child: Text(text.backToSettings),
+                child: Text(text.backToLogin),
               ),
             ],
           ),

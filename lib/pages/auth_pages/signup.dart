@@ -7,7 +7,6 @@ import 'package:flutter/gestures.dart';
 import 'package:foitifinder/constants/university_domains.dart';
 import 'package:foitifinder/debug_flags.dart';
 import 'package:foitifinder/main_screen.dart';
-import 'package:foitifinder/pages/sign_up_set_up/add_photos.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -182,8 +181,8 @@ class _SignUpPageState extends State<SignUpPage> {
       },);
       if (!mounted) return;
       //TESTING: when kBypassOnboarding is on, skip onboarding and go straight to
-      //the homepage. Otherwise start onboarding at the photo step (phone
-      //verification has been removed).
+      //the homepage. Otherwise hand back to the auth router (SetupWrapper),
+      //which now shows the email-verification gate first, then photos -> setup.
       if (kBypassOnboarding) {
         Navigator.pushAndRemoveUntil(
           context,
@@ -193,10 +192,9 @@ class _SignUpPageState extends State<SignUpPage> {
           (route) => false,
         );
       } else {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const AddPhotos()),
-        );
+        //pop the signup page so the SetupWrapper underneath becomes visible; it
+        //routes to VerifyEmail because the new account isn't verified yet.
+        Navigator.of(context).popUntil((route) => route.isFirst);
       }
     } on FirebaseAuthException catch (e) {
       setState(() {
