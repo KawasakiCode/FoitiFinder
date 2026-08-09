@@ -1,0 +1,91 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+
+# Android Gradle build output (machine-specific paths in reports)
+/android/build/
+/android/gradle/wrapper/build/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# Firebase configuration files (contain API keys)
+lib/firebase_options.dart
+firebase.json
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+lib/dummy_user_data.dart
+
+# Android local properties (machine-specific paths)
+android/local.properties
+android/key.properties
+
+# Keystore files (for signing apps - contains private keys)
+*.keystore
+*.jks
+*.key
+*.p12
+*.p8
+
+# Environment files (may contain secrets)
+.env
+.env.local
+.env.*.local
+
+#for backend
+backend/venv/
+backend/.venv/
+backend/__pycache__/
+backend/matchmaker/__pycache__/
+**/__pycache__/
+backend/.env
+.vscode/
+.idea/
+backend/serviceAccountKey.json
+backend/.pytest_cache
+
+# Debug Flag
+/lib/debug_flags.dart
+
+#models
+/backend/Odin
+/backend/models

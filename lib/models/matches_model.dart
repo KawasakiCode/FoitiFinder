@@ -1,0 +1,28 @@
+//Grabs data of the other user from a match
+//Used to show the user's dm's in chat/messages page
+
+class MatchModel {
+  final int matchId;
+  final int userBid;
+  final String userBname;
+  final String? imageUrl;
+  final String? lastMessage;
+
+  MatchModel({
+    required this.matchId,
+    required this.userBid,
+    required this.userBname,
+    required this.imageUrl,
+    this.lastMessage,
+  });
+
+  factory MatchModel.fromJson(Map<String, dynamic> json) {
+    return MatchModel(  
+      matchId: json['match_id'],
+      userBid: json['other_user_id'],
+      userBname: json['other_user_name'],
+      imageUrl: json['image_url'],
+      lastMessage: json['last_message']
+    );
+  }
+}

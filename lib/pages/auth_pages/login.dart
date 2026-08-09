@@ -1,0 +1,454 @@
+//The login page of the app
+//Uses firebase with email and password as available sign in methods for now
+
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:foitifinder/pages/auth_pages/signup.dart';
+import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/widgets/primary_button.dart';
+
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  //variable used to show loading throbber when needed
+  bool isLoading = false;
+  late final TextEditingController _email;
+  late final TextEditingController _password;
+  bool _isPasswordVisible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _email = TextEditingController();
+    _password = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _email.dispose();
+    _password.dispose();
+    super.dispose();
+  }
+
+  //The function that actually logs in the user
+  //If login is successful sent user to MainScreen (HomePage)
+  //If login fails notify the user
+  void _login() async {
+    if (!context.mounted) return;
+    final text = AppLocalizations.of(context)!;
+    final email = _email.text.trim();
+    final password = _password.text;
+
+    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+
+    if (email.isEmpty && password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text.emptyFields),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+    else if (email.isEmpty && password.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text.emptyEmail),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+    else if (password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text.emptyPassword),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+    // Email validation check
+    if (email.length > 254 || !emailRegex.hasMatch(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text.invalidEmail),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      //hard stop so a hung connection can't leave the user waiting forever.
+      //sign in is side-effect free, so abandoning it on timeout is safe.
+      final credential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(
+            email: email,
+            password: password,
+          )
+          .timeout(const Duration(seconds: 30));
+
+      final user = credential.user;
+      if (user == null) {
+        throw FirebaseAuthException(
+          code: 'user-null',
+          message: text.errorOccured,
+        );
+      }
+    } on TimeoutException {
+      setState(() {
+        isLoading = false;
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text.requestTimedOut),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+      setState(() {
+        isLoading = false;
+      });
+      //Most common FirebaseAuthExceptions
+      switch (e.code) {
+        case 'invalid-credential':
+          errorMessage = text.invalidCredentials;
+          break;
+        case 'invalid-email':
+          errorMessage = text.invalidEmail;
+          break;
+        case 'user-disabled':
+          errorMessage = text.disabledAccount;
+          break;
+        case 'too-many-requests':
+          errorMessage = text.tooManyRequests;
+          break;
+        case 'network-request-failed':
+          errorMessage = text.lostInternet;
+          break;
+        default:
+          errorMessage = text.errorOccured;
+      }
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text.unexpectedError),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final text = AppLocalizations.of(context)!;
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        //AbsorbPointer locks the screen while logging in; the spinner now lives
+        //in the button itself (PrimaryButton) so we don't show a second one.
+        body: AbsorbPointer(
+          absorbing: isLoading,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height,
+              ),
+              child: IntrinsicHeight(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.only(
+                        bottom: 10,
+                        top: 20,
+                        left: 15,
+                        right: 15,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey, width: 1),
+                        borderRadius: BorderRadius.all(  
+                          Radius.circular(12)
+                        )
+                      ),
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 25),
+                            child: Text(
+                              'FoitiFinder',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          //Email TextFormField
+                          TextFormField(
+                            decoration: InputDecoration(
+                              hintText: text.email,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(12),
+                                ),
+                              ),
+                            ),
+                            controller: _email,
+                            autocorrect: false,
+                            enableSuggestions: false,
+                            keyboardType: TextInputType.emailAddress,
+                          ),
+                          //Password TextFormField
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8, bottom: 8),
+                            child: StatefulBuilder(
+                              builder: (context, setState) {
+                                return TextFormField(
+                                  decoration: InputDecoration(
+                                    hintText: text.password,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.all(
+                                        Radius.circular(12),
+                                      ),
+                                    ),
+                                    suffixIcon: Padding(
+                                      padding: EdgeInsets.only(right: 8.0),
+                                      child: Material(
+                                        color: Colors.transparent,
+                                        child: InkWell(
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                          onTap: () {
+                                            setState(() {
+                                              _isPasswordVisible =
+                                                  !_isPasswordVisible;
+                                            });
+                                          },
+                                          child: Padding(
+                                            padding: EdgeInsets.all(8.0),
+                                            child: Image.asset(
+                                              _isPasswordVisible
+                                                  ? 'assets/icons/hide.png'
+                                                  : 'assets/icons/view.png',
+                                              width: 10,
+                                              height: 10,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  controller: _password,
+                                  obscureText: !_isPasswordVisible,
+                                  autocorrect: false,
+                                  enableSuggestions: false,
+                                );
+                              },
+                            ),
+                          ),
+                          //Login button
+                          PrimaryButton(
+                            label: text.login,
+                            onPressed: isLoading ? null : _login,
+                            isLoading: isLoading,
+                          ),
+                          SizedBox(height: 10),
+                          //Or text with dividers
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Divider(
+                                  thickness: 1,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  13,
+                                  10,
+                                  13,
+                                  10,
+                                ),
+                                child: Text(
+                                  text.or,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w400,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Divider(
+                                  thickness: 1,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                          //Forgot Password button
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Align(
+                                alignment: Alignment.center,
+                                child: TextButton(
+                                  onPressed: () async {
+                                    //validate the email before asking Firebase
+                                    //to send a reset, otherwise an empty/invalid
+                                    //field just produces a generic error
+                                    final resetEmail = _email.text.trim();
+                                    final resetEmailRegex = RegExp(
+                                      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                                    );
+                                    if (resetEmail.isEmpty ||
+                                        !resetEmailRegex.hasMatch(resetEmail)) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(text.invalidEmail),
+                                          backgroundColor: Colors.red,
+                                          duration: Duration(seconds: 3),
+                                        ),
+                                      );
+                                      return;
+                                    }
+                                    setState(() => isLoading = true);
+                                    try {
+                                      await FirebaseAuth.instance
+                                          .sendPasswordResetEmail(
+                                            email: resetEmail,
+                                          );
+                                      if (!context.mounted) return;
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            text.passwordResetEmail,
+                                          ),
+                                          backgroundColor: Colors.green,
+                                          duration: Duration(seconds: 3),
+                                        ),
+                                      );
+                                    } catch (e) {
+                                      if (!context.mounted) return;
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(text.errorOccured),
+                                          backgroundColor: Colors.red,
+                                          duration: Duration(seconds: 3),
+                                        ),
+                                      );
+                                    } finally {
+                                      if (mounted) {
+                                        setState(() => isLoading = false);
+                                      }
+                                    }
+                                  },
+                                  style: TextButton.styleFrom(
+                                    padding: EdgeInsets.only(bottom: 5, top: 0),
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                    foregroundColor: Colors.black,
+                                    textStyle: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  child: Text(text.forgotPassword),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    //No account Sign up text
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Container(
+                        padding: const EdgeInsets.only(top: 7, bottom: 7),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey, width: 1),
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(12),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(text.noAccount),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SignUpPage(),
+                                  ),
+                                );
+                              },
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.black,
+                                textStyle: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              child: Text(
+                                text.signUp,
+                                style: TextStyle(
+                                  color: const Color.fromARGB(255, 0, 65, 119),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
