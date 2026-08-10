@@ -14,6 +14,7 @@ from sqlalchemy import and_, or_, case
 from firebase_admin import messaging, credentials, firestore, auth
 import firebase_admin
 from preferences.preferences import interests_to_genders
+from university_domains import is_university_email
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -39,19 +40,23 @@ firestore_db = firestore.client()
 bearer_scheme = HTTPBearer()
 
 
-def current_uid(
+def verified_claims(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
-) -> str:
-    """Verify the caller's Firebase ID token and return their uid."""
+) -> dict:
+    """Verify the caller's Firebase ID token and return its decoded claims."""
     try:
-        decoded = auth.verify_id_token(credentials.credentials)
+        return auth.verify_id_token(credentials.credentials)
     except Exception:
         # expired, tampered with, wrong project, or not a token at all
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token",
         )
-    return decoded["uid"]
+
+
+def current_uid(claims: dict = Depends(verified_claims)) -> str:
+    """The uid of the caller, taken from the verified token claims."""
+    return claims["uid"]
 
 #class that handles the like data we need to sent
 #we dont return likes but data from the users that liked the currentuser
@@ -104,7 +109,29 @@ class SwipeRequest(BaseModel):
 
 #create new user and initialize default settings table for the new user
 @app.post("/users/", response_model=schemas.User)
-def create_user(user: schemas.UserCreate, uid: str = Depends(current_uid), db: Session = Depends(get_db)):
+def create_user(
+    user: schemas.UserCreate,
+    uid: str = Depends(current_uid),
+    claims: dict = Depends(verified_claims),
+    db: Session = Depends(get_db),
+):
+    #the signup page already blocks non-university emails, but a client can be
+    #patched or the endpoint called directly, so re-check server side. The email
+    #comes from the VERIFIED token claims (never from the request body); if the
+    #token carries none we ask the Admin SDK for the account's address.
+    email = claims.get("email")
+    if not email:
+        try:
+            email = auth.get_user(uid).email
+        except Exception:
+            email = None
+
+    if not is_university_email(email):
+        raise HTTPException(
+            status_code=403,
+            detail="Email domain is not a supported university domain",
+        )
+
     #the row is keyed to the VERIFIED uid, so a caller can only ever create their
     #own account — any firebase_token in the body is ignored
     db_user = db.query(models.User).filter(models.User.firebase_token == uid).first()

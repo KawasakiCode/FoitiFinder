@@ -47,3 +47,25 @@ UNIVERSITY_DOMAINS: frozenset[str] = frozenset({
     "hmu.gr",        # Hellenic Mediterranean University
     "aspete.gr",     # ASPETE (School of Pedagogical & Technological Education)
 })
+
+
+def is_university_email(email: str | None) -> bool:
+    """True if `email` belongs to a whitelisted university domain.
+
+    Mirrors the client-side check in lib/pages/auth_pages/signup.dart: the
+    domain matches if it equals a whitelisted root or is a subdomain of one.
+    A missing/malformed address is rejected rather than let through.
+    """
+    if not email or "@" not in email:
+        return False
+
+    #rsplit: everything before the last '@' is the local part, which may itself
+    #contain quoted '@' characters
+    domain = email.rsplit("@", 1)[1].strip().lower().rstrip(".")
+    if not domain:
+        return False
+
+    return any(
+        domain == allowed or domain.endswith(f".{allowed}")
+        for allowed in UNIVERSITY_DOMAINS
+    )
