@@ -54,11 +54,26 @@ def verified_claims(
         )
 
 def verified_email_uid(claims: dict = Depends(verified_claims)) -> str:
-    #  ↑ this Depends() still runs auth.verify_id_token() — signature, expiry,
-    #    audience, issuer. Nothing is weakened.
+    """Like current_uid, but also requires the caller's email to be verified.
+
+    The token is still fully verified (same verified_claims dependency); this
+    only adds a condition. Anyone can sign up with a university address they
+    don't own, so without this the "university students only" rule would live in
+    the app UI alone and be bypassable by calling the API directly.
+
+    Used by every endpoint EXCEPT account creation and the profile read, which
+    both must work before verification: POST /users/ creates the very account
+    the user is about to verify, and GET /users/me is what the auth router reads
+    to decide whether the account exists at all — a 403 there is
+    indistinguishable from "no account" and would sign the user out before they
+    could ever reach the verification page.
+    """
     if claims.get("email_verified") is not True:
-        raise HTTPException(403, "Email not verified")
-    return claims["uid"]          # ← same verified uid as before
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Email not verified",
+        )
+    return claims["uid"]
 
 def current_uid(claims: dict = Depends(verified_claims)) -> str:
     """The uid of the caller, taken from the verified token claims."""
@@ -193,7 +208,7 @@ def get_user_data(uid: str = Depends(current_uid), db: Session = Depends(get_db)
 
 #update one/multiple user attributes without altering the others
 @app.patch("/users/me")
-def update_user(user_update: schemas.UserUpdate, uid: str = Depends(current_uid), db: Session = Depends(get_db)):
+def update_user(user_update: schemas.UserUpdate, uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.firebase_token == uid).first()
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -212,7 +227,7 @@ def update_user(user_update: schemas.UserUpdate, uid: str = Depends(current_uid)
 
 #get multiple users for the homepage
 @app.get("/users/feed", response_model = List[UserCards])
-def get_swipe_feed(uid: str = Depends(current_uid), db: Session = Depends(get_db)):
+def get_swipe_feed(uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
     #first get the current user id to exclude it
     me = db.query(models.User).filter(models.User.firebase_token == uid).first()
     if not me:
@@ -281,7 +296,7 @@ def get_swipe_feed(uid: str = Depends(current_uid), db: Session = Depends(get_db
 
 #update one/multiple settings without altering the other
 @app.patch("/users/settings")
-def update_settings(settings_update: schemas.SettingsUpdate, uid: str = Depends(current_uid), db: Session = Depends(get_db)):
+def update_settings(settings_update: schemas.SettingsUpdate, uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
     db_user =  db.query(models.User).filter(models.User.firebase_token == uid).first()
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -302,7 +317,7 @@ def update_settings(settings_update: schemas.SettingsUpdate, uid: str = Depends(
 
 #get user's settings
 @app.get("/users/settings")
-def get_users_settings(uid: str = Depends(current_uid), db: Session = Depends(get_db)):
+def get_users_settings(uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.firebase_token == uid).first()
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -311,7 +326,7 @@ def get_users_settings(uid: str = Depends(current_uid), db: Session = Depends(ge
 
 #like endpoints
 @app.get("/likes", response_model = List[LikerProfile])
-def get_likes(uid: str = Depends(current_uid), db: Session = Depends(get_db)):
+def get_likes(uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
     me = db.query(models.User).filter(models.User.firebase_token == uid).first()
     if not me:
         raise HTTPException(status_code=404, detail="Current User not found")
@@ -356,7 +371,7 @@ def get_likes(uid: str = Depends(current_uid), db: Session = Depends(get_db)):
 
 #get all matches that the user hasnt seen yet
 @app.get("/matches/unseen")
-def get_unseen_matches(uid: str = Depends(current_uid), db: Session = Depends(get_db)):
+def get_unseen_matches(uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
     me = db.query(models.User).filter(models.User.firebase_token == uid).first()
     if not me:
        raise HTTPException(status_code=404, detail="Current User not found")
@@ -395,7 +410,7 @@ def get_unseen_matches(uid: str = Depends(current_uid), db: Session = Depends(ge
 
 #get matches to load chats
 @app.get("/matches", response_model = List[MatchResponse])
-def get_matches(uid: str = Depends(current_uid), db: Session = Depends(get_db)):
+def get_matches(uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
     me = db.query(models.User).filter(models.User.firebase_token == uid).first()
     if not me:
         raise HTTPException(status_code=404, detail="Current User not found")
@@ -439,7 +454,7 @@ def get_matches(uid: str = Depends(current_uid), db: Session = Depends(get_db)):
 
 #get users photos
 @app.get("/photos")
-def get_user_photos(uid: str = Depends(current_uid), db: Session = Depends(get_db)):
+def get_user_photos(uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
     me = db.query(models.User).filter(models.User.firebase_token == uid).first()
     if not me:
         raise HTTPException(status_code=404, detail="Current User not found")
@@ -452,7 +467,7 @@ def get_user_photos(uid: str = Depends(current_uid), db: Session = Depends(get_d
 
 #store a photo inside the db
 @app.post("/photos")
-def upload_photo(user_photos: UserPhotos, uid: str = Depends(current_uid), db: Session = Depends(get_db)):
+def upload_photo(user_photos: UserPhotos, uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
     me = db.query(models.User).filter(models.User.firebase_token == uid).first()
     if not me:
         raise HTTPException(status_code=404, detail="Current User not found")
@@ -479,7 +494,7 @@ class PhotoSync(BaseModel):
 #display_order matches the order the user arranged. Only the photo rows are
 #touched — the Firebase Storage objects of kept photos are reused via their URL.
 @app.put("/photos/sync")
-def sync_photos(payload: PhotoSync, uid: str = Depends(current_uid), db: Session = Depends(get_db)):
+def sync_photos(payload: PhotoSync, uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
     me = db.query(models.User).filter(models.User.firebase_token == uid).first()
     if not me:
         raise HTTPException(status_code=404, detail="Current User not found")
@@ -501,7 +516,7 @@ def sync_photos(payload: PhotoSync, uid: str = Depends(current_uid), db: Session
 
 #register a swipe
 @app.post("/swipes")
-def record_swipe(swipe: SwipeRequest, uid: str = Depends(current_uid), db: Session = Depends(get_db)):
+def record_swipe(swipe: SwipeRequest, uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
     me = db.query(models.User).filter(models.User.firebase_token == uid).first()
     if not me:
        raise HTTPException(status_code=404, detail="Current User not found")
@@ -598,7 +613,7 @@ def record_swipe(swipe: SwipeRequest, uid: str = Depends(current_uid), db: Sessi
 #this one legitimately looks up ANOTHER user, but still requires a valid token so
 #only signed-in users can read profiles (uid unused beyond that gate)
 @app.get("/single/user/{user_id}")
-def get_single_user(user_id: int, uid: str = Depends(current_uid), db: Session = Depends(get_db)):
+def get_single_user(user_id: int, uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == user_id).first()
 
     if not user:
@@ -617,7 +632,7 @@ def get_single_user(user_id: int, uid: str = Depends(current_uid), db: Session =
 
 #update match seen
 @app.patch("/matches/seen/{match_id}")
-def update_match_seen(match_id: int, uid: str = Depends(current_uid), db: Session = Depends(get_db)):
+def update_match_seen(match_id: int, uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
     me = db.query(models.User).filter(models.User.firebase_token == uid).first()
     if not me: 
         raise HTTPException(status_code=404, detail="Current User not found")
