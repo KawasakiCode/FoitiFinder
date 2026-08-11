@@ -72,7 +72,9 @@ class ApiService {
           "has_finished_set_up": hasFinishedSetUp,
           "bio": bio,
           "age": age,
-          "image_url": imageUrl,
+          //backend column/schema field is profile_picture; sending "image_url"
+          //here meant the value was silently dropped by pydantic
+          "profile_picture": imageUrl,
           "gender": gender,
           "min_age_range": minAgeRange,
           "max_age_range": maxAgeRange,

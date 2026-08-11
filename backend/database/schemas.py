@@ -2,11 +2,14 @@ from typing import List, Optional
 from pydantic import BaseModel
 from datetime import datetime
 
-#main user schema 
+#main user schema
+#NOTE: no firebase_token here. The uid is NOT accepted from the client — it is
+#taken from the verified ID token server side (see current_uid in main.py), so
+#a caller can only ever create/modify their own row. It is returned in the User
+#response below, but never read from a request body.
 class UserBase(BaseModel):
     username: str
     full_name: str
-    firebase_token: str
     profile_picture: str | None = None
     bio: str | None = None
     age: int | None = None 
@@ -42,6 +45,8 @@ class UserUpdate(BaseModel):
 class User(UserBase):
     id: int
     created_at: datetime
+    #server-derived, response only (the client reads it back as the user's uid)
+    firebase_token: str
 
     #allows pydantic to read sqlalchemy objects instead of only dictionaries
     class Config:
