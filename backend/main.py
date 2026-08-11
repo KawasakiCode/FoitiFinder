@@ -53,6 +53,12 @@ def verified_claims(
             detail="Invalid or expired token",
         )
 
+def verified_email_uid(claims: dict = Depends(verified_claims)) -> str:
+    #  ↑ this Depends() still runs auth.verify_id_token() — signature, expiry,
+    #    audience, issuer. Nothing is weakened.
+    if claims.get("email_verified") is not True:
+        raise HTTPException(403, "Email not verified")
+    return claims["uid"]          # ← same verified uid as before
 
 def current_uid(claims: dict = Depends(verified_claims)) -> str:
     """The uid of the caller, taken from the verified token claims."""
