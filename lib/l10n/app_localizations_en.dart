@@ -12,9 +12,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTitle => 'Settings';
 
   @override
-  String get account => 'Account Settings';
-
-  @override
   String get discovery => 'Discovery Settings';
 
   @override
@@ -63,9 +60,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notifications => 'Notifications';
 
   @override
-  String get pushNotifications => 'Push Notifications';
-
-  @override
   String get language => 'Language';
 
   @override
@@ -103,16 +97,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteAccount => 'Delete Account';
-
-  @override
-  String get exploreText => 'Welcome to Explore';
-
-  @override
-  String get similarPlans => 'Similar plans and lifestyles';
-
-  @override
-  String get similarPlansText =>
-      'Find people with similar life goals and hobbies';
 
   @override
   String get editProfile => 'Edit Profile';
@@ -193,10 +177,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signUp => 'Sign Up';
 
   @override
-  String get accountDeleted =>
-      'Account deleted. Please sign up again and verify your email.';
-
-  @override
   String get invalidCredentials =>
       'Invalid email or password. Please check your credentials and try again.';
 
@@ -232,9 +212,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get haveAccount => 'Have an account?';
-
-  @override
-  String get signUpToContinue => 'Sign Up to continue';
 
   @override
   String get smallPassword => 'Password must be at least 8 characters long.';
@@ -277,20 +254,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backToLogin => 'Back to login';
 
   @override
-  String get cannotRewind => 'Cannot rewind further';
-
-  @override
   String get age => 'Age';
-
-  @override
-  String get verifySend => 'Verification sent to ';
-
-  @override
-  String get checkInbox =>
-      'Please check your inbox to finish updating your email.';
-
-  @override
-  String get failedVerifyEmail => 'Failed to send verification: ';
 
   @override
   String get cancel => 'Cancel';
@@ -300,13 +264,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get securityCheck => 'Security Check';
-
-  @override
-  String get confirmPassword =>
-      'To change your email, please confirm your current password.';
-
-  @override
-  String get securityCheckFailed => 'Security check failed: ';
 
   @override
   String get notificationsWarning =>
@@ -328,15 +285,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get female => 'Female';
 
   @override
-  String get noInternet => 'No Internet Connectiion';
-
-  @override
-  String get turnOnWifi => 'Please turn on Wifi or Mobile Data to continue';
-
-  @override
-  String get search => 'Search';
-
-  @override
   String get noMoreProfiles => 'No more profiles to show!';
 
   @override
@@ -347,9 +295,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addPhotoText => 'Please add at least one photo';
-
-  @override
-  String get noMatches => 'You have no new matches';
 
   @override
   String get itsAMatch => 'It\'s a match!';
@@ -370,22 +315,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get submit => 'Submit';
 
   @override
-  String get noWifi => 'No Internet Connectiion';
-
-  @override
-  String get turnWifiOn => 'Please turn on Wifi or Mobile Data to continue';
-
-  @override
   String get verifyYourEmail => 'Verify Your Email';
-
-  @override
-  String get verifyyourEmail => 'Verify your email';
-
-  @override
-  String get backToSettings => 'Back to settings';
-
-  @override
-  String get mailAlreadyVerified => 'Your email is already verified';
 
   @override
   String get likeNotifications => 'Like and Match Notifications';

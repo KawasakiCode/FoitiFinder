@@ -104,12 +104,6 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get settingsTitle;
 
-  /// No description provided for @account.
-  ///
-  /// In en, this message translates to:
-  /// **'Account Settings'**
-  String get account;
-
   /// No description provided for @discovery.
   ///
   /// In en, this message translates to:
@@ -206,12 +200,6 @@ abstract class AppLocalizations {
   /// **'Notifications'**
   String get notifications;
 
-  /// No description provided for @pushNotifications.
-  ///
-  /// In en, this message translates to:
-  /// **'Push Notifications'**
-  String get pushNotifications;
-
   /// No description provided for @language.
   ///
   /// In en, this message translates to:
@@ -289,24 +277,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete Account'**
   String get deleteAccount;
-
-  /// No description provided for @exploreText.
-  ///
-  /// In en, this message translates to:
-  /// **'Welcome to Explore'**
-  String get exploreText;
-
-  /// No description provided for @similarPlans.
-  ///
-  /// In en, this message translates to:
-  /// **'Similar plans and lifestyles'**
-  String get similarPlans;
-
-  /// No description provided for @similarPlansText.
-  ///
-  /// In en, this message translates to:
-  /// **'Find people with similar life goals and hobbies'**
-  String get similarPlansText;
 
   /// No description provided for @editProfile.
   ///
@@ -452,12 +422,6 @@ abstract class AppLocalizations {
   /// **'Sign Up'**
   String get signUp;
 
-  /// No description provided for @accountDeleted.
-  ///
-  /// In en, this message translates to:
-  /// **'Account deleted. Please sign up again and verify your email.'**
-  String get accountDeleted;
-
   /// No description provided for @invalidCredentials.
   ///
   /// In en, this message translates to:
@@ -523,12 +487,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Have an account?'**
   String get haveAccount;
-
-  /// No description provided for @signUpToContinue.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign Up to continue'**
-  String get signUpToContinue;
 
   /// No description provided for @smallPassword.
   ///
@@ -596,35 +554,11 @@ abstract class AppLocalizations {
   /// **'Back to login'**
   String get backToLogin;
 
-  /// No description provided for @cannotRewind.
-  ///
-  /// In en, this message translates to:
-  /// **'Cannot rewind further'**
-  String get cannotRewind;
-
   /// No description provided for @age.
   ///
   /// In en, this message translates to:
   /// **'Age'**
   String get age;
-
-  /// No description provided for @verifySend.
-  ///
-  /// In en, this message translates to:
-  /// **'Verification sent to '**
-  String get verifySend;
-
-  /// No description provided for @checkInbox.
-  ///
-  /// In en, this message translates to:
-  /// **'Please check your inbox to finish updating your email.'**
-  String get checkInbox;
-
-  /// No description provided for @failedVerifyEmail.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to send verification: '**
-  String get failedVerifyEmail;
 
   /// No description provided for @cancel.
   ///
@@ -643,18 +577,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Security Check'**
   String get securityCheck;
-
-  /// No description provided for @confirmPassword.
-  ///
-  /// In en, this message translates to:
-  /// **'To change your email, please confirm your current password.'**
-  String get confirmPassword;
-
-  /// No description provided for @securityCheckFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Security check failed: '**
-  String get securityCheckFailed;
 
   /// No description provided for @notificationsWarning.
   ///
@@ -692,24 +614,6 @@ abstract class AppLocalizations {
   /// **'Female'**
   String get female;
 
-  /// No description provided for @noInternet.
-  ///
-  /// In en, this message translates to:
-  /// **'No Internet Connectiion'**
-  String get noInternet;
-
-  /// No description provided for @turnOnWifi.
-  ///
-  /// In en, this message translates to:
-  /// **'Please turn on Wifi or Mobile Data to continue'**
-  String get turnOnWifi;
-
-  /// No description provided for @search.
-  ///
-  /// In en, this message translates to:
-  /// **'Search'**
-  String get search;
-
   /// No description provided for @noMoreProfiles.
   ///
   /// In en, this message translates to:
@@ -733,12 +637,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please add at least one photo'**
   String get addPhotoText;
-
-  /// No description provided for @noMatches.
-  ///
-  /// In en, this message translates to:
-  /// **'You have no new matches'**
-  String get noMatches;
 
   /// No description provided for @itsAMatch.
   ///
@@ -776,41 +674,11 @@ abstract class AppLocalizations {
   /// **'Submit'**
   String get submit;
 
-  /// No description provided for @noWifi.
-  ///
-  /// In en, this message translates to:
-  /// **'No Internet Connectiion'**
-  String get noWifi;
-
-  /// No description provided for @turnWifiOn.
-  ///
-  /// In en, this message translates to:
-  /// **'Please turn on Wifi or Mobile Data to continue'**
-  String get turnWifiOn;
-
   /// No description provided for @verifyYourEmail.
   ///
   /// In en, this message translates to:
   /// **'Verify Your Email'**
   String get verifyYourEmail;
-
-  /// No description provided for @verifyyourEmail.
-  ///
-  /// In en, this message translates to:
-  /// **'Verify your email'**
-  String get verifyyourEmail;
-
-  /// No description provided for @backToSettings.
-  ///
-  /// In en, this message translates to:
-  /// **'Back to settings'**
-  String get backToSettings;
-
-  /// No description provided for @mailAlreadyVerified.
-  ///
-  /// In en, this message translates to:
-  /// **'Your email is already verified'**
-  String get mailAlreadyVerified;
 
   /// No description provided for @likeNotifications.
   ///

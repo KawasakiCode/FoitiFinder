@@ -12,9 +12,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get settingsTitle => 'Ρυθμίσεις';
 
   @override
-  String get account => 'Ρυθμίσεις Λογαριασμού';
-
-  @override
   String get discovery => 'Ρυθμίσεις Ανακάλυψης';
 
   @override
@@ -63,9 +60,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get notifications => 'Ειδοποιήσεις';
 
   @override
-  String get pushNotifications => 'Ειδοποιήσεις Push';
-
-  @override
   String get language => 'Γλώσσα';
 
   @override
@@ -103,16 +97,6 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get deleteAccount => 'Διαγραφή Λογαριασμού';
-
-  @override
-  String get exploreText => 'Καλώς ήρθατε στην Εξερεύνηση';
-
-  @override
-  String get similarPlans => 'Παρόμοια σχέδια και τρόπος ζωής';
-
-  @override
-  String get similarPlansText =>
-      'Βρείτε άτομα με παρόμοιους στόχους ζωής και χόμπι';
 
   @override
   String get editProfile => 'Επεξεργασία Προφίλ';
@@ -197,10 +181,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get signUp => 'Εγγραφή';
 
   @override
-  String get accountDeleted =>
-      'Ο λογαριασμός διαγράφηκε. Παρακαλώ εγγραφείτε ξανά και επαληθεύστε το email σας.';
-
-  @override
   String get invalidCredentials =>
       'Λανθασμένο email ή κωδικός πρόσβασης. Παρακαλώ ελέγξτε τα στοιχεία σας και δοκιμάστε ξανά.';
 
@@ -236,9 +216,6 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get haveAccount => 'Έχετε ήδη λογαριασμό;';
-
-  @override
-  String get signUpToContinue => 'Εγγραφείτε για να συνεχίσετε';
 
   @override
   String get smallPassword =>
@@ -282,20 +259,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get backToLogin => 'Επιστροφή στη σύνδεση';
 
   @override
-  String get cannotRewind => 'Αδυναμία επαναφοράς';
-
-  @override
   String get age => 'Ηλικία';
-
-  @override
-  String get verifySend => 'Στάλθηκε επαλήθευση στο ';
-
-  @override
-  String get checkInbox =>
-      'Παρακαλούμε ελέγξτε τα εισερχόμενά σας για να ολοκληρώσετε την ενημέρωση του email σας.';
-
-  @override
-  String get failedVerifyEmail => 'Απέτυχε η αποστολή επαλήθευσης: ';
 
   @override
   String get cancel => 'Ακύρωση';
@@ -305,13 +269,6 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get securityCheck => 'Έλεγχος Ασφαλείας';
-
-  @override
-  String get confirmPassword =>
-      'Για να αλλάξετε το email σας, παρακαλούμε επιβεβαιώστε τον τρέχοντα κωδικό πρόσβασής σας.';
-
-  @override
-  String get securityCheckFailed => 'Ο έλεγχος ασφαλείας απέτυχε: ';
 
   @override
   String get notificationsWarning =>
@@ -333,16 +290,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get female => 'Γυναίκα';
 
   @override
-  String get noInternet => 'Χωρίς σύνδεση στο διαδίκτυο';
-
-  @override
-  String get turnOnWifi =>
-      'Ενεργοποίησε το Wi-Fi ή τα δεδομένα για να συνεχίσεις';
-
-  @override
-  String get search => 'Αναζήτηση';
-
-  @override
   String get noMoreProfiles => 'Δεν υπάρχουν άλλα προφίλ!';
 
   @override
@@ -353,9 +300,6 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get addPhotoText => 'Πρόσθεσε τουλάχιστον μία φωτογραφία';
-
-  @override
-  String get noMatches => 'Δεν έχεις νέα ταιριάσματα';
 
   @override
   String get itsAMatch => 'Είναι Match!';
@@ -377,23 +321,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get submit => 'Υποβολή';
 
   @override
-  String get noWifi => 'Χωρίς Σύνδεση';
-
-  @override
-  String get turnWifiOn =>
-      'Ενεργοποίησε το WiFi ή τα Δεδομένα για να συνεχίσεις';
-
-  @override
   String get verifyYourEmail => 'Επαλήθευσε το Email σου';
-
-  @override
-  String get verifyyourEmail => 'Επαλήθευσε το email σου';
-
-  @override
-  String get backToSettings => 'Πίσω στις ρυθμίσεις';
-
-  @override
-  String get mailAlreadyVerified => 'Το email σου έχει ήδη επαληθευτεί';
 
   @override
   String get likeNotifications => 'Ειδοποιήσεις για Like & Match';
