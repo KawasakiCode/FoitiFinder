@@ -63,20 +63,14 @@ const List<InterestCategory> kInterestCategories = [
     'Vaper',
     '420 friendly',
   ]),
-  InterestCategory('Beliefs & values', [
+  InterestCategory('Religion', [
     'Spiritual',
     'Orthodox',
     'Christian',
     'Muslim',
     'Jewish',
     'Atheist',
-    'Agnostic',
-    'Environmentalist',
-    'Feminist',
-    'Volunteering',
-    'Activism',
-    'Politically engaged',
-    'Apolitical',
+    'Agnostic'
   ]),
   InterestCategory('Languages', [
     'Greek',
@@ -284,19 +278,6 @@ const List<InterestCategory> kInterestCategories = [
     'Aquariums',
     'Animal volunteering',
     'Allergic to pets',
-  ]),
-  InterestCategory('Wellbeing & self-care', [
-    'Therapy',
-    'Mindfulness',
-    'Meditation',
-    'Deep chats',
-    'Nutrition',
-    'Sleeping well',
-    'Time offline',
-    'Skincare',
-    'Long walks',
-    'Breathwork',
-    'Run club',
   ]),
   InterestCategory('Student life', [
     'Study dates',
