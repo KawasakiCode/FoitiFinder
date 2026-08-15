@@ -46,6 +46,9 @@ const List<InterestCategory> kInterestCategories = [
     'Still figuring it out',
     'Open to anything',
   ]),
+  InterestCategory('MBTI', [
+
+  ]),
   InterestCategory('Family plans', [
     'Want kids someday',
     "Don't want kids",
