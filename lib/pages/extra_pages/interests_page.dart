@@ -6,11 +6,18 @@
 //  section  -> the subcategory inside a group (Activities, Music, MBTI, ...)
 //  option   -> the actual tappable box
 //
-//Two different budget rules, because the groups behave differently:
-//  * "Hobbies & interests" has ONE shared budget of 10 spread across all seven
-//    of its sections — spending a pick on Music takes one away from Sports.
-//  * every other group is capped per section (MBTI 1, the rest 3).
+//Budgets stack: a pick has to clear BOTH its section's own cap and its group's
+//shared budget.
+//  * "Hobbies & interests" and "Traits" each have ONE shared budget of 10 spread
+//    across their sections — spending a pick on Music takes one away from Sports.
+//  * inside Traits, two sections additionally cap themselves at 1 (star sign and
+//    MBTI), because those are single-answer facts.
 //Picking 0 anywhere is fine.
+//
+//DECIDED, not a bug: star sign and MBTI are paid for out of the same 10 as the
+//rest of Traits, so spending all 10 on personality traits leaves no room to set
+//them. Only the FIRST pick in those sections costs a slot — swapping one star
+//sign for another is free even at 10/10.
 //
 //UI ONLY: nothing here talks to a provider, the API or the user model. The
 //selection lives in _selected and save() just hands it back to the caller.
@@ -29,12 +36,13 @@ import 'package:foitifinder/widgets/primary_button.dart';
 class InterestSection {
   final String title;
   final List<String> options;
-  //per-section cap. Ignored when the parent group has a shared budget.
-  //A section with max 1 behaves like a radio: tapping a different box swaps the
-  //pick instead of being refused, which is what you want for MBTI.
-  final int maxSelections;
+  //this section's OWN cap. null means it has none and only the group's shared
+  //budget applies. When both exist the tighter one wins.
+  //A section capped at 1 behaves like a radio: tapping a different box swaps the
+  //pick instead of being refused, which is what you want for MBTI and star sign.
+  final int? maxSelections;
 
-  const InterestSection(this.title, this.options, {this.maxSelections = 3});
+  const InterestSection(this.title, this.options, {this.maxSelections});
 }
 
 //One of the 5 broad blocks.
@@ -288,13 +296,65 @@ const List<InterestGroup> kInterestGroups = [
   ),
 
   //=========================================================================
-  //2. TRAITS — capped per section. Gender and age range are deliberately
-  //absent: they already live in settings.
+  //2. TRAITS — 4 sections sharing a budget of 10. Star sign and MBTI cap
+  //themselves at 1 on top of that, since you only get one of each.
+  //Gender and age range are deliberately absent: they already live in settings.
   //=========================================================================
   InterestGroup(
     'Traits',
+    sharedMax: 10,
     sections: [
-      InterestSection('MBTI', [
+      InterestSection('Personality traits', [
+        'Introvert',
+        'Adventurous',
+        'Ambitious',
+        'Ambivert',
+        'Calm',
+        'Caring',
+        'Chaotic',
+        'Competition seeker',
+        'Creative',
+        'Curious',
+        'Deep thinker',
+        'Dreamer',
+        'Empathetic',
+        'Energetic',
+        'Extravert',
+        'Flexible',
+        'Generous',
+        'Go-getter',
+        'Honest',
+        'Kind',
+        'Listener',
+        'Open-minded',
+        'Optimistic',
+        'Organized',
+        'Outgoing',
+        'Passionate',
+        'Patient',
+        'Perfectionist',
+        'Playful',
+        'Positive',
+        'Romantic',
+        'Spontaneous',
+        'Supportive',
+        'Witty',
+      ]),
+      InterestSection('Star sign', [
+        'Aries',
+        'Taurus',
+        'Gemini',
+        'Cancer',
+        'Leo',
+        'Virgo',
+        'Libra',
+        'Scorpio',
+        'Sagittarius',
+        'Capricorn',
+        'Aquarius',
+        'Pisces',
+      ], maxSelections: 1),
+      InterestSection('Personality type (MBTI)', [
         'INTJ',
         'INTP',
         'ENTJ',
@@ -312,61 +372,29 @@ const List<InterestGroup> kInterestGroups = [
         'ESTP',
         'ESFP',
       ], maxSelections: 1),
-      InterestSection('Relationship goals', [
-        'Long-term relationship',
-        'Life partner',
-        'Short-term fun',
-        'Casual dating',
-        'New friends',
-        'Still figuring it out',
-        'Open to anything',
-      ]),
-      InterestSection('Family plans', [
-        'Want kids someday',
-        "Don't want kids",
-        'Have kids',
-        'Open to kids',
-        'Not sure yet',
-      ]),
-      InterestSection('Drinking & smoking', [
-        'Social drinker',
-        'Rarely drinks',
+      InterestSection('Lifestyle', [
+        'Early bird',
+        'Activist',
+        'Animal lover',
+        'Bohemian',
+        'Corporate',
+        'Cozy at home',
+        'Digital nomad',
+        'Family orientated',
+        'Foodie',
+        'Health',
+        'Maximalist',
+        'Minimalist',
+        'Music lover',
+        'Night owl',
+        'Pet free',
         'Sober',
-        'Non-smoker',
-        'Social smoker',
-        'Regular smoker',
-        'Vaper',
-        '420 friendly',
-      ]),
-      InterestSection('Beliefs & values', [
         'Spiritual',
-        'Orthodox',
-        'Christian',
-        'Muslim',
-        'Jewish',
-        'Atheist',
-        'Agnostic',
-        'Environmentalist',
-        'Feminist',
-        'Volunteering',
-        'Activism',
-        'Politically engaged',
-        'Apolitical',
-      ]),
-      InterestSection('Languages', [
-        'Greek',
-        'English',
-        'German',
-        'French',
-        'Spanish',
-        'Italian',
-        'Albanian',
-        'Bulgarian',
-        'Romanian',
-        'Russian',
-        'Turkish',
-        'Arabic',
-        'Sign language',
+        'Sportive',
+        'Student association',
+        'Sustainable',
+        'Thrill seeker',
+        'Wanderlust',
       ]),
     ],
   ),
@@ -419,12 +447,17 @@ class _InterestsPageState extends State<InterestsPage> {
   bool isSelected(InterestGroup group, InterestSection section, String option) =>
       picksIn(group, section).contains(option);
 
-  //whether a *new* pick would be refused. Single-pick sections are never full:
-  //tapping another box swaps the choice instead.
+  //whether a *new* pick would be refused. A single-pick section that already
+  //has its pick is never full — tapping another box swaps the choice, which
+  //costs nothing against either budget.
   bool isFull(InterestGroup group, InterestSection section) {
-    if (section.maxSelections == 1) return false;
-    if (group.sharedMax != null) return groupCount(group) >= group.sharedMax!;
-    return picksIn(group, section).length >= section.maxSelections;
+    final picks = picksIn(group, section);
+    if (section.maxSelections == 1 && picks.isNotEmpty) return false;
+    //the tighter of the two limits wins
+    if (section.maxSelections != null && picks.length >= section.maxSelections!) {
+      return true;
+    }
+    return group.sharedMax != null && groupCount(group) >= group.sharedMax!;
   }
 
   void toggleInterest(
@@ -438,19 +471,22 @@ class _InterestsPageState extends State<InterestsPage> {
       //tapping something already picked always removes it, even when full
       if (picks.remove(option)) return;
 
-      //radio sections (MBTI): the new pick replaces the old one. Done before
-      //the budget check so a swap can't be blocked by a full group.
-      if (section.maxSelections == 1) {
+      //radio sections (star sign, MBTI): swapping the existing pick keeps the
+      //count identical, so it runs before the budget checks and can never be
+      //blocked by a full group. Taking the FIRST pick still has to pay for it.
+      if (section.maxSelections == 1 && picks.isNotEmpty) {
         picks
           ..clear()
           ..add(option);
         return;
       }
 
-      //shared budget beats the per-section cap when the group has one
-      if (group.sharedMax != null) {
-        if (groupCount(group) >= group.sharedMax!) return;
-      } else if (picks.length >= section.maxSelections) {
+      //a pick has to clear its own section cap and the group's shared budget
+      if (section.maxSelections != null &&
+          picks.length >= section.maxSelections!) {
+        return;
+      }
+      if (group.sharedMax != null && groupCount(group) >= group.sharedMax!) {
         return;
       }
 
@@ -563,7 +599,6 @@ class _SectionBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final bool sharesBudget = group.sharedMax != null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -577,9 +612,10 @@ class _SectionBlock extends StatelessWidget {
                 style: theme.textTheme.titleMedium?.copyWith(fontSize: 17),
               ),
             ),
-            //a per-section "2/3" would be a lie when the budget is shared, so
-            //it's only drawn when the section really owns its cap
-            if (!sharesBudget)
+            //only drawn when the section really owns a cap — a per-section
+            //"2/3" would be a lie for sections that just draw on the group
+            //budget, which is shown on the group header instead
+            if (section.maxSelections != null)
               Text(
                 '${state.picksIn(group, section).length}/${section.maxSelections}',
                 style: theme.textTheme.bodySmall,
