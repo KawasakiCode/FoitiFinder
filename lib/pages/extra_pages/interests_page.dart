@@ -1,9 +1,16 @@
 //Page where the user picks the interests shown on their profile.
 //
-//Breeze-style: the catalogue is split into named categories and you tap the
-//boxes you like. Each category is capped on its own (3 for now) rather than
-//having one global budget, so a pick in "Music" never costs you a pick in
-//"Sports". Picking 0 in a category is fine.
+//Breeze-style, three levels deep:
+//  group    -> the 5 broad blocks (Hobbies & interests, Traits, Bio, Q&A's,
+//              Matching pools)
+//  section  -> the subcategory inside a group (Activities, Music, MBTI, ...)
+//  option   -> the actual tappable box
+//
+//Two different budget rules, because the groups behave differently:
+//  * "Hobbies & interests" has ONE shared budget of 10 spread across all seven
+//    of its sections — spending a pick on Music takes one away from Sports.
+//  * every other group is capped per section (MBTI 1, the rest 3).
+//Picking 0 anywhere is fine.
 //
 //UI ONLY: nothing here talks to a provider, the API or the user model. The
 //selection lives in _selected and save() just hands it back to the caller.
@@ -18,284 +25,368 @@ import 'package:flutter/material.dart';
 import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/primary_button.dart';
 
-//One block of the page: a title and the boxes underneath it.
-class InterestCategory {
+//A subcategory: a title and the boxes under it.
+class InterestSection {
   final String title;
   final List<String> options;
-  //per-category cap. All 3 for now, but some categories are logically
-  //single-answer (family plans, star sign if it ever lands) — flip those to 1
-  //here instead of adding a special case in the widget.
+  //per-section cap. Ignored when the parent group has a shared budget.
+  //A section with max 1 behaves like a radio: tapping a different box swaps the
+  //pick instead of being refused, which is what you want for MBTI.
   final int maxSelections;
 
-  const InterestCategory(this.title, this.options, {this.maxSelections = 3});
+  const InterestSection(this.title, this.options, {this.maxSelections = 3});
+}
+
+//One of the 5 broad blocks.
+class InterestGroup {
+  final String title;
+  final List<InterestSection> sections;
+  //when set, every section in this group draws from this one budget
+  final int? sharedMax;
+  //shown instead of the sections while a group has no content yet
+  final String? placeholder;
+
+  const InterestGroup(
+    this.title, {
+    this.sections = const [],
+    this.sharedMax,
+    this.placeholder,
+  });
 }
 
 //The catalogue. Kept in this file while it's still being shaped; move it to
 //lib/constants/ once it settles.
 //TODO: these labels are hardcoded English — the app ships Greek too, so they
 //need to move to app_en.arb / app_el.arb before this page goes live.
-const List<InterestCategory> kInterestCategories = [
-  //---- Profile basics (the "standard" ones). Gender and age range are
-  //deliberately absent: they already live in settings.
-  InterestCategory('Relationship goals', [
-    'Long-term relationship',
-    'Life partner',
-    'Short-term fun',
-    'Casual dating',
-    'New friends',
-    'Still figuring it out',
-    'Open to anything',
-  ]),
-  InterestCategory('MBTI', [
+const List<InterestGroup> kInterestGroups = [
+  //=========================================================================
+  //1. HOBBIES & INTERESTS — 7 sections sharing a budget of 10
+  //=========================================================================
+  InterestGroup(
+    'Hobbies & interests',
+    sharedMax: 10,
+    sections: [
+      InterestSection('Activities', [
+        'Backpacking',
+        'Baking',
+        'Beach',
+        'Camping',
+        'City trips',
+        'Concerts',
+        'Cooking',
+        'Cosplay',
+        'Dining out',
+        'Dinner parties',
+        'Escape rooms',
+        'Festivals',
+        'Having drinks',
+        'Hiking',
+        'Karaoke',
+        'Meditation',
+        'Mountains',
+        'Museum',
+        'Outdoors',
+        'Party',
+        'Pub quiz',
+        'Resort vacations',
+        'Road trips',
+        'Sauna',
+        'Shopping',
+        'Taking a walk',
+        'Thrifting',
+        'Travel',
+        'Wellness',
+      ]),
+      InterestSection('Interests', [
+        'Programming',
+        'AI',
+        'Animals',
+        'Architecture',
+        'Art',
+        'Biology',
+        'Cars',
+        'Cats',
+        'Cinema',
+        'Dogs',
+        'Entrepreneurship',
+        'Finance',
+        'Formula 1',
+        'History',
+        'Horses',
+        'Language',
+        'Nature',
+        'Personal development',
+        'Philosophy',
+        'Plants',
+        'Politics',
+        'Psychology',
+        'Science',
+        'Sneakers',
+        'Sustainability',
+        'Tattoos',
+        'Tech',
+        'Theatre',
+      ]),
+      InterestSection('Entertainment', [
+        'Reading',
+        'Anime',
+        'Board games',
+        'Cartoons',
+        'Chess',
+        'Comedy',
+        'Comics',
+        'Disney',
+        'Documentaries',
+        'Fantasy',
+        'Gaming',
+        'Horror',
+        'Memes',
+        'Movies',
+        'Musicals',
+        'Netflix',
+        'Podcasts',
+        'Puzzles',
+        'Sci-fi',
+        'Sitcoms',
+        'True crime',
+        'Vinyl records',
+        'YouTube',
+      ]),
+      InterestSection('Creative', [
+        'Playing instruments',
+        'Acting',
+        'Composing music',
+        'Crafts',
+        'DIY',
+        'Design',
+        'Drawing',
+        'Fashion',
+        'Knitting',
+        'Painting',
+        'Photography',
+        'Poetry',
+        'Pottery',
+        'Sewing',
+        'Singing',
+        'Writing',
+      ]),
+      InterestSection('Music', [
+        'Classical music',
+        'Afro beats',
+        'Blues',
+        'Country music',
+        'DJing',
+        'Dancehall',
+        'Disco',
+        'Drum and bass',
+        'Drums',
+        'Dubstep',
+        'EDM',
+        'Funk',
+        'Guitar',
+        'Hardstyle',
+        'Hiphop',
+        'House',
+        'Indie music',
+        'Jazz',
+        'K-pop',
+        'Latin music',
+        'Metal',
+        'Piano',
+        'Pop music',
+        'Punk',
+        'R&B',
+        'Rap',
+        'Reggae',
+        'Reggaeton',
+        'Rock',
+        'Salsa',
+        'Soul',
+        'Techno',
+      ]),
+      InterestSection('Food & drinks', [
+        'BBQ',
+        'Beer',
+        'Biryani',
+        'Boba',
+        'Champagne',
+        'Charcuterie',
+        'Cheese',
+        'Chocolate',
+        'Cocktails',
+        'Coffee',
+        'Craft beers',
+        'Curry',
+        'Empanada',
+        'Falafel',
+        'Hot pot',
+        'Jollof',
+        'Matcha',
+        'Pasta',
+        'Pizza',
+        'Pubs',
+        'Ramen',
+        'Roti',
+        'Sushi',
+        'Tapas',
+        'Tea',
+        'Whiskey',
+        'Wine',
+      ]),
+      InterestSection('Sports', [
+        'Martial arts',
+        'Kick(boxing)',
+        'Athletics',
+        'Badminton',
+        'Ballet',
+        'Baseball',
+        'Basketball',
+        'Bouldering',
+        'Bowling',
+        'Climbing',
+        'Cricket',
+        'Cross-training',
+        'Cycling',
+        'Dancing',
+        'Extreme sports',
+        'Fencing',
+        'Fitness',
+        'Football',
+        'Golf',
+        'Handball',
+        'Hockey',
+        'Horse riding',
+        'Ice skating',
+        'Kayaking',
+        'Kitesurfing',
+        'Motorcycling',
+        'Mountainbiking',
+        'Padel',
+        'Pickleball',
+        'Pilates',
+        'Rowing',
+        'Rugby',
+        'Running',
+        'SUP',
+        'Sailing',
+        'Scuba diving',
+        'Skateboarding',
+        'Skiing',
+        'Snowboarding',
+        'Spikeball',
+        'Squash',
+        'Surfing',
+        'Swimming',
+        'Table tennis',
+        'Tennis',
+        'Volleyball',
+        'Waterpolo',
+        'Windsurfing',
+        'Yoga',
+      ]),
+    ],
+  ),
 
-  ]),
-  InterestCategory('Family plans', [
-    'Want kids someday',
-    "Don't want kids",
-    'Have kids',
-    'Open to kids',
-    'Not sure yet',
-  ]),
-  InterestCategory('Drinking & smoking', [
-    'Social drinker',
-    'Rarely drinks',
-    'Sober',
-    'Non-smoker',
-    'Social smoker',
-    'Regular smoker',
-    'Vaper',
-    '420 friendly',
-  ]),
-  InterestCategory('Religion', [
-    'Spiritual',
-    'Orthodox',
-    'Christian',
-    'Muslim',
-    'Jewish',
-    'Atheist',
-    'Agnostic'
-  ]),
-  InterestCategory('Languages', [
-    'Greek',
-    'English',
-    'German',
-    'French',
-    'Spanish',
-    'Italian',
-    'Albanian',
-    'Bulgarian',
-    'Romanian',
-    'Russian',
-    'Turkish',
-    'Arabic',
-    'Sign language',
-  ]),
+  //=========================================================================
+  //2. TRAITS — capped per section. Gender and age range are deliberately
+  //absent: they already live in settings.
+  //=========================================================================
+  InterestGroup(
+    'Traits',
+    sections: [
+      InterestSection('MBTI', [
+        'INTJ',
+        'INTP',
+        'ENTJ',
+        'ENTP',
+        'INFJ',
+        'INFP',
+        'ENFJ',
+        'ENFP',
+        'ISTJ',
+        'ISFJ',
+        'ESTJ',
+        'ESFJ',
+        'ISTP',
+        'ISFP',
+        'ESTP',
+        'ESFP',
+      ], maxSelections: 1),
+      InterestSection('Relationship goals', [
+        'Long-term relationship',
+        'Life partner',
+        'Short-term fun',
+        'Casual dating',
+        'New friends',
+        'Still figuring it out',
+        'Open to anything',
+      ]),
+      InterestSection('Family plans', [
+        'Want kids someday',
+        "Don't want kids",
+        'Have kids',
+        'Open to kids',
+        'Not sure yet',
+      ]),
+      InterestSection('Drinking & smoking', [
+        'Social drinker',
+        'Rarely drinks',
+        'Sober',
+        'Non-smoker',
+        'Social smoker',
+        'Regular smoker',
+        'Vaper',
+        '420 friendly',
+      ]),
+      InterestSection('Beliefs & values', [
+        'Spiritual',
+        'Orthodox',
+        'Christian',
+        'Muslim',
+        'Jewish',
+        'Atheist',
+        'Agnostic',
+        'Environmentalist',
+        'Feminist',
+        'Volunteering',
+        'Activism',
+        'Politically engaged',
+        'Apolitical',
+      ]),
+      InterestSection('Languages', [
+        'Greek',
+        'English',
+        'German',
+        'French',
+        'Spanish',
+        'Italian',
+        'Albanian',
+        'Bulgarian',
+        'Romanian',
+        'Russian',
+        'Turkish',
+        'Arabic',
+        'Sign language',
+      ]),
+    ],
+  ),
 
-  //---- Interests proper
-  InterestCategory('Sports & movement', [
-    'Football',
-    'Basketball',
-    'Volleyball',
-    'Running',
-    'Gym',
-    'CrossFit',
-    'Yoga',
-    'Pilates',
-    'Climbing',
-    'Swimming',
-    'Surfing',
-    'Sailing',
-    'Skiing',
-    'Snowboarding',
-    'Tennis',
-    'Padel',
-    'Martial arts',
-    'Cycling',
-    'Dancing',
-    'Water polo',
-    'Track & field',
-  ]),
-  InterestCategory('Outdoors & travel', [
-    'Hiking',
-    'Camping',
-    'Road trips',
-    'Island hopping',
-    'Beach days',
-    'Backpacking',
-    'City breaks',
-    'Mountaineering',
-    'Kayaking',
-    'Fishing',
-    'Stargazing',
-    'Festivals abroad',
-  ]),
-  InterestCategory('Creativity & making', [
-    'Photography',
-    'Painting',
-    'Drawing',
-    'Graphic design',
-    'Writing',
-    'Poetry',
-    'Playing an instrument',
-    'Singing',
-    'Producing music',
-    'DJing',
-    'Filmmaking',
-    'Theatre',
-    'Pottery',
-    'Knitting',
-    'Sewing',
-    'DIY',
-    '3D printing',
-    'Woodworking',
-  ]),
-  InterestCategory('Music', [
-    'Rock',
-    'Indie',
-    'Hip hop',
-    'Rap',
-    'R&B',
-    'Pop',
-    'K-pop',
-    'Metal',
-    'Punk',
-    'Jazz',
-    'Blues',
-    'Classical',
-    'Techno',
-    'House',
-    'Trance',
-    'Drum & bass',
-    'Reggaeton',
-    'Latin',
-    'Folk',
-    'Greek traditional',
-    'Rebetiko',
-    'Laika',
-    'Live gigs',
-    'Vinyl',
-  ]),
-  InterestCategory('Film & TV', [
-    'Cinema',
-    'Sci-fi',
-    'Fantasy',
-    'Horror',
-    'Thrillers',
-    'Comedy',
-    'Rom-coms',
-    'Documentaries',
-    'Anime',
-    'K-dramas',
-    'Reality TV',
-    'Arthouse',
-    'Marvel',
-    'True crime',
-    'Series binging',
-  ]),
-  InterestCategory('Food & drink', [
-    'Cooking',
-    'Baking',
-    'Brunch',
-    'Street food',
-    'Souvlaki runs',
-    'Sushi',
-    'Vegan',
-    'Vegetarian',
-    'Coffee',
-    'Frappe',
-    'Specialty coffee',
-    'Wine',
-    'Craft beer',
-    'Cocktails',
-    'Tsipouro',
-    'Barbecue',
-    'New restaurants',
-  ]),
-  InterestCategory('Going out', [
-    'Bars',
-    'Clubbing',
-    'Live music',
-    'Bouzoukia',
-    'Raves',
-    'Karaoke',
-    'Pub quiz',
-    'Board game cafes',
-    'Concerts',
-    'Theatre nights',
-    'Festivals',
-    'Beach bars',
-    'Late night walks',
-  ]),
-  InterestCategory('Staying in', [
-    'Board games',
-    'Card games',
-    'Cooking at home',
-    'Movie nights',
-    'Puzzles',
-    'Journaling',
-    'Podcasts',
-    'Reading in bed',
-    'Gardening',
-    'Home workouts',
-    'Napping',
-  ]),
-  InterestCategory('Gaming & tech', [
-    'PC gaming',
-    'Console gaming',
-    'Mobile games',
-    'Esports',
-    'Retro games',
-    'Chess',
-    'D&D',
-    'Tabletop RPGs',
-    'Coding',
-    'Robotics',
-    'AI',
-    'Crypto',
-    'Gadgets',
-    'Streaming',
-    'Speedrunning',
-  ]),
-  InterestCategory('Reading & learning', [
-    'Fiction',
-    'Non-fiction',
-    'Fantasy books',
-    'Sci-fi books',
-    'Philosophy',
-    'Psychology',
-    'History',
-    'Manga',
-    'Comics',
-    'Book clubs',
-    'Languages',
-    'Debating',
-  ]),
-  InterestCategory('Pets & animals', [
-    'Dog person',
-    'Cat person',
-    'Has a dog',
-    'Has a cat',
-    'Wants a pet',
-    'Horse riding',
-    'Bird watching',
-    'Aquariums',
-    'Animal volunteering',
-    'Allergic to pets',
-  ]),
-  InterestCategory('Student life', [
-    'Study dates',
-    'Library sessions',
-    'Erasmus',
-    'Student parties',
-    'Uni sports teams',
-    'Student societies',
-    'Volunteering',
-    'Part-time job',
-    'Thesis survival',
-    'All-nighters',
-    'Campus coffee',
-    'Group projects',
-  ]),
+  //=========================================================================
+  //3-5. Declared but empty — these are free text / their own mechanic, not
+  //boxes, so they need a different widget than the chip grid above.
+  //=========================================================================
+  InterestGroup(
+    'Bio',
+    placeholder: 'Free text — needs a text field, not boxes.',
+  ),
+  InterestGroup(
+    "Q&A's",
+    placeholder: 'Prompt + answer pairs. Catalogue of questions still to come.',
+  ),
+  InterestGroup(
+    'Matching pools',
+    placeholder: 'Joinable pools. Needs its own list once the pools are defined.',
+  ),
 ];
 
 class InterestsPage extends StatefulWidget {
@@ -306,43 +397,79 @@ class InterestsPage extends StatefulWidget {
 }
 
 class _InterestsPageState extends State<InterestsPage> {
-  //category title -> the options picked in it, in tap order (order matters if
+  //"group/section" -> the options picked in it, in tap order (order matters if
   //we ever show only the first few on a profile card)
   final Map<String, List<String>> _selected = {};
 
+  String _keyFor(InterestGroup group, InterestSection section) =>
+      '${group.title}/${section.title}';
+
   //read-only: never creates the entry, so calling it from build() can't mutate
   //state. toggleInterest is the only thing that writes.
-  List<String> _picksIn(InterestCategory category) =>
-      _selected[category.title] ?? const [];
+  List<String> picksIn(InterestGroup group, InterestSection section) =>
+      _selected[_keyFor(group, section)] ?? const [];
 
-  bool isSelected(InterestCategory category, String option) =>
-      _picksIn(category).contains(option);
+  //every pick in a group, across all its sections — this is what the shared
+  //budget is measured against
+  int groupCount(InterestGroup group) => group.sections.fold(
+        0,
+        (sum, section) => sum + picksIn(group, section).length,
+      );
 
-  //a category is full once it hits its own cap — other categories are unaffected
-  bool isCategoryFull(InterestCategory category) =>
-      _picksIn(category).length >= category.maxSelections;
+  bool isSelected(InterestGroup group, InterestSection section, String option) =>
+      picksIn(group, section).contains(option);
 
-  //tapping a picked box always removes it; tapping a new one only lands if the
-  //category still has room, so the cap can never be exceeded
-  void toggleInterest(InterestCategory category, String option) {
+  //whether a *new* pick would be refused. Single-pick sections are never full:
+  //tapping another box swaps the choice instead.
+  bool isFull(InterestGroup group, InterestSection section) {
+    if (section.maxSelections == 1) return false;
+    if (group.sharedMax != null) return groupCount(group) >= group.sharedMax!;
+    return picksIn(group, section).length >= section.maxSelections;
+  }
+
+  void toggleInterest(
+    InterestGroup group,
+    InterestSection section,
+    String option,
+  ) {
     setState(() {
-      final picks = _selected.putIfAbsent(category.title, () => []);
+      final picks = _selected.putIfAbsent(_keyFor(group, section), () => []);
+
+      //tapping something already picked always removes it, even when full
       if (picks.remove(option)) return;
-      if (picks.length >= category.maxSelections) return;
+
+      //radio sections (MBTI): the new pick replaces the old one. Done before
+      //the budget check so a swap can't be blocked by a full group.
+      if (section.maxSelections == 1) {
+        picks
+          ..clear()
+          ..add(option);
+        return;
+      }
+
+      //shared budget beats the per-section cap when the group has one
+      if (group.sharedMax != null) {
+        if (groupCount(group) >= group.sharedMax!) return;
+      } else if (picks.length >= section.maxSelections) {
+        return;
+      }
+
       picks.add(option);
     });
   }
 
-  //every pick across every category, flattened
-  List<String> get allSelected =>
-      [for (final category in kInterestCategories) ..._picksIn(category)];
+  //every pick on the page, flattened
+  List<String> get allSelected => [
+        for (final group in kInterestGroups)
+          for (final section in group.sections) ...picksIn(group, section),
+      ];
 
   //TODO: persist once the backend field exists. Local-only on purpose for now.
   void save() {
-    Navigator.of(context).pop(
-      //copy, so the caller can't mutate our state
-      {for (final entry in _selected.entries) entry.key: List<String>.unmodifiable(entry.value)},
-    );
+    Navigator.of(context).pop({
+      for (final entry in _selected.entries)
+        if (entry.value.isNotEmpty) entry.key: List<String>.unmodifiable(entry.value),
+    });
   }
 
   @override
@@ -357,12 +484,12 @@ class _InterestsPageState extends State<InterestsPage> {
       ),
       body: ListView.separated(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-        itemCount: kInterestCategories.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 28),
+        itemCount: kInterestGroups.length,
+        separatorBuilder: (_, _) => const SizedBox(height: 36),
         itemBuilder: (context, index) =>
-            _CategoryBlock(category: kInterestCategories[index], state: this),
+            _GroupBlock(group: kInterestGroups[index], state: this),
       ),
-      //save bar sits outside the list so it never covers the last category
+      //save bar sits outside the list so it never covers the last group
       bottomNavigationBar: SafeArea(
         minimum: const EdgeInsets.fromLTRB(20, 0, 20, 16),
         child: PrimaryButton(
@@ -374,17 +501,17 @@ class _InterestsPageState extends State<InterestsPage> {
   }
 }
 
-//A category title with its counter, and the boxes underneath.
-class _CategoryBlock extends StatelessWidget {
-  final InterestCategory category;
+//One of the 5 broad blocks: its title, the shared counter if it has one, and
+//every section underneath.
+class _GroupBlock extends StatelessWidget {
+  final InterestGroup group;
   final _InterestsPageState state;
 
-  const _CategoryBlock({required this.category, required this.state});
+  const _GroupBlock({required this.group, required this.state});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final picked = state._picksIn(category).length;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -394,15 +521,69 @@ class _CategoryBlock extends StatelessWidget {
           children: [
             Flexible(
               child: Text(
-                category.title,
+                group.title,
+                style: theme.textTheme.headlineMedium?.copyWith(fontSize: 22),
+              ),
+            ),
+            //the shared budget lives on the group header, since no single
+            //section owns it
+            if (group.sharedMax != null)
+              Text(
+                '${state.groupCount(group)}/${group.sharedMax}',
+                style: theme.textTheme.bodySmall?.copyWith(fontSize: 14),
+              ),
+          ],
+        ),
+        if (group.placeholder != null) ...[
+          const SizedBox(height: 8),
+          Text(group.placeholder!, style: theme.textTheme.bodySmall),
+        ],
+        for (final section in group.sections) ...[
+          const SizedBox(height: 20),
+          _SectionBlock(group: group, section: section, state: state),
+        ],
+      ],
+    );
+  }
+}
+
+//A section title with its counter (only when the section owns its own cap) and
+//the boxes underneath.
+class _SectionBlock extends StatelessWidget {
+  final InterestGroup group;
+  final InterestSection section;
+  final _InterestsPageState state;
+
+  const _SectionBlock({
+    required this.group,
+    required this.section,
+    required this.state,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final bool sharesBudget = group.sharedMax != null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Flexible(
+              child: Text(
+                section.title,
                 style: theme.textTheme.titleMedium?.copyWith(fontSize: 17),
               ),
             ),
-            //"2/3" — makes the per-category budget obvious at a glance
-            Text(
-              '$picked/${category.maxSelections}',
-              style: theme.textTheme.bodySmall,
-            ),
+            //a per-section "2/3" would be a lie when the budget is shared, so
+            //it's only drawn when the section really owns its cap
+            if (!sharesBudget)
+              Text(
+                '${state.picksIn(group, section).length}/${section.maxSelections}',
+                style: theme.textTheme.bodySmall,
+              ),
           ],
         ),
         const SizedBox(height: 12),
@@ -410,15 +591,15 @@ class _CategoryBlock extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           children: [
-            for (final option in category.options)
+            for (final option in section.options)
               _InterestBox(
                 label: option,
-                selected: state.isSelected(category, option),
-                //greyed out once the category is full, but still tappable to
+                selected: state.isSelected(group, section, option),
+                //greyed out once there's no room left, but still tappable to
                 //deselect if it's one of the picked ones
-                dimmed: state.isCategoryFull(category) &&
-                    !state.isSelected(category, option),
-                onTap: () => state.toggleInterest(category, option),
+                dimmed: state.isFull(group, section) &&
+                    !state.isSelected(group, section, option),
+                onTap: () => state.toggleInterest(group, section, option),
               ),
           ],
         ),
@@ -458,7 +639,7 @@ class _InterestBox extends StatelessWidget {
     final Color border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
 
     return Opacity(
-      //only the unpickable ones fade, so a full category still reads clearly
+      //only the unpickable ones fade, so a full section still reads clearly
       opacity: dimmed ? 0.4 : 1,
       child: Material(
         color: Colors.transparent,
