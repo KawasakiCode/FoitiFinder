@@ -12,6 +12,7 @@ import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/pages/sign_up_set_up/add_photos.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
+import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/loading_overlay.dart';
 import 'package:provider/provider.dart';
@@ -160,6 +161,7 @@ class _VerifyEmailState extends State<VerifyEmail> with WidgetsBindingObserver {
     setState(() => _isLoading = true);
     try {
       try {
+        await ApiService.deleteUserData();
         await user.delete();
       } on FirebaseAuthException catch (e) {
         if (e.code != 'requires-recent-login') rethrow;
