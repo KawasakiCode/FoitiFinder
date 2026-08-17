@@ -206,6 +206,21 @@ def get_user_data(uid: str = Depends(current_uid), db: Session = Depends(get_db)
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
 
+#delete a user completely from the database
+@app.delete("/users/me")
+def delete_user(
+    uid: str = Depends(current_uid),
+    db: Session = Depends(get_db),
+):
+    db_user = db.query(models.User).filter(models.User.firebase_token == uid).first()
+
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    db.delete(db_user)
+    db.commit()
+
+
 #update one/multiple user attributes without altering the others
 @app.patch("/users/me")
 def update_user(user_update: schemas.UserUpdate, uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):

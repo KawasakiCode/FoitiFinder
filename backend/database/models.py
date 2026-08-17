@@ -24,8 +24,9 @@ class User(Base):
     has_photos = Column(Boolean, nullable = False)
     score = Column(Float, nullable = True)
 
-    settings = relationship("Settings", back_populates="user", uselist=False, cascade="all, delete")
-    photos = relationship("Photos", back_populates="user")
+    settings = relationship("Settings", back_populates="user", uselist=False, cascade="all, delete", passive_deletes=True)
+    photos = relationship("Photos", back_populates="user", cascade="all, delete", passive_deletes=True)
+
 
 #the seen columns help to know when a user saw a match to remove it from the 
 #new matches row inside the message page of the app
@@ -65,8 +66,8 @@ class UserSwipes(Base):
     __tablename__ = "user_swipes"
 
     id = Column(Integer, primary_key = True, index = True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    target_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    target_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     action = Column(String) #like, pass or super like
     timestamp = Column(TIMESTAMP(timezone = True), nullable = False, server_default = text('now()'))
     

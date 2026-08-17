@@ -72,8 +72,6 @@ class ApiService {
           "has_finished_set_up": hasFinishedSetUp,
           "bio": bio,
           "age": age,
-          //backend column/schema field is profile_picture; sending "image_url"
-          //here meant the value was silently dropped by pydantic
           "profile_picture": imageUrl,
           "gender": gender,
           "min_age_range": minAgeRange,
@@ -87,7 +85,11 @@ class ApiService {
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
-        throw Exception("Failed to create user");
+        //include the server's reply: a 422 body names the exact field that
+        //failed validation, which is otherwise invisible from the app
+        throw Exception(
+          "Failed to create user (${response.statusCode}) ${response.body}",
+        );
       }
     } catch (e) {
       rethrow;
