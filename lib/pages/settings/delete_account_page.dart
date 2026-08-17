@@ -10,6 +10,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:foitifinder/providers/profile_provider.dart';
+import 'package:foitifinder/providers/settings_providers.dart';
+import 'package:foitifinder/services/api_services.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
@@ -35,6 +39,122 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
   void dispose() {
     _passwordController.dispose();
     super.dispose();
+  }
+
+  void deleteUser() async {
+    final text = AppLocalizations.of(context)!;
+
+    final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+    final settings = Provider.of<SettingsProvider>(context, listen: false);
+
+    final user = FirebaseAuth.instance.currentUser!;
+    final password = _passwordController.text.trim();
+
+    // Validate password
+    if (password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text.snackbarEnterPasswordToConfirm),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    try {
+      // Show loading indicator
+      if (!context.mounted) return;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      // Re-authenticate the user with their password
+      final credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: password,
+      );
+      await user.reauthenticateWithCredential(credential);
+
+
+      // Delete user from database
+      await ApiService.deleteUserData();
+
+      // Delete the user account from Firebase Auth
+      await user.delete();
+
+      // Close loading indicator
+      if (!mounted) return;
+      Navigator.of(context).pop();
+
+      // Navigate to login page and clear navigation stack
+      // Clear user from SharedPreferences and Provider
+      await settings.clearData();
+      await profileProvider.clearData();
+      if (!mounted) return;
+      Navigator.of(context).popUntil((route) => route.isFirst);
+
+      // Show success message
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text.snackbarSuccessDeletion),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    } on FirebaseAuthException catch (e) {
+      // Close loading indicator if still showing
+      if (!context.mounted) return;
+      Navigator.of(context).pop();
+
+      String errorMessage;
+      switch (e.code) {
+        case 'wrong-password':
+          errorMessage = text.incorrectPassword;
+          break;
+        case 'invalid-credential':
+          errorMessage = text.invalidPassword;
+          break;
+        case 'requires-recent-login':
+          errorMessage = text.requiresRecentLogin;
+          break;
+        case 'user-not-found':
+          errorMessage = text.userNotFound;
+          break;
+        case 'user-mismatch':
+          errorMessage = text.credentialsDontMatchUser;
+          break;
+        default:
+          errorMessage = '${text.generalError} ${e.message}';
+      }
+
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 4),
+        ),
+      );
+    } catch (e) {
+      // Close loading indicator if still showing
+      if (!context.mounted) return;
+      Navigator.of(context).pop();
+
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${text.unexpectedError} $e'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 4),
+        ),
+      );
+    }
   }
 
   @override
@@ -168,109 +288,7 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                     bottom: 10,
                   ),
                   child: TextButton(  
-                    onPressed: () async {
-                      final user = FirebaseAuth.instance.currentUser!;
-                      final password = _passwordController.text.trim();
-
-                      // Validate password
-                      if (password.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(text.snackbarEnterPasswordToConfirm),
-                            backgroundColor: Colors.orange,
-                            duration: Duration(seconds: 3),
-                          ),
-                        );
-                        return;
-                      }
-
-                      try {
-                        // Show loading indicator
-                        if (!context.mounted) return;
-                        showDialog(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (context) => Center(
-                            child: CircularProgressIndicator(),
-                          ),
-                        );
-
-                        // Re-authenticate the user with their password
-                        final credential = EmailAuthProvider.credential(
-                          email: user.email!,
-                          password: password,
-                        );
-                        await user.reauthenticateWithCredential(credential);
-
-                        // Delete the user account from Firebase Auth
-                        await user.delete();
-
-                        // Close loading indicator
-                        if (!context.mounted) return;
-                        Navigator.of(context).pop();
-
-                        // Navigate to login page and clear navigation stack
-                        if (!context.mounted) return;
-                        Navigator.of(context).popUntil((route) => route.isFirst);
-
-                        // Show success message
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(text.snackbarSuccessDeletion),
-                            backgroundColor: Colors.green,
-                            duration: Duration(seconds: 3),
-                          ),
-                        );
-                      } on FirebaseAuthException catch (e) {
-                        // Close loading indicator if still showing
-                        if (!context.mounted) return;
-                        Navigator.of(context).pop();
-
-                        String errorMessage;
-                        switch (e.code) {
-                          case 'wrong-password':
-                            errorMessage = text.incorrectPassword;
-                            break;
-                          case 'invalid-credential':
-                            errorMessage = text.invalidPassword;
-                            break;
-                          case 'requires-recent-login':
-                            errorMessage = text.requiresRecentLogin;
-                            break;
-                          case 'user-not-found':
-                            errorMessage = text.userNotFound;
-                            break;
-                          case 'user-mismatch':
-                            errorMessage = text.credentialsDontMatchUser;
-                            break;
-                          default:
-                            errorMessage = '${text.generalError} ${e.message}';
-                        }
-
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(errorMessage),
-                            backgroundColor: Colors.red,
-                            duration: Duration(seconds: 4),
-                          ),
-                        );
-                      } catch (e) {
-                        // Close loading indicator if still showing
-                        if (!context.mounted) return;
-                        Navigator.of(context).pop();
-
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('${text.unexpectedError} $e'),
-                            backgroundColor: Colors.red,
-                            duration: Duration(seconds: 4),
-                          ),
-                        );
-                      }
-                    },
+                    onPressed: deleteUser,                      
                     child: Text(text.deleteMyAccount, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.red)),
                   ),
                 )

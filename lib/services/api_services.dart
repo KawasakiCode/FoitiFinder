@@ -153,7 +153,8 @@ class ApiService {
   }
 
   //Delete user
-  static Future<void> deleteUserData(String uid) async {
+  //no uid argument: the backend deletes whoever the verified token identifies
+  static Future<void> deleteUserData() async {
     final url = Uri.parse('$baseUrl/users/me');
     try {
       final response = await http.delete(url, headers: await _authHeaders());
