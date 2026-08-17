@@ -220,7 +220,6 @@ def delete_user(
     db.delete(db_user)
     db.commit()
 
-
 #update one/multiple user attributes without altering the others
 @app.patch("/users/me")
 def update_user(user_update: schemas.UserUpdate, uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):

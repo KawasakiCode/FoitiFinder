@@ -152,6 +152,22 @@ class ApiService {
     }
   }
 
+  //Delete user
+  static Future<void> deleteUserData(String uid) async {
+    final url = Uri.parse('$baseUrl/users/me');
+    try {
+      final response = await http.delete(url, headers: await _authHeaders());
+      if (response.statusCode == 200 || response.statusCode == 404) {
+        return;
+      }
+      else {
+        throw Exception("Failed to delete user data: ${response.body}");
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   //Get users data back
   static Future<UserModel?> getUserData(String uid) async {
     final url = Uri.parse('$baseUrl/users/me');
