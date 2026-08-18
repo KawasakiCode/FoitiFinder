@@ -21,6 +21,8 @@ class InterestPage extends StatefulWidget {
 }
 
 class _InterestPageState extends State<InterestPage> {
+  AppLocalizations get text => AppLocalizations.of(context)!;
+
   @override
   void initState() {
     super.initState();
@@ -28,7 +30,6 @@ class _InterestPageState extends State<InterestPage> {
 
   @override
   Widget build(BuildContext buildContext) {
-    final text = AppLocalizations.of(context)!;
     final settings = Provider.of<SettingsProvider>(context);
     return PopScope(
       canPop: false,

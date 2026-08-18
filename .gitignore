@@ -81,6 +81,3 @@ backend/.env
 .idea/
 backend/serviceAccountKey.json
 backend/.pytest_cache
-
-# Debug Flag
-/lib/debug_flags.dart

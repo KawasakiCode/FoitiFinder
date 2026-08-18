@@ -33,6 +33,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
+  AppLocalizations get text => AppLocalizations.of(context)!;
+
   //The loaded cards are inside this list
   //We use currentIndex to navigate through the list
   //CurrentIndex always shows to the current top card
@@ -49,7 +51,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool _isAnimating = false;
   // Track swiped cards for rewind functionality
   List<CardData> swipedCards = [];
-  late final text = AppLocalizations.of(context)!;
 
   //card creation
   @override
@@ -571,7 +572,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   //When cards run out show this function
   Widget _buildNoMoreCards() {
-    final text = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

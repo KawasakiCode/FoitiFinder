@@ -28,8 +28,8 @@ class User(Base):
     photos = relationship("Photos", back_populates="user", cascade="all, delete", passive_deletes=True)
 
 
-#the seen columns help to know when a user saw a match to remove it from the 
-#new matches row inside the message page of the app
+#a match row exists only while the pairing is live; there are no seen flags
+#because a match is acted on (instagram handles exchanged) and then removed
 class Matches(Base):
     __tablename__ = "matches"
 
@@ -37,8 +37,6 @@ class Matches(Base):
     user_a_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable = False)
     user_b_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable = False)
     created_at = Column(TIMESTAMP(timezone=True), nullable = False, server_default = text('now()'))
-    user_a_saw = Column(Boolean, nullable=False) #if user a saw the match 
-    user_b_saw = Column(Boolean, nullable=False) #if user b saw the match
 
 class Photos(Base):
     __tablename__ = "photos"

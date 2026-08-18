@@ -424,38 +424,4 @@ class ApiService {
       rethrow;
     }
   }
-
-  //Get new matches
-  static Future<List<MatchModel>> getNewMatches(String uid) async {
-    final url = Uri.parse("$baseUrl/matches/unseen");
-
-    try {
-      final response = await http.get(url, headers: await _authHeaders());
-
-      if(response.statusCode == 200) {
-        List<dynamic> data = jsonDecode(response.body);
-        return data.map((json) => MatchModel.fromJson(json)).toList();
-      }
-      else {
-        throw Exception("Failed to get new matches: ${response.body}");
-      }
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  //Update match as seen
-  static Future<void> updateMatchSeen(int matchId, String uid) async {
-    final url = Uri.parse("$baseUrl/matches/seen/$matchId");
-
-    try {
-      final response = await http.patch(url, headers: await _authHeaders());
-
-      if(response.statusCode != 200) {
-        throw Exception("Failed to update match seen: ${response.body}");
-      }
-    } catch (e) {
-      rethrow;
-    }
-  }
 }

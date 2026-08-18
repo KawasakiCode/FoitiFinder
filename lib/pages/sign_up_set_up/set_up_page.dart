@@ -29,6 +29,8 @@ class SetUpPage extends StatefulWidget {
 }
 
 class _SetUpPageState extends State<SetUpPage> {
+  AppLocalizations get text => AppLocalizations.of(context)!;
+
   bool _isLoading = false;
   late TextEditingController _bioController;
   late TextEditingController _ageController;
@@ -49,7 +51,6 @@ class _SetUpPageState extends State<SetUpPage> {
 
   //Put user data if available in the database
   void confirmAndExit() async {
-    final text = AppLocalizations.of(context)!;
     final user = Provider.of<ProfileProvider>(
       context,
       listen: false,
@@ -114,7 +115,6 @@ class _SetUpPageState extends State<SetUpPage> {
   }
 
   void skipSetUp() async {
-    final text = AppLocalizations.of(context)!;
     final settings = Provider.of<SettingsProvider>(  
       context,
       listen: false,
@@ -156,7 +156,6 @@ class _SetUpPageState extends State<SetUpPage> {
   //UI
   @override
   Widget build(BuildContext context) {
-    final text = AppLocalizations.of(context)!;
     final settings = Provider.of<SettingsProvider>(context);
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),

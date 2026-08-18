@@ -25,6 +25,8 @@ class VerifyEmail extends StatefulWidget {
 }
 
 class _VerifyEmailState extends State<VerifyEmail> with WidgetsBindingObserver {
+  AppLocalizations get text => AppLocalizations.of(context)!;
+
   bool _isEmailSent = false;
   bool _isLoading = false;
 
@@ -121,7 +123,6 @@ class _VerifyEmailState extends State<VerifyEmail> with WidgetsBindingObserver {
 
   //The escape button is destructive now, so confirm before deleting.
   Future<void> _confirmAndDelete() async {
-    final text = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -151,7 +152,6 @@ class _VerifyEmailState extends State<VerifyEmail> with WidgetsBindingObserver {
   //use"). Deletes the Firebase user, wipes cached profile/settings, and the auth
   //router then drops back to login. Re-auths first if the session is stale.
   Future<void> _deleteAccount() async {
-    final text = AppLocalizations.of(context)!;
     final profileProvider =
         Provider.of<ProfileProvider>(context, listen: false);
     final settings = Provider.of<SettingsProvider>(context, listen: false);
@@ -198,7 +198,6 @@ class _VerifyEmailState extends State<VerifyEmail> with WidgetsBindingObserver {
 
   //Prompt for the account password to re-authenticate before deletion.
   Future<String?> _promptPassword() async {
-    final text = AppLocalizations.of(context)!;
     final controller = TextEditingController();
     final password = await showDialog<String>(
       context: context,
@@ -230,7 +229,6 @@ class _VerifyEmailState extends State<VerifyEmail> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    final text = AppLocalizations.of(context)!;
     return LoadingOverlay(
       isLoading: _isLoading,
       child: Scaffold(

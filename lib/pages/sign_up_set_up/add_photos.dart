@@ -22,6 +22,8 @@ class AddPhotos extends StatefulWidget {
 }
 
 class _AddPhotos extends State<AddPhotos> {
+  AppLocalizations get text => AppLocalizations.of(context)!;
+
   bool _isLoading = false;
   //allow up to 6 photos
   //duplicates allowed
@@ -31,7 +33,6 @@ class _AddPhotos extends State<AddPhotos> {
   //bool to not allow the user to upload a photo when another
   //one is already uploading
   bool _isUploading = false;
-  late final text = AppLocalizations.of(context)!;
 
   //Function to add a photo in the list
   Future<void> _pickImage(int index) async {

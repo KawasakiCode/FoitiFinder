@@ -17,6 +17,8 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  AppLocalizations get text => AppLocalizations.of(context)!;
+
   //variable used to show loading throbber when needed
   bool isLoading = false;
   late final TextEditingController _email;
@@ -42,7 +44,6 @@ class _LoginPageState extends State<LoginPage> {
   //If login fails notify the user
   void _login() async {
     if (!context.mounted) return;
-    final text = AppLocalizations.of(context)!;
     final email = _email.text.trim();
     final password = _password.text;
 
@@ -173,7 +174,6 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final text = AppLocalizations.of(context)!;
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(

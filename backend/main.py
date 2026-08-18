@@ -10,7 +10,7 @@ from database import models
 from database.database import engine, get_db
 from database import schemas
 from sqlalchemy.orm import Session, aliased, selectinload
-from sqlalchemy import and_, or_, case
+from sqlalchemy import and_, or_
 from firebase_admin import messaging, credentials, firestore, auth
 import firebase_admin
 from preferences.preferences import interests_to_genders
@@ -383,46 +383,7 @@ def get_likes(uid: str = Depends(verified_email_uid), db: Session = Depends(get_
     #filters only the data specified in the likerProfile class
     return liked_by_users
 
-#get all matches that the user hasnt seen yet
-@app.get("/matches/unseen")
-def get_unseen_matches(uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
-    me = db.query(models.User).filter(models.User.firebase_token == uid).first()
-    if not me:
-       raise HTTPException(status_code=404, detail="Current User not found")
-    
-    new_matches = db.query(  
-        models.User.id,
-        models.User.username,
-        models.User.profile_picture,
-        models.Matches.id.label("match_id")
-    ).join(  
-        models.Matches,
-        or_(
-            models.Matches.user_a_id == models.User.id,
-            models.Matches.user_b_id == models.User.id,
-        )
-    ).filter(  
-        or_(models.Matches.user_a_id == me.id, models.Matches.user_b_id == me.id),
-        models.User.id != me.id,
-        case(  
-            (models.Matches.user_a_id == me.id, models.Matches.user_a_saw == False),
-            (models.Matches.user_b_id == me.id, models.Matches.user_b_saw == False),
-            else_=False
-        )
-    ).all()
-
-    results = []
-    for row in new_matches:
-        results.append({
-            "other_user_id": row.id,
-            "other_user_name": row.username,
-            "image_url": row.profile_picture,
-            "match_id": row.match_id
-        })
-    
-    return results
-
-#get matches to load chats
+#get every match the user currently has
 @app.get("/matches", response_model = List[MatchResponse])
 def get_matches(uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
     me = db.query(models.User).filter(models.User.firebase_token == uid).first()
@@ -589,7 +550,7 @@ def record_swipe(swipe: SwipeRequest, uid: str = Depends(verified_email_uid), db
 
             if not existing_match:
                 # Create the Match
-                new_match = models.Matches(user_a_id=me.id, user_b_id=swipe.target_id, user_a_saw=False, user_b_saw=False)
+                new_match = models.Matches(user_a_id=me.id, user_b_id=swipe.target_id)
                 db.add(new_match)
                 db.commit()
                 is_match = True
@@ -643,27 +604,6 @@ def get_single_user(user_id: int, uid: str = Depends(verified_email_uid), db: Se
         "bio": user.bio,
         "photos": photos_urls,
     }
-
-#update match seen
-@app.patch("/matches/seen/{match_id}")
-def update_match_seen(match_id: int, uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
-    me = db.query(models.User).filter(models.User.firebase_token == uid).first()
-    if not me: 
-        raise HTTPException(status_code=404, detail="Current User not found")
-
-    match = db.query(models.Matches).filter(models.Matches.id == match_id).first()
-    if not match:
-        raise HTTPException(status_code=404, detail="Match not found")
-    
-    if match.user_a_id == me.id:
-        match.user_a_saw = True
-    elif match.user_b_id == me.id:
-        match.user_b_saw = True
-    else: 
-        raise HTTPException(status_code=403, detail="You are not part of this match")
-    
-    db.commit()
-    return {"message": "Match seen updated"}
 
 def notify_user_of_like_or_match(target_user_firebase_token: str, caller: str):
     #Make a data message not a notification

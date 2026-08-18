@@ -26,6 +26,8 @@ class DeleteAccountPage extends StatefulWidget {
 }
 
 class _DeleteAccountPageState extends State<DeleteAccountPage> {
+  AppLocalizations get text => AppLocalizations.of(context)!;
+
   late final TextEditingController _passwordController;
   bool _isPasswordVisible = false;
 
@@ -42,7 +44,6 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
   }
 
   void deleteUser() async {
-    final text = AppLocalizations.of(context)!;
 
     final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
     final settings = Provider.of<SettingsProvider>(context, listen: false);
@@ -159,7 +160,6 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
 
   @override
   Widget build(BuildContext context) {
-    final text = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         title: Text(text.deleteAccount),

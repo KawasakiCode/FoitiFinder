@@ -3,7 +3,6 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:foitifinder/debug_flags.dart';
 import 'package:foitifinder/main_screen.dart';
 import 'package:foitifinder/models/user_model.dart';
 import 'package:foitifinder/pages/auth_pages/login.dart';
@@ -88,11 +87,6 @@ class _SetupWrapperState extends State<SetupWrapper> {
       if (currentUser == null) {
         return const LoginPage();
       }
-      //TESTING: skip photo/setup onboarding and land on the homepage.
-      if (kBypassOnboarding) {
-        return MainScreen(uid: widget.firebaseUser!.uid);
-      }
-
       //Onboarding order (email verified -> photos -> profile setup).
       bool hasFinishedSetUp = currentUser!.hasFinishedSetUp;
       if (hasFinishedSetUp) {

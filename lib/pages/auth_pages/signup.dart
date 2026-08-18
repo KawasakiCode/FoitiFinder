@@ -5,8 +5,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:foitifinder/constants/university_domains.dart';
-import 'package:foitifinder/debug_flags.dart';
-import 'package:foitifinder/main_screen.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -22,6 +20,8 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
+  AppLocalizations get text => AppLocalizations.of(context)!;
+
   bool _isPasswordVisible = false;
   bool _isLoading = false;
   late TapGestureRecognizer _tapGestureRecognizer;
@@ -59,7 +59,6 @@ class _SignUpPageState extends State<SignUpPage> {
   //Function that signs up the user
   void signUp() async {
     UserCredential? userCredential;
-    final text = AppLocalizations.of(context)!;
     final email = _email.text.trim();
     final password = _password.text;
     final username = _username.text;
@@ -180,22 +179,10 @@ class _SignUpPageState extends State<SignUpPage> {
         _isLoading = false;
       },);
       if (!mounted) return;
-      //TESTING: when kBypassOnboarding is on, skip onboarding and go straight to
-      //the homepage. Otherwise hand back to the auth router (SetupWrapper),
-      //which now shows the email-verification gate first, then photos -> setup.
-      if (kBypassOnboarding) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (_) => MainScreen(uid: newUid),
-          ),
-          (route) => false,
-        );
-      } else {
-        //pop the signup page so the SetupWrapper underneath becomes visible; it
-        //routes to VerifyEmail because the new account isn't verified yet.
-        Navigator.of(context).popUntil((route) => route.isFirst);
-      }
+      //hand back to the auth router (SetupWrapper): pop the signup page so the
+      //wrapper underneath becomes visible; it routes to VerifyEmail because the
+      //new account isn't verified yet, then photos -> setup.
+      Navigator.of(context).popUntil((route) => route.isFirst);
     } on FirebaseAuthException catch (e) {
       setState(() {
         _isLoading = false;
@@ -259,7 +246,6 @@ class _SignUpPageState extends State<SignUpPage> {
 
   @override
   Widget build(BuildContext context) {
-    final text = AppLocalizations.of(context)!;
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(

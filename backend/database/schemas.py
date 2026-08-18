@@ -67,12 +67,6 @@ class UserCardResponse(BaseModel):
     class Config:
         orm_mode = True
 
-class Matches(BaseModel):
-    user_a_id: int
-    user_b_id: int
-    user_a_saw: bool
-    user_b_saw: bool
-
 class Photos(BaseModel):
     user_id: int
     photo_url: str

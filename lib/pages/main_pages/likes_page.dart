@@ -41,7 +41,6 @@ class LikesPageState extends State<LikesPage> {
 
   //Dialog to show complete user card and option to like and pass it
   Future<void> _showUserDialog(int userId, int index) async {
-    final text = AppLocalizations.of(context)!;
     final result = await showGeneralDialog<bool>(
       context: context,
       barrierDismissible: true,

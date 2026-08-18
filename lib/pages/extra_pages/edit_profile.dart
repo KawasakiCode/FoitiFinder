@@ -24,6 +24,8 @@ class EditProfile extends StatefulWidget {
 }
 
 class _EditProfileState extends State<EditProfile> {
+  AppLocalizations get text => AppLocalizations.of(context)!;
+
   late TextEditingController _usernameController;
   late TextEditingController _bioController;
   late TextEditingController _ageController;
@@ -37,7 +39,6 @@ class _EditProfileState extends State<EditProfile> {
   //re-score when the photo set really changed, never on a plain profile edit.
   bool _photosChanged = false;
   final ImagePicker _picker = ImagePicker();
-  late final text = AppLocalizations.of(context)!;
 
   bool _isLoading = false;
 
@@ -113,7 +114,6 @@ class _EditProfileState extends State<EditProfile> {
 
   //save new profile data to db and exit edit profile page
   Future<void>? _saveAndExit() async {
-    final text = AppLocalizations.of(context)!;
 
     final profileProvider = Provider.of<ProfileProvider>(
       context,
@@ -361,7 +361,6 @@ class _EditProfileState extends State<EditProfile> {
 
   @override
   Widget build(BuildContext context) {
-    final text = AppLocalizations.of(context)!;
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: PopScope(
