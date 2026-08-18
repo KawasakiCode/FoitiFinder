@@ -37,6 +37,12 @@ class _SetupWrapperState extends State<SetupWrapper> {
     final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
     final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
 
+    final fbUser = FirebaseAuth.instance.currentUser;
+    if (fbUser != null && !fbUser.emailVerified) {
+      setState(() => isLoading = false);
+      return;
+    }
+
     //CRITICAL path: load the profile (from disk cache, or the backend). Only
     //this is allowed to time out and decide whether we're really logged in.
     //A disk-cached user resolves instantly; only a cache miss touches the network.
@@ -72,13 +78,6 @@ class _SetupWrapperState extends State<SetupWrapper> {
   @override
   Widget build(BuildContext context) {
     if (!isLoading) {
-      if (currentUser == null) {
-        return const LoginPage();
-      }
-      //TESTING: skip photo/setup onboarding and land on the homepage.
-      if (kBypassOnboarding) {
-        return MainScreen(uid: widget.firebaseUser!.uid);
-      }
       //Email verification is mandatory before any onboarding step. Read the
       //live user (not the cached widget.firebaseUser) so a just-verified user
       //passes without waiting for a new auth-state event.
@@ -86,6 +85,14 @@ class _SetupWrapperState extends State<SetupWrapper> {
       if (fbUser != null && !fbUser.emailVerified) {
         return const VerifyEmail();
       }
+      if (currentUser == null) {
+        return const LoginPage();
+      }
+      //TESTING: skip photo/setup onboarding and land on the homepage.
+      if (kBypassOnboarding) {
+        return MainScreen(uid: widget.firebaseUser!.uid);
+      }
+
       //Onboarding order (email verified -> photos -> profile setup).
       bool hasFinishedSetUp = currentUser!.hasFinishedSetUp;
       if (hasFinishedSetUp) {
