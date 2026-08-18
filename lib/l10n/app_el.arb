@@ -110,5 +110,6 @@
   "invalidAge": "Η ηλικία πρέπει να είναι μεταξύ 18 και 99 ετών",
   "mailVerified": "Επαληθευμένο mail",
   "noLikes": "Τα like σου θα εμφανίζονται εδώ",
-  "notSupportedDomain": "Μόνο ακαδημαικά email επιτρέπονται"
+  "notSupportedDomain": "Μόνο ακαδημαικά email επιτρέπονται",
+  "retry": "Δοκίμασε ξανά"
 }

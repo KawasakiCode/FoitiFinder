@@ -33,7 +33,12 @@ class ProfileProvider extends ChangeNotifier {
   UserModel? get currentUser => _currentUser;
 
   //Load from disk
-  Future<void> loadUser() async {
+  //`uid` lets the caller supply the identity it has already established.
+  //Relying only on FirebaseAuth.instance.currentUser was unsafe at startup: the
+  //SDK restores the session asynchronously, so on a fast (release) launch this
+  //could be null, silently skip the fetch, and leave _currentUser null — which
+  //callers then read as "this account does not exist".
+  Future<void> loadUser({String? uid}) async {
     //already have the user in memory (e.g. just registered during signup) ->
     //nothing to load, and crucially nothing to 404 on
     if (_currentUser != null) return;
@@ -49,11 +54,11 @@ class ProfileProvider extends ChangeNotifier {
       }
     }
     else {
-      final fbUser = FirebaseAuth.instance.currentUser;
-      if(fbUser != null) {
+      final resolvedUid = uid ?? FirebaseAuth.instance.currentUser?.uid;
+      if(resolvedUid != null) {
         //await so currentUser is actually populated before callers read it
         //(SetupWrapper routes based on the return value of this)
-        await fetchUserFromApi(fbUser.uid);
+        await fetchUserFromApi(resolvedUid);
       }
     }
   }

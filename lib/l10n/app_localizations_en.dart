@@ -364,4 +364,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notSupportedDomain => 'Only university emails are allowed';
+
+  @override
+  String get retry => 'Retry';
 }

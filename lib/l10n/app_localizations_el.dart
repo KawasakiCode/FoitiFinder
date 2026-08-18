@@ -370,4 +370,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get notSupportedDomain => 'Μόνο ακαδημαικά email επιτρέπονται';
+
+  @override
+  String get retry => 'Δοκίμασε ξανά';
 }
