@@ -4,7 +4,11 @@
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:foitifinder/constants/interest_catalogue.dart';
+import 'package:foitifinder/pages/extra_pages/bio_page.dart';
 import 'package:foitifinder/pages/extra_pages/edit_profile.dart';
+import 'package:foitifinder/pages/extra_pages/interest_group_page.dart';
+import 'package:foitifinder/pages/extra_pages/placeholder_group_page.dart';
 import 'package:foitifinder/pages/settings/settings.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
@@ -23,6 +27,59 @@ class _ProfilePageState extends State<ProfilePage> {
   AppLocalizations get text => AppLocalizations.of(context)!;
 
   final dummy = DummyDataService();
+
+  //Picks made in the tag groups, keyed group title -> section title -> options.
+  //
+  //IN MEMORY ONLY, deliberately: there is no column to put these in yet. The
+  //users table has `interests`, but that is the gender preference
+  //("Men"/"Women"/"Everyone") and must not be reused - see the naming warning in
+  //interest_catalogue.dart. Once the new column exists, this map is the single
+  //place that changes: load it from the profile on entry and save it on return
+  //from _openGroup.
+  final Map<String, Map<String, List<String>>> _tagSelections = {};
+
+  //how many options are picked in a group, for the row's trailing count
+  int _pickCount(String groupTitle) =>
+      _tagSelections[groupTitle]?.values.fold(0, (sum, l) => sum! + l.length) ??
+      0;
+
+  //Open the page a category row leads to. Three kinds of destination:
+  //  Bio            -> a real text editor, because that column already exists
+  //  empty groups   -> the placeholder page (Q&A's, Matching pools)
+  //  everything else-> the tag grid, which hands its picks back on pop
+  Future<void> _openGroup(String groupTitle) async {
+    final group = interestGroupByTitle(groupTitle);
+
+    if (groupTitle == kGroupBio) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const BioPage()),
+      );
+      return;
+    }
+
+    if (group.sections.isEmpty) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => PlaceholderGroupPage(group: group)),
+      );
+      return;
+    }
+
+    final result = await Navigator.push<Map<String, List<String>>>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => InterestGroupPage(
+          group: group,
+          initialSelections: _tagSelections[groupTitle] ?? const {},
+        ),
+      ),
+    );
+
+    if (!mounted || result == null) return;
+    setState(() => _tagSelections[groupTitle] = result);
+  }
+
   @override
   Widget build(BuildContext context) {
     final profileProvider = Provider.of<ProfileProvider>(context);
@@ -150,8 +207,64 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ],
           ),
+          //Category list. Scrolls on its own so it can grow without pushing the
+          //header off a short screen.
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.only(top: 8, bottom: 24),
+              children: [
+                for (final title in const [
+                  kGroupHobbies,
+                  kGroupTraits,
+                  kGroupBio,
+                  kGroupQA,
+                  kGroupPools,
+                ])
+                  _CategoryRow(
+                    title: title,
+                    //Bio has no picks to count and the placeholder groups have
+                    //nothing to pick yet, so only the tag groups show a number
+                    count: title == kGroupBio ? 0 : _pickCount(title),
+                    onTap: () => _openGroup(title),
+                  ),
+              ],
+            ),
+          ),
         ],
       ),
+    );
+  }
+}
+
+//One row of the category list: title, an optional count of what is picked, and
+//a chevron.
+class _CategoryRow extends StatelessWidget {
+  final String title;
+  final int count;
+  final VoidCallback onTap;
+
+  const _CategoryRow({
+    required this.title,
+    required this.count,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return ListTile(
+      title: Text(title, style: theme.textTheme.titleMedium),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (count > 0)
+            Text('$count', style: theme.textTheme.bodyMedium),
+          const SizedBox(width: 8),
+          const Icon(Icons.chevron_right),
+        ],
+      ),
+      onTap: onTap,
     );
   }
 }
