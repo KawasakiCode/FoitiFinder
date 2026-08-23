@@ -1,8 +1,8 @@
 //The interest catalogue: the data behind the Hobbies & interests / Traits /
-//Bio / Q&A's / Matching pools categories reachable from the profile page.
+//Bio / Q&A's categories reachable from the profile page.
 //
 //Three levels deep:
-//  group    -> the 5 broad blocks, one per row on the profile page
+//  group    -> the 4 broad blocks, one per row on the profile page
 //  section  -> the subcategory inside a group (Activities, Music, MBTI, ...)
 //  option   -> the actual tappable box
 //
@@ -407,10 +407,6 @@ const List<InterestGroup> kInterestGroups = [
     "Q&A's",
     placeholder: 'Prompt + answer pairs. Catalogue of questions still to come.',
   ),
-  InterestGroup(
-    'Matching pools',
-    placeholder: 'Joinable pools. Needs its own list once the pools are defined.',
-  ),
 ];
 
 //Group titles, used to route each profile row to the right page. Kept as
@@ -419,7 +415,6 @@ const String kGroupHobbies = 'Hobbies & interests';
 const String kGroupTraits = 'Traits';
 const String kGroupBio = 'Bio';
 const String kGroupQA = "Q&A's";
-const String kGroupPools = 'Matching pools';
 
 //Look a group up by title. Throws rather than returning null: every caller
 //passes one of the constants above, so a miss means the catalogue and the

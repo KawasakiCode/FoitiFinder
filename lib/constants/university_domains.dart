@@ -43,3 +43,64 @@ const Set<String> kUniversityDomains = {
   'hmu.gr',        // Hellenic Mediterranean University
   'aspete.gr',     // ASPETE (School of Pedagogical & Technological Education)
 };
+
+// Domain -> display name, used to auto-fill the university on the education
+// page from the address the user signed up with.
+//
+// Matched the same way as kUniversityDomains: exact match, or a subdomain of
+// one of these roots. Every key here MUST also be in kUniversityDomains above,
+// or a student could be gated out at signup and still see a university name.
+//
+// SERVER SIDE TOO: the backend derives this from the verified token's email
+// rather than trusting the client, so this map is for DISPLAY only. Mirrors
+// backend/university_domains.py.
+const Map<String, String> kUniversityNames = {
+  'uoa.gr': 'National and Kapodistrian University of Athens',
+  'ntua.gr': 'National Technical University of Athens',
+  'asfa.gr': 'Athens School of Fine Arts',
+  'aua.gr': 'Agricultural University of Athens',
+  'aueb.gr': 'Athens University of Economics and Business',
+  'auth.gr': 'Aristotle University of Thessaloniki',
+  'panteion.gr': 'Panteion University',
+  'unipi.gr': 'University of Piraeus',
+  'uom.gr': 'University of Macedonia',
+  'uom.edu.gr': 'University of Macedonia',
+  'upatras.gr': 'University of Patras',
+  'upnet.gr': 'University of Patras',
+  'uoi.gr': 'University of Ioannina',
+  'duth.gr': 'Democritus University of Thrace',
+  'uoc.gr': 'University of Crete',
+  'tuc.gr': 'Technical University of Crete',
+  'uth.gr': 'University of Thessaly',
+  'aegean.gr': 'University of the Aegean',
+  'ionio.gr': 'Ionian University',
+  'hua.gr': 'Harokopio University of Athens',
+  'uop.gr': 'University of the Peloponnese',
+  'eap.gr': 'Hellenic Open University',
+  'uowm.gr': 'University of Western Macedonia',
+  'ihu.gr': 'International Hellenic University',
+  'ihu.edu.gr': 'International Hellenic University',
+  'uniwa.gr': 'University of West Attica',
+  'hmu.gr': 'Hellenic Mediterranean University',
+  'aspete.gr': 'ASPETE - School of Pedagogical and Technological Education',
+};
+
+/// The university behind an email address, or null if the domain isn't one we
+/// know. Longest match wins so 'uom.edu.gr' is not shadowed by 'uom.gr'.
+String? universityNameForEmail(String? email) {
+  if (email == null || !email.contains('@')) return null;
+  final domain = email.split('@').last.toLowerCase().trim();
+
+  String? best;
+  int bestLength = -1;
+  for (final entry in kUniversityNames.entries) {
+    final root = entry.key;
+    if (domain == root || domain.endsWith('.$root')) {
+      if (root.length > bestLength) {
+        bestLength = root.length;
+        best = entry.value;
+      }
+    }
+  }
+  return best;
+}

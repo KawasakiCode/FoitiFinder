@@ -5,10 +5,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/constants/interest_catalogue.dart';
-import 'package:foitifinder/pages/extra_pages/bio_page.dart';
-import 'package:foitifinder/pages/extra_pages/edit_profile.dart';
-import 'package:foitifinder/pages/extra_pages/interest_group_page.dart';
-import 'package:foitifinder/pages/extra_pages/placeholder_group_page.dart';
+import 'package:foitifinder/pages/profile_pages/interests/bio_page.dart';
+import 'package:foitifinder/pages/profile_pages/edit_profile.dart';
+import 'package:foitifinder/pages/profile_pages/interests/interest_group_page.dart';
+import 'package:foitifinder/pages/profile_pages/interests/placeholder_group_page.dart';
 import 'package:foitifinder/pages/settings/settings.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
@@ -217,8 +217,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   kGroupHobbies,
                   kGroupTraits,
                   kGroupBio,
-                  kGroupQA,
-                  kGroupPools,
+                  kGroupQA
                 ])
                   _CategoryRow(
                     title: title,

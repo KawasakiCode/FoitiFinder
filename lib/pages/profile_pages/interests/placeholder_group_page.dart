@@ -1,11 +1,10 @@
-//Stand-in page for the catalogue groups that have no mechanic yet: Q&A's and
-//Matching pools.
+//Stand-in page for a catalogue group that has no mechanic yet - currently
+//only Q&A's.
 //
-//Both are declared in the catalogue with a `placeholder` string and no
-//sections, because neither is a grid of tappable boxes - Q&A's is prompt/answer
-//pairs and Matching pools is a joinable list. Rather than ship two identical
-//"nothing here yet" files, this one page renders whichever group it is given
-//and shows that group's own placeholder text.
+//It is declared in the catalogue with a `placeholder` string and no sections,
+//because it is not a grid of tappable boxes but prompt/answer pairs. This page
+//renders whichever group it is given and shows that group's own placeholder
+//text, so a second such group costs nothing.
 //
 //Replace with a real page per group once the mechanic is decided; the routing
 //on the profile page is the only thing that has to change.
