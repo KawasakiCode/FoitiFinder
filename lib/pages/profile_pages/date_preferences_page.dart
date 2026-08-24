@@ -1,36 +1,345 @@
-//Date Preferences: who the user wants to be shown.
+//Date Preferences: who the user is shown.
 //
-//These are the HARD FILTERS the feed runs before anything is scored - gender
-//preference, age range, and whether to show people outside it. They already
-//exist as columns (interests, min_age_range, max_age_range, show_out_of_range)
-//and are currently edited from the settings page.
+//These are the HARD FILTERS the feed applies before anything is scored - the
+//gender preference, the age range, whether to show people outside it, and how
+//the feed is weighted. Moved here from the settings page, which is for app
+//preferences, not for who you want to date.
 //
-//EMPTY ON PURPOSE for now: moving those controls out of settings is a separate
-//job, and half-moving them would leave two screens writing the same columns.
+//Every control writes through SettingsProvider exactly as it did before, so
+//the backend columns behind them (interests, min_age_range, max_age_range,
+//show_out_of_range, is_balanced) are unchanged.
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/pages/settings/interest_page.dart';
+import 'package:foitifinder/providers/settings_providers.dart';
+import 'package:foitifinder/theme/app_colors.dart';
+import 'package:foitifinder/widgets/pressable.dart';
+import 'package:provider/provider.dart';
 
-class DatePreferencesPage extends StatelessWidget {
+class DatePreferencesPage extends StatefulWidget {
   const DatePreferencesPage({super.key});
 
   @override
+  State<DatePreferencesPage> createState() => _DatePreferencesPageState();
+}
+
+class _DatePreferencesPageState extends State<DatePreferencesPage> {
+  AppLocalizations get text => AppLocalizations.of(context)!;
+
+  @override
   Widget build(BuildContext context) {
-    final text = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
+    final settings = Provider.of<SettingsProvider>(context);
+
+    //Interests start as a map because language can change
+    //and we need to display the correct language
+    final Map<String, String> interestsMap = {
+      'Women': text.women,
+      'Men': text.men,
+      'Everyone': text.everybody,
+    };
+    String displayInterests = settings.interests
+        .map((rawKey) {
+          return interestsMap[rawKey] ?? rawKey;
+        })
+        .join(', ');
 
     return Scaffold(
       appBar: AppBar(
         title: Text(text.datePreferences),
         automaticallyImplyLeading: true,
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Text(
-            text.comingSoon,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodyMedium,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              //Discovery Settings (Interests)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 15, top: 10),
+                  child: Text(
+                    text.discovery,
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
+                child: Material(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  shape: RoundedRectangleBorder(
+                    side: BorderSide.none,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: Pressable(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => InterestPage()),
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        top: 10,
+                        left: 10,
+                        right: 10,
+                        bottom: 8,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            text.interests,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                settings.interests.isEmpty
+                                    ? text.emptyInterests
+                                    : displayInterests,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Image.asset(
+                                'assets/icons/right-arrow.png',
+                                width: 10,
+                                height: 10,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              //Discovery Settings (Age range and toggle out of range switch)
+              Padding(
+                padding: const EdgeInsets.only(left: 15, right: 15, top: 20),
+                child: Container(
+                  padding: const EdgeInsets.only(
+                    left: 15,
+                    right: 15,
+                    top: 10,
+                    bottom: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            text.ageRange,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Text(
+                            '${settings.ageRange.start.toInt()} - ${settings.ageRange.end.toInt()}',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      RangeSlider(
+                        values: settings.ageRange,
+                        min: 18,
+                        max: 100,
+                        divisions: 82,
+                        onChanged: (v) => settings.saveAgeRange(v),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                text.outOfRange1,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                text.outOfRange2,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Transform.scale(
+                            scale: 1,
+                            child: Switch(
+                              value: settings.showOutOfRange,
+                              onChanged: (v) => setState(
+                                () => settings.storeShowOutOfRange(v),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              //Balanced recommendations or recently active
+              Padding(
+                padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
+                child: Material(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  shape: RoundedRectangleBorder(
+                    side: BorderSide.none,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Pressable(
+                        //borderRadius: const BorderRadius.vertical(
+                        //top: Radius.circular(10),
+                        //),
+                        onTap: () async {
+                          settings.changeRecommendationPreference(
+                            RecommendationPreference.balanced,
+                          );
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                            top: 10,
+                            left: 10,
+                            right: 15,
+                            bottom: 12,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      text.balanced,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    SizedBox(height: 4),
+                                    AutoSizeText(
+                                      text.balancedText,
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      maxLines: 1,
+                                      minFontSize: 12,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (settings.currentOpt ==
+                                  RecommendationPreference.balanced)
+                                Image.asset(
+                                  'assets/icons/check.png',
+                                  width: 20,
+                                  height: 20,
+                                  color: AppColors.primary,
+                                )
+                              else
+                                const SizedBox(width: 20, height: 20),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: Colors.grey.withValues(alpha: 0.35),
+                        indent: MediaQuery.of(context).size.width * 0.10,
+                        endIndent: MediaQuery.of(context).size.width * 0.10,
+                      ),
+                      Pressable(
+                        onTap: () {
+                          settings.changeRecommendationPreference(
+                            RecommendationPreference.recentlyActive,
+                          );
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                            top: 12,
+                            left: 10,
+                            right: 15,
+                            bottom: 8,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      text.recentlyActive,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    SizedBox(height: 4),
+                                    AutoSizeText(
+                                      text.recentlyActiveText,
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      maxLines: 1,
+                                      minFontSize: 12,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (settings.currentOpt ==
+                                  RecommendationPreference.recentlyActive)
+                                Image.asset(
+                                  'assets/icons/check.png',
+                                  width: 20,
+                                  height: 20,
+                                  color: AppColors.primary,
+                                )
+                              else
+                                const SizedBox(width: 20, height: 20),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

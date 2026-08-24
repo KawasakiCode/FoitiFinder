@@ -15,7 +15,7 @@ import 'package:foitifinder/main_screen.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:foitifinder/services/api_services.dart';
-import 'package:foitifinder/widgets/delayed_inkwell.dart';
+import 'package:foitifinder/widgets/pressable.dart';
 import 'package:provider/provider.dart';
 import 'package:foitifinder/widgets/loading_overlay.dart';
 import 'package:foitifinder/widgets/primary_button.dart';
@@ -242,8 +242,7 @@ class _SetUpPageState extends State<SetUpPage> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         clipBehavior: Clip.antiAlias,
-                        child: DelayedInkWell(
-                          delayMs: 225,
+                        child: Pressable(
                           onTap: () => settings.addRemoveInterests("Men", saveToDb: false),
                           child: Padding(
                             padding: const EdgeInsets.only(
@@ -286,8 +285,7 @@ class _SetUpPageState extends State<SetUpPage> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         clipBehavior: Clip.antiAlias,
-                        child: DelayedInkWell(
-                          delayMs: 225,
+                        child: Pressable(
                           onTap: () => settings.addRemoveInterests("Women", saveToDb: false),
                           child: Padding(
                             padding: const EdgeInsets.only(
@@ -330,8 +328,7 @@ class _SetUpPageState extends State<SetUpPage> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         clipBehavior: Clip.antiAlias,
-                        child: DelayedInkWell(
-                          delayMs: 225,
+                        child: Pressable(
                           onTap: () => settings.addRemoveInterests("Everyone", saveToDb: false),
                           child: Padding(
                             padding: const EdgeInsets.only(
@@ -415,8 +412,7 @@ class _SetUpPageState extends State<SetUpPage> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         clipBehavior: Clip.antiAlias,
-                        child: DelayedInkWell(
-                          delayMs: 225,
+                        child: Pressable(
                           onTap: () => settings.changeGender("Male", saveToDb: false),
                           child: Padding(
                             padding: const EdgeInsets.only(
@@ -459,8 +455,7 @@ class _SetUpPageState extends State<SetUpPage> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         clipBehavior: Clip.antiAlias,
-                        child: DelayedInkWell(
-                          delayMs: 225,
+                        child: Pressable(
                           onTap: () => settings.changeGender("Female", saveToDb: false),
                           child: Padding(
                             padding: const EdgeInsets.only(

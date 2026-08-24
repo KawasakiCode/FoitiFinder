@@ -7,7 +7,7 @@ import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:provider/provider.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
-import 'package:foitifinder/widgets/delayed_inkwell.dart';
+import 'package:foitifinder/widgets/pressable.dart';
 
 //Use a set for the interests since no duplicates are allowed
 //and available options are only 3
@@ -56,8 +56,7 @@ class _InterestPageState extends State<InterestPage> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   clipBehavior: Clip.antiAlias,
-                  child: DelayedInkWell(
-                    delayMs: 225,
+                  child: Pressable(
                     onTap: () => settings.addRemoveInterests("Men"),
                     child: Padding(
                       padding: const EdgeInsets.only(
@@ -100,8 +99,7 @@ class _InterestPageState extends State<InterestPage> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   clipBehavior: Clip.antiAlias,
-                  child: DelayedInkWell(
-                    delayMs: 225,
+                  child: Pressable(
                     onTap: () => settings.addRemoveInterests("Women"),
                     child: Padding(
                       padding: const EdgeInsets.only(
@@ -144,8 +142,7 @@ class _InterestPageState extends State<InterestPage> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   clipBehavior: Clip.antiAlias,
-                  child: DelayedInkWell(
-                    delayMs: 225,
+                  child: Pressable(
                     onTap: () => settings.addRemoveInterests("Everyone"),
                     child: Padding(
                       padding: const EdgeInsets.only(
