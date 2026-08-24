@@ -1313,4 +1313,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get locationHint => 'e.g. Thessaloniki';
+
+  @override
+  String get datePreferences => 'Date Preferences';
+
+  @override
+  String get accountSettings => 'Account Settings';
+
+  @override
+  String get appSettings => 'App Settings';
+
+  @override
+  String get aboutFoitiFinder => 'About FoitiFinder';
+
+  @override
+  String get openSourceLicences => 'Open-source licences';
 }

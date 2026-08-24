@@ -1319,4 +1319,19 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get locationHint => 'π.χ. Θεσσαλονίκη';
+
+  @override
+  String get datePreferences => 'Προτιμήσεις γνωριμιών';
+
+  @override
+  String get accountSettings => 'Ρυθμίσεις λογαριασμού';
+
+  @override
+  String get appSettings => 'Ρυθμίσεις εφαρμογής';
+
+  @override
+  String get aboutFoitiFinder => 'Σχετικά με το FoitiFinder';
+
+  @override
+  String get openSourceLicences => 'Άδειες ανοιχτού κώδικα';
 }

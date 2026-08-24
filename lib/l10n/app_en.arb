@@ -432,5 +432,10 @@
   "otherOccupationHint": "Anything else you do",
   "location": "Location",
   "locationPrompt": "Where are you based?",
-  "locationHint": "e.g. Thessaloniki"
+  "locationHint": "e.g. Thessaloniki",
+  "datePreferences": "Date Preferences",
+  "accountSettings": "Account Settings",
+  "appSettings": "App Settings",
+  "aboutFoitiFinder": "About FoitiFinder",
+  "openSourceLicences": "Open-source licences"
 }

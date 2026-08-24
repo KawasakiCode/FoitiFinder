@@ -2659,6 +2659,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'e.g. Thessaloniki'**
   String get locationHint;
+
+  /// No description provided for @datePreferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Date Preferences'**
+  String get datePreferences;
+
+  /// No description provided for @accountSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Settings'**
+  String get accountSettings;
+
+  /// No description provided for @appSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'App Settings'**
+  String get appSettings;
+
+  /// No description provided for @aboutFoitiFinder.
+  ///
+  /// In en, this message translates to:
+  /// **'About FoitiFinder'**
+  String get aboutFoitiFinder;
+
+  /// No description provided for @openSourceLicences.
+  ///
+  /// In en, this message translates to:
+  /// **'Open-source licences'**
+  String get openSourceLicences;
 }
 
 class _AppLocalizationsDelegate

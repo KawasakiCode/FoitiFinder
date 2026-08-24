@@ -432,5 +432,10 @@
   "otherOccupationHint": "Οτιδήποτε άλλο κάνεις",
   "location": "Τοποθεσία",
   "locationPrompt": "Πού μένεις;",
-  "locationHint": "π.χ. Θεσσαλονίκη"
+  "locationHint": "π.χ. Θεσσαλονίκη",
+  "datePreferences": "Προτιμήσεις γνωριμιών",
+  "accountSettings": "Ρυθμίσεις λογαριασμού",
+  "appSettings": "Ρυθμίσεις εφαρμογής",
+  "aboutFoitiFinder": "Σχετικά με το FoitiFinder",
+  "openSourceLicences": "Άδειες ανοιχτού κώδικα"
 }
