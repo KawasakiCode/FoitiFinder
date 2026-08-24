@@ -495,6 +495,7 @@ class _EditProfileState extends State<EditProfile> {
                     ),
                     const SizedBox(height: 12),
                     CardGroup(
+                      dividers: true,
                       children: [
                         NavRow(
                           icon: Icons.auto_stories_outlined,
@@ -536,6 +537,7 @@ class _EditProfileState extends State<EditProfile> {
                     //======================= MY PERSONALITY =======================
                     SectionHeader(text.sectionMyPersonality),
                     CardGroup(
+                      dividers: true,
                       children: [
                         for (final title in const [
                           kGroupHobbies,
@@ -564,6 +566,7 @@ class _EditProfileState extends State<EditProfile> {
                     //======================= MY MUSIC TASTE =======================
                     SectionHeader(text.sectionMyMusicTaste),
                     CardGroup(
+                      dividers: true,
                       children: [
                         //both need the Spotify API, so both are stubs until
                         //that is wired up
@@ -582,6 +585,7 @@ class _EditProfileState extends State<EditProfile> {
                     //=================== MY BELIEFS AND VALUES ===================
                     SectionHeader(text.sectionMyBeliefs),
                     CardGroup(
+                      dividers: true,
                       children: [
                         for (final choice in const [
                           kChoiceReligion,
@@ -599,6 +603,7 @@ class _EditProfileState extends State<EditProfile> {
                     //========================= MY HABITS =========================
                     SectionHeader(text.sectionMyHabits),
                     CardGroup(
+                      dividers: true,
                       children: [
                         for (final choice in const [
                           kChoiceAlcohol,
@@ -615,6 +620,7 @@ class _EditProfileState extends State<EditProfile> {
                     //=============== WHAT I WANT IN MY RELATIONSHIPS ==============
                     SectionHeader(text.sectionMyRelationships),
                     CardGroup(
+                      dividers: true,
                       children: [
                         for (final choice in const [
                           kChoiceDatingIntention,
@@ -631,6 +637,7 @@ class _EditProfileState extends State<EditProfile> {
                     //======================= MY BACKGROUND =======================
                     SectionHeader(text.sectionMyBackground),
                     CardGroup(
+                      dividers: true,
                       children: [
                         //NOTE: EducationPage, OccupationPage and LocationPage
                         //are already built and working - swapping any of these
@@ -656,6 +663,7 @@ class _EditProfileState extends State<EditProfile> {
                     //========================== WHO I AM ==========================
                     SectionHeader(text.sectionWhoIAm),
                     CardGroup(
+                      dividers: true,
                       children: [
                         NavRow(
                           label: catalogueLabel(text, kChoicePronouns.title),

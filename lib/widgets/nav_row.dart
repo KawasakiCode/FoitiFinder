@@ -35,8 +35,28 @@ class SectionHeader extends StatelessWidget {
 //settings page.
 class CardGroup extends StatelessWidget {
   final List<Widget> children;
+  //hairlines between the rows. Opt-in rather than always-on: a card holding a
+  //single row has nothing to separate, and short cards read fine without them.
+  final bool dividers;
 
-  const CardGroup({super.key, required this.children});
+  const CardGroup({
+    super.key,
+    required this.children,
+    this.dividers = false,
+  });
+
+  //children with a Divider between each pair - never before the first or after
+  //the last, where it would collide with the card's rounded edge
+  List<Widget> _withDividers() {
+    final out = <Widget>[];
+    for (var i = 0; i < children.length; i++) {
+      if (i > 0) {
+        out.add(const Divider(height: 1, indent: 16, endIndent: 16));
+      }
+      out.add(children[i]);
+    }
+    return out;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +71,10 @@ class CardGroup extends StatelessWidget {
         //so a pressed row's tint follows the rounded corners instead of
         //squaring them off at the top and bottom of the card
         clipBehavior: Clip.antiAlias,
-        child: Column(mainAxisSize: MainAxisSize.min, children: children),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: dividers ? _withDividers() : children,
+        ),
       ),
     );
   }
