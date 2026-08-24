@@ -6,7 +6,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/models/card_data_model.dart';
-import 'package:foitifinder/pages/settings/settings.dart';
 import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/animated_swipe_button.dart';
@@ -15,13 +14,11 @@ import 'package:foitifinder/widgets/photo_card.dart';
 class MyHomePage extends StatefulWidget {
   const MyHomePage({
     super.key,
-    this.showSettings = true,
     this.title = 'FoitiFinder',
     this.automaticallyImplyLeading = false,
     this.cardAreaKey,
   });
 
-  final bool showSettings;
   final String title;
   final bool automaticallyImplyLeading;
   //attached to the swipe-card region so the parent (MainScreen) can measure its
@@ -365,22 +362,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 padding: const EdgeInsets.only(left: 10),
                 child: Text(widget.title),
               ),
-              if (widget.showSettings)
-                IconButton(
-                  icon: Image.asset(
-                    'assets/icons/settings.png',
-                    width: 25,
-                    height: 25,
-                    color: Theme.of(context).colorScheme.onSurface,
-                    key: UniqueKey(),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => SettingsPage()),
-                    );
-                  },
-                ),
             ],
           ),
         ),

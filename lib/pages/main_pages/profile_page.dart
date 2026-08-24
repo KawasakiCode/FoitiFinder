@@ -101,20 +101,6 @@ class _ProfilePageState extends State<ProfilePage> {
               padding: const EdgeInsets.only(left: 10),
               child: Text('FoitiFinder'),
             ),
-            IconButton(
-              icon: Image.asset(
-                'assets/icons/settings.png',
-                width: 25,
-                height: 25,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => SettingsPage()),
-                );
-              },
-            ),
           ],
         ),
       ),

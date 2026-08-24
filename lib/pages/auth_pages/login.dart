@@ -386,7 +386,10 @@ class _LoginPageState extends State<LoginPage> {
                                     padding: EdgeInsets.only(bottom: 5, top: 0),
                                     tapTargetSize:
                                         MaterialTapTargetSize.shrinkWrap,
-                                    foregroundColor: Colors.black,
+                                    //onSurface, not a hardcoded colour: black
+                                    //vanished against the dark background
+                                    foregroundColor:
+                                        Theme.of(context).colorScheme.onSurface,
                                     textStyle: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.bold,
@@ -425,7 +428,8 @@ class _LoginPageState extends State<LoginPage> {
                                 );
                               },
                               style: TextButton.styleFrom(
-                                foregroundColor: Colors.black,
+                                foregroundColor:
+                                    Theme.of(context).colorScheme.onSurface,
                                 textStyle: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold,
