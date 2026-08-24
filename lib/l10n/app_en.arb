@@ -437,5 +437,11 @@
   "accountSettings": "Account Settings",
   "appSettings": "App Settings",
   "aboutFoitiFinder": "About FoitiFinder",
-  "openSourceLicences": "Open-source licences"
+  "openSourceLicences": "Open-source licences",
+  "photos": "Photos",
+  "addStoryToPhoto": "Add a story to a photo",
+  "sectionMyMusicTaste": "My music taste",
+  "myTune": "My tune",
+  "favouriteArtists": "Favourite artists",
+  "languagesSpoken": "Languages"
 }

@@ -5,7 +5,17 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:foitifinder/constants/interest_catalogue.dart';
+import 'package:foitifinder/constants/profile_options.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/l10n/catalogue_labels.dart';
+import 'package:foitifinder/pages/profile_pages/choice_dialog.dart';
+import 'package:foitifinder/pages/profile_pages/choice_page.dart';
+import 'package:foitifinder/pages/profile_pages/coming_soon_page.dart';
+import 'package:foitifinder/pages/profile_pages/interests/bio_page.dart';
+import 'package:foitifinder/pages/profile_pages/interests/interest_group_page.dart';
+import 'package:foitifinder/pages/profile_pages/interests/placeholder_group_page.dart';
+import 'package:foitifinder/widgets/nav_row.dart';
 import 'package:foitifinder/models/photos_model.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/services/api_services.dart';
@@ -27,7 +37,6 @@ class _EditProfileState extends State<EditProfile> {
   AppLocalizations get text => AppLocalizations.of(context)!;
 
   late TextEditingController _usernameController;
-  late TextEditingController _bioController;
   late TextEditingController _ageController;
   late TextEditingController _fullNameController;
   bool _allowExit = false;
@@ -42,6 +51,92 @@ class _EditProfileState extends State<EditProfile> {
 
   bool _isLoading = false;
 
+  //Picks made in the tag groups, keyed group title -> section title -> options.
+  //
+  //IN MEMORY ONLY: there is no column for these yet. `users.interests` is the
+  //gender preference and must not be reused - see interest_catalogue.dart.
+  //When the column lands, this map and _choiceAnswers are the only things that
+  //change: load them from the profile here, send them in _saveAndExit.
+  final Map<String, Map<String, List<String>>> _tagSelections = {};
+
+  //Answers to the simple categories, keyed by BACKEND COLUMN NAME so the map
+  //drops straight into a PATCH body. Single-choice categories hold a list of
+  //length 0 or 1 so every entry has the same shape.
+  final Map<String, List<String>> _choiceAnswers = {};
+
+  int _pickCount(String groupTitle) =>
+      _tagSelections[groupTitle]?.values.fold(0, (sum, l) => sum! + l.length) ??
+      0;
+
+  //what a row shows on the right: the answer itself when there is one, a count
+  //when there are several, nothing when empty
+  String _choiceSummary(ProfileChoice choice) {
+    final picks = _choiceAnswers[choice.key] ?? const [];
+    if (picks.isEmpty) return '';
+    if (picks.length == 1) return catalogueLabel(text, picks.first);
+    return '${picks.length}';
+  }
+
+  void _push(Widget page) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+  }
+
+  //Open a tag group (Hobbies & interests, Traits), or the page that stands in
+  //for the groups with no mechanic yet.
+  Future<void> _openGroup(String groupTitle) async {
+    final group = interestGroupByTitle(groupTitle);
+
+    if (groupTitle == kGroupBio) {
+      _push(const BioPage());
+      return;
+    }
+    if (group.sections.isEmpty) {
+      _push(PlaceholderGroupPage(group: group));
+      return;
+    }
+
+    final result = await Navigator.push<Map<String, List<String>>>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => InterestGroupPage(
+          group: group,
+          initialSelections: _tagSelections[groupTitle] ?? const {},
+        ),
+      ),
+    );
+    if (!mounted || result == null) return;
+    setState(() => _tagSelections[groupTitle] = result);
+  }
+
+  //Long lists (religion, political view) get a full page; a dialog would
+  //scroll and feel worse than a push.
+  Future<void> _openChoicePage(ProfileChoice choice) async {
+    final result = await Navigator.push<List<String>>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ChoicePage(
+          choice: choice,
+          initialSelected: _choiceAnswers[choice.key] ?? const [],
+        ),
+      ),
+    );
+    if (!mounted || result == null) return;
+    setState(() => _choiceAnswers[choice.key] = result);
+  }
+
+  //Short lists (alcohol, smoking, dating intention, kids) answer in one tap,
+  //so they open a dialog instead of pushing a whole screen.
+  Future<void> _openChoiceDialog(ProfileChoice choice) async {
+    final result = await showChoiceDialog(
+      context,
+      choice: choice,
+      initialSelected: _choiceAnswers[choice.key] ?? const [],
+    );
+    //null means dismissed - leave the answer alone. An empty list means cleared.
+    if (!mounted || result == null) return;
+    setState(() => _choiceAnswers[choice.key] = result);
+  }
+
   @override
   //grab existing data from firebase and provider(database)
   void initState() {
@@ -52,7 +147,6 @@ class _EditProfileState extends State<EditProfile> {
     ).currentUser!;
 
     _usernameController = TextEditingController(text: user.username);
-    _bioController = TextEditingController(text: user.bio ?? "");
     _ageController = TextEditingController(
       text: user.age != null ? user.age.toString() : "",
     );
@@ -169,7 +263,6 @@ class _EditProfileState extends State<EditProfile> {
 
     // 3. TRACKING CHANGES & GHOST DATA FIX
     String? newUsername;
-    String? newBio;
     String? newFullName;
     int? newAge;
 
@@ -177,9 +270,10 @@ class _EditProfileState extends State<EditProfile> {
       newUsername = _usernameController.text.trim();
     }
 
-    if (_bioController.text != (user.bio ?? "")) {
-      newBio = _bioController.text;
-    }
+    //NOTE: bio is deliberately NOT saved from this page. It has its own
+    //editor (BioPage) which writes it directly, and a controller seeded once
+    //when this page opened would send a stale value back over it - silently
+    //undoing an edit the user just made.
     if (_fullNameController.text.trim() != (user.fullName ?? "")) {
       newFullName = _fullNameController.text.trim();
     }
@@ -209,13 +303,11 @@ class _EditProfileState extends State<EditProfile> {
 
     // 4. DATABASE UPDATE
     if (newUsername != null ||
-        newBio != null ||
         newAge != null ||
         newFullName != null) {
       await ApiService.updateUserData(
         uid: user.uid,
         username: newUsername,
-        bio: newBio,
         age: newAge,
         fullName: newFullName,
       );
@@ -225,7 +317,6 @@ class _EditProfileState extends State<EditProfile> {
     profileProvider.updateLocalUser(
       username: newUsername,
       fullName: newFullName,
-      bio: newBio,
       age: newAge,
     );
     try {
@@ -378,59 +469,211 @@ class _EditProfileState extends State<EditProfile> {
                 automaticallyImplyLeading: true,
               ),
               body: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                    top: 10,
-                    left: 10,
-                    right: 10,
-                    bottom: 10,
-                  ),
-                  child: Column(
-                    spacing: 20,
-                    children: [
-                      //GridView builder for the 6 photo slots
-                      GridView.builder(
-                        padding: const EdgeInsets.all(10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    //=========================== PHOTOS ===========================
+                    SectionHeader(text.photos),
+                    //3 per row, 2 rows. Smaller than before so the whole grid
+                    //plus the first section fits above the fold.
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 15),
+                      child: GridView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 10,
-                              mainAxisSpacing: 10,
-                              childAspectRatio: 0.7,
-                            ),
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
+                          childAspectRatio: 0.75,
+                        ),
                         itemCount: 6,
-                        itemBuilder: (context, index) {
-                          return _buildPhotoSlot(index);
-                        },
+                        itemBuilder: (context, index) =>
+                            _buildPhotoSlot(index),
                       ),
-                      //Username TextField
-                      TextField(
-                        controller: _usernameController,
-                        decoration: InputDecoration(labelText: text.username),
-                      ),
-                      //FullName TextField
-                      TextField(
-                        controller: _fullNameController,
-                        decoration: InputDecoration(labelText: text.fullName),
-                      ),
-                      //Age TextField
-                      TextField(
-                        controller: _ageController,
-                        decoration: InputDecoration(labelText: text.age),
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
+                    ),
+                    const SizedBox(height: 12),
+                    CardGroup(
+                      children: [
+                        NavRow(
+                          icon: Icons.auto_stories_outlined,
+                          label: text.addStoryToPhoto,
+                          onTap: () =>
+                              _push(ComingSoonPage(title: text.addStoryToPhoto)),
+                        ),
+                      ],
+                    ),
+
+                    //========================= THE BASICS =========================
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(15, 20, 15, 0),
+                      child: Column(
+                        spacing: 16,
+                        children: [
+                          TextField(
+                            controller: _usernameController,
+                            decoration:
+                                InputDecoration(labelText: text.username),
+                          ),
+                          TextField(
+                            controller: _fullNameController,
+                            decoration:
+                                InputDecoration(labelText: text.fullName),
+                          ),
+                          TextField(
+                            controller: _ageController,
+                            decoration: InputDecoration(labelText: text.age),
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                          ),
                         ],
                       ),
-                      //Bio TextField
-                      TextField(
-                        controller: _bioController,
-                        decoration: InputDecoration(labelText: "Bio"),
-                      ),
-                    ],
-                  ),
+                    ),
+
+                    //======================= MY PERSONALITY =======================
+                    SectionHeader(text.sectionMyPersonality),
+                    CardGroup(
+                      children: [
+                        for (final title in const [
+                          kGroupHobbies,
+                          kGroupTraits,
+                        ])
+                          NavRow(
+                            label: catalogueLabel(text, title),
+                            trailing: _pickCount(title) == 0
+                                ? ''
+                                : '${_pickCount(title)}',
+                            onTap: () => _openGroup(title),
+                          ),
+                        //Bio saves itself on its own page, so there is nothing
+                        //to summarise on the row
+                        NavRow(
+                          label: catalogueLabel(text, kGroupBio),
+                          onTap: () => _openGroup(kGroupBio),
+                        ),
+                        NavRow(
+                          label: catalogueLabel(text, kGroupQA),
+                          onTap: () => _openGroup(kGroupQA),
+                        ),
+                      ],
+                    ),
+
+                    //======================= MY MUSIC TASTE =======================
+                    SectionHeader(text.sectionMyMusicTaste),
+                    CardGroup(
+                      children: [
+                        //both need the Spotify API, so both are stubs until
+                        //that is wired up
+                        NavRow(
+                          label: text.myTune,
+                          onTap: () => _push(ComingSoonPage(title: text.myTune)),
+                        ),
+                        NavRow(
+                          label: text.favouriteArtists,
+                          onTap: () =>
+                              _push(ComingSoonPage(title: text.favouriteArtists)),
+                        ),
+                      ],
+                    ),
+
+                    //=================== MY BELIEFS AND VALUES ===================
+                    SectionHeader(text.sectionMyBeliefs),
+                    CardGroup(
+                      children: [
+                        for (final choice in const [
+                          kChoiceReligion,
+                          kChoicePoliticalView,
+                        ])
+                          NavRow(
+                            label: catalogueLabel(text, choice.title),
+                            trailing: _choiceSummary(choice),
+                            //16 and 18 options: too many for a dialog
+                            onTap: () => _openChoicePage(choice),
+                          ),
+                      ],
+                    ),
+
+                    //========================= MY HABITS =========================
+                    SectionHeader(text.sectionMyHabits),
+                    CardGroup(
+                      children: [
+                        for (final choice in const [
+                          kChoiceAlcohol,
+                          kChoiceSmoking,
+                        ])
+                          NavRow(
+                            label: catalogueLabel(text, choice.title),
+                            trailing: _choiceSummary(choice),
+                            onTap: () => _openChoiceDialog(choice),
+                          ),
+                      ],
+                    ),
+
+                    //=============== WHAT I WANT IN MY RELATIONSHIPS ==============
+                    SectionHeader(text.sectionMyRelationships),
+                    CardGroup(
+                      children: [
+                        for (final choice in const [
+                          kChoiceDatingIntention,
+                          kChoiceKids,
+                        ])
+                          NavRow(
+                            label: catalogueLabel(text, choice.title),
+                            trailing: _choiceSummary(choice),
+                            onTap: () => _openChoiceDialog(choice),
+                          ),
+                      ],
+                    ),
+
+                    //======================= MY BACKGROUND =======================
+                    SectionHeader(text.sectionMyBackground),
+                    CardGroup(
+                      children: [
+                        //NOTE: EducationPage, OccupationPage and LocationPage
+                        //are already built and working - swapping any of these
+                        //three stubs for the real page is a one-line change.
+                        NavRow(
+                          label: text.education,
+                          onTap: () =>
+                              _push(ComingSoonPage(title: text.education)),
+                        ),
+                        NavRow(
+                          label: text.occupation,
+                          onTap: () =>
+                              _push(ComingSoonPage(title: text.occupation)),
+                        ),
+                        NavRow(
+                          label: text.location,
+                          onTap: () =>
+                              _push(ComingSoonPage(title: text.location)),
+                        ),
+                      ],
+                    ),
+
+                    //========================== WHO I AM ==========================
+                    SectionHeader(text.sectionWhoIAm),
+                    CardGroup(
+                      children: [
+                        NavRow(
+                          label: catalogueLabel(text, kChoicePronouns.title),
+                          onTap: () => _push(ComingSoonPage(
+                            title: catalogueLabel(text, kChoicePronouns.title),
+                          )),
+                        ),
+                        NavRow(
+                          label: text.languagesSpoken,
+                          onTap: () => _push(
+                            ComingSoonPage(title: text.languagesSpoken),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 32),
+                  ],
                 ),
               ),
             ),

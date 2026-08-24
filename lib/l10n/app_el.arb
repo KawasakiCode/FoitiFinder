@@ -437,5 +437,11 @@
   "accountSettings": "Ρυθμίσεις λογαριασμού",
   "appSettings": "Ρυθμίσεις εφαρμογής",
   "aboutFoitiFinder": "Σχετικά με το FoitiFinder",
-  "openSourceLicences": "Άδειες ανοιχτού κώδικα"
+  "openSourceLicences": "Άδειες ανοιχτού κώδικα",
+  "photos": "Φωτογραφίες",
+  "addStoryToPhoto": "Πρόσθεσε ιστορία σε φωτογραφία",
+  "sectionMyMusicTaste": "Οι μουσικές μου προτιμήσεις",
+  "myTune": "Το τραγούδι μου",
+  "favouriteArtists": "Αγαπημένοι καλλιτέχνες",
+  "languagesSpoken": "Γλώσσες"
 }

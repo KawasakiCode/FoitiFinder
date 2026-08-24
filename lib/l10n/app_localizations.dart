@@ -2689,6 +2689,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open-source licences'**
   String get openSourceLicences;
+
+  /// No description provided for @photos.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get photos;
+
+  /// No description provided for @addStoryToPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a story to a photo'**
+  String get addStoryToPhoto;
+
+  /// No description provided for @sectionMyMusicTaste.
+  ///
+  /// In en, this message translates to:
+  /// **'My music taste'**
+  String get sectionMyMusicTaste;
+
+  /// No description provided for @myTune.
+  ///
+  /// In en, this message translates to:
+  /// **'My tune'**
+  String get myTune;
+
+  /// No description provided for @favouriteArtists.
+  ///
+  /// In en, this message translates to:
+  /// **'Favourite artists'**
+  String get favouriteArtists;
+
+  /// No description provided for @languagesSpoken.
+  ///
+  /// In en, this message translates to:
+  /// **'Languages'**
+  String get languagesSpoken;
 }
 
 class _AppLocalizationsDelegate

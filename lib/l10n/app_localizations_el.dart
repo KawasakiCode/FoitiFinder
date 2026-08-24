@@ -1334,4 +1334,22 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get openSourceLicences => 'Άδειες ανοιχτού κώδικα';
+
+  @override
+  String get photos => 'Φωτογραφίες';
+
+  @override
+  String get addStoryToPhoto => 'Πρόσθεσε ιστορία σε φωτογραφία';
+
+  @override
+  String get sectionMyMusicTaste => 'Οι μουσικές μου προτιμήσεις';
+
+  @override
+  String get myTune => 'Το τραγούδι μου';
+
+  @override
+  String get favouriteArtists => 'Αγαπημένοι καλλιτέχνες';
+
+  @override
+  String get languagesSpoken => 'Γλώσσες';
 }
