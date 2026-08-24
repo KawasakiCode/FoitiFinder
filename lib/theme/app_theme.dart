@@ -53,6 +53,20 @@ class AppTheme {
       textTheme: _textTheme(textPrimary, textSecondary),
       dividerTheme: DividerThemeData(color: border, thickness: 1, space: 1),
 
+      //Flutter's Android default is ZoomPageTransitionsBuilder, which scales
+      //and fades the incoming route over a scrim. Wherever the incoming page's
+      //background doesn't match what is underneath, that scrim reads as a
+      //flash. A plain horizontal slide has no scrim and no cross-fade, so
+      //there is nothing to flash.
+      //
+      //Applied to every platform so a push looks the same everywhere.
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        },
+      ),
+
       appBarTheme: AppBarTheme(
         backgroundColor: background,
         surfaceTintColor: Colors.transparent,

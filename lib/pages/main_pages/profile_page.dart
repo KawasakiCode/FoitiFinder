@@ -10,6 +10,7 @@ import 'package:foitifinder/pages/profile_pages/date_preferences_page.dart';
 import 'package:foitifinder/pages/profile_pages/edit_profile.dart';
 import 'package:foitifinder/pages/settings/settings.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/widgets/pressable.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:provider/provider.dart';
@@ -188,42 +189,71 @@ class _ProfilePageState extends State<ProfilePage> {
             child: ListView(
               padding: const EdgeInsets.only(top: 8, bottom: 24),
               children: [
-                _NavRow(
-                  icon: Icons.person_outline,
-                  label: text.editProfile,
-                  onTap: () => _push(const EditProfile()),
-                ),
-                _NavRow(
-                  icon: Icons.favorite_outline,
-                  label: text.datePreferences,
-                  onTap: () => _push(const DatePreferencesPage()),
-                ),
-                _NavRow(
-                  icon: Icons.manage_accounts_outlined,
-                  label: text.accountSettings,
-                  onTap: () => _push(const AccountSettingsPage()),
-                ),
-                _NavRow(
-                  icon: Icons.settings_outlined,
-                  label: text.appSettings,
-                  onTap: () => _push(const SettingsPage()),
+                //The four destinations, in one card like the settings page.
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  child: Material(
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    shape: RoundedRectangleBorder(
+                      side: BorderSide.none,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    //so the pressed tint on the first and last rows follows the
+                    //card's rounded corners instead of squaring them off
+                    clipBehavior: Clip.antiAlias,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _NavRow(
+                          icon: Icons.person_outline,
+                          label: text.editProfile,
+                          onTap: () => _push(const EditProfile()),
+                        ),
+                        _NavRow(
+                          icon: Icons.favorite_outline,
+                          label: text.datePreferences,
+                          onTap: () => _push(const DatePreferencesPage()),
+                        ),
+                        _NavRow(
+                          icon: Icons.manage_accounts_outlined,
+                          label: text.accountSettings,
+                          onTap: () => _push(const AccountSettingsPage()),
+                        ),
+                        _NavRow(
+                          icon: Icons.settings_outlined,
+                          label: text.appSettings,
+                          onTap: () => _push(const SettingsPage()),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
 
                 _SectionHeader(text.aboutFoitiFinder),
-                _NavRow(
-                  icon: Icons.privacy_tip_outlined,
-                  label: text.privacyPolicy,
-                  onTap: () => _openLegal(kPrivacyPolicyUrl),
-                ),
-                _NavRow(
-                  icon: Icons.description_outlined,
-                  label: text.terms,
-                  onTap: () => _openLegal(kTermsOfServiceUrl),
-                ),
-                _NavRow(
-                  icon: Icons.code_outlined,
-                  label: text.openSourceLicences,
-                  onTap: _openLicences,
+                //Plain rows: no card, no chevron, just hairlines between them.
+                //These are reference documents, not places you go to do
+                //something, so they get less visual weight than the four above.
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _PlainRow(
+                        label: text.privacyPolicy,
+                        onTap: () => _openLegal(kPrivacyPolicyUrl),
+                      ),
+                      const Divider(),
+                      _PlainRow(
+                        label: text.terms,
+                        onTap: () => _openLegal(kTermsOfServiceUrl),
+                      ),
+                      const Divider(),
+                      _PlainRow(
+                        label: text.openSourceLicences,
+                        onTap: _openLicences,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -245,7 +275,7 @@ class _SectionHeader extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 28, 16, 4),
+      padding: const EdgeInsets.fromLTRB(15, 28, 15, 4),
       child: Text(
         title,
         style: theme.textTheme.titleSmall?.copyWith(
@@ -257,7 +287,7 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-//One tappable row: icon, label, chevron.
+//A row inside the card: icon, label, chevron.
 class _NavRow extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -273,11 +303,51 @@ class _NavRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(label, style: theme.textTheme.titleMedium),
-      trailing: const Icon(Icons.chevron_right),
+    return Pressable(
       onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        child: Row(
+          children: [
+            Icon(icon, size: 22),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                label,
+                style: theme.textTheme.titleMedium,
+              ),
+            ),
+            const Icon(Icons.chevron_right),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+//An About row: label only, no card and no chevron.
+class _PlainRow extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _PlainRow({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Pressable(
+      onTap: onTap,
+      //no background wash here: there is no card behind these, so a tint would
+      //draw a box that exists only while the finger is down
+      tintBackground: false,
+      child: SizedBox(
+        width: double.infinity,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Text(label, style: theme.textTheme.bodyLarge),
+        ),
+      ),
     );
   }
 }
