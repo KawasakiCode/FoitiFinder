@@ -373,4 +373,950 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get retry => 'Δοκίμασε ξανά';
+
+  @override
+  String get lblHobbiesInterests => 'Χόμπι & ενδιαφέροντα';
+
+  @override
+  String get lblTraits => 'Χαρακτηριστικά';
+
+  @override
+  String get lblBio => 'Λίγα λόγια';
+
+  @override
+  String get lblQA => 'Ερωτήσεις & απαντήσεις';
+
+  @override
+  String get lblActivities => 'Δραστηριότητες';
+
+  @override
+  String get lblInterests => 'Ενδιαφέροντα';
+
+  @override
+  String get lblEntertainment => 'Ψυχαγωγία';
+
+  @override
+  String get lblCreative => 'Δημιουργικός/ή';
+
+  @override
+  String get lblMusic => 'Μουσική';
+
+  @override
+  String get lblFoodDrinks => 'Φαγητό & ποτά';
+
+  @override
+  String get lblSports => 'Αθλήματα';
+
+  @override
+  String get lblPersonalityTraits => 'Χαρακτηριστικά προσωπικότητας';
+
+  @override
+  String get lblStarSign => 'Ζώδιο';
+
+  @override
+  String get lblPersonalityTypeMBTI => 'Τύπος προσωπικότητας (MBTI)';
+
+  @override
+  String get lblLifestyle => 'Τρόπος ζωής';
+
+  @override
+  String get lblBaking => 'Ζαχαροπλαστική';
+
+  @override
+  String get lblBeach => 'Παραλία';
+
+  @override
+  String get lblCamping => 'Κάμπινγκ';
+
+  @override
+  String get lblCityTrips => 'Αποδράσεις σε πόλεις';
+
+  @override
+  String get lblConcerts => 'Συναυλίες';
+
+  @override
+  String get lblCooking => 'Μαγειρική';
+
+  @override
+  String get lblDiningOut => 'Φαγητό έξω';
+
+  @override
+  String get lblDinnerParties => 'Δείπνα με παρέα';
+
+  @override
+  String get lblFestivals => 'Φεστιβάλ';
+
+  @override
+  String get lblHavingDrinks => 'Ποτά';
+
+  @override
+  String get lblHiking => 'Πεζοπορία';
+
+  @override
+  String get lblKaraoke => 'Καραόκε';
+
+  @override
+  String get lblMeditation => 'Διαλογισμός';
+
+  @override
+  String get lblMountains => 'Βουνό';
+
+  @override
+  String get lblMuseum => 'Μουσεία';
+
+  @override
+  String get lblOutdoors => 'Έξω στη φύση';
+
+  @override
+  String get lblParty => 'Πάρτι';
+
+  @override
+  String get lblResortVacations => 'Διακοπές σε resort';
+
+  @override
+  String get lblSauna => 'Σάουνα';
+
+  @override
+  String get lblShopping => 'Ψώνια';
+
+  @override
+  String get lblTakingAWalk => 'Βόλτες';
+
+  @override
+  String get lblThrifting => 'Vintage ψώνια';
+
+  @override
+  String get lblTravel => 'Ταξίδια';
+
+  @override
+  String get lblWellness => 'Ευεξία';
+
+  @override
+  String get lblProgramming => 'Προγραμματισμός';
+
+  @override
+  String get lblAI => 'Τεχνητή νοημοσύνη';
+
+  @override
+  String get lblAnimals => 'Ζώα';
+
+  @override
+  String get lblArchitecture => 'Αρχιτεκτονική';
+
+  @override
+  String get lblArt => 'Τέχνη';
+
+  @override
+  String get lblBiology => 'Βιολογία';
+
+  @override
+  String get lblCars => 'Αυτοκίνητα';
+
+  @override
+  String get lblCats => 'Γάτες';
+
+  @override
+  String get lblCinema => 'Σινεμά';
+
+  @override
+  String get lblDogs => 'Σκύλοι';
+
+  @override
+  String get lblEntrepreneurship => 'Επιχειρηματικότητα';
+
+  @override
+  String get lblFinance => 'Οικονομικά';
+
+  @override
+  String get lblHistory => 'Ιστορία';
+
+  @override
+  String get lblHorses => 'Άλογα';
+
+  @override
+  String get lblLanguage => 'Γλώσσες';
+
+  @override
+  String get lblNature => 'Φύση';
+
+  @override
+  String get lblPersonalDevelopment => 'Προσωπική ανάπτυξη';
+
+  @override
+  String get lblPhilosophy => 'Φιλοσοφία';
+
+  @override
+  String get lblPlants => 'Φυτά';
+
+  @override
+  String get lblPolitics => 'Πολιτική';
+
+  @override
+  String get lblPsychology => 'Ψυχολογία';
+
+  @override
+  String get lblScience => 'Επιστήμη';
+
+  @override
+  String get lblSustainability => 'Βιωσιμότητα';
+
+  @override
+  String get lblTattoos => 'Τατουάζ';
+
+  @override
+  String get lblTech => 'Τεχνολογία';
+
+  @override
+  String get lblTheatre => 'Θέατρο';
+
+  @override
+  String get lblReading => 'Διάβασμα';
+
+  @override
+  String get lblBoardGames => 'Επιτραπέζια';
+
+  @override
+  String get lblCartoons => 'Κινούμενα σχέδια';
+
+  @override
+  String get lblChess => 'Σκάκι';
+
+  @override
+  String get lblComedy => 'Κωμωδία';
+
+  @override
+  String get lblComics => 'Κόμικς';
+
+  @override
+  String get lblDocumentaries => 'Ντοκιμαντέρ';
+
+  @override
+  String get lblHorror => 'Τρόμου';
+
+  @override
+  String get lblMovies => 'Ταινίες';
+
+  @override
+  String get lblMusicals => 'Μιούζικαλ';
+
+  @override
+  String get lblPuzzles => 'Παζλ';
+
+  @override
+  String get lblSciFi => 'Επιστημονική φαντασία';
+
+  @override
+  String get lblSitcoms => 'Sitcom';
+
+  @override
+  String get lblVinylRecords => 'Βινύλια';
+
+  @override
+  String get lblPlayingInstruments => 'Παίζω όργανα';
+
+  @override
+  String get lblActing => 'Υποκριτική';
+
+  @override
+  String get lblComposingMusic => 'Σύνθεση μουσικής';
+
+  @override
+  String get lblCrafts => 'Χειροτεχνίες';
+
+  @override
+  String get lblDesign => 'Σχεδιασμός';
+
+  @override
+  String get lblDrawing => 'Σκίτσο';
+
+  @override
+  String get lblFashion => 'Μόδα';
+
+  @override
+  String get lblKnitting => 'Πλέξιμο';
+
+  @override
+  String get lblPainting => 'Ζωγραφική';
+
+  @override
+  String get lblPhotography => 'Φωτογραφία';
+
+  @override
+  String get lblPoetry => 'Ποίηση';
+
+  @override
+  String get lblPottery => 'Κεραμική';
+
+  @override
+  String get lblSewing => 'Ράψιμο';
+
+  @override
+  String get lblSinging => 'Τραγούδι';
+
+  @override
+  String get lblWriting => 'Γράψιμο';
+
+  @override
+  String get lblClassicalMusic => 'Κλασική μουσική';
+
+  @override
+  String get lblCountryMusic => 'Κάντρι';
+
+  @override
+  String get lblDrums => 'Ντραμς';
+
+  @override
+  String get lblGuitar => 'Κιθάρα';
+
+  @override
+  String get lblIndieMusic => 'Indie';
+
+  @override
+  String get lblLatinMusic => 'Λάτιν';
+
+  @override
+  String get lblPiano => 'Πιάνο';
+
+  @override
+  String get lblPopMusic => 'Ποπ';
+
+  @override
+  String get lblBeer => 'Μπύρα';
+
+  @override
+  String get lblChampagne => 'Σαμπάνια';
+
+  @override
+  String get lblCheese => 'Τυριά';
+
+  @override
+  String get lblChocolate => 'Σοκολάτα';
+
+  @override
+  String get lblCocktails => 'Κοκτέιλ';
+
+  @override
+  String get lblCoffee => 'Καφές';
+
+  @override
+  String get lblCraftBeers => 'Craft μπύρες';
+
+  @override
+  String get lblTea => 'Τσάι';
+
+  @override
+  String get lblWhiskey => 'Ουίσκι';
+
+  @override
+  String get lblWine => 'Κρασί';
+
+  @override
+  String get lblMartialArts => 'Πολεμικές τέχνες';
+
+  @override
+  String get lblAthletics => 'Στίβος';
+
+  @override
+  String get lblBadminton => 'Μπάντμιντον';
+
+  @override
+  String get lblBallet => 'Μπαλέτο';
+
+  @override
+  String get lblBaseball => 'Μπέιζμπολ';
+
+  @override
+  String get lblBasketball => 'Μπάσκετ';
+
+  @override
+  String get lblBowling => 'Μπόουλινγκ';
+
+  @override
+  String get lblClimbing => 'Αναρρίχηση';
+
+  @override
+  String get lblCricket => 'Κρίκετ';
+
+  @override
+  String get lblCycling => 'Ποδηλασία';
+
+  @override
+  String get lblDancing => 'Χορός';
+
+  @override
+  String get lblFencing => 'Ξιφασκία';
+
+  @override
+  String get lblFitness => 'Γυμναστήριο';
+
+  @override
+  String get lblFootball => 'Ποδόσφαιρο';
+
+  @override
+  String get lblGolf => 'Γκολφ';
+
+  @override
+  String get lblHandball => 'Χάντμπολ';
+
+  @override
+  String get lblHockey => 'Χόκεϊ';
+
+  @override
+  String get lblHorseRiding => 'Ιππασία';
+
+  @override
+  String get lblIceSkating => 'Πατινάζ';
+
+  @override
+  String get lblKayaking => 'Καγιάκ';
+
+  @override
+  String get lblMotorcycling => 'Μοτοσυκλέτα';
+
+  @override
+  String get lblMountainbiking => 'Mountain bike';
+
+  @override
+  String get lblPilates => 'Πιλάτες';
+
+  @override
+  String get lblRowing => 'Κωπηλασία';
+
+  @override
+  String get lblRugby => 'Ράγκμπι';
+
+  @override
+  String get lblRunning => 'Τρέξιμο';
+
+  @override
+  String get lblSailing => 'Ιστιοπλοΐα';
+
+  @override
+  String get lblScubaDiving => 'Καταδύσεις';
+
+  @override
+  String get lblSkateboarding => 'Skateboard';
+
+  @override
+  String get lblSkiing => 'Σκι';
+
+  @override
+  String get lblSnowboarding => 'Snowboard';
+
+  @override
+  String get lblSquash => 'Σκουός';
+
+  @override
+  String get lblSurfing => 'Surf';
+
+  @override
+  String get lblSwimming => 'Κολύμβηση';
+
+  @override
+  String get lblTableTennis => 'Πινγκ πονγκ';
+
+  @override
+  String get lblTennis => 'Τένις';
+
+  @override
+  String get lblVolleyball => 'Βόλεϊ';
+
+  @override
+  String get lblWaterpolo => 'Πόλο';
+
+  @override
+  String get lblWindsurfing => 'Windsurf';
+
+  @override
+  String get lblYoga => 'Γιόγκα';
+
+  @override
+  String get lblIntrovert => 'Εσωστρεφής';
+
+  @override
+  String get lblAdventurous => 'Περιπετειώδης';
+
+  @override
+  String get lblAmbitious => 'Φιλόδοξος/η';
+
+  @override
+  String get lblAmbivert => 'Αμφιστρεφής';
+
+  @override
+  String get lblCalm => 'Ήρεμος/η';
+
+  @override
+  String get lblCaring => 'Φροντιστικός/ή';
+
+  @override
+  String get lblChaotic => 'Χαοτικός/ή';
+
+  @override
+  String get lblCompetitionSeeker => 'Ανταγωνιστικός/ή';
+
+  @override
+  String get lblCurious => 'Περίεργος/η';
+
+  @override
+  String get lblDeepThinker => 'Στοχαστικός/ή';
+
+  @override
+  String get lblDreamer => 'Ονειροπόλος';
+
+  @override
+  String get lblEmpathetic => 'Ενσυναισθητικός/ή';
+
+  @override
+  String get lblEnergetic => 'Ενεργητικός/ή';
+
+  @override
+  String get lblExtravert => 'Εξωστρεφής';
+
+  @override
+  String get lblFlexible => 'Ευέλικτος/η';
+
+  @override
+  String get lblGenerous => 'Γενναιόδωρος/η';
+
+  @override
+  String get lblGoGetter => 'Δραστήριος/α';
+
+  @override
+  String get lblHonest => 'Ειλικρινής';
+
+  @override
+  String get lblKind => 'Ευγενικός/ή';
+
+  @override
+  String get lblListener => 'Καλός/ή ακροατής';
+
+  @override
+  String get lblOpenMinded => 'Ανοιχτόμυαλος/η';
+
+  @override
+  String get lblOptimistic => 'Αισιόδοξος/η';
+
+  @override
+  String get lblOrganized => 'Οργανωτικός/ή';
+
+  @override
+  String get lblOutgoing => 'Κοινωνικός/ή';
+
+  @override
+  String get lblPassionate => 'Παθιασμένος/η';
+
+  @override
+  String get lblPatient => 'Υπομονετικός/ή';
+
+  @override
+  String get lblPerfectionist => 'Τελειομανής';
+
+  @override
+  String get lblPlayful => 'Παιχνιδιάρης';
+
+  @override
+  String get lblPositive => 'Θετικός/ή';
+
+  @override
+  String get lblRomantic => 'Ρομαντικός/ή';
+
+  @override
+  String get lblSpontaneous => 'Αυθόρμητος/η';
+
+  @override
+  String get lblSupportive => 'Υποστηρικτικός/ή';
+
+  @override
+  String get lblWitty => 'Πνευματώδης';
+
+  @override
+  String get lblAries => 'Κριός';
+
+  @override
+  String get lblTaurus => 'Ταύρος';
+
+  @override
+  String get lblGemini => 'Δίδυμοι';
+
+  @override
+  String get lblCancer => 'Καρκίνος';
+
+  @override
+  String get lblLeo => 'Λέων';
+
+  @override
+  String get lblVirgo => 'Παρθένος';
+
+  @override
+  String get lblLibra => 'Ζυγός';
+
+  @override
+  String get lblScorpio => 'Σκορπιός';
+
+  @override
+  String get lblSagittarius => 'Τοξότης';
+
+  @override
+  String get lblCapricorn => 'Αιγόκερως';
+
+  @override
+  String get lblAquarius => 'Υδροχόος';
+
+  @override
+  String get lblPisces => 'Ιχθύες';
+
+  @override
+  String get lblEarlyBird => 'Πρωινός τύπος';
+
+  @override
+  String get lblActivist => 'Ακτιβιστής/ίστρια';
+
+  @override
+  String get lblAnimalLover => 'Ζωόφιλος/η';
+
+  @override
+  String get lblBohemian => 'Μποέμ';
+
+  @override
+  String get lblCorporate => 'Εταιρικός τύπος';
+
+  @override
+  String get lblCozyAtHome => 'Σπιτόγατος';
+
+  @override
+  String get lblFamilyOrientated => 'Οικογενειακός τύπος';
+
+  @override
+  String get lblFoodie => 'Καλοφαγάς';
+
+  @override
+  String get lblHealth => 'Υγιεινή ζωή';
+
+  @override
+  String get lblMaximalist => 'Μαξιμαλιστής/ίστρια';
+
+  @override
+  String get lblMinimalist => 'Μινιμαλιστής/ίστρια';
+
+  @override
+  String get lblMusicLover => 'Μουσικόφιλος/η';
+
+  @override
+  String get lblNightOwl => 'Νυχτοπούλι';
+
+  @override
+  String get lblPetFree => 'Χωρίς κατοικίδια';
+
+  @override
+  String get lblSober => 'Νηφάλιος/α';
+
+  @override
+  String get lblSpiritual => 'Πνευματικός/ή';
+
+  @override
+  String get lblSportive => 'Αθλητικός/ή';
+
+  @override
+  String get lblStudentAssociation => 'Φοιτητικός σύλλογος';
+
+  @override
+  String get lblSustainable => 'Οικολογικός/ή';
+
+  @override
+  String get lblThrillSeeker => 'Λάτρης της αδρεναλίνης';
+
+  @override
+  String get lblWanderlust => 'Λάτρης των ταξιδιών';
+
+  @override
+  String get lblAlcohol => 'Αλκοόλ';
+
+  @override
+  String get lblHowOftenDoYouDrink => 'Πόσο συχνά πίνεις;';
+
+  @override
+  String get lblSmoking => 'Κάπνισμα';
+
+  @override
+  String get lblHowOftenDoYouSmoke => 'Πόσο συχνά καπνίζεις;';
+
+  @override
+  String get lblDatingIntention => 'Πρόθεση γνωριμίας';
+
+  @override
+  String get lblWhatAreYouLookingFor => 'Τι ψάχνεις;';
+
+  @override
+  String get lblKids => 'Παιδιά';
+
+  @override
+  String get lblWhereDoYouStandOnChildren => 'Πώς βλέπεις το θέμα των παιδιών;';
+
+  @override
+  String get lblReligion => 'Θρησκεία';
+
+  @override
+  String get lblPickAnyThatApply => 'Διάλεξε όσα ισχύουν.';
+
+  @override
+  String get lblPoliticalView => 'Πολιτική άποψη';
+
+  @override
+  String get lblSexualOrientation => 'Σεξουαλικός προσανατολισμός';
+
+  @override
+  String get lblHowDoYouIdentify => 'Πώς προσδιορίζεσαι;';
+
+  @override
+  String get lblPronouns => 'Αντωνυμίες';
+
+  @override
+  String get lblWhatShouldPeopleCallYou => 'Πώς θέλεις να σε αποκαλούν;';
+
+  @override
+  String get lblNever => 'Ποτέ';
+
+  @override
+  String get lblSometimes => 'Μερικές φορές';
+
+  @override
+  String get lblYes => 'Ναι';
+
+  @override
+  String get lblSomethingCasual => 'Κάτι χαλαρό';
+
+  @override
+  String get lblALongTermRelationship => 'Μακροχρόνια σχέση';
+
+  @override
+  String get lblStillFiguringItOut => 'Το ψάχνω ακόμα';
+
+  @override
+  String get lblIMOpenToKids => 'Ανοιχτός/ή στα παιδιά';
+
+  @override
+  String get lblIWantKids => 'Θέλω παιδιά';
+
+  @override
+  String get lblIDonTWantKids => 'Δεν θέλω παιδιά';
+
+  @override
+  String get lblHaveKids => 'Έχω παιδιά';
+
+  @override
+  String get lblChristian => 'Χριστιανός/ή';
+
+  @override
+  String get lblCatholic => 'Καθολικός/ή';
+
+  @override
+  String get lblProtestant => 'Προτεστάντης/ισσα';
+
+  @override
+  String get lblMuslim => 'Μουσουλμάνος/α';
+
+  @override
+  String get lblJewish => 'Εβραίος/α';
+
+  @override
+  String get lblHindu => 'Ινδουιστής/ίστρια';
+
+  @override
+  String get lblBuddhist => 'Βουδιστής/ίστρια';
+
+  @override
+  String get lblAgnostic => 'Αγνωστικιστής/ίστρια';
+
+  @override
+  String get lblAtheist => 'Άθεος/η';
+
+  @override
+  String get lblTaoist => 'Ταοϊστής/ίστρια';
+
+  @override
+  String get lblBahai => 'Μπαχάι';
+
+  @override
+  String get lblJain => 'Τζαϊνιστής/ίστρια';
+
+  @override
+  String get lblNewAge => 'Νιου Έιτζ';
+
+  @override
+  String get lblShinto => 'Σιντοϊστής/ίστρια';
+
+  @override
+  String get lblSikh => 'Σιχ';
+
+  @override
+  String get lblAnarchist => 'Αναρχικός/ή';
+
+  @override
+  String get lblApolitical => 'Απολίτικος/η';
+
+  @override
+  String get lblCentrist => 'Κεντρώος/α';
+
+  @override
+  String get lblCommunist => 'Κομμουνιστής/ίστρια';
+
+  @override
+  String get lblConservative => 'Συντηρητικός/ή';
+
+  @override
+  String get lblDemocratic => 'Δημοκρατικός/ή';
+
+  @override
+  String get lblFeminist => 'Φεμινιστής/ίστρια';
+
+  @override
+  String get lblGlobalist => 'Υπέρ της παγκοσμιοποίησης';
+
+  @override
+  String get lblGreen => 'Οικολόγος';
+
+  @override
+  String get lblLabour => 'Εργατικός/ή';
+
+  @override
+  String get lblLeftLeaning => 'Αριστερών πεποιθήσεων';
+
+  @override
+  String get lblLiberal => 'Φιλελεύθερος/η';
+
+  @override
+  String get lblLibertarian => 'Ελευθεριακός/ή';
+
+  @override
+  String get lblNationalist => 'Εθνικιστής/ίστρια';
+
+  @override
+  String get lblProgressive => 'Προοδευτικός/ή';
+
+  @override
+  String get lblRepublican => 'Ρεπουμπλικανός/ή';
+
+  @override
+  String get lblRightLeaning => 'Δεξιών πεποιθήσεων';
+
+  @override
+  String get lblSocialist => 'Σοσιαλιστής/ίστρια';
+
+  @override
+  String get lblStraight => 'Ετεροφυλόφιλος/η';
+
+  @override
+  String get lblGay => 'Γκέι';
+
+  @override
+  String get lblLesbian => 'Λεσβία';
+
+  @override
+  String get lblBisexual => 'Αμφιφυλόφιλος/η';
+
+  @override
+  String get lblAsexual => 'Ασέξουαλ';
+
+  @override
+  String get lblHeHim => 'αυτός/αυτόν';
+
+  @override
+  String get lblSheHer => 'αυτή/αυτήν';
+
+  @override
+  String get lblTheyThem => 'αυτοί/αυτούς';
+
+  @override
+  String get save => 'Αποθήκευση';
+
+  @override
+  String get clear => 'Καθαρισμός';
+
+  @override
+  String saveSelected(int count) {
+    return 'Αποθήκευση $count επιλογών';
+  }
+
+  @override
+  String get comingSoon => 'Έρχεται σύντομα.';
+
+  @override
+  String get sectionMyPersonality => 'Η προσωπικότητά μου';
+
+  @override
+  String get sectionMyBeliefs => 'Οι πεποιθήσεις και οι αξίες μου';
+
+  @override
+  String get sectionMyHabits => 'Οι συνήθειές μου';
+
+  @override
+  String get sectionMyRelationships => 'Τι θέλω στις σχέσεις μου';
+
+  @override
+  String get sectionMyBackground => 'Το υπόβαθρό μου';
+
+  @override
+  String get sectionWhoIAm => 'Ποιος/α είμαι';
+
+  @override
+  String get bioTitle => 'Λίγα λόγια';
+
+  @override
+  String get bioPrompt => 'Πες στους άλλους ποιος/α είσαι.';
+
+  @override
+  String get education => 'Εκπαίδευση';
+
+  @override
+  String get university => 'Πανεπιστήμιο';
+
+  @override
+  String get universityNotDetected => 'Δεν εντοπίστηκε';
+
+  @override
+  String get universityFromEmail =>
+      'Λαμβάνεται από το φοιτητικό σου email και δεν αλλάζει.';
+
+  @override
+  String get major => 'Τμήμα';
+
+  @override
+  String get majorHint => 'π.χ. Εφαρμοσμένη Πληροφορική';
+
+  @override
+  String get currentlyStudying => 'Σπουδάζω αυτή τη στιγμή';
+
+  @override
+  String get occupation => 'Απασχόληση';
+
+  @override
+  String get occupationAllOptional =>
+      'Όλα προαιρετικά - συμπλήρωσε ό,τι ισχύει.';
+
+  @override
+  String get job => 'Δουλειά';
+
+  @override
+  String get jobHint => 'π.χ. Μπαρίστα σε καφετέρια';
+
+  @override
+  String get volunteering => 'Εθελοντισμός';
+
+  @override
+  String get volunteeringHint => 'π.χ. Καταφύγιο ζώων κάθε Κυριακή';
+
+  @override
+  String get otherOccupation => 'Άλλο';
+
+  @override
+  String get otherOccupationHint => 'Οτιδήποτε άλλο κάνεις';
+
+  @override
+  String get location => 'Τοποθεσία';
+
+  @override
+  String get locationPrompt => 'Πού μένεις;';
+
+  @override
+  String get locationHint => 'π.χ. Θεσσαλονίκη';
 }

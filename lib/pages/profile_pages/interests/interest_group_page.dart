@@ -15,6 +15,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:foitifinder/constants/interest_catalogue.dart';
+import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/l10n/catalogue_labels.dart';
 import 'package:foitifinder/widgets/interest_box.dart';
 import 'package:foitifinder/widgets/primary_button.dart';
 
@@ -34,6 +36,8 @@ class InterestGroupPage extends StatefulWidget {
 }
 
 class _InterestGroupPageState extends State<InterestGroupPage> {
+  AppLocalizations get text => AppLocalizations.of(context)!;
+
   //section title -> the options picked in it, in tap order (order matters if we
   //ever show only the first few on a profile card)
   late final Map<String, List<String>> _selected;
@@ -129,7 +133,7 @@ class _InterestGroupPageState extends State<InterestGroupPage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(widget.group.title),
+          title: Text(catalogueLabel(text, widget.group.title)),
           automaticallyImplyLeading: true,
           actions: [
             //the shared budget lives in the app bar: it belongs to the group as
@@ -159,7 +163,9 @@ class _InterestGroupPageState extends State<InterestGroupPage> {
         bottomNavigationBar: SafeArea(
           minimum: const EdgeInsets.fromLTRB(20, 0, 20, 16),
           child: PrimaryButton(
-            label: groupCount == 0 ? 'Save' : 'Save $groupCount selected',
+              label: groupCount == 0
+                ? text.save
+                : text.saveSelected(groupCount),
             onPressed: () => Navigator.pop(context, _result),
           ),
         ),
@@ -188,7 +194,7 @@ class _SectionBlock extends StatelessWidget {
           children: [
             Flexible(
               child: Text(
-                section.title,
+                catalogueLabel(state.text, section.title),
                 style: theme.textTheme.titleMedium?.copyWith(fontSize: 17),
               ),
             ),
@@ -209,7 +215,7 @@ class _SectionBlock extends StatelessWidget {
           children: [
             for (final option in section.options)
               InterestBox(
-                label: option,
+                label: catalogueLabel(state.text, option),
                 selected: state.isSelected(section, option),
                 //greyed out once there's no room left, but still tappable to
                 //deselect if it's one of the picked ones

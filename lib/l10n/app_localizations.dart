@@ -775,6 +775,1890 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Retry'**
   String get retry;
+
+  /// No description provided for @lblHobbiesInterests.
+  ///
+  /// In en, this message translates to:
+  /// **'Hobbies & interests'**
+  String get lblHobbiesInterests;
+
+  /// No description provided for @lblTraits.
+  ///
+  /// In en, this message translates to:
+  /// **'Traits'**
+  String get lblTraits;
+
+  /// No description provided for @lblBio.
+  ///
+  /// In en, this message translates to:
+  /// **'Bio'**
+  String get lblBio;
+
+  /// No description provided for @lblQA.
+  ///
+  /// In en, this message translates to:
+  /// **'Q&A'**
+  String get lblQA;
+
+  /// No description provided for @lblActivities.
+  ///
+  /// In en, this message translates to:
+  /// **'Activities'**
+  String get lblActivities;
+
+  /// No description provided for @lblInterests.
+  ///
+  /// In en, this message translates to:
+  /// **'Interests'**
+  String get lblInterests;
+
+  /// No description provided for @lblEntertainment.
+  ///
+  /// In en, this message translates to:
+  /// **'Entertainment'**
+  String get lblEntertainment;
+
+  /// No description provided for @lblCreative.
+  ///
+  /// In en, this message translates to:
+  /// **'Creative'**
+  String get lblCreative;
+
+  /// No description provided for @lblMusic.
+  ///
+  /// In en, this message translates to:
+  /// **'Music'**
+  String get lblMusic;
+
+  /// No description provided for @lblFoodDrinks.
+  ///
+  /// In en, this message translates to:
+  /// **'Food & drinks'**
+  String get lblFoodDrinks;
+
+  /// No description provided for @lblSports.
+  ///
+  /// In en, this message translates to:
+  /// **'Sports'**
+  String get lblSports;
+
+  /// No description provided for @lblPersonalityTraits.
+  ///
+  /// In en, this message translates to:
+  /// **'Personality traits'**
+  String get lblPersonalityTraits;
+
+  /// No description provided for @lblStarSign.
+  ///
+  /// In en, this message translates to:
+  /// **'Star sign'**
+  String get lblStarSign;
+
+  /// No description provided for @lblPersonalityTypeMBTI.
+  ///
+  /// In en, this message translates to:
+  /// **'Personality type (MBTI)'**
+  String get lblPersonalityTypeMBTI;
+
+  /// No description provided for @lblLifestyle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifestyle'**
+  String get lblLifestyle;
+
+  /// No description provided for @lblBaking.
+  ///
+  /// In en, this message translates to:
+  /// **'Baking'**
+  String get lblBaking;
+
+  /// No description provided for @lblBeach.
+  ///
+  /// In en, this message translates to:
+  /// **'Beach'**
+  String get lblBeach;
+
+  /// No description provided for @lblCamping.
+  ///
+  /// In en, this message translates to:
+  /// **'Camping'**
+  String get lblCamping;
+
+  /// No description provided for @lblCityTrips.
+  ///
+  /// In en, this message translates to:
+  /// **'City trips'**
+  String get lblCityTrips;
+
+  /// No description provided for @lblConcerts.
+  ///
+  /// In en, this message translates to:
+  /// **'Concerts'**
+  String get lblConcerts;
+
+  /// No description provided for @lblCooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Cooking'**
+  String get lblCooking;
+
+  /// No description provided for @lblDiningOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Dining out'**
+  String get lblDiningOut;
+
+  /// No description provided for @lblDinnerParties.
+  ///
+  /// In en, this message translates to:
+  /// **'Dinner parties'**
+  String get lblDinnerParties;
+
+  /// No description provided for @lblFestivals.
+  ///
+  /// In en, this message translates to:
+  /// **'Festivals'**
+  String get lblFestivals;
+
+  /// No description provided for @lblHavingDrinks.
+  ///
+  /// In en, this message translates to:
+  /// **'Having drinks'**
+  String get lblHavingDrinks;
+
+  /// No description provided for @lblHiking.
+  ///
+  /// In en, this message translates to:
+  /// **'Hiking'**
+  String get lblHiking;
+
+  /// No description provided for @lblKaraoke.
+  ///
+  /// In en, this message translates to:
+  /// **'Karaoke'**
+  String get lblKaraoke;
+
+  /// No description provided for @lblMeditation.
+  ///
+  /// In en, this message translates to:
+  /// **'Meditation'**
+  String get lblMeditation;
+
+  /// No description provided for @lblMountains.
+  ///
+  /// In en, this message translates to:
+  /// **'Mountains'**
+  String get lblMountains;
+
+  /// No description provided for @lblMuseum.
+  ///
+  /// In en, this message translates to:
+  /// **'Museum'**
+  String get lblMuseum;
+
+  /// No description provided for @lblOutdoors.
+  ///
+  /// In en, this message translates to:
+  /// **'Outdoors'**
+  String get lblOutdoors;
+
+  /// No description provided for @lblParty.
+  ///
+  /// In en, this message translates to:
+  /// **'Party'**
+  String get lblParty;
+
+  /// No description provided for @lblResortVacations.
+  ///
+  /// In en, this message translates to:
+  /// **'Resort vacations'**
+  String get lblResortVacations;
+
+  /// No description provided for @lblSauna.
+  ///
+  /// In en, this message translates to:
+  /// **'Sauna'**
+  String get lblSauna;
+
+  /// No description provided for @lblShopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping'**
+  String get lblShopping;
+
+  /// No description provided for @lblTakingAWalk.
+  ///
+  /// In en, this message translates to:
+  /// **'Taking a walk'**
+  String get lblTakingAWalk;
+
+  /// No description provided for @lblThrifting.
+  ///
+  /// In en, this message translates to:
+  /// **'Thrifting'**
+  String get lblThrifting;
+
+  /// No description provided for @lblTravel.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel'**
+  String get lblTravel;
+
+  /// No description provided for @lblWellness.
+  ///
+  /// In en, this message translates to:
+  /// **'Wellness'**
+  String get lblWellness;
+
+  /// No description provided for @lblProgramming.
+  ///
+  /// In en, this message translates to:
+  /// **'Programming'**
+  String get lblProgramming;
+
+  /// No description provided for @lblAI.
+  ///
+  /// In en, this message translates to:
+  /// **'AI'**
+  String get lblAI;
+
+  /// No description provided for @lblAnimals.
+  ///
+  /// In en, this message translates to:
+  /// **'Animals'**
+  String get lblAnimals;
+
+  /// No description provided for @lblArchitecture.
+  ///
+  /// In en, this message translates to:
+  /// **'Architecture'**
+  String get lblArchitecture;
+
+  /// No description provided for @lblArt.
+  ///
+  /// In en, this message translates to:
+  /// **'Art'**
+  String get lblArt;
+
+  /// No description provided for @lblBiology.
+  ///
+  /// In en, this message translates to:
+  /// **'Biology'**
+  String get lblBiology;
+
+  /// No description provided for @lblCars.
+  ///
+  /// In en, this message translates to:
+  /// **'Cars'**
+  String get lblCars;
+
+  /// No description provided for @lblCats.
+  ///
+  /// In en, this message translates to:
+  /// **'Cats'**
+  String get lblCats;
+
+  /// No description provided for @lblCinema.
+  ///
+  /// In en, this message translates to:
+  /// **'Cinema'**
+  String get lblCinema;
+
+  /// No description provided for @lblDogs.
+  ///
+  /// In en, this message translates to:
+  /// **'Dogs'**
+  String get lblDogs;
+
+  /// No description provided for @lblEntrepreneurship.
+  ///
+  /// In en, this message translates to:
+  /// **'Entrepreneurship'**
+  String get lblEntrepreneurship;
+
+  /// No description provided for @lblFinance.
+  ///
+  /// In en, this message translates to:
+  /// **'Finance'**
+  String get lblFinance;
+
+  /// No description provided for @lblHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get lblHistory;
+
+  /// No description provided for @lblHorses.
+  ///
+  /// In en, this message translates to:
+  /// **'Horses'**
+  String get lblHorses;
+
+  /// No description provided for @lblLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get lblLanguage;
+
+  /// No description provided for @lblNature.
+  ///
+  /// In en, this message translates to:
+  /// **'Nature'**
+  String get lblNature;
+
+  /// No description provided for @lblPersonalDevelopment.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal development'**
+  String get lblPersonalDevelopment;
+
+  /// No description provided for @lblPhilosophy.
+  ///
+  /// In en, this message translates to:
+  /// **'Philosophy'**
+  String get lblPhilosophy;
+
+  /// No description provided for @lblPlants.
+  ///
+  /// In en, this message translates to:
+  /// **'Plants'**
+  String get lblPlants;
+
+  /// No description provided for @lblPolitics.
+  ///
+  /// In en, this message translates to:
+  /// **'Politics'**
+  String get lblPolitics;
+
+  /// No description provided for @lblPsychology.
+  ///
+  /// In en, this message translates to:
+  /// **'Psychology'**
+  String get lblPsychology;
+
+  /// No description provided for @lblScience.
+  ///
+  /// In en, this message translates to:
+  /// **'Science'**
+  String get lblScience;
+
+  /// No description provided for @lblSustainability.
+  ///
+  /// In en, this message translates to:
+  /// **'Sustainability'**
+  String get lblSustainability;
+
+  /// No description provided for @lblTattoos.
+  ///
+  /// In en, this message translates to:
+  /// **'Tattoos'**
+  String get lblTattoos;
+
+  /// No description provided for @lblTech.
+  ///
+  /// In en, this message translates to:
+  /// **'Tech'**
+  String get lblTech;
+
+  /// No description provided for @lblTheatre.
+  ///
+  /// In en, this message translates to:
+  /// **'Theatre'**
+  String get lblTheatre;
+
+  /// No description provided for @lblReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading'**
+  String get lblReading;
+
+  /// No description provided for @lblBoardGames.
+  ///
+  /// In en, this message translates to:
+  /// **'Board games'**
+  String get lblBoardGames;
+
+  /// No description provided for @lblCartoons.
+  ///
+  /// In en, this message translates to:
+  /// **'Cartoons'**
+  String get lblCartoons;
+
+  /// No description provided for @lblChess.
+  ///
+  /// In en, this message translates to:
+  /// **'Chess'**
+  String get lblChess;
+
+  /// No description provided for @lblComedy.
+  ///
+  /// In en, this message translates to:
+  /// **'Comedy'**
+  String get lblComedy;
+
+  /// No description provided for @lblComics.
+  ///
+  /// In en, this message translates to:
+  /// **'Comics'**
+  String get lblComics;
+
+  /// No description provided for @lblDocumentaries.
+  ///
+  /// In en, this message translates to:
+  /// **'Documentaries'**
+  String get lblDocumentaries;
+
+  /// No description provided for @lblHorror.
+  ///
+  /// In en, this message translates to:
+  /// **'Horror'**
+  String get lblHorror;
+
+  /// No description provided for @lblMovies.
+  ///
+  /// In en, this message translates to:
+  /// **'Movies'**
+  String get lblMovies;
+
+  /// No description provided for @lblMusicals.
+  ///
+  /// In en, this message translates to:
+  /// **'Musicals'**
+  String get lblMusicals;
+
+  /// No description provided for @lblPuzzles.
+  ///
+  /// In en, this message translates to:
+  /// **'Puzzles'**
+  String get lblPuzzles;
+
+  /// No description provided for @lblSciFi.
+  ///
+  /// In en, this message translates to:
+  /// **'Sci-fi'**
+  String get lblSciFi;
+
+  /// No description provided for @lblSitcoms.
+  ///
+  /// In en, this message translates to:
+  /// **'Sitcoms'**
+  String get lblSitcoms;
+
+  /// No description provided for @lblVinylRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Vinyl records'**
+  String get lblVinylRecords;
+
+  /// No description provided for @lblPlayingInstruments.
+  ///
+  /// In en, this message translates to:
+  /// **'Playing instruments'**
+  String get lblPlayingInstruments;
+
+  /// No description provided for @lblActing.
+  ///
+  /// In en, this message translates to:
+  /// **'Acting'**
+  String get lblActing;
+
+  /// No description provided for @lblComposingMusic.
+  ///
+  /// In en, this message translates to:
+  /// **'Composing music'**
+  String get lblComposingMusic;
+
+  /// No description provided for @lblCrafts.
+  ///
+  /// In en, this message translates to:
+  /// **'Crafts'**
+  String get lblCrafts;
+
+  /// No description provided for @lblDesign.
+  ///
+  /// In en, this message translates to:
+  /// **'Design'**
+  String get lblDesign;
+
+  /// No description provided for @lblDrawing.
+  ///
+  /// In en, this message translates to:
+  /// **'Drawing'**
+  String get lblDrawing;
+
+  /// No description provided for @lblFashion.
+  ///
+  /// In en, this message translates to:
+  /// **'Fashion'**
+  String get lblFashion;
+
+  /// No description provided for @lblKnitting.
+  ///
+  /// In en, this message translates to:
+  /// **'Knitting'**
+  String get lblKnitting;
+
+  /// No description provided for @lblPainting.
+  ///
+  /// In en, this message translates to:
+  /// **'Painting'**
+  String get lblPainting;
+
+  /// No description provided for @lblPhotography.
+  ///
+  /// In en, this message translates to:
+  /// **'Photography'**
+  String get lblPhotography;
+
+  /// No description provided for @lblPoetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Poetry'**
+  String get lblPoetry;
+
+  /// No description provided for @lblPottery.
+  ///
+  /// In en, this message translates to:
+  /// **'Pottery'**
+  String get lblPottery;
+
+  /// No description provided for @lblSewing.
+  ///
+  /// In en, this message translates to:
+  /// **'Sewing'**
+  String get lblSewing;
+
+  /// No description provided for @lblSinging.
+  ///
+  /// In en, this message translates to:
+  /// **'Singing'**
+  String get lblSinging;
+
+  /// No description provided for @lblWriting.
+  ///
+  /// In en, this message translates to:
+  /// **'Writing'**
+  String get lblWriting;
+
+  /// No description provided for @lblClassicalMusic.
+  ///
+  /// In en, this message translates to:
+  /// **'Classical music'**
+  String get lblClassicalMusic;
+
+  /// No description provided for @lblCountryMusic.
+  ///
+  /// In en, this message translates to:
+  /// **'Country music'**
+  String get lblCountryMusic;
+
+  /// No description provided for @lblDrums.
+  ///
+  /// In en, this message translates to:
+  /// **'Drums'**
+  String get lblDrums;
+
+  /// No description provided for @lblGuitar.
+  ///
+  /// In en, this message translates to:
+  /// **'Guitar'**
+  String get lblGuitar;
+
+  /// No description provided for @lblIndieMusic.
+  ///
+  /// In en, this message translates to:
+  /// **'Indie music'**
+  String get lblIndieMusic;
+
+  /// No description provided for @lblLatinMusic.
+  ///
+  /// In en, this message translates to:
+  /// **'Latin music'**
+  String get lblLatinMusic;
+
+  /// No description provided for @lblPiano.
+  ///
+  /// In en, this message translates to:
+  /// **'Piano'**
+  String get lblPiano;
+
+  /// No description provided for @lblPopMusic.
+  ///
+  /// In en, this message translates to:
+  /// **'Pop music'**
+  String get lblPopMusic;
+
+  /// No description provided for @lblBeer.
+  ///
+  /// In en, this message translates to:
+  /// **'Beer'**
+  String get lblBeer;
+
+  /// No description provided for @lblChampagne.
+  ///
+  /// In en, this message translates to:
+  /// **'Champagne'**
+  String get lblChampagne;
+
+  /// No description provided for @lblCheese.
+  ///
+  /// In en, this message translates to:
+  /// **'Cheese'**
+  String get lblCheese;
+
+  /// No description provided for @lblChocolate.
+  ///
+  /// In en, this message translates to:
+  /// **'Chocolate'**
+  String get lblChocolate;
+
+  /// No description provided for @lblCocktails.
+  ///
+  /// In en, this message translates to:
+  /// **'Cocktails'**
+  String get lblCocktails;
+
+  /// No description provided for @lblCoffee.
+  ///
+  /// In en, this message translates to:
+  /// **'Coffee'**
+  String get lblCoffee;
+
+  /// No description provided for @lblCraftBeers.
+  ///
+  /// In en, this message translates to:
+  /// **'Craft beers'**
+  String get lblCraftBeers;
+
+  /// No description provided for @lblTea.
+  ///
+  /// In en, this message translates to:
+  /// **'Tea'**
+  String get lblTea;
+
+  /// No description provided for @lblWhiskey.
+  ///
+  /// In en, this message translates to:
+  /// **'Whiskey'**
+  String get lblWhiskey;
+
+  /// No description provided for @lblWine.
+  ///
+  /// In en, this message translates to:
+  /// **'Wine'**
+  String get lblWine;
+
+  /// No description provided for @lblMartialArts.
+  ///
+  /// In en, this message translates to:
+  /// **'Martial arts'**
+  String get lblMartialArts;
+
+  /// No description provided for @lblAthletics.
+  ///
+  /// In en, this message translates to:
+  /// **'Athletics'**
+  String get lblAthletics;
+
+  /// No description provided for @lblBadminton.
+  ///
+  /// In en, this message translates to:
+  /// **'Badminton'**
+  String get lblBadminton;
+
+  /// No description provided for @lblBallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Ballet'**
+  String get lblBallet;
+
+  /// No description provided for @lblBaseball.
+  ///
+  /// In en, this message translates to:
+  /// **'Baseball'**
+  String get lblBaseball;
+
+  /// No description provided for @lblBasketball.
+  ///
+  /// In en, this message translates to:
+  /// **'Basketball'**
+  String get lblBasketball;
+
+  /// No description provided for @lblBowling.
+  ///
+  /// In en, this message translates to:
+  /// **'Bowling'**
+  String get lblBowling;
+
+  /// No description provided for @lblClimbing.
+  ///
+  /// In en, this message translates to:
+  /// **'Climbing'**
+  String get lblClimbing;
+
+  /// No description provided for @lblCricket.
+  ///
+  /// In en, this message translates to:
+  /// **'Cricket'**
+  String get lblCricket;
+
+  /// No description provided for @lblCycling.
+  ///
+  /// In en, this message translates to:
+  /// **'Cycling'**
+  String get lblCycling;
+
+  /// No description provided for @lblDancing.
+  ///
+  /// In en, this message translates to:
+  /// **'Dancing'**
+  String get lblDancing;
+
+  /// No description provided for @lblFencing.
+  ///
+  /// In en, this message translates to:
+  /// **'Fencing'**
+  String get lblFencing;
+
+  /// No description provided for @lblFitness.
+  ///
+  /// In en, this message translates to:
+  /// **'Fitness'**
+  String get lblFitness;
+
+  /// No description provided for @lblFootball.
+  ///
+  /// In en, this message translates to:
+  /// **'Football'**
+  String get lblFootball;
+
+  /// No description provided for @lblGolf.
+  ///
+  /// In en, this message translates to:
+  /// **'Golf'**
+  String get lblGolf;
+
+  /// No description provided for @lblHandball.
+  ///
+  /// In en, this message translates to:
+  /// **'Handball'**
+  String get lblHandball;
+
+  /// No description provided for @lblHockey.
+  ///
+  /// In en, this message translates to:
+  /// **'Hockey'**
+  String get lblHockey;
+
+  /// No description provided for @lblHorseRiding.
+  ///
+  /// In en, this message translates to:
+  /// **'Horse riding'**
+  String get lblHorseRiding;
+
+  /// No description provided for @lblIceSkating.
+  ///
+  /// In en, this message translates to:
+  /// **'Ice skating'**
+  String get lblIceSkating;
+
+  /// No description provided for @lblKayaking.
+  ///
+  /// In en, this message translates to:
+  /// **'Kayaking'**
+  String get lblKayaking;
+
+  /// No description provided for @lblMotorcycling.
+  ///
+  /// In en, this message translates to:
+  /// **'Motorcycling'**
+  String get lblMotorcycling;
+
+  /// No description provided for @lblMountainbiking.
+  ///
+  /// In en, this message translates to:
+  /// **'Mountainbiking'**
+  String get lblMountainbiking;
+
+  /// No description provided for @lblPilates.
+  ///
+  /// In en, this message translates to:
+  /// **'Pilates'**
+  String get lblPilates;
+
+  /// No description provided for @lblRowing.
+  ///
+  /// In en, this message translates to:
+  /// **'Rowing'**
+  String get lblRowing;
+
+  /// No description provided for @lblRugby.
+  ///
+  /// In en, this message translates to:
+  /// **'Rugby'**
+  String get lblRugby;
+
+  /// No description provided for @lblRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Running'**
+  String get lblRunning;
+
+  /// No description provided for @lblSailing.
+  ///
+  /// In en, this message translates to:
+  /// **'Sailing'**
+  String get lblSailing;
+
+  /// No description provided for @lblScubaDiving.
+  ///
+  /// In en, this message translates to:
+  /// **'Scuba diving'**
+  String get lblScubaDiving;
+
+  /// No description provided for @lblSkateboarding.
+  ///
+  /// In en, this message translates to:
+  /// **'Skateboarding'**
+  String get lblSkateboarding;
+
+  /// No description provided for @lblSkiing.
+  ///
+  /// In en, this message translates to:
+  /// **'Skiing'**
+  String get lblSkiing;
+
+  /// No description provided for @lblSnowboarding.
+  ///
+  /// In en, this message translates to:
+  /// **'Snowboarding'**
+  String get lblSnowboarding;
+
+  /// No description provided for @lblSquash.
+  ///
+  /// In en, this message translates to:
+  /// **'Squash'**
+  String get lblSquash;
+
+  /// No description provided for @lblSurfing.
+  ///
+  /// In en, this message translates to:
+  /// **'Surfing'**
+  String get lblSurfing;
+
+  /// No description provided for @lblSwimming.
+  ///
+  /// In en, this message translates to:
+  /// **'Swimming'**
+  String get lblSwimming;
+
+  /// No description provided for @lblTableTennis.
+  ///
+  /// In en, this message translates to:
+  /// **'Table tennis'**
+  String get lblTableTennis;
+
+  /// No description provided for @lblTennis.
+  ///
+  /// In en, this message translates to:
+  /// **'Tennis'**
+  String get lblTennis;
+
+  /// No description provided for @lblVolleyball.
+  ///
+  /// In en, this message translates to:
+  /// **'Volleyball'**
+  String get lblVolleyball;
+
+  /// No description provided for @lblWaterpolo.
+  ///
+  /// In en, this message translates to:
+  /// **'Waterpolo'**
+  String get lblWaterpolo;
+
+  /// No description provided for @lblWindsurfing.
+  ///
+  /// In en, this message translates to:
+  /// **'Windsurfing'**
+  String get lblWindsurfing;
+
+  /// No description provided for @lblYoga.
+  ///
+  /// In en, this message translates to:
+  /// **'Yoga'**
+  String get lblYoga;
+
+  /// No description provided for @lblIntrovert.
+  ///
+  /// In en, this message translates to:
+  /// **'Introvert'**
+  String get lblIntrovert;
+
+  /// No description provided for @lblAdventurous.
+  ///
+  /// In en, this message translates to:
+  /// **'Adventurous'**
+  String get lblAdventurous;
+
+  /// No description provided for @lblAmbitious.
+  ///
+  /// In en, this message translates to:
+  /// **'Ambitious'**
+  String get lblAmbitious;
+
+  /// No description provided for @lblAmbivert.
+  ///
+  /// In en, this message translates to:
+  /// **'Ambivert'**
+  String get lblAmbivert;
+
+  /// No description provided for @lblCalm.
+  ///
+  /// In en, this message translates to:
+  /// **'Calm'**
+  String get lblCalm;
+
+  /// No description provided for @lblCaring.
+  ///
+  /// In en, this message translates to:
+  /// **'Caring'**
+  String get lblCaring;
+
+  /// No description provided for @lblChaotic.
+  ///
+  /// In en, this message translates to:
+  /// **'Chaotic'**
+  String get lblChaotic;
+
+  /// No description provided for @lblCompetitionSeeker.
+  ///
+  /// In en, this message translates to:
+  /// **'Competition seeker'**
+  String get lblCompetitionSeeker;
+
+  /// No description provided for @lblCurious.
+  ///
+  /// In en, this message translates to:
+  /// **'Curious'**
+  String get lblCurious;
+
+  /// No description provided for @lblDeepThinker.
+  ///
+  /// In en, this message translates to:
+  /// **'Deep thinker'**
+  String get lblDeepThinker;
+
+  /// No description provided for @lblDreamer.
+  ///
+  /// In en, this message translates to:
+  /// **'Dreamer'**
+  String get lblDreamer;
+
+  /// No description provided for @lblEmpathetic.
+  ///
+  /// In en, this message translates to:
+  /// **'Empathetic'**
+  String get lblEmpathetic;
+
+  /// No description provided for @lblEnergetic.
+  ///
+  /// In en, this message translates to:
+  /// **'Energetic'**
+  String get lblEnergetic;
+
+  /// No description provided for @lblExtravert.
+  ///
+  /// In en, this message translates to:
+  /// **'Extravert'**
+  String get lblExtravert;
+
+  /// No description provided for @lblFlexible.
+  ///
+  /// In en, this message translates to:
+  /// **'Flexible'**
+  String get lblFlexible;
+
+  /// No description provided for @lblGenerous.
+  ///
+  /// In en, this message translates to:
+  /// **'Generous'**
+  String get lblGenerous;
+
+  /// No description provided for @lblGoGetter.
+  ///
+  /// In en, this message translates to:
+  /// **'Go-getter'**
+  String get lblGoGetter;
+
+  /// No description provided for @lblHonest.
+  ///
+  /// In en, this message translates to:
+  /// **'Honest'**
+  String get lblHonest;
+
+  /// No description provided for @lblKind.
+  ///
+  /// In en, this message translates to:
+  /// **'Kind'**
+  String get lblKind;
+
+  /// No description provided for @lblListener.
+  ///
+  /// In en, this message translates to:
+  /// **'Listener'**
+  String get lblListener;
+
+  /// No description provided for @lblOpenMinded.
+  ///
+  /// In en, this message translates to:
+  /// **'Open-minded'**
+  String get lblOpenMinded;
+
+  /// No description provided for @lblOptimistic.
+  ///
+  /// In en, this message translates to:
+  /// **'Optimistic'**
+  String get lblOptimistic;
+
+  /// No description provided for @lblOrganized.
+  ///
+  /// In en, this message translates to:
+  /// **'Organized'**
+  String get lblOrganized;
+
+  /// No description provided for @lblOutgoing.
+  ///
+  /// In en, this message translates to:
+  /// **'Outgoing'**
+  String get lblOutgoing;
+
+  /// No description provided for @lblPassionate.
+  ///
+  /// In en, this message translates to:
+  /// **'Passionate'**
+  String get lblPassionate;
+
+  /// No description provided for @lblPatient.
+  ///
+  /// In en, this message translates to:
+  /// **'Patient'**
+  String get lblPatient;
+
+  /// No description provided for @lblPerfectionist.
+  ///
+  /// In en, this message translates to:
+  /// **'Perfectionist'**
+  String get lblPerfectionist;
+
+  /// No description provided for @lblPlayful.
+  ///
+  /// In en, this message translates to:
+  /// **'Playful'**
+  String get lblPlayful;
+
+  /// No description provided for @lblPositive.
+  ///
+  /// In en, this message translates to:
+  /// **'Positive'**
+  String get lblPositive;
+
+  /// No description provided for @lblRomantic.
+  ///
+  /// In en, this message translates to:
+  /// **'Romantic'**
+  String get lblRomantic;
+
+  /// No description provided for @lblSpontaneous.
+  ///
+  /// In en, this message translates to:
+  /// **'Spontaneous'**
+  String get lblSpontaneous;
+
+  /// No description provided for @lblSupportive.
+  ///
+  /// In en, this message translates to:
+  /// **'Supportive'**
+  String get lblSupportive;
+
+  /// No description provided for @lblWitty.
+  ///
+  /// In en, this message translates to:
+  /// **'Witty'**
+  String get lblWitty;
+
+  /// No description provided for @lblAries.
+  ///
+  /// In en, this message translates to:
+  /// **'Aries'**
+  String get lblAries;
+
+  /// No description provided for @lblTaurus.
+  ///
+  /// In en, this message translates to:
+  /// **'Taurus'**
+  String get lblTaurus;
+
+  /// No description provided for @lblGemini.
+  ///
+  /// In en, this message translates to:
+  /// **'Gemini'**
+  String get lblGemini;
+
+  /// No description provided for @lblCancer.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancer'**
+  String get lblCancer;
+
+  /// No description provided for @lblLeo.
+  ///
+  /// In en, this message translates to:
+  /// **'Leo'**
+  String get lblLeo;
+
+  /// No description provided for @lblVirgo.
+  ///
+  /// In en, this message translates to:
+  /// **'Virgo'**
+  String get lblVirgo;
+
+  /// No description provided for @lblLibra.
+  ///
+  /// In en, this message translates to:
+  /// **'Libra'**
+  String get lblLibra;
+
+  /// No description provided for @lblScorpio.
+  ///
+  /// In en, this message translates to:
+  /// **'Scorpio'**
+  String get lblScorpio;
+
+  /// No description provided for @lblSagittarius.
+  ///
+  /// In en, this message translates to:
+  /// **'Sagittarius'**
+  String get lblSagittarius;
+
+  /// No description provided for @lblCapricorn.
+  ///
+  /// In en, this message translates to:
+  /// **'Capricorn'**
+  String get lblCapricorn;
+
+  /// No description provided for @lblAquarius.
+  ///
+  /// In en, this message translates to:
+  /// **'Aquarius'**
+  String get lblAquarius;
+
+  /// No description provided for @lblPisces.
+  ///
+  /// In en, this message translates to:
+  /// **'Pisces'**
+  String get lblPisces;
+
+  /// No description provided for @lblEarlyBird.
+  ///
+  /// In en, this message translates to:
+  /// **'Early bird'**
+  String get lblEarlyBird;
+
+  /// No description provided for @lblActivist.
+  ///
+  /// In en, this message translates to:
+  /// **'Activist'**
+  String get lblActivist;
+
+  /// No description provided for @lblAnimalLover.
+  ///
+  /// In en, this message translates to:
+  /// **'Animal lover'**
+  String get lblAnimalLover;
+
+  /// No description provided for @lblBohemian.
+  ///
+  /// In en, this message translates to:
+  /// **'Bohemian'**
+  String get lblBohemian;
+
+  /// No description provided for @lblCorporate.
+  ///
+  /// In en, this message translates to:
+  /// **'Corporate'**
+  String get lblCorporate;
+
+  /// No description provided for @lblCozyAtHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Cozy at home'**
+  String get lblCozyAtHome;
+
+  /// No description provided for @lblFamilyOrientated.
+  ///
+  /// In en, this message translates to:
+  /// **'Family orientated'**
+  String get lblFamilyOrientated;
+
+  /// No description provided for @lblFoodie.
+  ///
+  /// In en, this message translates to:
+  /// **'Foodie'**
+  String get lblFoodie;
+
+  /// No description provided for @lblHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Health'**
+  String get lblHealth;
+
+  /// No description provided for @lblMaximalist.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximalist'**
+  String get lblMaximalist;
+
+  /// No description provided for @lblMinimalist.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimalist'**
+  String get lblMinimalist;
+
+  /// No description provided for @lblMusicLover.
+  ///
+  /// In en, this message translates to:
+  /// **'Music lover'**
+  String get lblMusicLover;
+
+  /// No description provided for @lblNightOwl.
+  ///
+  /// In en, this message translates to:
+  /// **'Night owl'**
+  String get lblNightOwl;
+
+  /// No description provided for @lblPetFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Pet free'**
+  String get lblPetFree;
+
+  /// No description provided for @lblSober.
+  ///
+  /// In en, this message translates to:
+  /// **'Sober'**
+  String get lblSober;
+
+  /// No description provided for @lblSpiritual.
+  ///
+  /// In en, this message translates to:
+  /// **'Spiritual'**
+  String get lblSpiritual;
+
+  /// No description provided for @lblSportive.
+  ///
+  /// In en, this message translates to:
+  /// **'Sportive'**
+  String get lblSportive;
+
+  /// No description provided for @lblStudentAssociation.
+  ///
+  /// In en, this message translates to:
+  /// **'Student association'**
+  String get lblStudentAssociation;
+
+  /// No description provided for @lblSustainable.
+  ///
+  /// In en, this message translates to:
+  /// **'Sustainable'**
+  String get lblSustainable;
+
+  /// No description provided for @lblThrillSeeker.
+  ///
+  /// In en, this message translates to:
+  /// **'Thrill seeker'**
+  String get lblThrillSeeker;
+
+  /// No description provided for @lblWanderlust.
+  ///
+  /// In en, this message translates to:
+  /// **'Wanderlust'**
+  String get lblWanderlust;
+
+  /// No description provided for @lblAlcohol.
+  ///
+  /// In en, this message translates to:
+  /// **'Alcohol'**
+  String get lblAlcohol;
+
+  /// No description provided for @lblHowOftenDoYouDrink.
+  ///
+  /// In en, this message translates to:
+  /// **'How often do you drink?'**
+  String get lblHowOftenDoYouDrink;
+
+  /// No description provided for @lblSmoking.
+  ///
+  /// In en, this message translates to:
+  /// **'Smoking'**
+  String get lblSmoking;
+
+  /// No description provided for @lblHowOftenDoYouSmoke.
+  ///
+  /// In en, this message translates to:
+  /// **'How often do you smoke?'**
+  String get lblHowOftenDoYouSmoke;
+
+  /// No description provided for @lblDatingIntention.
+  ///
+  /// In en, this message translates to:
+  /// **'Dating intention'**
+  String get lblDatingIntention;
+
+  /// No description provided for @lblWhatAreYouLookingFor.
+  ///
+  /// In en, this message translates to:
+  /// **'What are you looking for?'**
+  String get lblWhatAreYouLookingFor;
+
+  /// No description provided for @lblKids.
+  ///
+  /// In en, this message translates to:
+  /// **'Kids'**
+  String get lblKids;
+
+  /// No description provided for @lblWhereDoYouStandOnChildren.
+  ///
+  /// In en, this message translates to:
+  /// **'Where do you stand on children?'**
+  String get lblWhereDoYouStandOnChildren;
+
+  /// No description provided for @lblReligion.
+  ///
+  /// In en, this message translates to:
+  /// **'Religion'**
+  String get lblReligion;
+
+  /// No description provided for @lblPickAnyThatApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick any that apply.'**
+  String get lblPickAnyThatApply;
+
+  /// No description provided for @lblPoliticalView.
+  ///
+  /// In en, this message translates to:
+  /// **'Political view'**
+  String get lblPoliticalView;
+
+  /// No description provided for @lblSexualOrientation.
+  ///
+  /// In en, this message translates to:
+  /// **'Sexual orientation'**
+  String get lblSexualOrientation;
+
+  /// No description provided for @lblHowDoYouIdentify.
+  ///
+  /// In en, this message translates to:
+  /// **'How do you identify?'**
+  String get lblHowDoYouIdentify;
+
+  /// No description provided for @lblPronouns.
+  ///
+  /// In en, this message translates to:
+  /// **'Pronouns'**
+  String get lblPronouns;
+
+  /// No description provided for @lblWhatShouldPeopleCallYou.
+  ///
+  /// In en, this message translates to:
+  /// **'What should people call you?'**
+  String get lblWhatShouldPeopleCallYou;
+
+  /// No description provided for @lblNever.
+  ///
+  /// In en, this message translates to:
+  /// **'Never'**
+  String get lblNever;
+
+  /// No description provided for @lblSometimes.
+  ///
+  /// In en, this message translates to:
+  /// **'Sometimes'**
+  String get lblSometimes;
+
+  /// No description provided for @lblYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get lblYes;
+
+  /// No description provided for @lblSomethingCasual.
+  ///
+  /// In en, this message translates to:
+  /// **'Something casual'**
+  String get lblSomethingCasual;
+
+  /// No description provided for @lblALongTermRelationship.
+  ///
+  /// In en, this message translates to:
+  /// **'A long-term relationship'**
+  String get lblALongTermRelationship;
+
+  /// No description provided for @lblStillFiguringItOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Still figuring it out'**
+  String get lblStillFiguringItOut;
+
+  /// No description provided for @lblIMOpenToKids.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m open to kids'**
+  String get lblIMOpenToKids;
+
+  /// No description provided for @lblIWantKids.
+  ///
+  /// In en, this message translates to:
+  /// **'I want kids'**
+  String get lblIWantKids;
+
+  /// No description provided for @lblIDonTWantKids.
+  ///
+  /// In en, this message translates to:
+  /// **'I don\'t want kids'**
+  String get lblIDonTWantKids;
+
+  /// No description provided for @lblHaveKids.
+  ///
+  /// In en, this message translates to:
+  /// **'Have kids'**
+  String get lblHaveKids;
+
+  /// No description provided for @lblChristian.
+  ///
+  /// In en, this message translates to:
+  /// **'Christian'**
+  String get lblChristian;
+
+  /// No description provided for @lblCatholic.
+  ///
+  /// In en, this message translates to:
+  /// **'Catholic'**
+  String get lblCatholic;
+
+  /// No description provided for @lblProtestant.
+  ///
+  /// In en, this message translates to:
+  /// **'Protestant'**
+  String get lblProtestant;
+
+  /// No description provided for @lblMuslim.
+  ///
+  /// In en, this message translates to:
+  /// **'Muslim'**
+  String get lblMuslim;
+
+  /// No description provided for @lblJewish.
+  ///
+  /// In en, this message translates to:
+  /// **'Jewish'**
+  String get lblJewish;
+
+  /// No description provided for @lblHindu.
+  ///
+  /// In en, this message translates to:
+  /// **'Hindu'**
+  String get lblHindu;
+
+  /// No description provided for @lblBuddhist.
+  ///
+  /// In en, this message translates to:
+  /// **'Buddhist'**
+  String get lblBuddhist;
+
+  /// No description provided for @lblAgnostic.
+  ///
+  /// In en, this message translates to:
+  /// **'Agnostic'**
+  String get lblAgnostic;
+
+  /// No description provided for @lblAtheist.
+  ///
+  /// In en, this message translates to:
+  /// **'Atheist'**
+  String get lblAtheist;
+
+  /// No description provided for @lblTaoist.
+  ///
+  /// In en, this message translates to:
+  /// **'Taoist'**
+  String get lblTaoist;
+
+  /// No description provided for @lblBahai.
+  ///
+  /// In en, this message translates to:
+  /// **'Bahai'**
+  String get lblBahai;
+
+  /// No description provided for @lblJain.
+  ///
+  /// In en, this message translates to:
+  /// **'Jain'**
+  String get lblJain;
+
+  /// No description provided for @lblNewAge.
+  ///
+  /// In en, this message translates to:
+  /// **'New Age'**
+  String get lblNewAge;
+
+  /// No description provided for @lblShinto.
+  ///
+  /// In en, this message translates to:
+  /// **'Shinto'**
+  String get lblShinto;
+
+  /// No description provided for @lblSikh.
+  ///
+  /// In en, this message translates to:
+  /// **'Sikh'**
+  String get lblSikh;
+
+  /// No description provided for @lblAnarchist.
+  ///
+  /// In en, this message translates to:
+  /// **'Anarchist'**
+  String get lblAnarchist;
+
+  /// No description provided for @lblApolitical.
+  ///
+  /// In en, this message translates to:
+  /// **'Apolitical'**
+  String get lblApolitical;
+
+  /// No description provided for @lblCentrist.
+  ///
+  /// In en, this message translates to:
+  /// **'Centrist'**
+  String get lblCentrist;
+
+  /// No description provided for @lblCommunist.
+  ///
+  /// In en, this message translates to:
+  /// **'Communist'**
+  String get lblCommunist;
+
+  /// No description provided for @lblConservative.
+  ///
+  /// In en, this message translates to:
+  /// **'Conservative'**
+  String get lblConservative;
+
+  /// No description provided for @lblDemocratic.
+  ///
+  /// In en, this message translates to:
+  /// **'Democratic'**
+  String get lblDemocratic;
+
+  /// No description provided for @lblFeminist.
+  ///
+  /// In en, this message translates to:
+  /// **'Feminist'**
+  String get lblFeminist;
+
+  /// No description provided for @lblGlobalist.
+  ///
+  /// In en, this message translates to:
+  /// **'Globalist'**
+  String get lblGlobalist;
+
+  /// No description provided for @lblGreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Green'**
+  String get lblGreen;
+
+  /// No description provided for @lblLabour.
+  ///
+  /// In en, this message translates to:
+  /// **'Labour'**
+  String get lblLabour;
+
+  /// No description provided for @lblLeftLeaning.
+  ///
+  /// In en, this message translates to:
+  /// **'Left-Leaning'**
+  String get lblLeftLeaning;
+
+  /// No description provided for @lblLiberal.
+  ///
+  /// In en, this message translates to:
+  /// **'Liberal'**
+  String get lblLiberal;
+
+  /// No description provided for @lblLibertarian.
+  ///
+  /// In en, this message translates to:
+  /// **'Libertarian'**
+  String get lblLibertarian;
+
+  /// No description provided for @lblNationalist.
+  ///
+  /// In en, this message translates to:
+  /// **'Nationalist'**
+  String get lblNationalist;
+
+  /// No description provided for @lblProgressive.
+  ///
+  /// In en, this message translates to:
+  /// **'Progressive'**
+  String get lblProgressive;
+
+  /// No description provided for @lblRepublican.
+  ///
+  /// In en, this message translates to:
+  /// **'Republican'**
+  String get lblRepublican;
+
+  /// No description provided for @lblRightLeaning.
+  ///
+  /// In en, this message translates to:
+  /// **'Right-Leaning'**
+  String get lblRightLeaning;
+
+  /// No description provided for @lblSocialist.
+  ///
+  /// In en, this message translates to:
+  /// **'Socialist'**
+  String get lblSocialist;
+
+  /// No description provided for @lblStraight.
+  ///
+  /// In en, this message translates to:
+  /// **'Straight'**
+  String get lblStraight;
+
+  /// No description provided for @lblGay.
+  ///
+  /// In en, this message translates to:
+  /// **'Gay'**
+  String get lblGay;
+
+  /// No description provided for @lblLesbian.
+  ///
+  /// In en, this message translates to:
+  /// **'Lesbian'**
+  String get lblLesbian;
+
+  /// No description provided for @lblBisexual.
+  ///
+  /// In en, this message translates to:
+  /// **'Bisexual'**
+  String get lblBisexual;
+
+  /// No description provided for @lblAsexual.
+  ///
+  /// In en, this message translates to:
+  /// **'Asexual'**
+  String get lblAsexual;
+
+  /// No description provided for @lblHeHim.
+  ///
+  /// In en, this message translates to:
+  /// **'he/him'**
+  String get lblHeHim;
+
+  /// No description provided for @lblSheHer.
+  ///
+  /// In en, this message translates to:
+  /// **'she/her'**
+  String get lblSheHer;
+
+  /// No description provided for @lblTheyThem.
+  ///
+  /// In en, this message translates to:
+  /// **'they/them'**
+  String get lblTheyThem;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clear;
+
+  /// No description provided for @saveSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Save {count} selected'**
+  String saveSelected(int count);
+
+  /// No description provided for @comingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon.'**
+  String get comingSoon;
+
+  /// No description provided for @sectionMyPersonality.
+  ///
+  /// In en, this message translates to:
+  /// **'My personality'**
+  String get sectionMyPersonality;
+
+  /// No description provided for @sectionMyBeliefs.
+  ///
+  /// In en, this message translates to:
+  /// **'My beliefs and values'**
+  String get sectionMyBeliefs;
+
+  /// No description provided for @sectionMyHabits.
+  ///
+  /// In en, this message translates to:
+  /// **'My habits'**
+  String get sectionMyHabits;
+
+  /// No description provided for @sectionMyRelationships.
+  ///
+  /// In en, this message translates to:
+  /// **'What I want in my relationships'**
+  String get sectionMyRelationships;
+
+  /// No description provided for @sectionMyBackground.
+  ///
+  /// In en, this message translates to:
+  /// **'My background'**
+  String get sectionMyBackground;
+
+  /// No description provided for @sectionWhoIAm.
+  ///
+  /// In en, this message translates to:
+  /// **'Who I am'**
+  String get sectionWhoIAm;
+
+  /// No description provided for @bioTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bio'**
+  String get bioTitle;
+
+  /// No description provided for @bioPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell people who you are.'**
+  String get bioPrompt;
+
+  /// No description provided for @education.
+  ///
+  /// In en, this message translates to:
+  /// **'Education'**
+  String get education;
+
+  /// No description provided for @university.
+  ///
+  /// In en, this message translates to:
+  /// **'University'**
+  String get university;
+
+  /// No description provided for @universityNotDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'Not detected'**
+  String get universityNotDetected;
+
+  /// No description provided for @universityFromEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Taken from your student email and cannot be changed.'**
+  String get universityFromEmail;
+
+  /// No description provided for @major.
+  ///
+  /// In en, this message translates to:
+  /// **'Major'**
+  String get major;
+
+  /// No description provided for @majorHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Applied Informatics'**
+  String get majorHint;
+
+  /// No description provided for @currentlyStudying.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m currently studying'**
+  String get currentlyStudying;
+
+  /// No description provided for @occupation.
+  ///
+  /// In en, this message translates to:
+  /// **'Occupation'**
+  String get occupation;
+
+  /// No description provided for @occupationAllOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'All optional - fill in whatever applies.'**
+  String get occupationAllOptional;
+
+  /// No description provided for @job.
+  ///
+  /// In en, this message translates to:
+  /// **'Job'**
+  String get job;
+
+  /// No description provided for @jobHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Barista at a coffee shop'**
+  String get jobHint;
+
+  /// No description provided for @volunteering.
+  ///
+  /// In en, this message translates to:
+  /// **'Volunteering'**
+  String get volunteering;
+
+  /// No description provided for @volunteeringHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Animal shelter every Sunday'**
+  String get volunteeringHint;
+
+  /// No description provided for @otherOccupation.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get otherOccupation;
+
+  /// No description provided for @otherOccupationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Anything else you do'**
+  String get otherOccupationHint;
+
+  /// No description provided for @location.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get location;
+
+  /// No description provided for @locationPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Where are you based?'**
+  String get locationPrompt;
+
+  /// No description provided for @locationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Thessaloniki'**
+  String get locationHint;
 }
 
 class _AppLocalizationsDelegate

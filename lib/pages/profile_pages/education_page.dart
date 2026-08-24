@@ -14,6 +14,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/constants/university_domains.dart';
+import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/widgets/primary_button.dart';
 
 class EducationPage extends StatefulWidget {
@@ -31,6 +32,8 @@ class EducationPage extends StatefulWidget {
 }
 
 class _EducationPageState extends State<EducationPage> {
+  AppLocalizations get text => AppLocalizations.of(context)!;
+
   late final TextEditingController _majorController;
   late bool _isCurrentlyStudying;
 
@@ -72,13 +75,13 @@ class _EducationPageState extends State<EducationPage> {
         },
         child: Scaffold(
           appBar: AppBar(
-            title: const Text('Education'),
+            title: Text(text.education),
             automaticallyImplyLeading: true,
           ),
           body: ListView(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
             children: [
-              Text('University', style: theme.textTheme.titleMedium),
+              Text(text.university, style: theme.textTheme.titleMedium),
               const SizedBox(height: 8),
               //read-only on purpose: it comes from the verified email
               InputDecorator(
@@ -87,18 +90,18 @@ class _EducationPageState extends State<EducationPage> {
                   suffixIcon: Icon(Icons.verified_outlined),
                 ),
                 child: Text(
-                  university ?? 'Not detected',
+                  university ?? text.universityNotDetected,
                   style: theme.textTheme.bodyLarge,
                 ),
               ),
               const SizedBox(height: 6),
               Text(
-                'Taken from your student email and cannot be changed.',
+                text.universityFromEmail,
                 style: theme.textTheme.bodySmall,
               ),
               const SizedBox(height: 24),
 
-              Text('Major', style: theme.textTheme.titleMedium),
+              Text(text.major, style: theme.textTheme.titleMedium),
               const SizedBox(height: 8),
               //free text rather than a picker: Greek universities between them
               //run hundreds of programmes, and a wrong list is worse than none.
@@ -107,16 +110,16 @@ class _EducationPageState extends State<EducationPage> {
                 controller: _majorController,
                 maxLength: 120,
                 textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: 'e.g. Applied Informatics',
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
+                  hintText: text.majorHint,
                 ),
               ),
               const SizedBox(height: 8),
 
               CheckboxListTile(
                 value: _isCurrentlyStudying,
-                title: const Text("I'm currently studying"),
+                title: Text(text.currentlyStudying),
                 contentPadding: EdgeInsets.zero,
                 controlAffinity: ListTileControlAffinity.leading,
                 onChanged: (v) =>
@@ -127,7 +130,7 @@ class _EducationPageState extends State<EducationPage> {
           bottomNavigationBar: SafeArea(
             minimum: const EdgeInsets.fromLTRB(20, 0, 20, 16),
             child: PrimaryButton(
-              label: 'Save',
+              label: text.save,
               onPressed: () => Navigator.pop(context, _result),
             ),
           ),

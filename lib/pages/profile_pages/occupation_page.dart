@@ -6,6 +6,7 @@
 //Pops with a Map<String, dynamic> of the three fields.
 
 import 'package:flutter/material.dart';
+import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/widgets/primary_button.dart';
 
 class OccupationPage extends StatefulWidget {
@@ -25,6 +26,8 @@ class OccupationPage extends StatefulWidget {
 }
 
 class _OccupationPageState extends State<OccupationPage> {
+  AppLocalizations get text => AppLocalizations.of(context)!;
+
   late final TextEditingController _jobController;
   late final TextEditingController _volunteeringController;
   late final TextEditingController _otherController;
@@ -66,14 +69,14 @@ class _OccupationPageState extends State<OccupationPage> {
         },
         child: Scaffold(
           appBar: AppBar(
-            title: const Text('Occupation'),
+            title: Text(text.occupation),
             automaticallyImplyLeading: true,
           ),
           body: ListView(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
             children: [
               Text(
-                'All optional - fill in whatever applies.',
+                text.occupationAllOptional,
                 style: theme.textTheme.bodyMedium,
               ),
               const SizedBox(height: 16),
@@ -81,30 +84,30 @@ class _OccupationPageState extends State<OccupationPage> {
                 controller: _jobController,
                 maxLength: 120,
                 textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Job',
-                  hintText: 'e.g. Barista at a coffee shop',
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
+                  labelText: text.job,
+                  hintText: text.jobHint,
                 ),
               ),
               TextField(
                 controller: _volunteeringController,
                 maxLength: 120,
                 textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Volunteering',
-                  hintText: 'e.g. Animal shelter every Sunday',
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
+                  labelText: text.volunteering,
+                  hintText: text.volunteeringHint,
                 ),
               ),
               TextField(
                 controller: _otherController,
                 maxLength: 120,
                 textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Other',
-                  hintText: 'Anything else you do',
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
+                  labelText: text.otherOccupation,
+                  hintText: text.otherOccupationHint,
                 ),
               ),
             ],
@@ -112,7 +115,7 @@ class _OccupationPageState extends State<OccupationPage> {
           bottomNavigationBar: SafeArea(
             minimum: const EdgeInsets.fromLTRB(20, 0, 20, 16),
             child: PrimaryButton(
-              label: 'Save',
+              label: text.save,
               onPressed: () => Navigator.pop(context, _result),
             ),
           ),

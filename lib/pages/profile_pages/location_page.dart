@@ -8,6 +8,7 @@
 //Pops with the city string.
 
 import 'package:flutter/material.dart';
+import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/widgets/primary_button.dart';
 
 class LocationPage extends StatefulWidget {
@@ -20,6 +21,8 @@ class LocationPage extends StatefulWidget {
 }
 
 class _LocationPageState extends State<LocationPage> {
+  AppLocalizations get text => AppLocalizations.of(context)!;
+
   late final TextEditingController _controller;
 
   @override
@@ -50,14 +53,14 @@ class _LocationPageState extends State<LocationPage> {
         },
         child: Scaffold(
           appBar: AppBar(
-            title: const Text('Location'),
+            title: Text(text.location),
             automaticallyImplyLeading: true,
           ),
           body: ListView(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
             children: [
               Text(
-                'Where are you based?',
+                text.locationPrompt,
                 style: theme.textTheme.bodyMedium,
               ),
               const SizedBox(height: 16),
@@ -65,9 +68,9 @@ class _LocationPageState extends State<LocationPage> {
                 controller: _controller,
                 maxLength: 80,
                 textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: 'e.g. Thessaloniki',
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
+                  hintText: text.locationHint,
                 ),
               ),
             ],
@@ -75,7 +78,7 @@ class _LocationPageState extends State<LocationPage> {
           bottomNavigationBar: SafeArea(
             minimum: const EdgeInsets.fromLTRB(20, 0, 20, 16),
             child: PrimaryButton(
-              label: 'Save',
+              label: text.save,
               onPressed: () => Navigator.pop(context, _result),
             ),
           ),

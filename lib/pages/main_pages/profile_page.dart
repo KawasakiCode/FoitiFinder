@@ -11,6 +11,7 @@ import 'package:foitifinder/pages/profile_pages/interests/interest_group_page.da
 import 'package:foitifinder/pages/profile_pages/interests/placeholder_group_page.dart';
 import 'package:foitifinder/pages/settings/settings.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/l10n/catalogue_labels.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/widgets/primary_button.dart';
 import 'package:provider/provider.dart';
@@ -220,7 +221,8 @@ class _ProfilePageState extends State<ProfilePage> {
                   kGroupQA
                 ])
                   _CategoryRow(
-                    title: title,
+                    //the catalogue stores English; only the display translates
+                    title: catalogueLabel(text, title),
                     //Bio has no picks to count and the placeholder groups have
                     //nothing to pick yet, so only the tag groups show a number
                     count: title == kGroupBio ? 0 : _pickCount(title),

@@ -367,4 +367,950 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get retry => 'Retry';
+
+  @override
+  String get lblHobbiesInterests => 'Hobbies & interests';
+
+  @override
+  String get lblTraits => 'Traits';
+
+  @override
+  String get lblBio => 'Bio';
+
+  @override
+  String get lblQA => 'Q&A';
+
+  @override
+  String get lblActivities => 'Activities';
+
+  @override
+  String get lblInterests => 'Interests';
+
+  @override
+  String get lblEntertainment => 'Entertainment';
+
+  @override
+  String get lblCreative => 'Creative';
+
+  @override
+  String get lblMusic => 'Music';
+
+  @override
+  String get lblFoodDrinks => 'Food & drinks';
+
+  @override
+  String get lblSports => 'Sports';
+
+  @override
+  String get lblPersonalityTraits => 'Personality traits';
+
+  @override
+  String get lblStarSign => 'Star sign';
+
+  @override
+  String get lblPersonalityTypeMBTI => 'Personality type (MBTI)';
+
+  @override
+  String get lblLifestyle => 'Lifestyle';
+
+  @override
+  String get lblBaking => 'Baking';
+
+  @override
+  String get lblBeach => 'Beach';
+
+  @override
+  String get lblCamping => 'Camping';
+
+  @override
+  String get lblCityTrips => 'City trips';
+
+  @override
+  String get lblConcerts => 'Concerts';
+
+  @override
+  String get lblCooking => 'Cooking';
+
+  @override
+  String get lblDiningOut => 'Dining out';
+
+  @override
+  String get lblDinnerParties => 'Dinner parties';
+
+  @override
+  String get lblFestivals => 'Festivals';
+
+  @override
+  String get lblHavingDrinks => 'Having drinks';
+
+  @override
+  String get lblHiking => 'Hiking';
+
+  @override
+  String get lblKaraoke => 'Karaoke';
+
+  @override
+  String get lblMeditation => 'Meditation';
+
+  @override
+  String get lblMountains => 'Mountains';
+
+  @override
+  String get lblMuseum => 'Museum';
+
+  @override
+  String get lblOutdoors => 'Outdoors';
+
+  @override
+  String get lblParty => 'Party';
+
+  @override
+  String get lblResortVacations => 'Resort vacations';
+
+  @override
+  String get lblSauna => 'Sauna';
+
+  @override
+  String get lblShopping => 'Shopping';
+
+  @override
+  String get lblTakingAWalk => 'Taking a walk';
+
+  @override
+  String get lblThrifting => 'Thrifting';
+
+  @override
+  String get lblTravel => 'Travel';
+
+  @override
+  String get lblWellness => 'Wellness';
+
+  @override
+  String get lblProgramming => 'Programming';
+
+  @override
+  String get lblAI => 'AI';
+
+  @override
+  String get lblAnimals => 'Animals';
+
+  @override
+  String get lblArchitecture => 'Architecture';
+
+  @override
+  String get lblArt => 'Art';
+
+  @override
+  String get lblBiology => 'Biology';
+
+  @override
+  String get lblCars => 'Cars';
+
+  @override
+  String get lblCats => 'Cats';
+
+  @override
+  String get lblCinema => 'Cinema';
+
+  @override
+  String get lblDogs => 'Dogs';
+
+  @override
+  String get lblEntrepreneurship => 'Entrepreneurship';
+
+  @override
+  String get lblFinance => 'Finance';
+
+  @override
+  String get lblHistory => 'History';
+
+  @override
+  String get lblHorses => 'Horses';
+
+  @override
+  String get lblLanguage => 'Language';
+
+  @override
+  String get lblNature => 'Nature';
+
+  @override
+  String get lblPersonalDevelopment => 'Personal development';
+
+  @override
+  String get lblPhilosophy => 'Philosophy';
+
+  @override
+  String get lblPlants => 'Plants';
+
+  @override
+  String get lblPolitics => 'Politics';
+
+  @override
+  String get lblPsychology => 'Psychology';
+
+  @override
+  String get lblScience => 'Science';
+
+  @override
+  String get lblSustainability => 'Sustainability';
+
+  @override
+  String get lblTattoos => 'Tattoos';
+
+  @override
+  String get lblTech => 'Tech';
+
+  @override
+  String get lblTheatre => 'Theatre';
+
+  @override
+  String get lblReading => 'Reading';
+
+  @override
+  String get lblBoardGames => 'Board games';
+
+  @override
+  String get lblCartoons => 'Cartoons';
+
+  @override
+  String get lblChess => 'Chess';
+
+  @override
+  String get lblComedy => 'Comedy';
+
+  @override
+  String get lblComics => 'Comics';
+
+  @override
+  String get lblDocumentaries => 'Documentaries';
+
+  @override
+  String get lblHorror => 'Horror';
+
+  @override
+  String get lblMovies => 'Movies';
+
+  @override
+  String get lblMusicals => 'Musicals';
+
+  @override
+  String get lblPuzzles => 'Puzzles';
+
+  @override
+  String get lblSciFi => 'Sci-fi';
+
+  @override
+  String get lblSitcoms => 'Sitcoms';
+
+  @override
+  String get lblVinylRecords => 'Vinyl records';
+
+  @override
+  String get lblPlayingInstruments => 'Playing instruments';
+
+  @override
+  String get lblActing => 'Acting';
+
+  @override
+  String get lblComposingMusic => 'Composing music';
+
+  @override
+  String get lblCrafts => 'Crafts';
+
+  @override
+  String get lblDesign => 'Design';
+
+  @override
+  String get lblDrawing => 'Drawing';
+
+  @override
+  String get lblFashion => 'Fashion';
+
+  @override
+  String get lblKnitting => 'Knitting';
+
+  @override
+  String get lblPainting => 'Painting';
+
+  @override
+  String get lblPhotography => 'Photography';
+
+  @override
+  String get lblPoetry => 'Poetry';
+
+  @override
+  String get lblPottery => 'Pottery';
+
+  @override
+  String get lblSewing => 'Sewing';
+
+  @override
+  String get lblSinging => 'Singing';
+
+  @override
+  String get lblWriting => 'Writing';
+
+  @override
+  String get lblClassicalMusic => 'Classical music';
+
+  @override
+  String get lblCountryMusic => 'Country music';
+
+  @override
+  String get lblDrums => 'Drums';
+
+  @override
+  String get lblGuitar => 'Guitar';
+
+  @override
+  String get lblIndieMusic => 'Indie music';
+
+  @override
+  String get lblLatinMusic => 'Latin music';
+
+  @override
+  String get lblPiano => 'Piano';
+
+  @override
+  String get lblPopMusic => 'Pop music';
+
+  @override
+  String get lblBeer => 'Beer';
+
+  @override
+  String get lblChampagne => 'Champagne';
+
+  @override
+  String get lblCheese => 'Cheese';
+
+  @override
+  String get lblChocolate => 'Chocolate';
+
+  @override
+  String get lblCocktails => 'Cocktails';
+
+  @override
+  String get lblCoffee => 'Coffee';
+
+  @override
+  String get lblCraftBeers => 'Craft beers';
+
+  @override
+  String get lblTea => 'Tea';
+
+  @override
+  String get lblWhiskey => 'Whiskey';
+
+  @override
+  String get lblWine => 'Wine';
+
+  @override
+  String get lblMartialArts => 'Martial arts';
+
+  @override
+  String get lblAthletics => 'Athletics';
+
+  @override
+  String get lblBadminton => 'Badminton';
+
+  @override
+  String get lblBallet => 'Ballet';
+
+  @override
+  String get lblBaseball => 'Baseball';
+
+  @override
+  String get lblBasketball => 'Basketball';
+
+  @override
+  String get lblBowling => 'Bowling';
+
+  @override
+  String get lblClimbing => 'Climbing';
+
+  @override
+  String get lblCricket => 'Cricket';
+
+  @override
+  String get lblCycling => 'Cycling';
+
+  @override
+  String get lblDancing => 'Dancing';
+
+  @override
+  String get lblFencing => 'Fencing';
+
+  @override
+  String get lblFitness => 'Fitness';
+
+  @override
+  String get lblFootball => 'Football';
+
+  @override
+  String get lblGolf => 'Golf';
+
+  @override
+  String get lblHandball => 'Handball';
+
+  @override
+  String get lblHockey => 'Hockey';
+
+  @override
+  String get lblHorseRiding => 'Horse riding';
+
+  @override
+  String get lblIceSkating => 'Ice skating';
+
+  @override
+  String get lblKayaking => 'Kayaking';
+
+  @override
+  String get lblMotorcycling => 'Motorcycling';
+
+  @override
+  String get lblMountainbiking => 'Mountainbiking';
+
+  @override
+  String get lblPilates => 'Pilates';
+
+  @override
+  String get lblRowing => 'Rowing';
+
+  @override
+  String get lblRugby => 'Rugby';
+
+  @override
+  String get lblRunning => 'Running';
+
+  @override
+  String get lblSailing => 'Sailing';
+
+  @override
+  String get lblScubaDiving => 'Scuba diving';
+
+  @override
+  String get lblSkateboarding => 'Skateboarding';
+
+  @override
+  String get lblSkiing => 'Skiing';
+
+  @override
+  String get lblSnowboarding => 'Snowboarding';
+
+  @override
+  String get lblSquash => 'Squash';
+
+  @override
+  String get lblSurfing => 'Surfing';
+
+  @override
+  String get lblSwimming => 'Swimming';
+
+  @override
+  String get lblTableTennis => 'Table tennis';
+
+  @override
+  String get lblTennis => 'Tennis';
+
+  @override
+  String get lblVolleyball => 'Volleyball';
+
+  @override
+  String get lblWaterpolo => 'Waterpolo';
+
+  @override
+  String get lblWindsurfing => 'Windsurfing';
+
+  @override
+  String get lblYoga => 'Yoga';
+
+  @override
+  String get lblIntrovert => 'Introvert';
+
+  @override
+  String get lblAdventurous => 'Adventurous';
+
+  @override
+  String get lblAmbitious => 'Ambitious';
+
+  @override
+  String get lblAmbivert => 'Ambivert';
+
+  @override
+  String get lblCalm => 'Calm';
+
+  @override
+  String get lblCaring => 'Caring';
+
+  @override
+  String get lblChaotic => 'Chaotic';
+
+  @override
+  String get lblCompetitionSeeker => 'Competition seeker';
+
+  @override
+  String get lblCurious => 'Curious';
+
+  @override
+  String get lblDeepThinker => 'Deep thinker';
+
+  @override
+  String get lblDreamer => 'Dreamer';
+
+  @override
+  String get lblEmpathetic => 'Empathetic';
+
+  @override
+  String get lblEnergetic => 'Energetic';
+
+  @override
+  String get lblExtravert => 'Extravert';
+
+  @override
+  String get lblFlexible => 'Flexible';
+
+  @override
+  String get lblGenerous => 'Generous';
+
+  @override
+  String get lblGoGetter => 'Go-getter';
+
+  @override
+  String get lblHonest => 'Honest';
+
+  @override
+  String get lblKind => 'Kind';
+
+  @override
+  String get lblListener => 'Listener';
+
+  @override
+  String get lblOpenMinded => 'Open-minded';
+
+  @override
+  String get lblOptimistic => 'Optimistic';
+
+  @override
+  String get lblOrganized => 'Organized';
+
+  @override
+  String get lblOutgoing => 'Outgoing';
+
+  @override
+  String get lblPassionate => 'Passionate';
+
+  @override
+  String get lblPatient => 'Patient';
+
+  @override
+  String get lblPerfectionist => 'Perfectionist';
+
+  @override
+  String get lblPlayful => 'Playful';
+
+  @override
+  String get lblPositive => 'Positive';
+
+  @override
+  String get lblRomantic => 'Romantic';
+
+  @override
+  String get lblSpontaneous => 'Spontaneous';
+
+  @override
+  String get lblSupportive => 'Supportive';
+
+  @override
+  String get lblWitty => 'Witty';
+
+  @override
+  String get lblAries => 'Aries';
+
+  @override
+  String get lblTaurus => 'Taurus';
+
+  @override
+  String get lblGemini => 'Gemini';
+
+  @override
+  String get lblCancer => 'Cancer';
+
+  @override
+  String get lblLeo => 'Leo';
+
+  @override
+  String get lblVirgo => 'Virgo';
+
+  @override
+  String get lblLibra => 'Libra';
+
+  @override
+  String get lblScorpio => 'Scorpio';
+
+  @override
+  String get lblSagittarius => 'Sagittarius';
+
+  @override
+  String get lblCapricorn => 'Capricorn';
+
+  @override
+  String get lblAquarius => 'Aquarius';
+
+  @override
+  String get lblPisces => 'Pisces';
+
+  @override
+  String get lblEarlyBird => 'Early bird';
+
+  @override
+  String get lblActivist => 'Activist';
+
+  @override
+  String get lblAnimalLover => 'Animal lover';
+
+  @override
+  String get lblBohemian => 'Bohemian';
+
+  @override
+  String get lblCorporate => 'Corporate';
+
+  @override
+  String get lblCozyAtHome => 'Cozy at home';
+
+  @override
+  String get lblFamilyOrientated => 'Family orientated';
+
+  @override
+  String get lblFoodie => 'Foodie';
+
+  @override
+  String get lblHealth => 'Health';
+
+  @override
+  String get lblMaximalist => 'Maximalist';
+
+  @override
+  String get lblMinimalist => 'Minimalist';
+
+  @override
+  String get lblMusicLover => 'Music lover';
+
+  @override
+  String get lblNightOwl => 'Night owl';
+
+  @override
+  String get lblPetFree => 'Pet free';
+
+  @override
+  String get lblSober => 'Sober';
+
+  @override
+  String get lblSpiritual => 'Spiritual';
+
+  @override
+  String get lblSportive => 'Sportive';
+
+  @override
+  String get lblStudentAssociation => 'Student association';
+
+  @override
+  String get lblSustainable => 'Sustainable';
+
+  @override
+  String get lblThrillSeeker => 'Thrill seeker';
+
+  @override
+  String get lblWanderlust => 'Wanderlust';
+
+  @override
+  String get lblAlcohol => 'Alcohol';
+
+  @override
+  String get lblHowOftenDoYouDrink => 'How often do you drink?';
+
+  @override
+  String get lblSmoking => 'Smoking';
+
+  @override
+  String get lblHowOftenDoYouSmoke => 'How often do you smoke?';
+
+  @override
+  String get lblDatingIntention => 'Dating intention';
+
+  @override
+  String get lblWhatAreYouLookingFor => 'What are you looking for?';
+
+  @override
+  String get lblKids => 'Kids';
+
+  @override
+  String get lblWhereDoYouStandOnChildren => 'Where do you stand on children?';
+
+  @override
+  String get lblReligion => 'Religion';
+
+  @override
+  String get lblPickAnyThatApply => 'Pick any that apply.';
+
+  @override
+  String get lblPoliticalView => 'Political view';
+
+  @override
+  String get lblSexualOrientation => 'Sexual orientation';
+
+  @override
+  String get lblHowDoYouIdentify => 'How do you identify?';
+
+  @override
+  String get lblPronouns => 'Pronouns';
+
+  @override
+  String get lblWhatShouldPeopleCallYou => 'What should people call you?';
+
+  @override
+  String get lblNever => 'Never';
+
+  @override
+  String get lblSometimes => 'Sometimes';
+
+  @override
+  String get lblYes => 'Yes';
+
+  @override
+  String get lblSomethingCasual => 'Something casual';
+
+  @override
+  String get lblALongTermRelationship => 'A long-term relationship';
+
+  @override
+  String get lblStillFiguringItOut => 'Still figuring it out';
+
+  @override
+  String get lblIMOpenToKids => 'I\'m open to kids';
+
+  @override
+  String get lblIWantKids => 'I want kids';
+
+  @override
+  String get lblIDonTWantKids => 'I don\'t want kids';
+
+  @override
+  String get lblHaveKids => 'Have kids';
+
+  @override
+  String get lblChristian => 'Christian';
+
+  @override
+  String get lblCatholic => 'Catholic';
+
+  @override
+  String get lblProtestant => 'Protestant';
+
+  @override
+  String get lblMuslim => 'Muslim';
+
+  @override
+  String get lblJewish => 'Jewish';
+
+  @override
+  String get lblHindu => 'Hindu';
+
+  @override
+  String get lblBuddhist => 'Buddhist';
+
+  @override
+  String get lblAgnostic => 'Agnostic';
+
+  @override
+  String get lblAtheist => 'Atheist';
+
+  @override
+  String get lblTaoist => 'Taoist';
+
+  @override
+  String get lblBahai => 'Bahai';
+
+  @override
+  String get lblJain => 'Jain';
+
+  @override
+  String get lblNewAge => 'New Age';
+
+  @override
+  String get lblShinto => 'Shinto';
+
+  @override
+  String get lblSikh => 'Sikh';
+
+  @override
+  String get lblAnarchist => 'Anarchist';
+
+  @override
+  String get lblApolitical => 'Apolitical';
+
+  @override
+  String get lblCentrist => 'Centrist';
+
+  @override
+  String get lblCommunist => 'Communist';
+
+  @override
+  String get lblConservative => 'Conservative';
+
+  @override
+  String get lblDemocratic => 'Democratic';
+
+  @override
+  String get lblFeminist => 'Feminist';
+
+  @override
+  String get lblGlobalist => 'Globalist';
+
+  @override
+  String get lblGreen => 'Green';
+
+  @override
+  String get lblLabour => 'Labour';
+
+  @override
+  String get lblLeftLeaning => 'Left-Leaning';
+
+  @override
+  String get lblLiberal => 'Liberal';
+
+  @override
+  String get lblLibertarian => 'Libertarian';
+
+  @override
+  String get lblNationalist => 'Nationalist';
+
+  @override
+  String get lblProgressive => 'Progressive';
+
+  @override
+  String get lblRepublican => 'Republican';
+
+  @override
+  String get lblRightLeaning => 'Right-Leaning';
+
+  @override
+  String get lblSocialist => 'Socialist';
+
+  @override
+  String get lblStraight => 'Straight';
+
+  @override
+  String get lblGay => 'Gay';
+
+  @override
+  String get lblLesbian => 'Lesbian';
+
+  @override
+  String get lblBisexual => 'Bisexual';
+
+  @override
+  String get lblAsexual => 'Asexual';
+
+  @override
+  String get lblHeHim => 'he/him';
+
+  @override
+  String get lblSheHer => 'she/her';
+
+  @override
+  String get lblTheyThem => 'they/them';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get clear => 'Clear';
+
+  @override
+  String saveSelected(int count) {
+    return 'Save $count selected';
+  }
+
+  @override
+  String get comingSoon => 'Coming soon.';
+
+  @override
+  String get sectionMyPersonality => 'My personality';
+
+  @override
+  String get sectionMyBeliefs => 'My beliefs and values';
+
+  @override
+  String get sectionMyHabits => 'My habits';
+
+  @override
+  String get sectionMyRelationships => 'What I want in my relationships';
+
+  @override
+  String get sectionMyBackground => 'My background';
+
+  @override
+  String get sectionWhoIAm => 'Who I am';
+
+  @override
+  String get bioTitle => 'Bio';
+
+  @override
+  String get bioPrompt => 'Tell people who you are.';
+
+  @override
+  String get education => 'Education';
+
+  @override
+  String get university => 'University';
+
+  @override
+  String get universityNotDetected => 'Not detected';
+
+  @override
+  String get universityFromEmail =>
+      'Taken from your student email and cannot be changed.';
+
+  @override
+  String get major => 'Major';
+
+  @override
+  String get majorHint => 'e.g. Applied Informatics';
+
+  @override
+  String get currentlyStudying => 'I\'m currently studying';
+
+  @override
+  String get occupation => 'Occupation';
+
+  @override
+  String get occupationAllOptional =>
+      'All optional - fill in whatever applies.';
+
+  @override
+  String get job => 'Job';
+
+  @override
+  String get jobHint => 'e.g. Barista at a coffee shop';
+
+  @override
+  String get volunteering => 'Volunteering';
+
+  @override
+  String get volunteeringHint => 'e.g. Animal shelter every Sunday';
+
+  @override
+  String get otherOccupation => 'Other';
+
+  @override
+  String get otherOccupationHint => 'Anything else you do';
+
+  @override
+  String get location => 'Location';
+
+  @override
+  String get locationPrompt => 'Where are you based?';
+
+  @override
+  String get locationHint => 'e.g. Thessaloniki';
 }

@@ -13,6 +13,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:foitifinder/constants/profile_options.dart';
+import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/l10n/catalogue_labels.dart';
 import 'package:foitifinder/widgets/primary_button.dart';
 
 class ChoicePage extends StatefulWidget {
@@ -31,6 +33,8 @@ class ChoicePage extends StatefulWidget {
 }
 
 class _ChoicePageState extends State<ChoicePage> {
+  AppLocalizations get text => AppLocalizations.of(context)!;
+
   late final List<String> _selected;
 
   @override
@@ -76,21 +80,22 @@ class _ChoicePageState extends State<ChoicePage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(choice.title),
+          title: Text(catalogueLabel(text, choice.title)),
           automaticallyImplyLeading: true,
           actions: [
             //the only way to go back to "no answer" on a radio list
             if (isSingle && _selected.isNotEmpty)
               TextButton(
                 onPressed: () => _select(null),
-                child: const Text('Clear'),
+                child: Text(text.clear),
               ),
           ],
         ),
         body: ListView(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
           children: [
-            Text(choice.subtitle, style: theme.textTheme.bodyMedium),
+            Text(catalogueLabel(text, choice.subtitle),
+                style: theme.textTheme.bodyMedium),
             const SizedBox(height: 12),
             //a radio group for one-answer categories and checkboxes for the
             //rest, so the control itself tells the user which they are dealing
@@ -104,7 +109,7 @@ class _ChoicePageState extends State<ChoicePage> {
                     for (final option in choice.options)
                       RadioListTile<String>(
                         value: option,
-                        title: Text(option),
+                        title: Text(catalogueLabel(text, option)),
                         contentPadding: EdgeInsets.zero,
                       ),
                   ],
@@ -114,7 +119,7 @@ class _ChoicePageState extends State<ChoicePage> {
               for (final option in choice.options)
                 CheckboxListTile(
                   value: _isSelected(option),
-                  title: Text(option),
+                  title: Text(catalogueLabel(text, option)),
                   contentPadding: EdgeInsets.zero,
                   controlAffinity: ListTileControlAffinity.leading,
                   onChanged: (_) => _toggle(option),
@@ -124,8 +129,7 @@ class _ChoicePageState extends State<ChoicePage> {
         bottomNavigationBar: SafeArea(
           minimum: const EdgeInsets.fromLTRB(20, 0, 20, 16),
           child: PrimaryButton(
-            //TODO: hardcoded like the rest of the catalogue UI
-            label: 'Save',
+            label: text.save,
             onPressed: () => Navigator.pop(
               context,
               List<String>.unmodifiable(_selected),

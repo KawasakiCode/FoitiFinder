@@ -111,7 +111,7 @@ class _BioPageState extends State<BioPage> {
           isLoading: _isSaving,
           child: Scaffold(
             appBar: AppBar(
-              title: const Text('Bio'),
+              title: Text(text.bioTitle),
               automaticallyImplyLeading: true,
             ),
             body: Padding(
@@ -120,7 +120,7 @@ class _BioPageState extends State<BioPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Tell people who you are.',
+                    text.bioPrompt,
                     style: theme.textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 16),
@@ -142,9 +142,7 @@ class _BioPageState extends State<BioPage> {
             bottomNavigationBar: SafeArea(
               minimum: const EdgeInsets.fromLTRB(20, 0, 20, 16),
               child: PrimaryButton(
-                //TODO: hardcoded like the rest of the catalogue UI - move to
-                //app_en.arb / app_el.arb along with the group labels
-                label: 'Save',
+                label: text.save,
                 onPressed: _saveAndExit,
               ),
             ),

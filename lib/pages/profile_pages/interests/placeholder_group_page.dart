@@ -11,6 +11,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:foitifinder/constants/interest_catalogue.dart';
+import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/l10n/catalogue_labels.dart';
 
 class PlaceholderGroupPage extends StatelessWidget {
   final InterestGroup group;
@@ -20,10 +22,11 @@ class PlaceholderGroupPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final text = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(group.title),
+        title: Text(catalogueLabel(text, group.title)),
         automaticallyImplyLeading: true,
       ),
       body: Center(
@@ -39,7 +42,9 @@ class PlaceholderGroupPage extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                group.placeholder ?? 'Coming soon.',
+                //the placeholder blurb itself is developer-facing copy and
+                //is not translated; the fallback is
+                group.placeholder ?? text.comingSoon,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium,
               ),
