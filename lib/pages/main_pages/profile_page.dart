@@ -60,6 +60,74 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  //The documents behind the Policies row.
+  //
+  //Built here rather than in legal.dart because the labels are localised and
+  //there is no BuildContext at file top level. The URLs come from legal.dart;
+  //the pairing is the only thing this list adds.
+  List<({String label, String url})> get _policyDocuments => [
+        (label: text.privacyStatement, url: kPrivacyStatementUrl),
+        (label: text.userTerms, url: kUserTermsUrl),
+        (label: text.userGuidelines, url: kUserGuidelinesUrl),
+        (label: text.cancellationPolicy, url: kCancellationPolicyUrl),
+        (label: text.recommenderSystem, url: kRecommenderSystemUrl),
+      ];
+
+  //One row on the profile page opens all five documents.
+  //
+  //A dialog rather than a page: there is nothing to do here except pick a
+  //document, and a whole screen for five links is more navigation than the
+  //content deserves.
+  Future<void> _showPolicies() async {
+    final chosen = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(text.policies),
+        //rows run edge to edge, so the padding lives on each row instead
+        contentPadding: const EdgeInsets.symmetric(vertical: 8),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final doc in _policyDocuments)
+                Pressable(
+                  //pop with the URL rather than opening it here: the browser
+                  //would otherwise launch behind a dialog still sitting on
+                  //screen, and an unpublished document's snackbar would be
+                  //hidden under the barrier
+                  onTap: () => Navigator.pop(dialogContext, doc.url),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 14,
+                      ),
+                      child: Text(
+                        doc.label,
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(text.close),
+          ),
+        ],
+      ),
+    );
+
+    //null means dismissed without picking anything
+    if (!mounted || chosen == null) return;
+    await _openLegal(chosen);
+  }
+
   //Flutter collects every dependency's licence itself and renders them here.
   //MIT/BSD/Apache all require the notice to ship with the app, so this screen
   //is a licence obligation, not decoration - and it costs one call.
@@ -225,13 +293,8 @@ class _ProfilePageState extends State<ProfilePage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       _PlainRow(
-                        label: text.privacyPolicy,
-                        onTap: () => _openLegal(kPrivacyPolicyUrl),
-                      ),
-                      const Divider(),
-                      _PlainRow(
-                        label: text.terms,
-                        onTap: () => _openLegal(kTermsOfServiceUrl),
+                        label: text.policies,
+                        onTap: _showPolicies,
                       ),
                       const Divider(),
                       _PlainRow(

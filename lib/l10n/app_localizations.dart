@@ -2725,6 +2725,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Languages'**
   String get languagesSpoken;
+
+  /// No description provided for @policies.
+  ///
+  /// In en, this message translates to:
+  /// **'Policies'**
+  String get policies;
+
+  /// No description provided for @privacyStatement.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Statement'**
+  String get privacyStatement;
+
+  /// No description provided for @userTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'User Terms'**
+  String get userTerms;
+
+  /// No description provided for @userGuidelines.
+  ///
+  /// In en, this message translates to:
+  /// **'User Guidelines'**
+  String get userGuidelines;
+
+  /// No description provided for @cancellationPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancellation Policy'**
+  String get cancellationPolicy;
+
+  /// No description provided for @recommenderSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'How our recommender system works'**
+  String get recommenderSystem;
+
+  /// No description provided for @close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
 }
 
 class _AppLocalizationsDelegate

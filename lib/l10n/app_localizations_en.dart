@@ -1346,4 +1346,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get languagesSpoken => 'Languages';
+
+  @override
+  String get policies => 'Policies';
+
+  @override
+  String get privacyStatement => 'Privacy Statement';
+
+  @override
+  String get userTerms => 'User Terms';
+
+  @override
+  String get userGuidelines => 'User Guidelines';
+
+  @override
+  String get cancellationPolicy => 'Cancellation Policy';
+
+  @override
+  String get recommenderSystem => 'How our recommender system works';
+
+  @override
+  String get close => 'Close';
 }

@@ -443,5 +443,12 @@
   "sectionMyMusicTaste": "Οι μουσικές μου προτιμήσεις",
   "myTune": "Το τραγούδι μου",
   "favouriteArtists": "Αγαπημένοι καλλιτέχνες",
-  "languagesSpoken": "Γλώσσες"
+  "languagesSpoken": "Γλώσσες",
+  "policies": "Πολιτικές",
+  "privacyStatement": "Δήλωση Απορρήτου",
+  "userTerms": "Όροι Χρήσης",
+  "userGuidelines": "Κανόνες Κοινότητας",
+  "cancellationPolicy": "Πολιτική Ακύρωσης",
+  "recommenderSystem": "Πώς λειτουργεί το σύστημα προτάσεων μας",
+  "close": "Κλείσιμο"
 }

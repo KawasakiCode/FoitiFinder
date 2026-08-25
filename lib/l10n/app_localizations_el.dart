@@ -1352,4 +1352,25 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get languagesSpoken => 'Γλώσσες';
+
+  @override
+  String get policies => 'Πολιτικές';
+
+  @override
+  String get privacyStatement => 'Δήλωση Απορρήτου';
+
+  @override
+  String get userTerms => 'Όροι Χρήσης';
+
+  @override
+  String get userGuidelines => 'Κανόνες Κοινότητας';
+
+  @override
+  String get cancellationPolicy => 'Πολιτική Ακύρωσης';
+
+  @override
+  String get recommenderSystem => 'Πώς λειτουργεί το σύστημα προτάσεων μας';
+
+  @override
+  String get close => 'Κλείσιμο';
 }

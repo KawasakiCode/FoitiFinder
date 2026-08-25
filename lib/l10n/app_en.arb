@@ -443,5 +443,12 @@
   "sectionMyMusicTaste": "My music taste",
   "myTune": "My tune",
   "favouriteArtists": "Favourite artists",
-  "languagesSpoken": "Languages"
+  "languagesSpoken": "Languages",
+  "policies": "Policies",
+  "privacyStatement": "Privacy Statement",
+  "userTerms": "User Terms",
+  "userGuidelines": "User Guidelines",
+  "cancellationPolicy": "Cancellation Policy",
+  "recommenderSystem": "How our recommender system works",
+  "close": "Close"
 }
