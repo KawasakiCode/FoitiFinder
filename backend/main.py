@@ -16,8 +16,6 @@ import firebase_admin
 from preferences.preferences import interests_to_genders
 from university_domains import is_university_email
 
-models.Base.metadata.create_all(bind=engine)
-
 load_dotenv()
 
 app = FastAPI()

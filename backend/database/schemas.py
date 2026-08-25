@@ -23,6 +23,31 @@ class UserBase(BaseModel):
     has_photos: bool | None = False
     score: float | None = 0
 
+    #---- profile: single-answer categories ----
+    #named after the `key` in the app's constants/profile_options.dart
+    alcohol: str | None = None
+    smoking: str | None = None
+    dating_intention: str | None = None
+    kids: str | None = None
+    sexual_orientation: str | None = None
+    pronouns: str | None = None
+    university: str | None = None
+    major: str | None = None
+    is_currently_studying: bool | None = None
+    job: str | None = None
+    volunteering: str | None = None
+    occupation_other: str | None = None
+    city: str | None = None
+    instagram_handle: str | None = None
+
+    #---- profile: multi-answer categories ----
+    #default [] not None, matching the NOT NULL DEFAULT '{}' columns
+    interest_tags: List[str] = []
+    trait_tags: List[str] = []
+    religion: List[str] = []
+    political_view: List[str] = []
+    languages_spoken: List[str] = []
+
 #for patch endpoints to update a single attribute without needing the others too
 class UserUpdate(BaseModel):
     username: str | None = None
@@ -39,6 +64,33 @@ class UserUpdate(BaseModel):
     has_finished_set_up: bool | None = False
     has_photos: bool | None = False
     score: float | None = 0
+
+    #---- profile: single-answer categories ----
+    #named after the `key` in the app's constants/profile_options.dart
+    alcohol: str | None = None
+    smoking: str | None = None
+    dating_intention: str | None = None
+    kids: str | None = None
+    sexual_orientation: str | None = None
+    pronouns: str | None = None
+    university: str | None = None
+    major: str | None = None
+    is_currently_studying: bool | None = None
+    job: str | None = None
+    volunteering: str | None = None
+    occupation_other: str | None = None
+    city: str | None = None
+    instagram_handle: str | None = None
+
+    #---- profile: multi-answer categories ----
+    #None, NOT [] - update_user uses model_dump(exclude_unset=True), so a field
+    #the client never sent must stay absent. Defaulting to [] here would be
+    #indistinguishable from the user deliberately clearing every tag.
+    interest_tags: List[str] | None = None
+    trait_tags: List[str] | None = None
+    religion: List[str] | None = None
+    political_view: List[str] | None = None
+    languages_spoken: List[str] | None = None
 
 
 #this adds the fields produced by the database to be returned to the phone
@@ -66,6 +118,17 @@ class UserCardResponse(BaseModel):
 
     class Config:
         orm_mode = True
+
+#one prompt/answer pair
+class QnAItem(BaseModel):
+    prompt_key: str
+    answer: str
+    display_order: int = 0
+
+#body for replacing a user's whole Q&A set in one call, mirroring PhotoSync.
+#NOTE: no firebase_token - the owner comes from the verified ID token.
+class QnASync(BaseModel):
+    items: List[QnAItem] = []
 
 class Photos(BaseModel):
     user_id: int
