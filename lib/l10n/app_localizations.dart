@@ -2767,6 +2767,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Close'**
   String get close;
+
+  /// No description provided for @photoStories.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo stories'**
+  String get photoStories;
+
+  /// No description provided for @photoStoriesIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a photo to tell the story behind it.'**
+  String get photoStoriesIntro;
+
+  /// No description provided for @noPhotosYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Add some photos first and their stories will show up here.'**
+  String get noPhotosYet;
+
+  /// No description provided for @addStory.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a story'**
+  String get addStory;
+
+  /// No description provided for @editStory.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit story'**
+  String get editStory;
+
+  /// No description provided for @storyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What is happening in this photo?'**
+  String get storyHint;
+
+  /// No description provided for @removeStory.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove story'**
+  String get removeStory;
+
+  /// No description provided for @storySaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Story saved.'**
+  String get storySaved;
 }
 
 class _AppLocalizationsDelegate

@@ -51,7 +51,13 @@ class SettingsProvider extends ChangeNotifier {
     //the app flash/stick in light mode for users who actually had dark on.
     _themeMode = (_prefs.getBool('isDark') ?? true) ? ThemeMode.dark : ThemeMode.light;
     _likeNotificationsEnabled = (_prefs.getBool('like_notifications_enabled') ?? false) ? true : false;
-    _locale = _prefs.getString('language') == 'en' ? Locale('en') : Locale('el');
+    //KEY NAME MATTERS: changeLanguage() and fetchSettingsFromApi() both write
+    //'language_code'. Reading 'language' here meant this lookup ALWAYS missed,
+    //so every launch started in Greek and then visibly flipped to the real
+    //language once fetchSettingsFromApi returned.
+    _locale = _prefs.getString('language_code') == 'en'
+        ? const Locale('en')
+        : const Locale('el');
     _ageRange = RangeValues(18, 30);
     _interests = {};
     _currentOpt = RecommendationPreference.balanced;

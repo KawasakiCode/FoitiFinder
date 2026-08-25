@@ -1367,4 +1367,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get close => 'Close';
+
+  @override
+  String get photoStories => 'Photo stories';
+
+  @override
+  String get photoStoriesIntro => 'Tap a photo to tell the story behind it.';
+
+  @override
+  String get noPhotosYet =>
+      'Add some photos first and their stories will show up here.';
+
+  @override
+  String get addStory => 'Add a story';
+
+  @override
+  String get editStory => 'Edit story';
+
+  @override
+  String get storyHint => 'What is happening in this photo?';
+
+  @override
+  String get removeStory => 'Remove story';
+
+  @override
+  String get storySaved => 'Story saved.';
 }

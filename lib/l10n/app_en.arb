@@ -450,5 +450,13 @@
   "userGuidelines": "User Guidelines",
   "cancellationPolicy": "Cancellation Policy",
   "recommenderSystem": "How our recommender system works",
-  "close": "Close"
+  "close": "Close",
+  "photoStories": "Photo stories",
+  "photoStoriesIntro": "Tap a photo to tell the story behind it.",
+  "noPhotosYet": "Add some photos first and their stories will show up here.",
+  "addStory": "Add a story",
+  "editStory": "Edit story",
+  "storyHint": "What is happening in this photo?",
+  "removeStory": "Remove story",
+  "storySaved": "Story saved."
 }

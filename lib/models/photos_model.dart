@@ -9,18 +9,23 @@ class PhotosModel {
   final int userId;
   final String photoUrl;
   final int displayOrder;
+  //the caption the owner attached to this photo. null when there is none -
+  //the backend stores NULL rather than an empty string.
+  final String? story;
 
   PhotosModel({
     required this.userId,
     required this.photoUrl,
     required this.displayOrder,
+    this.story,
   });
 
   factory PhotosModel.fromJson(Map<String, dynamic> json)  {
     return PhotosModel(  
       userId: json['user_id'],
       photoUrl: json['photo_url'],
-      displayOrder: json['display_order']
+      displayOrder: json['display_order'],
+      story: json['story'] as String?,
     );
   }
 }

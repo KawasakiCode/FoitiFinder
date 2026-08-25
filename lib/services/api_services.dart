@@ -365,6 +365,31 @@ class ApiService {
     }
   }
 
+  //Set or clear the story attached to one photo.
+  //
+  //Deliberately NOT part of syncPhotos: writing a caption should not require
+  //re-uploading and re-ordering the whole photo set. Pass null or an empty
+  //string to remove the story.
+  static Future<bool> updatePhotoStory({
+    required String photoUrl,
+    required String? story,
+  }) async {
+    final url = Uri.parse("$baseUrl/photos/story");
+    try {
+      final response = await http.put(
+        url,
+        headers: await _authHeaders(),
+        body: jsonEncode({
+          "photo_url": photoUrl,
+          "story": story,
+        }),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
   //Upload the photo file to firebase cloud and return the url
   static Future<String?> uploadToFirebase(File imageFile, String uid) async {
     try {

@@ -45,6 +45,9 @@ class Photos(Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable = False)
     photo_url = Column(String, unique = True, nullable = False)
     display_order = Column(Integer, nullable = False)
+    #the caption the owner attached to this photo. NULL = no story, which is
+    #different from "" only in intent, so the endpoint normalises "" to NULL.
+    story = Column(String, nullable = True)
     created_at = Column(TIMESTAMP(timezone=True), nullable = False, server_default = text('now()'))
     
     user = relationship("User", back_populates="photos")

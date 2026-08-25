@@ -15,7 +15,11 @@ const String kUserGuidelinesUrl = '';
 const String kCancellationPolicyUrl = '';
 
 //Not a legal document but it sits with them: the plain-language explanation of
-//how the feed is put together. Several dating apps publish one (it is required
-//in the EU under the P2B/DSA transparency rules once the app recommends people
-//to people), and it doubles as the public description of our own algorithm.
+//how the feed is put together.
+//
+//NOT currently required of us. DSA Article 27 obliges online platforms to set
+//out their recommender system's main parameters in plain language, but Article
+//19 exempts micro and small enterprises, which is what we are. Worth publishing
+//anyway - the big apps do it, users ask, and it stops being optional the moment
+//we outgrow the exemption.
 const String kRecommenderSystemUrl = '';

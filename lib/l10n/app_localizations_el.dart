@@ -1373,4 +1373,30 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get close => 'Κλείσιμο';
+
+  @override
+  String get photoStories => 'Ιστορίες φωτογραφιών';
+
+  @override
+  String get photoStoriesIntro =>
+      'Πάτησε μια φωτογραφία για να πεις την ιστορία πίσω από αυτήν.';
+
+  @override
+  String get noPhotosYet =>
+      'Πρόσθεσε πρώτα φωτογραφίες και οι ιστορίες τους θα εμφανιστούν εδώ.';
+
+  @override
+  String get addStory => 'Πρόσθεσε ιστορία';
+
+  @override
+  String get editStory => 'Επεξεργασία ιστορίας';
+
+  @override
+  String get storyHint => 'Τι συμβαίνει σε αυτή τη φωτογραφία;';
+
+  @override
+  String get removeStory => 'Αφαίρεση ιστορίας';
+
+  @override
+  String get storySaved => 'Η ιστορία αποθηκεύτηκε.';
 }

@@ -71,6 +71,7 @@ class Photos(BaseModel):
     user_id: int
     photo_url: str
     display_order: int
+    story: Optional[str] = None
 
 #user settings schema to add settings to the database
 class Settings(BaseModel):

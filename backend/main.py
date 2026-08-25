@@ -474,6 +474,17 @@ def sync_photos(payload: PhotoSync, uid: str = Depends(verified_email_uid), db: 
     if not me:
         raise HTTPException(status_code=404, detail="Current User not found")
 
+    #This endpoint wipes and re-inserts, so a photo's story would be destroyed
+    #every time the user merely REORDERED their photos. Remember the stories by
+    #URL first and re-attach them: a photo that survives the sync keeps its
+    #story, one that was removed takes its story with it.
+    existing_stories = {
+        p.photo_url: p.story
+        for p in db.query(models.Photos).filter(
+            models.Photos.user_id == me.id
+        ).all()
+    }
+
     db.query(models.Photos).filter(
         models.Photos.user_id == me.id
     ).delete(synchronize_session=False)
@@ -483,11 +494,45 @@ def sync_photos(payload: PhotoSync, uid: str = Depends(verified_email_uid), db: 
             user_id=me.id,
             photo_url=photo_url,
             display_order=order,
+            story=existing_stories.get(photo_url),
         ))
 
     me.has_photos = len(payload.photo_urls) > 0
     db.commit()
     return {"message": "photos synced"}
+
+#body for setting one photo's story
+#NOTE: no firebase_token - the owner is taken from the verified ID token, and
+#the photo is looked up scoped to that owner so one user cannot caption
+#another user's photo by guessing a URL.
+class PhotoStory(BaseModel):
+    photo_url: str
+    story: Optional[str] = None
+
+#Set (or clear) the story attached to a single photo.
+#
+#Separate from /photos/sync on purpose: writing a caption should not require
+#re-uploading and re-ordering the whole photo set, and this way the story page
+#saves one row without touching anything else.
+@app.put("/photos/story")
+def set_photo_story(payload: PhotoStory, uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
+    me = db.query(models.User).filter(models.User.firebase_token == uid).first()
+    if not me:
+        raise HTTPException(status_code=404, detail="Current User not found")
+
+    photo = db.query(models.Photos).filter(
+        models.Photos.user_id == me.id,
+        models.Photos.photo_url == payload.photo_url,
+    ).first()
+    if not photo:
+        raise HTTPException(status_code=404, detail="Photo not found")
+
+    story = (payload.story or "").strip()
+    #an empty box means "remove the story", not "store a blank one"
+    photo.story = story if story else None
+
+    db.commit()
+    return {"message": "story saved"}
 
 #register a swipe
 @app.post("/swipes")

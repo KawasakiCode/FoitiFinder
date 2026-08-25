@@ -13,6 +13,7 @@ import 'package:foitifinder/pages/profile_pages/choice_dialog.dart';
 import 'package:foitifinder/pages/profile_pages/choice_page.dart';
 import 'package:foitifinder/pages/profile_pages/coming_soon_page.dart';
 import 'package:foitifinder/pages/profile_pages/interests/bio_page.dart';
+import 'package:foitifinder/pages/profile_pages/photo_stories_page.dart';
 import 'package:foitifinder/pages/profile_pages/interests/interest_group_page.dart';
 import 'package:foitifinder/pages/profile_pages/interests/placeholder_group_page.dart';
 import 'package:foitifinder/widgets/nav_row.dart';
@@ -75,6 +76,18 @@ class _EditProfileState extends State<EditProfile> {
     if (picks.isEmpty) return '';
     if (picks.length == 1) return catalogueLabel(text, picks.first);
     return '${picks.length}';
+  }
+
+  //Stories attach to photos that must already exist in the backend, so flush
+  //any unsaved photo changes first. Opening the page with a photo the server
+  //has never seen would show a stale list and save a story against a URL that
+  //is about to be replaced.
+  Future<void> _openPhotoStories() async {
+    if (_photosChanged) {
+      await _submitPhotos();
+      if (!mounted) return;
+    }
+    _push(const PhotoStoriesPage());
   }
 
   void _push(Widget page) {
@@ -500,8 +513,7 @@ class _EditProfileState extends State<EditProfile> {
                         NavRow(
                           icon: Icons.auto_stories_outlined,
                           label: text.addStoryToPhoto,
-                          onTap: () =>
-                              _push(ComingSoonPage(title: text.addStoryToPhoto)),
+                          onTap: _openPhotoStories,
                         ),
                       ],
                     ),

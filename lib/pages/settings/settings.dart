@@ -1,9 +1,12 @@
-//The settings page
-//Here the user can change theme, language,
-//change interests, age range etc...
-
-//Most settings changed here are monitored by SettingsProvider 
-//and stored in SharedPreferences
+//The settings page: app-level preferences only.
+//
+//Deliberately small. Everything that used to live here has moved to where it
+//belongs - discovery filters to DatePreferencesPage, log out and delete account
+//to AccountSettingsPage, and the legal documents to the About section on the
+//profile page. What is left is appearance, notifications and language.
+//
+//Settings changed here are monitored by SettingsProvider and stored in
+//SharedPreferences.
 
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
@@ -19,39 +22,12 @@ class SettingsPage extends StatefulWidget {
   State<SettingsPage> createState() => _SettingsPageState();
 }
 
-class _SettingsPageState extends State<SettingsPage>
-    with SingleTickerProviderStateMixin {
+class _SettingsPageState extends State<SettingsPage> {
   AppLocalizations get text => AppLocalizations.of(context)!;
-
-  //one-shot entrance animation (fade + slight slide-up) played on open
-  late final AnimationController _entrance;
-  late final Animation<double> _fade;
-  late final Animation<Offset> _slide;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _entrance = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 420),
-    );
-    _fade = CurvedAnimation(parent: _entrance, curve: Curves.easeOut);
-    _slide = Tween<Offset>(begin: const Offset(0, 0.04), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _entrance, curve: Curves.easeOutCubic));
-    _entrance.forward();
-  }
-
-  @override
-  void dispose() {
-    _entrance.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     final settings = Provider.of<SettingsProvider>(context);
-
 
     return Scaffold(
       appBar: AppBar(
@@ -59,11 +35,7 @@ class _SettingsPageState extends State<SettingsPage>
         automaticallyImplyLeading: true,
       ),
       body: SafeArea(
-        child: FadeTransition(
-          opacity: _fade,
-          child: SlideTransition(
-            position: _slide,
-            child: SingleChildScrollView(
+        child: SingleChildScrollView(
           child: Column(
             children: [
               //Appearance dark mode
@@ -138,7 +110,9 @@ class _SettingsPageState extends State<SettingsPage>
                 padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   padding: const EdgeInsets.only(left: 10, right: 10),
@@ -304,8 +278,6 @@ class _SettingsPageState extends State<SettingsPage>
                 ),
               ),
             ],
-          ),
-            ),
           ),
         ),
       ),
