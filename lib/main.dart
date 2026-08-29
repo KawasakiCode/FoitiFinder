@@ -75,7 +75,33 @@ class FoitiFinder extends StatelessWidget {
       //app launch flow is main -> authwrapper -> mainscreen (load from disk) -> load from db if different
       //or main -> authwrapper -> login if no user in firebase cache
       builder: (context, child) {
-        return InternetWrapper(child: child!);
+        return InternetWrapper(
+          //The curtain sits ABOVE the whole app and below nothing, so it hides
+          //the locale rebuild wherever the user happens to be. IgnorePointer
+          //because an Opacity of 0 still hit-tests - without it an invisible
+          //sheet would swallow every tap in the app.
+          child: Stack(
+            children: [
+              child!,
+              IgnorePointer(
+                child: AnimatedOpacity(
+                  opacity: settings.localeSwitching ? 1 : 0,
+                  duration: SettingsProvider.localeFadeDuration,
+                  curve: Curves.easeOut,
+                  child: ColoredBox(
+                    //the app's own background, so it reads as the screen
+                    //settling rather than a black flash
+                    color: (settings.themeMode == ThemeMode.dark
+                            ? AppTheme.dark
+                            : AppTheme.light)
+                        .scaffoldBackgroundColor,
+                    child: const SizedBox.expand(),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
       },
       home: const AuthWrapper(),
     );

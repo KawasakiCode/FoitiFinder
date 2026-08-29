@@ -27,6 +27,7 @@ class SettingsProvider extends ChangeNotifier {
   Set<String> _preferredGender = {};
   RangeValues _ageRange = RangeValues(0, 0);
   Locale _locale = const Locale('el');
+  bool _localeSwitching = false;
   bool _osPermission = false;
   String _gender = "";
 
@@ -36,6 +37,9 @@ class SettingsProvider extends ChangeNotifier {
   Set<String> get preferredGender => _preferredGender;
   RangeValues get ageRange => _ageRange;
   Locale get locale => _locale;
+  //true while a language change is in flight, so main.dart can hold a curtain
+  //over the rebuild instead of letting every string snap over at once
+  bool get localeSwitching => _localeSwitching;
   bool get osPermission => _osPermission;
   String get gender => _gender;
 
@@ -258,9 +262,37 @@ class SettingsProvider extends ChangeNotifier {
     }    
   }
 
-  void changeLanguage(String languageCode) async {
+  //Changing the locale rebuilds MaterialApp, so EVERY string on screen swaps in
+  //a single frame. Done bare that reads as a violent flicker - text changes and
+  //layouts jump at the same instant with nothing to explain it.
+  //
+  //So: fade a curtain in, swap the locale while it is opaque, fade it back out.
+  //The strings still change instantly, but the change happens where the eye
+  //cannot see it and the app appears to settle into the new language.
+  //
+  //A curtain rather than an AnimatedSwitcher on the whole app: switching a
+  //keyed subtree at the root would rebuild the Navigator and throw away the
+  //navigation stack, dumping the user out of Settings.
+  static const Duration localeFadeDuration = Duration(milliseconds: 160);
+
+  Future<void> changeLanguage(String languageCode) async {
+    //already in this language: a full app rebuild and an API call for nothing
+    if (_locale.languageCode == languageCode) return;
+
+    _localeSwitching = true;
+    notifyListeners();
+    //let the curtain actually reach full opacity before anything changes
+    await Future.delayed(localeFadeDuration);
+
     _locale = Locale(languageCode);
     notifyListeners();
+    //one frame for the rebuilt tree to lay out under the curtain, so the fade
+    //out never reveals a half-painted screen
+    await Future.delayed(const Duration(milliseconds: 32));
+
+    _localeSwitching = false;
+    notifyListeners();
+
     _prefs.setString('language_code', languageCode);
     await ApiService.updateUsersSettings(uid: FirebaseAuth.instance.currentUser!.uid, language: languageCode);
   }

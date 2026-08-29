@@ -4,7 +4,6 @@
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:foitifinder/constants/interest_catalogue.dart';
 import 'package:foitifinder/constants/profile_options.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
@@ -37,9 +36,6 @@ class EditProfile extends StatefulWidget {
 class _EditProfileState extends State<EditProfile> {
   AppLocalizations get text => AppLocalizations.of(context)!;
 
-  late TextEditingController _usernameController;
-  late TextEditingController _ageController;
-  late TextEditingController _fullNameController;
   bool _allowExit = false;
 
   //allow up to 6 photos
@@ -159,12 +155,6 @@ class _EditProfileState extends State<EditProfile> {
       listen: false,
     ).currentUser!;
 
-    _usernameController = TextEditingController(text: user.username);
-    _ageController = TextEditingController(
-      text: user.age != null ? user.age.toString() : "",
-    );
-    _fullNameController = TextEditingController(text: user.fullName ?? "");
-
     if (user.hasPhotos) {
       _getUserPhotos();
     }
@@ -219,119 +209,14 @@ class _EditProfileState extends State<EditProfile> {
     return file;
   }
 
-  //save new profile data to db and exit edit profile page
+  //Save what this page still owns - the photos - and leave.
+  //
+  //Username, full name and age USED to be edited here and are now on the
+  //Account Settings page, so all of their validation and their write went with
+  //them. Bio is likewise not saved from here: BioPage writes it directly, and
+  //a controller seeded when this page opened would send a stale value back
+  //over a newer edit.
   Future<void>? _saveAndExit() async {
-
-    final profileProvider = Provider.of<ProfileProvider>(
-      context,
-      listen: false,
-    );
-    final user = profileProvider.currentUser!;
-
-    // 1. THE REQUIRED FIELDS SHIELD
-    // If username is empty, block the save, show a warning, and throw to stop navigation.
-    if (_usernameController.text.trim().isEmpty) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(text.emptyFields), // Add to your translation file
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
-      throw Exception('Validation failed: Required fields cannot be empty');
-    }
-
-    // 2. THE REGEX GATEKEEPERS
-    final RegExp nameRegExp = RegExp(r"^(?=.*[a-zA-Z])[a-zA-Z\s\-']+$");
-    final RegExp usernameRegExp = RegExp(r'^[a-zA-Z0-9][a-zA-Z0-9_]{2,19}$');
-
-    if (_fullNameController.text.isNotEmpty &&
-        !nameRegExp.hasMatch(_fullNameController.text.trim())) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(text.fullNameRestriction),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
-      throw Exception('Validation failed: Invalid name format');
-    }
-
-    if (!usernameRegExp.hasMatch(_usernameController.text.trim())) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(text.usernameRestrictions),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
-      throw Exception('Validation failed: Invalid username format');
-    }
-
-    // 3. TRACKING CHANGES & GHOST DATA FIX
-    String? newUsername;
-    String? newFullName;
-    int? newAge;
-
-    if (_usernameController.text.trim() != user.username) {
-      newUsername = _usernameController.text.trim();
-    }
-
-    //NOTE: bio is deliberately NOT saved from this page. It has its own
-    //editor (BioPage) which writes it directly, and a controller seeded once
-    //when this page opened would send a stale value back over it - silently
-    //undoing an edit the user just made.
-    if (_fullNameController.text.trim() != (user.fullName ?? "")) {
-      newFullName = _fullNameController.text.trim();
-    }
-
-    String currentAgeStr = (user.age != null && user.age != 0)
-        ? user.age.toString()
-        : "";
-    if (_ageController.text != currentAgeStr) {
-      if (_ageController.text.isEmpty) {
-        newAge = 0;
-      } else {
-        newAge = int.tryParse(_ageController.text);
-        if (newAge != null && (newAge > 100 || newAge < 18)) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(text.invalidAge), // Add to translations
-                backgroundColor: Colors.red,
-                duration: const Duration(seconds: 3),
-              ),
-            );
-          }
-          throw Exception('Validation failed: Age exceeds limit');
-        }
-      }
-    }
-
-    // 4. DATABASE UPDATE
-    if (newUsername != null ||
-        newAge != null ||
-        newFullName != null) {
-      await ApiService.updateUserData(
-        uid: user.uid,
-        username: newUsername,
-        age: newAge,
-        fullName: newFullName,
-      );
-    }
-
-    //update Provider
-    profileProvider.updateLocalUser(
-      username: newUsername,
-      fullName: newFullName,
-      age: newAge,
-    );
     try {
       await _submitPhotos();
 
@@ -516,34 +401,6 @@ class _EditProfileState extends State<EditProfile> {
                           onTap: _openPhotoStories,
                         ),
                       ],
-                    ),
-
-                    //========================= THE BASICS =========================
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(15, 20, 15, 0),
-                      child: Column(
-                        spacing: 16,
-                        children: [
-                          TextField(
-                            controller: _usernameController,
-                            decoration:
-                                InputDecoration(labelText: text.username),
-                          ),
-                          TextField(
-                            controller: _fullNameController,
-                            decoration:
-                                InputDecoration(labelText: text.fullName),
-                          ),
-                          TextField(
-                            controller: _ageController,
-                            decoration: InputDecoration(labelText: text.age),
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                            ],
-                          ),
-                        ],
-                      ),
                     ),
 
                     //======================= MY PERSONALITY =======================

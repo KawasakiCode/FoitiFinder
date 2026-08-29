@@ -1381,4 +1381,16 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get storySaved => 'Η ιστορία αποθηκεύτηκε.';
+
+  @override
+  String get gender => 'Φύλο';
+
+  @override
+  String get birthday => 'Γενέθλια';
+
+  @override
+  String get height => 'Ύψος';
+
+  @override
+  String get placeOfResidence => 'Τόπος διαμονής';
 }

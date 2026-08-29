@@ -452,5 +452,9 @@
   "editStory": "Edit story",
   "storyHint": "What is happening in this photo?",
   "removeStory": "Remove story",
-  "storySaved": "Story saved."
+  "storySaved": "Story saved.",
+  "gender": "Gender",
+  "birthday": "Birthday",
+  "height": "Height",
+  "placeOfResidence": "Place of residence"
 }

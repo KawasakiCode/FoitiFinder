@@ -1374,4 +1374,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storySaved => 'Story saved.';
+
+  @override
+  String get gender => 'Gender';
+
+  @override
+  String get birthday => 'Birthday';
+
+  @override
+  String get height => 'Height';
+
+  @override
+  String get placeOfResidence => 'Place of residence';
 }

@@ -53,6 +53,22 @@ class AppTheme {
       textTheme: _textTheme(textPrimary, textSecondary),
       dividerTheme: DividerThemeData(color: border, thickness: 1, space: 1),
 
+      //NO INK RIPPLES ANYWHERE.
+      //
+      //Pressable is the app's press feedback (dim the content, no expanding
+      //splash) but it can only cover rows we build ourselves. Material widgets
+      //with a built-in InkWell - RadioListTile, CheckboxListTile, ListTile -
+      //paint their own ripple internally and no wrapper can suppress it, so it
+      //has to be switched off at the theme.
+      //
+      //splashFactory kills the expanding circle; the two transparent colours
+      //kill the flat wash InkResponse falls back to underneath it. Without all
+      //three the ripple colour fights whatever surface the row sits on and
+      //reads as a glitch rather than a press.
+      splashFactory: NoSplash.splashFactory,
+      splashColor: Colors.transparent,
+      highlightColor: Colors.transparent,
+
       //Flutter's Android default is ZoomPageTransitionsBuilder, which scales
       //and fades the incoming route over a scrim. Wherever the incoming page's
       //background doesn't match what is underneath, that scrim reads as a

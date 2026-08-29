@@ -2779,6 +2779,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Story saved.'**
   String get storySaved;
+
+  /// No description provided for @gender.
+  ///
+  /// In en, this message translates to:
+  /// **'Gender'**
+  String get gender;
+
+  /// No description provided for @birthday.
+  ///
+  /// In en, this message translates to:
+  /// **'Birthday'**
+  String get birthday;
+
+  /// No description provided for @height.
+  ///
+  /// In en, this message translates to:
+  /// **'Height'**
+  String get height;
+
+  /// No description provided for @placeOfResidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Place of residence'**
+  String get placeOfResidence;
 }
 
 class _AppLocalizationsDelegate
