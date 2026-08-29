@@ -16,9 +16,7 @@ class UserBase(BaseModel):
     gender: str | None = None
     min_age_range: int | None = None
     max_age_range: int | None = None
-    show_out_of_range: bool | None = None
-    is_balanced: bool | None = None
-    interests: str | None = None
+    preferred_gender: str | None = None
     has_finished_set_up: bool | None = False
     has_photos: bool | None = False
     score: float | None = 0
@@ -58,9 +56,7 @@ class UserUpdate(BaseModel):
     gender: str | None = None
     min_age_range: int | None = None
     max_age_range: int | None = None
-    show_out_of_range: bool | None = None
-    is_balanced: bool | None = None
-    interests: str | None = None
+    preferred_gender: str | None = None
     has_finished_set_up: bool | None = False
     has_photos: bool | None = False
     score: float | None = 0

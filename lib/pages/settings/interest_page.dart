@@ -57,7 +57,7 @@ class _InterestPageState extends State<InterestPage> {
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: Pressable(
-                    onTap: () => settings.addRemoveInterests("Men"),
+                    onTap: () => settings.addRemovePreferredGender("Men"),
                     child: Padding(
                       padding: const EdgeInsets.only(
                         top: 8,
@@ -75,7 +75,7 @@ class _InterestPageState extends State<InterestPage> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          if (settings.interests.contains("Men"))
+                          if (settings.preferredGender.contains("Men"))
                                 Image.asset(
                                   'assets/icons/check.png',
                                   width: 20,
@@ -100,7 +100,7 @@ class _InterestPageState extends State<InterestPage> {
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: Pressable(
-                    onTap: () => settings.addRemoveInterests("Women"),
+                    onTap: () => settings.addRemovePreferredGender("Women"),
                     child: Padding(
                       padding: const EdgeInsets.only(
                         top: 8,
@@ -118,7 +118,7 @@ class _InterestPageState extends State<InterestPage> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          if (settings.interests.contains("Women"))
+                          if (settings.preferredGender.contains("Women"))
                                 Image.asset(
                                   'assets/icons/check.png',
                                   width: 20,
@@ -143,7 +143,7 @@ class _InterestPageState extends State<InterestPage> {
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: Pressable(
-                    onTap: () => settings.addRemoveInterests("Everyone"),
+                    onTap: () => settings.addRemovePreferredGender("Everyone"),
                     child: Padding(
                       padding: const EdgeInsets.only(
                         top: 8,
@@ -161,7 +161,7 @@ class _InterestPageState extends State<InterestPage> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          if (settings.interests.contains("Everyone"))
+                          if (settings.preferredGender.contains("Everyone"))
                                 Image.asset(
                                   'assets/icons/check.png',
                                   width: 20,

@@ -52,9 +52,7 @@ class ApiService {
     required String? gender,
     required int? minAgeRange,
     required int? maxAgeRange,
-    required bool? showOutOfRange,
-    required bool? isBalanced,
-    required String? interests,
+    required String? preferredGender,
     required bool? hasFinishedSetUp,
     required bool? hasPhotos,
     required double? score,
@@ -76,9 +74,7 @@ class ApiService {
           "gender": gender,
           "min_age_range": minAgeRange,
           "max_age_range": maxAgeRange,
-          "show_out_of_range": showOutOfRange,
-          "is_balanced": isBalanced,
-          "interests": interests,
+          "preferred_gender": preferredGender,
           "has_photos": hasPhotos,
           "score": score,
         }),
@@ -108,9 +104,7 @@ class ApiService {
     String? gender,
     int? minAgeRange,
     int? maxAgeRange,
-    bool? showOutOfRange,
-    bool? isBalanced,
-    String? interests,
+    String? preferredGender,
     bool? hasPhotos
   }) async {
     final url = Uri.parse('$baseUrl/users/me');
@@ -131,9 +125,7 @@ class ApiService {
     if (gender != null) data['gender'] = gender;
     if (minAgeRange != null) data['min_age_range'] = minAgeRange;
     if (maxAgeRange != null) data['max_age_range'] = maxAgeRange;
-    if (showOutOfRange != null) data['show_out_of_range'] = showOutOfRange;
-    if (isBalanced != null) data['is_balanced'] = isBalanced;
-    if (interests != null) data['interests'] = interests;
+    if (preferredGender != null) data['preferred_gender'] = preferredGender;
     if (hasPhotos != null) data['has_photos'] = hasPhotos;
 
     if(data.isEmpty)return;

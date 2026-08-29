@@ -2,7 +2,7 @@
 //email and password are missing because they are on firebase and not in the database
 //the database and firebase are connected through the firebase_token (uid) to find specific users
 
-//Age, gender, minMaxAgeRange, showOutOfRange, isBalanced, interests are here
+//Age, gender, minMaxAgeRange, preferredGender are here
 //and not in settings model because they affect the matching algorithm and its
 //easier to grab all data needed from one model
 
@@ -17,9 +17,9 @@ class UserModel{
   final String? gender;
   final int? minAgeRange;
   final int? maxAgeRange;
-  final bool? showOutOfRange;
-  final bool? isBalanced;
-  final String? interests;
+  //the GENDER PREFERENCE ('Men,Women'), not profile interests. Backend
+  //column preferred_gender.
+  final String? preferredGender;
   final bool hasFinishedSetUp;
   final bool hasPhotos;
   final double score;
@@ -38,9 +38,7 @@ class UserModel{
     this.gender, 
     this.minAgeRange,
     this.maxAgeRange,
-    this.showOutOfRange,
-    this.isBalanced,
-    this.interests,
+    this.preferredGender,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -57,9 +55,7 @@ class UserModel{
       gender: json['gender'],
       minAgeRange: json['min_age_range'],
       maxAgeRange: json['max_age_range'],
-      showOutOfRange: json['show_out_of_range'],
-      isBalanced: json['is_balanced'],
-      interests: json['interests'],
+      preferredGender: json['preferred_gender'],
       hasPhotos: json['has_photos'],
     );
   }
@@ -78,9 +74,7 @@ class UserModel{
       'gender': gender,
       'min_age_range': minAgeRange,
       'max_age_range': maxAgeRange,
-      'show_out_of_range': showOutOfRange,
-      'is_balanced': isBalanced,
-      'interests': interests,
+      'preferred_gender': preferredGender,
       'has_photos': hasPhotos,
     };
   }

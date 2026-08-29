@@ -169,9 +169,7 @@ class _SignUpPageState extends State<SignUpPage> {
         gender: null,
         minAgeRange: null,
         maxAgeRange: null,
-        showOutOfRange: null,
-        isBalanced: null,
-        interests: null,
+        preferredGender: null,
         score: 0
       );
 

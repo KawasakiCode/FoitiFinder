@@ -33,24 +33,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ageRange => 'Age Range';
 
   @override
-  String get outOfRange1 => 'Show people out of range';
-
-  @override
-  String get outOfRange2 => 'if I run out of profiles to see';
-
-  @override
-  String get balanced => 'Balanced Recommendations';
-
-  @override
-  String get balancedText => 'See the most relevant people to you';
-
-  @override
-  String get recentlyActive => 'Recently Active';
-
-  @override
-  String get recentlyActiveText => 'See the most recently active people first';
-
-  @override
   String get appearance => 'Appearance';
 
   @override

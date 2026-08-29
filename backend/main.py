@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session, aliased, selectinload
 from sqlalchemy import and_, or_
 from firebase_admin import messaging, credentials, firestore, auth
 import firebase_admin
-from preferences.preferences import interests_to_genders
+from preferences.preferences import preference_to_genders
 from university_domains import is_university_email
 
 load_dotenv()
@@ -168,9 +168,7 @@ def create_user(
         gender=user.gender,
         min_age_range=user.min_age_range,
         max_age_range=user.max_age_range,
-        show_out_of_range=user.show_out_of_range,
-        is_balanced=user.is_balanced,
-        interests=user.interests,
+        preferred_gender=user.preferred_gender,
         has_photos=user.has_photos,
         score=user.score
     )
@@ -268,17 +266,17 @@ def get_swipe_feed(uid: str = Depends(verified_email_uid), db: Session = Depends
         models.User.score <= max_score,
     ]
 
-    #age range filter, only applied when the user hasn't opted to see people
-    #outside their range. Profiles without an age are kept so they still show.
-    if not me.show_out_of_range:
-        if me.min_age_range is not None:
-            filters.append(or_(models.User.age >= me.min_age_range, models.User.age.is_(None)))
-        if me.max_age_range is not None:
-            filters.append(or_(models.User.age <= me.max_age_range, models.User.age.is_(None)))
+    #age range filter, always applied. It used to be skipped when the user set
+    #show_out_of_range, but that toggle is gone - the range the user picked is
+    #now the range they get. Profiles without an age are kept so they still show.
+    if me.min_age_range is not None:
+        filters.append(or_(models.User.age >= me.min_age_range, models.User.age.is_(None)))
+    if me.max_age_range is not None:
+        filters.append(or_(models.User.age <= me.max_age_range, models.User.age.is_(None)))
 
-    #gender preference filter derived from the viewer's interests. Candidates
+    #gender preference filter derived from the viewer's preferred_gender. Candidates
     #with no gender set are kept so incomplete profiles still surface.
-    wanted_genders = interests_to_genders(me.interests)
+    wanted_genders = preference_to_genders(me.preferred_gender)
     if wanted_genders is not None:
         filters.append(or_(models.User.gender.in_(wanted_genders), models.User.gender.is_(None)))
 

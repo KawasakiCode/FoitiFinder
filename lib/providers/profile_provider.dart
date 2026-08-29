@@ -135,9 +135,7 @@ class ProfileProvider extends ChangeNotifier {
     String? gender,
     int? minAgeRange,
     int? maxAgeRange,
-    bool? showOutOfRange,
-    bool? isBalanced,
-    String? interests,
+    String? preferredGender,
   }) async {
       isLoading = true;
 
@@ -157,9 +155,7 @@ class ProfileProvider extends ChangeNotifier {
         gender: gender,
         minAgeRange: minAgeRange,
         maxAgeRange: maxAgeRange,
-        showOutOfRange: showOutOfRange,
-        isBalanced: isBalanced,
-        interests: interests,
+        preferredGender: preferredGender,
         hasPhotos: hasPhotos,
       );
       notifyListeners();
@@ -178,9 +174,7 @@ class ProfileProvider extends ChangeNotifier {
           gender: gender,
           minAgeRange: minAgeRange,
           maxAgeRange: maxAgeRange,
-          showOutOfRange: showOutOfRange,
-          isBalanced: isBalanced,
-          interests: interests,
+          preferredGender: preferredGender,
           hasPhotos: hasPhotos,
         );
       } catch (e) {

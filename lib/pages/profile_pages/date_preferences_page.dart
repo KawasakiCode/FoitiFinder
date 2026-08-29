@@ -1,20 +1,16 @@
 //Date Preferences: who the user is shown.
 //
 //These are the HARD FILTERS the feed applies before anything is scored - the
-//gender preference, the age range, whether to show people outside it, and how
-//the feed is weighted. Moved here from the settings page, which is for app
-//preferences, not for who you want to date.
+//gender preference and the age range. Moved here from the settings page, which
+//is for app preferences, not for who you want to date.
 //
-//Every control writes through SettingsProvider exactly as it did before, so
-//the backend columns behind them (interests, min_age_range, max_age_range,
-//show_out_of_range, is_balanced) are unchanged.
+//Every control writes through SettingsProvider, so the backend columns behind
+//them (interests, min_age_range, max_age_range) stay in sync.
 
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/pages/settings/interest_page.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
-import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/pressable.dart';
 import 'package:provider/provider.dart';
 
@@ -39,7 +35,7 @@ class _DatePreferencesPageState extends State<DatePreferencesPage> {
       'Men': text.men,
       'Everyone': text.everybody,
     };
-    String displayInterests = settings.interests
+    String displayInterests = settings.preferredGender
         .map((rawKey) {
           return interestsMap[rawKey] ?? rawKey;
         })
@@ -102,7 +98,7 @@ class _DatePreferencesPageState extends State<DatePreferencesPage> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                settings.interests.isEmpty
+                                settings.preferredGender.isEmpty
                                     ? text.emptyInterests
                                     : displayInterests,
                                 style: TextStyle(
@@ -164,176 +160,6 @@ class _DatePreferencesPageState extends State<DatePreferencesPage> {
                         max: 100,
                         divisions: 82,
                         onChanged: (v) => settings.saveAgeRange(v),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                text.outOfRange1,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              Text(
-                                text.outOfRange2,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Transform.scale(
-                            scale: 1,
-                            child: Switch(
-                              value: settings.showOutOfRange,
-                              onChanged: (v) => setState(
-                                () => settings.storeShowOutOfRange(v),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              //Balanced recommendations or recently active
-              Padding(
-                padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
-                child: Material(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  shape: RoundedRectangleBorder(
-                    side: BorderSide.none,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Pressable(
-                        //borderRadius: const BorderRadius.vertical(
-                        //top: Radius.circular(10),
-                        //),
-                        onTap: () async {
-                          settings.changeRecommendationPreference(
-                            RecommendationPreference.balanced,
-                          );
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                            top: 10,
-                            left: 10,
-                            right: 15,
-                            bottom: 12,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      text.balanced,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    SizedBox(height: 4),
-                                    AutoSizeText(
-                                      text.balancedText,
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                      maxLines: 1,
-                                      minFontSize: 12,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              if (settings.currentOpt ==
-                                  RecommendationPreference.balanced)
-                                Image.asset(
-                                  'assets/icons/check.png',
-                                  width: 20,
-                                  height: 20,
-                                  color: AppColors.primary,
-                                )
-                              else
-                                const SizedBox(width: 20, height: 20),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Divider(
-                        height: 1,
-                        thickness: 1,
-                        color: Colors.grey.withValues(alpha: 0.35),
-                        indent: MediaQuery.of(context).size.width * 0.10,
-                        endIndent: MediaQuery.of(context).size.width * 0.10,
-                      ),
-                      Pressable(
-                        onTap: () {
-                          settings.changeRecommendationPreference(
-                            RecommendationPreference.recentlyActive,
-                          );
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                            top: 12,
-                            left: 10,
-                            right: 15,
-                            bottom: 8,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      text.recentlyActive,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    SizedBox(height: 4),
-                                    AutoSizeText(
-                                      text.recentlyActiveText,
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                      maxLines: 1,
-                                      minFontSize: 12,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              if (settings.currentOpt ==
-                                  RecommendationPreference.recentlyActive)
-                                Image.asset(
-                                  'assets/icons/check.png',
-                                  width: 20,
-                                  height: 20,
-                                  color: AppColors.primary,
-                                )
-                              else
-                                const SizedBox(width: 20, height: 20),
-                            ],
-                          ),
-                        ),
                       ),
                     ],
                   ),

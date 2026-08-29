@@ -146,42 +146,6 @@ abstract class AppLocalizations {
   /// **'Age Range'**
   String get ageRange;
 
-  /// No description provided for @outOfRange1.
-  ///
-  /// In en, this message translates to:
-  /// **'Show people out of range'**
-  String get outOfRange1;
-
-  /// No description provided for @outOfRange2.
-  ///
-  /// In en, this message translates to:
-  /// **'if I run out of profiles to see'**
-  String get outOfRange2;
-
-  /// No description provided for @balanced.
-  ///
-  /// In en, this message translates to:
-  /// **'Balanced Recommendations'**
-  String get balanced;
-
-  /// No description provided for @balancedText.
-  ///
-  /// In en, this message translates to:
-  /// **'See the most relevant people to you'**
-  String get balancedText;
-
-  /// No description provided for @recentlyActive.
-  ///
-  /// In en, this message translates to:
-  /// **'Recently Active'**
-  String get recentlyActive;
-
-  /// No description provided for @recentlyActiveText.
-  ///
-  /// In en, this message translates to:
-  /// **'See the most recently active people first'**
-  String get recentlyActiveText;
-
   /// No description provided for @appearance.
   ///
   /// In en, this message translates to:

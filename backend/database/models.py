@@ -18,9 +18,10 @@ class User(Base):
     gender = Column(String, nullable = True)
     min_age_range = Column(Integer, nullable = True)
     max_age_range = Column(Integer, nullable = True)
-    show_out_of_range = Column(Boolean, nullable = True)
-    is_balanced = Column(Boolean, nullable = True)
-    interests = Column(String, nullable = True)
+    #the GENDER PREFERENCE: a comma separated string of 'Men'/'Women'/
+    #'Everyone'. Was called `interests`, which read as profile interests and
+    #invited exactly the mix-up the warning below describes.
+    preferred_gender = Column(String, nullable = True)
     has_finished_set_up = Column(Boolean, nullable = False)
     has_photos = Column(Boolean, nullable = False)
     score = Column(Float, nullable = True)
@@ -67,9 +68,8 @@ class User(Base):
     #it is recoverable from constants/interest_catalogue.dart, and duplicating
     #it here would turn "move a tag to another section" into a data migration.
     #=====================================================================
-    #WARNING: `interests` above is the GENDER PREFERENCE ('Women,Men'), read by
-    #SettingsProvider for discovery filtering. Profile tags live here instead -
-    #putting them in `interests` breaks the feed for that user.
+    #Profile tags. Note these are NOT preferred_gender above - that one drives
+    #discovery filtering, these describe the user.
     interest_tags = Column(ARRAY(String), nullable = False, server_default = text("'{}'"))
     trait_tags = Column(ARRAY(String), nullable = False, server_default = text("'{}'"))
     religion = Column(ARRAY(String), nullable = False, server_default = text("'{}'"))

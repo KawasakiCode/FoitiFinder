@@ -7,11 +7,11 @@
 from typing import List, Optional
 
 
-def interests_to_genders(interests: Optional[str]) -> Optional[List[str]]:
+def preference_to_genders(preferred_gender: Optional[str]) -> Optional[List[str]]:
     """Map the viewer's interest selection (who they want to see) to the
     ``gender`` values stored on candidate profiles.
 
-    The app stores ``interests`` as a comma separated string of ``"Men"``,
+    The app stores ``preferred_gender`` as a comma separated string of ``"Men"``,
     ``"Women"`` and/or ``"Everyone"``, while a profile's own ``gender`` is
     ``"Male"`` or ``"Female"``.
 
@@ -20,10 +20,10 @@ def interests_to_genders(interests: Optional[str]) -> Optional[List[str]]:
           The caller should then apply no gender filter.
         - otherwise a list of acceptable ``gender`` values, e.g. ``["Male"]``.
     """
-    if not interests:
+    if not preferred_gender:
         return None
 
-    selected = {part.strip() for part in interests.split(",") if part.strip()}
+    selected = {part.strip() for part in preferred_gender.split(",") if part.strip()}
     if not selected or "Everyone" in selected:
         return None
 

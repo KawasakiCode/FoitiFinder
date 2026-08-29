@@ -11,8 +11,6 @@ import 'package:foitifinder/services/api_services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-enum RecommendationPreference {balanced, recentlyActive}
-
 class SettingsProvider extends ChangeNotifier {
   final SharedPreferences _prefs;
 
@@ -26,10 +24,8 @@ class SettingsProvider extends ChangeNotifier {
   //State variables (private)
   ThemeMode _themeMode = ThemeMode.light;
   bool _likeNotificationsEnabled = false;
-  Set<String> _interests = {};
+  Set<String> _preferredGender = {};
   RangeValues _ageRange = RangeValues(0, 0);
-  bool _showOutOfRange = false;
-  RecommendationPreference _currentOpt = RecommendationPreference.balanced;
   Locale _locale = const Locale('el');
   bool _osPermission = false;
   String _gender = "";
@@ -37,10 +33,8 @@ class SettingsProvider extends ChangeNotifier {
   //Getters
   ThemeMode get themeMode => _themeMode;
   bool get likeNotificationsEnabled => _likeNotificationsEnabled;
-  Set<String> get interests => _interests;
+  Set<String> get preferredGender => _preferredGender;
   RangeValues get ageRange => _ageRange;
-  bool get showOutOfRange => _showOutOfRange;
-  RecommendationPreference get currentOpt => _currentOpt;
   Locale get locale => _locale;
   bool get osPermission => _osPermission;
   String get gender => _gender;
@@ -59,9 +53,7 @@ class SettingsProvider extends ChangeNotifier {
         ? const Locale('en')
         : const Locale('el');
     _ageRange = RangeValues(18, 30);
-    _interests = {};
-    _currentOpt = RecommendationPreference.balanced;
-    _showOutOfRange = false;
+    _preferredGender = {};
     _gender = "";
   }
 
@@ -79,16 +71,19 @@ class SettingsProvider extends ChangeNotifier {
     }
 
     //Interests
-    if(_prefs.getStringList('user_interests') == null) {
-      _interests =  (userData?.interests == null
+    //NOTE: the prefs key changed with the column rename, so the first launch
+    //after this ships finds nothing on disk and refetches from the API once.
+    //Graceful - nothing is lost, it just costs one round trip.
+    if(_prefs.getStringList('preferred_gender') == null) {
+      _preferredGender =  (userData?.preferredGender == null
       ? {}
-      : userData!.interests!.split(',').toSet());
-      _prefs.setStringList('user_interests', _interests.toList());
+      : userData!.preferredGender!.split(',').toSet());
+      _prefs.setStringList('preferred_gender', _preferredGender.toList());
     } 
     else {
-      List<String>? savedList = _prefs.getStringList('user_interests');
+      List<String>? savedList = _prefs.getStringList('preferred_gender');
       if(savedList != null) {
-        _interests = savedList.toSet();
+        _preferredGender = savedList.toSet();
       }
     }
 
@@ -111,31 +106,6 @@ class SettingsProvider extends ChangeNotifier {
       int? min = _prefs.getInt('min_age');
       int? max = _prefs.getInt('max_age');
       _ageRange = RangeValues(min!.toDouble(), max!.toDouble());
-    }
-    
-    //Show out of age range
-    if(_prefs.getBool('outOfRange') == null) {
-      _showOutOfRange = userData?.showOutOfRange == null ? false : userData!.showOutOfRange!;
-      _prefs.setBool('outOfRange', _showOutOfRange);
-    }
-    else {
-      _showOutOfRange = _prefs.getBool('outOfRange')!;
-    }
-    
-    //Recommendation preference
-    if(_prefs.getString('recommendationOpt') == null) {
-      bool isBalanced = userData?.isBalanced ?? true;
-      _currentOpt = isBalanced ? RecommendationPreference.balanced : RecommendationPreference.recentlyActive;
-      _prefs.setString('recommendationOpt', _currentOpt.name);
-    }
-    else {
-      String? savedValue = _prefs.getString('recommendationOpt');
-      if(savedValue != null) {
-        _currentOpt = RecommendationPreference.values.firstWhere(
-          (e) => e.name == savedValue,
-          orElse: () => RecommendationPreference.balanced
-        );
-      }
     }
     
     //Language
@@ -251,25 +221,25 @@ class SettingsProvider extends ChangeNotifier {
     await ApiService.updateUsersSettings(uid: FirebaseAuth.instance.currentUser!.uid, isLikeNotificationsOn: _likeNotificationsEnabled);
   }
 
-  //Add or remove interests
-  void addRemoveInterests(String interest, {bool saveToDb = true}) {
-    if(_interests.contains(interest)) {
-      _interests.remove(interest);
+  //Add or remove a gender from the preference
+  void addRemovePreferredGender(String gender, {bool saveToDb = true}) {
+    if(_preferredGender.contains(gender)) {
+      _preferredGender.remove(gender);
     }
     else {
-      _interests.add(interest);
+      _preferredGender.add(gender);
     }
     notifyListeners();
     if(saveToDb) {
-      _saveInterests();
+      _savePreferredGender();
     }
   }
 
-  //Store interests into disk
-  Future<void> _saveInterests() async {
-    _prefs.setStringList('user_interests', _interests.toList());
-    final String interestsString  = _interests.join(',');
-    await ApiService.updateUserData(uid: FirebaseAuth.instance.currentUser!.uid, interests: interestsString);
+  //Store the gender preference on disk and in the database
+  Future<void> _savePreferredGender() async {
+    _prefs.setStringList('preferred_gender', _preferredGender.toList());
+    final String joined  = _preferredGender.join(',');
+    await ApiService.updateUserData(uid: FirebaseAuth.instance.currentUser!.uid, preferredGender: joined);
   }
 
   //Split range values to save them to disk
@@ -286,24 +256,6 @@ class SettingsProvider extends ChangeNotifier {
     else {
       notifyListeners();
     }    
-  }
-
-  //Store out of range switch state
-  void storeShowOutOfRange(bool outOfRange) async {
-    _showOutOfRange = outOfRange;
-    _prefs.setBool('outOfRange', outOfRange);
-    notifyListeners();
-    await ApiService.updateUserData(uid: FirebaseAuth.instance.currentUser!.uid,
-      showOutOfRange: _showOutOfRange);
-  }
-
-  //Recommendation preference
-  Future<void> changeRecommendationPreference(RecommendationPreference opt) async {
-    _currentOpt = opt;
-    notifyListeners();
-    _prefs.setString('recommendationOpt', opt.name);
-    await ApiService.updateUserData(uid: FirebaseAuth.instance.currentUser!.uid,
-    isBalanced: _currentOpt == RecommendationPreference.balanced ? true : false);
   }
 
   void changeLanguage(String languageCode) async {
@@ -353,14 +305,14 @@ class SettingsProvider extends ChangeNotifier {
 
   Future<void> clearSkipOnSetUp() async {
     _ageRange = RangeValues(18, 30);
-    _interests = {};
+    _preferredGender = {};
     _gender = "";
     notifyListeners();
   }
 
   Future<void> confirmOnSetUp() async {
     changeGender(_gender);
-    _saveInterests();
+    _savePreferredGender();
     saveAgeRange(_ageRange);
   }
 }

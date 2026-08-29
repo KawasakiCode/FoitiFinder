@@ -243,7 +243,7 @@ class _SetUpPageState extends State<SetUpPage> {
                         ),
                         clipBehavior: Clip.antiAlias,
                         child: Pressable(
-                          onTap: () => settings.addRemoveInterests("Men", saveToDb: false),
+                          onTap: () => settings.addRemovePreferredGender("Men", saveToDb: false),
                           child: Padding(
                             padding: const EdgeInsets.only(
                               top: 8,
@@ -261,7 +261,7 @@ class _SetUpPageState extends State<SetUpPage> {
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                                if (settings.interests.contains("Men"))
+                                if (settings.preferredGender.contains("Men"))
                                   Image.asset(
                                     'assets/icons/check.png',
                                     width: 20,
@@ -286,7 +286,7 @@ class _SetUpPageState extends State<SetUpPage> {
                         ),
                         clipBehavior: Clip.antiAlias,
                         child: Pressable(
-                          onTap: () => settings.addRemoveInterests("Women", saveToDb: false),
+                          onTap: () => settings.addRemovePreferredGender("Women", saveToDb: false),
                           child: Padding(
                             padding: const EdgeInsets.only(
                               top: 8,
@@ -304,7 +304,7 @@ class _SetUpPageState extends State<SetUpPage> {
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                                if (settings.interests.contains("Women"))
+                                if (settings.preferredGender.contains("Women"))
                                   Image.asset(
                                     'assets/icons/check.png',
                                     width: 20,
@@ -329,7 +329,7 @@ class _SetUpPageState extends State<SetUpPage> {
                         ),
                         clipBehavior: Clip.antiAlias,
                         child: Pressable(
-                          onTap: () => settings.addRemoveInterests("Everyone", saveToDb: false),
+                          onTap: () => settings.addRemovePreferredGender("Everyone", saveToDb: false),
                           child: Padding(
                             padding: const EdgeInsets.only(
                               top: 8,
@@ -347,7 +347,7 @@ class _SetUpPageState extends State<SetUpPage> {
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                                if (settings.interests.contains("Everyone"))
+                                if (settings.preferredGender.contains("Everyone"))
                                   Image.asset(
                                     'assets/icons/check.png',
                                     width: 20,

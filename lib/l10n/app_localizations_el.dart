@@ -33,24 +33,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get ageRange => 'Εύρος Ηλικίας';
 
   @override
-  String get outOfRange1 => 'Εμφάνιση ατόμων εκτός εύρους';
-
-  @override
-  String get outOfRange2 => 'αν εξαντληθούν τα προφίλ';
-
-  @override
-  String get balanced => 'Ισορροπημένες Προτάσεις';
-
-  @override
-  String get balancedText => 'Δείτε τα πιο σχετικά άτομα για εσάς';
-
-  @override
-  String get recentlyActive => 'Πρόσφατα Ενεργοί';
-
-  @override
-  String get recentlyActiveText => 'Δείτε πρώτα τα πιο πρόσφατα ενεργά άτομα';
-
-  @override
   String get appearance => 'Εμφάνιση';
 
   @override
