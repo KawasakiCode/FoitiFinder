@@ -1,6 +1,6 @@
 from typing import List, Optional
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import date, datetime
 
 #main user schema
 #NOTE: no firebase_token here. The uid is NOT accepted from the client — it is
@@ -12,7 +12,8 @@ class UserBase(BaseModel):
     full_name: str
     profile_picture: str | None = None
     bio: str | None = None
-    age: int | None = None 
+    birthday: date | None = None
+    height_cm: int | None = None
     gender: str | None = None
     min_age_range: int | None = None
     max_age_range: int | None = None
@@ -52,7 +53,8 @@ class UserUpdate(BaseModel):
     full_name: str | None = None
     profile_picture: str | None = None
     bio: str | None = None
-    age: int | None = None
+    birthday: date | None = None
+    height_cm: int | None = None
     gender: str | None = None
     min_age_range: int | None = None
     max_age_range: int | None = None

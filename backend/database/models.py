@@ -1,5 +1,5 @@
 
-from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP, text, ForeignKey, Float, Index
+from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP, Date, text, ForeignKey, Float, Index
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship
 from .database import Base
@@ -13,7 +13,15 @@ class User(Base):
     firebase_token = Column(String, unique = True, nullable = False)
     profile_picture = Column(String, unique = True, nullable = True)
     bio = Column(String, nullable = True)
-    age = Column(Integer, nullable = True)
+    #Date, not an age integer: an age is only correct on the day it is
+    #written. Age is derived from this wherever it is shown - see ages.py.
+    #Date rather than DateTime deliberately: a birthday has no time of day, and
+    #a timestamp would shift across timezones and move someone's birthday by a
+    #day depending on where the server is.
+    birthday = Column(Date, nullable = True)
+    #centimetres. An integer because it is a filter in date preferences and a
+    #range query on a float is a nuisance for no gain in precision.
+    height_cm = Column(Integer, nullable = True)
     created_at = Column(TIMESTAMP(timezone=True), nullable = False, server_default = text('now()'))
     gender = Column(String, nullable = True)
     min_age_range = Column(Integer, nullable = True)

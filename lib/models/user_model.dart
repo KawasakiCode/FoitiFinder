@@ -12,7 +12,11 @@ class UserModel{
   final String username;
   final String? fullName;
   final String? bio;
-  final int? age;
+  //the stored truth. Age is DERIVED from this (utils/age.dart) so it can
+  //never go stale the way an age column does.
+  final DateTime? birthday;
+  //centimetres
+  final int? heightCm;
   final String? imageUrl;
   final String? gender;
   final int? minAgeRange;
@@ -33,7 +37,8 @@ class UserModel{
     required this.score,
     this.id,
     this.bio,
-    this.age,
+    this.birthday,
+    this.heightCm,
     this.imageUrl,
     this.gender, 
     this.minAgeRange,
@@ -50,7 +55,10 @@ class UserModel{
       fullName: json['full_name'],
       id: json['id'],
       bio: json['bio'],
-      age: json['age'],
+      birthday: json['birthday'] == null
+          ? null
+          : DateTime.parse(json['birthday'] as String),
+      heightCm: json['height_cm'],
       imageUrl: json['profile_picture'],
       gender: json['gender'],
       minAgeRange: json['min_age_range'],
@@ -69,7 +77,10 @@ class UserModel{
       'full_name': fullName,
       'id': id,
       'bio': bio,
-      'age': age,
+      //date only, no time - matches the DATE column and survives a round
+      //trip through SharedPreferences unchanged
+      'birthday': birthday?.toIso8601String().split('T').first,
+      'height_cm': heightCm,
       'profile_picture': imageUrl,
       'gender': gender,
       'min_age_range': minAgeRange,

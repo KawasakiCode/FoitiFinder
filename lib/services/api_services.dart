@@ -47,7 +47,8 @@ class ApiService {
     required String username,
     required String? fullName,
     required String? bio,
-    required int? age,
+    required DateTime? birthday,
+    required int? heightCm,
     required String? imageUrl,
     required String? gender,
     required int? minAgeRange,
@@ -69,7 +70,8 @@ class ApiService {
           "full_name": fullName,
           "has_finished_set_up": hasFinishedSetUp,
           "bio": bio,
-          "age": age,
+          "birthday": birthday?.toIso8601String().split('T').first,
+          "height_cm": heightCm,
           "profile_picture": imageUrl,
           "gender": gender,
           "min_age_range": minAgeRange,
@@ -99,7 +101,8 @@ class ApiService {
     String? fullName,
     bool? hasFinishedSetUp,
     String? bio,
-    int? age,
+    DateTime? birthday,
+    int? heightCm,
     String? imageUrl,
     String? gender,
     int? minAgeRange,
@@ -115,12 +118,10 @@ class ApiService {
     if (fullName != null) data['full_name'] = fullName;
     if (hasFinishedSetUp != null) data['has_finished_set_up'] = hasFinishedSetUp;
     if (bio != null) data['bio'] = bio;
-    if (age == 0) {
-      data['age'] = null;
+    if (birthday != null) {
+      data['birthday'] = birthday.toIso8601String().split('T').first;
     }
-    else if (age != null) {
-      data['age'] = age;
-    }
+    if (heightCm != null) data['height_cm'] = heightCm;
     if (imageUrl != null) data['profile_picture'] = imageUrl;
     if (gender != null) data['gender'] = gender;
     if (minAgeRange != null) data['min_age_range'] = minAgeRange;

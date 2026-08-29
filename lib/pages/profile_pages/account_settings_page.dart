@@ -62,24 +62,12 @@ class AccountSettingsPage extends StatelessWidget {
                 //dialog with a date picker. Stored as a date rather than the
                 //age integer we have now, so age can be derived and stays
                 //correct without anyone editing it on their birthday.
-                NavRow(
-                  label: text.birthday,
-                  onTap: () {},
-                ),
+                NavRow(label: text.birthday, onTap: () {}),
                 //dialog
-                NavRow(
-                  label: text.height,
-                  onTap: () {},
-                ),
-                NavRow(
-                  label: text.placeOfResidence,
-                  onTap: () {},
-                ),
+                NavRow(label: text.height, onTap: () {}),
+                NavRow(label: text.placeOfResidence, onTap: () {}),
                 //dialog
-                NavRow(
-                  label: text.education,
-                  onTap: () {},
-                ),
+                NavRow(label: text.education, onTap: () {}),
                 //NOT a button: the Firebase account is keyed on this address
                 //and the university domain behind it is what proves the user
                 //is a student, so changing it is not a profile edit.
@@ -93,50 +81,60 @@ class AccountSettingsPage extends StatelessWidget {
             const SizedBox(height: 8),
 
             //Logout Button
-            Padding(
-              padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
-              child: TextButton(
-                onPressed: () async {
-                  await FirebaseAuth.instance.signOut();
-                  await settings.clearData();
-                  if (!context.mounted) return;
-                  await Provider.of<ProfileProvider>(
-                    context,
-                    listen: false,
-                  ).clearData();
-                  if (!context.mounted) return;
-                  Navigator.of(
-                    context,
-                  ).pushNamedAndRemoveUntil('/login', (route) => false);
-                },
-                child: Text(
-                  text.logout,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: const Color.fromARGB(255, 255, 18, 18),
+            //
+            //Align, because a ListView stretches its children to the full width
+            //and the TextButton's tap target ran edge to edge - a destructive
+            //action that reacts to a tap far away from its own label.
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
+                child: TextButton(
+                  onPressed: () async {
+                    await FirebaseAuth.instance.signOut();
+                    await settings.clearData();
+                    if (!context.mounted) return;
+                    await Provider.of<ProfileProvider>(
+                      context,
+                      listen: false,
+                    ).clearData();
+                    if (!context.mounted) return;
+                    Navigator.of(
+                      context,
+                    ).pushNamedAndRemoveUntil('/login', (route) => false);
+                  },
+                  child: Text(
+                    text.logout,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: const Color.fromARGB(255, 255, 18, 18),
+                    ),
                   ),
                 ),
               ),
             ),
             //Delete account button
-            Padding(
-              padding: const EdgeInsets.only(left: 15, right: 15, bottom: 15),
-              child: TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => DeleteAccountPage(),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 15, right: 15, bottom: 15),
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DeleteAccountPage(),
+                      ),
+                    );
+                  },
+                  child: Text(
+                    text.deleteAccount,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: const Color.fromARGB(255, 255, 18, 18),
                     ),
-                  );
-                },
-                child: Text(
-                  text.deleteAccount,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: const Color.fromARGB(255, 255, 18, 18),
                   ),
                 ),
               ),

@@ -9,10 +9,10 @@
 //launch here next time
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/main_screen.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
+import 'package:foitifinder/utils/age.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/widgets/pressable.dart';
@@ -33,7 +33,7 @@ class _SetUpPageState extends State<SetUpPage> {
 
   bool _isLoading = false;
   late TextEditingController _bioController;
-  late TextEditingController _ageController;
+  DateTime? _birthday;
 
   @override
   void initState() {
@@ -44,9 +44,23 @@ class _SetUpPageState extends State<SetUpPage> {
     ).currentUser!;
 
     _bioController = TextEditingController(text: user.bio ?? "");
-    _ageController = TextEditingController(
-      text: user.age != null ? user.age.toString() : "",
+    _birthday = user.birthday;
+  }
+
+  //Pick a birthday. Bounded at 18 years ago so an under-age date cannot be
+  //chosen at all - which is why the old "age must be >= 18" snackbar is gone:
+  //an invalid value is now unreachable rather than rejected after the fact.
+  Future<void> _pickBirthday() async {
+    final latest = birthdayForAge(18);
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _birthday ?? birthdayForAge(20),
+      firstDate: birthdayForAge(100),
+      lastDate: latest,
+      helpText: text.birthday,
     );
+    if (picked == null) return;
+    setState(() => _birthday = picked);
   }
 
   //Put user data if available in the database
@@ -61,40 +75,26 @@ class _SetUpPageState extends State<SetUpPage> {
     );
 
     String? newBio;
-    int? newAge;
+    DateTime? newBirthday;
 
     if (_bioController.text != user.bio) {
       newBio = _bioController.text;
     }
-    if (_ageController.text != user.age.toString() &&
-        _ageController.text.isNotEmpty) {
-      newAge = int.tryParse(_ageController.text);
-      if (newAge != null && (newAge > 100 || newAge < 18)) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(text.invalidAge), // Add to translations
-                backgroundColor: Colors.red,
-                duration: const Duration(seconds: 3),
-              ),
-            );
-          }
-          setState(() {
-            _isLoading = false;
-          });
-          throw Exception('Validation failed: Age exceeds limit');
-        }
+    //the picker cannot return an out of range date, so there is nothing left
+    //to validate here - only whether it changed
+    if (_birthday != user.birthday) {
+      newBirthday = _birthday;
     }
 
     setState(() {
       _isLoading = true;
     });
 
-    if (newBio != null || newAge != null) {
+    if (newBio != null || newBirthday != null) {
       await ApiService.updateUserData(
         uid: user.uid,
         bio: newBio,
-        age: newAge,
+        birthday: newBirthday,
         hasFinishedSetUp: true,
       );
     }
@@ -195,13 +195,21 @@ class _SetUpPageState extends State<SetUpPage> {
                     ),
                     Padding(
                       padding: const EdgeInsets.only(bottom: 10, right: 10),
-                      child: TextField(
-                        controller: _ageController,
-                        decoration: InputDecoration(labelText: text.age),
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                        ],
+                      //a read-only field that opens the picker: typing a date
+                      //invites every ambiguous format there is
+                      child: InkWell(
+                        onTap: _pickBirthday,
+                        child: InputDecorator(
+                          decoration: InputDecoration(
+                            labelText: text.birthday,
+                            suffixIcon: const Icon(Icons.calendar_today, size: 18),
+                          ),
+                          child: Text(
+                            _birthday == null
+                                ? ''
+                                : '${_birthday!.day}/${_birthday!.month}/${_birthday!.year}',
+                          ),
+                        ),
                       ),
                     ),
                     //Bio controller

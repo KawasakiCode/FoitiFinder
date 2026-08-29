@@ -13,6 +13,7 @@ import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/widgets/pressable.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
+import 'package:foitifinder/utils/age.dart';
 import 'package:provider/provider.dart';
 import 'package:foitifinder/dummy_user_data.dart';
 
@@ -207,24 +208,21 @@ class _ProfilePageState extends State<ProfilePage> {
                 children: [
                   Row(
                     children: [
-                      Text(
-                        profileProvider.currentUser!.age != null ?
-                        "${profileProvider.currentUser!.username}, "
-                        : profileProvider.currentUser!.username,
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        profileProvider.currentUser!.age != null ?
-                        "${profileProvider.currentUser!.age}"
-                        : profileProvider.currentUser!.age == 0 ? 
-                        "" : "",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      //derived, never stored - see utils/age.dart
+                      Builder(
+                        builder: (context) {
+                          final age = ageFromBirthday(
+                            profileProvider.currentUser!.birthday,
+                          );
+                          final name = profileProvider.currentUser!.username;
+                          return Text(
+                            age == null ? name : '$name, $age',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),

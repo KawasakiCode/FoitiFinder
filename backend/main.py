@@ -15,6 +15,7 @@ from firebase_admin import messaging, credentials, firestore, auth
 import firebase_admin
 from preferences.preferences import preference_to_genders
 from university_domains import is_university_email
+from ages import age_from_birthday, years_ago
 
 load_dotenv()
 
@@ -164,7 +165,8 @@ def create_user(
         firebase_token=uid,
         profile_picture=user.profile_picture,
         bio=user.bio,
-        age=user.age,
+        birthday=user.birthday,
+        height_cm=user.height_cm,
         gender=user.gender,
         min_age_range=user.min_age_range,
         max_age_range=user.max_age_range,
@@ -266,13 +268,20 @@ def get_swipe_feed(uid: str = Depends(verified_email_uid), db: Session = Depends
         models.User.score <= max_score,
     ]
 
-    #age range filter, always applied. It used to be skipped when the user set
-    #show_out_of_range, but that toggle is gone - the range the user picked is
-    #now the range they get. Profiles without an age are kept so they still show.
+    #Age range filter, always applied - the range the user picked is the range
+    #they get. Expressed as BIRTHDAY CUTOFFS rather than age comparisons: age is
+    #no longer a column, and comparing the raw birthday column to a constant
+    #date keeps an index on it usable. Profiles with no birthday are kept so
+    #incomplete profiles still surface.
+    #
+    #  age >= min  <=>  born on or before the day they turned min
+    #  age <= max  <=>  born after the day they would have turned max + 1
     if me.min_age_range is not None:
-        filters.append(or_(models.User.age >= me.min_age_range, models.User.age.is_(None)))
+        filters.append(or_(models.User.birthday <= years_ago(me.min_age_range),
+                           models.User.birthday.is_(None)))
     if me.max_age_range is not None:
-        filters.append(or_(models.User.age <= me.max_age_range, models.User.age.is_(None)))
+        filters.append(or_(models.User.birthday > years_ago(me.max_age_range + 1),
+                           models.User.birthday.is_(None)))
 
     #gender preference filter derived from the viewer's preferred_gender. Candidates
     #with no gender set are kept so incomplete profiles still surface.
@@ -298,7 +307,7 @@ def get_swipe_feed(uid: str = Depends(verified_email_uid), db: Session = Depends
         results.append({
             "id": user.id,
             "username": user.username,
-            "age": user.age,
+            "age": age_from_birthday(user.birthday),
             "bio": user.bio,
             "photos": photo_urls,
         })
@@ -349,7 +358,7 @@ def get_likes(uid: str = Depends(verified_email_uid), db: Session = Depends(get_
     liked_by_users = db.query(
         models.User.id,
         models.User.username,
-        models.User.age,
+        models.User.birthday,
         models.Photos.photo_url.label("image_url")
     ).join(
         Incoming, 
@@ -375,9 +384,17 @@ def get_likes(uid: str = Depends(verified_email_uid), db: Session = Depends(get_
         ),
     ).all()
 
-    #pydantic uses the response_model and automatically 
-    #filters only the data specified in the likerProfile class
-    return liked_by_users
+    #age is derived here rather than stored, so the rows are mapped by hand
+    #instead of handed straight to the response_model
+    return [
+        {
+            "id": row.id,
+            "username": row.username,
+            "age": age_from_birthday(row.birthday),
+            "image_url": row.image_url,
+        }
+        for row in liked_by_users
+    ]
 
 #get every match the user currently has
 @app.get("/matches", response_model = List[MatchResponse])
@@ -641,7 +658,7 @@ def get_single_user(user_id: int, uid: str = Depends(verified_email_uid), db: Se
     return {
         "id": user.id,
         "username": user.username,
-        "age": user.age,
+        "age": age_from_birthday(user.birthday),
         "bio": user.bio,
         "photos": photos_urls,
     }
