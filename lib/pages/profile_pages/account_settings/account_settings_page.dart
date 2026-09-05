@@ -18,8 +18,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/l10n/catalogue_labels.dart';
 import 'package:foitifinder/pages/profile_pages/account_settings/delete_account_page.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
+import 'package:foitifinder/pages/profile_pages/shared/prefecture_dialog.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/widgets/nav_row.dart';
@@ -72,7 +74,10 @@ class AccountSettingsPage extends StatelessWidget {
                 NavRow(label: text.height, onTap: () {}),
                 NavRow(
                   label: text.placeOfResidence,
-                  trailing: user?.city ?? '',
+                  //stored English, shown in the user's language
+                  trailing: user?.city == null
+                      ? ''
+                      : catalogueLabel(text, user!.city!),
                   onTap: () => _editCity(context),
                 ),
                 //NOT a button: the Firebase account is keyed on this address
@@ -155,60 +160,30 @@ class AccountSettingsPage extends StatelessWidget {
 
 //Edit the place of residence.
 //
-//A plain text box rather than a picker: it is prefilled from the university's
-//city at signup, so this exists for the minority who live somewhere else, and
-//a list of every Greek town would be worse than letting them type it.
+//A prefecture from a closed list, never free text. Place of residence has to
+//be FILTERABLE, and free text cannot be: "Thessaloniki", "thessaloniki" and
+//"Stavroupoli" would all be different values that never match each other.
 //
-//Clearing is offered explicitly because there is no other way to say "nowhere"
-//once a city has been prefilled for you.
+//Prefecture rather than city or municipality because without coordinates a
+//radius filter is impossible - see constants/greek_prefectures.dart.
 Future<void> _editCity(BuildContext context) async {
-  final text = AppLocalizations.of(context)!;
   final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
   final current = profileProvider.currentUser?.city ?? '';
-  final controller = TextEditingController(text: current);
 
-  final result = await showDialog<String>(
-    context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: Text(text.placeOfResidence),
-      content: TextField(
-        controller: controller,
-        autofocus: true,
-        maxLength: 60,
-        textCapitalization: TextCapitalization.words,
-        decoration: InputDecoration(hintText: text.locationHint),
-      ),
-      actions: [
-        if (current.isNotEmpty)
-          TextButton(
-            //'' is the clear signal all the way down: updateLocalUser turns it
-            //into null locally and the backend turns it into NULL
-            onPressed: () => Navigator.pop(dialogContext, ''),
-            child: Text(text.clear),
-          ),
-        TextButton(
-          onPressed: () => Navigator.pop(dialogContext),
-          child: Text(text.cancel),
-        ),
-        TextButton(
-          onPressed: () => Navigator.pop(dialogContext, controller.text),
-          child: Text(text.save),
-        ),
-      ],
-    ),
+  final result = await showPrefectureDialog(
+    context,
+    initialSelected: current.isEmpty ? null : current,
   );
 
-  //null means dismissed - leave it alone
-  if (result == null) return;
-  final trimmed = result.trim();
-  if (trimmed == current) return;
+  //null means dismissed - leave it alone. '' means cleared.
+  if (result == null || result == current) return;
 
   final uid = profileProvider.currentUser?.uid;
   if (uid == null) return;
 
   //local first so the row updates immediately, then the backend
-  profileProvider.updateLocalUser(city: trimmed);
-  await ApiService.updateUserData(uid: uid, city: trimmed);
+  profileProvider.updateLocalUser(city: result);
+  await ApiService.updateUserData(uid: uid, city: result);
 }
 
 //A row that shows a value but cannot be tapped: same metrics as NavRow so it

@@ -2803,6 +2803,342 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Place of residence'**
   String get placeOfResidence;
+
+  /// No description provided for @prefAchaea.
+  ///
+  /// In en, this message translates to:
+  /// **'Achaea'**
+  String get prefAchaea;
+
+  /// No description provided for @prefAetoliaAcarnania.
+  ///
+  /// In en, this message translates to:
+  /// **'Aetolia-Acarnania'**
+  String get prefAetoliaAcarnania;
+
+  /// No description provided for @prefArcadia.
+  ///
+  /// In en, this message translates to:
+  /// **'Arcadia'**
+  String get prefArcadia;
+
+  /// No description provided for @prefArgolis.
+  ///
+  /// In en, this message translates to:
+  /// **'Argolis'**
+  String get prefArgolis;
+
+  /// No description provided for @prefArta.
+  ///
+  /// In en, this message translates to:
+  /// **'Arta'**
+  String get prefArta;
+
+  /// No description provided for @prefAthens.
+  ///
+  /// In en, this message translates to:
+  /// **'Athens'**
+  String get prefAthens;
+
+  /// No description provided for @prefBoeotia.
+  ///
+  /// In en, this message translates to:
+  /// **'Boeotia'**
+  String get prefBoeotia;
+
+  /// No description provided for @prefCephalonia.
+  ///
+  /// In en, this message translates to:
+  /// **'Cephalonia'**
+  String get prefCephalonia;
+
+  /// No description provided for @prefChalkidiki.
+  ///
+  /// In en, this message translates to:
+  /// **'Chalkidiki'**
+  String get prefChalkidiki;
+
+  /// No description provided for @prefChania.
+  ///
+  /// In en, this message translates to:
+  /// **'Chania'**
+  String get prefChania;
+
+  /// No description provided for @prefChios.
+  ///
+  /// In en, this message translates to:
+  /// **'Chios'**
+  String get prefChios;
+
+  /// No description provided for @prefCorfu.
+  ///
+  /// In en, this message translates to:
+  /// **'Corfu'**
+  String get prefCorfu;
+
+  /// No description provided for @prefCorinthia.
+  ///
+  /// In en, this message translates to:
+  /// **'Corinthia'**
+  String get prefCorinthia;
+
+  /// No description provided for @prefCyclades.
+  ///
+  /// In en, this message translates to:
+  /// **'Cyclades'**
+  String get prefCyclades;
+
+  /// No description provided for @prefDodecanese.
+  ///
+  /// In en, this message translates to:
+  /// **'Dodecanese'**
+  String get prefDodecanese;
+
+  /// No description provided for @prefDrama.
+  ///
+  /// In en, this message translates to:
+  /// **'Drama'**
+  String get prefDrama;
+
+  /// No description provided for @prefEastAttica.
+  ///
+  /// In en, this message translates to:
+  /// **'East Attica'**
+  String get prefEastAttica;
+
+  /// No description provided for @prefElis.
+  ///
+  /// In en, this message translates to:
+  /// **'Elis'**
+  String get prefElis;
+
+  /// No description provided for @prefEuboea.
+  ///
+  /// In en, this message translates to:
+  /// **'Euboea'**
+  String get prefEuboea;
+
+  /// No description provided for @prefEvros.
+  ///
+  /// In en, this message translates to:
+  /// **'Evros'**
+  String get prefEvros;
+
+  /// No description provided for @prefEvrytania.
+  ///
+  /// In en, this message translates to:
+  /// **'Evrytania'**
+  String get prefEvrytania;
+
+  /// No description provided for @prefFlorina.
+  ///
+  /// In en, this message translates to:
+  /// **'Florina'**
+  String get prefFlorina;
+
+  /// No description provided for @prefGrevena.
+  ///
+  /// In en, this message translates to:
+  /// **'Grevena'**
+  String get prefGrevena;
+
+  /// No description provided for @prefHeraklion.
+  ///
+  /// In en, this message translates to:
+  /// **'Heraklion'**
+  String get prefHeraklion;
+
+  /// No description provided for @prefImathia.
+  ///
+  /// In en, this message translates to:
+  /// **'Imathia'**
+  String get prefImathia;
+
+  /// No description provided for @prefIoannina.
+  ///
+  /// In en, this message translates to:
+  /// **'Ioannina'**
+  String get prefIoannina;
+
+  /// No description provided for @prefKarditsa.
+  ///
+  /// In en, this message translates to:
+  /// **'Karditsa'**
+  String get prefKarditsa;
+
+  /// No description provided for @prefKastoria.
+  ///
+  /// In en, this message translates to:
+  /// **'Kastoria'**
+  String get prefKastoria;
+
+  /// No description provided for @prefKavala.
+  ///
+  /// In en, this message translates to:
+  /// **'Kavala'**
+  String get prefKavala;
+
+  /// No description provided for @prefKilkis.
+  ///
+  /// In en, this message translates to:
+  /// **'Kilkis'**
+  String get prefKilkis;
+
+  /// No description provided for @prefKozani.
+  ///
+  /// In en, this message translates to:
+  /// **'Kozani'**
+  String get prefKozani;
+
+  /// No description provided for @prefLaconia.
+  ///
+  /// In en, this message translates to:
+  /// **'Laconia'**
+  String get prefLaconia;
+
+  /// No description provided for @prefLarissa.
+  ///
+  /// In en, this message translates to:
+  /// **'Larissa'**
+  String get prefLarissa;
+
+  /// No description provided for @prefLasithi.
+  ///
+  /// In en, this message translates to:
+  /// **'Lasithi'**
+  String get prefLasithi;
+
+  /// No description provided for @prefLefkada.
+  ///
+  /// In en, this message translates to:
+  /// **'Lefkada'**
+  String get prefLefkada;
+
+  /// No description provided for @prefLesbos.
+  ///
+  /// In en, this message translates to:
+  /// **'Lesbos'**
+  String get prefLesbos;
+
+  /// No description provided for @prefMagnesia.
+  ///
+  /// In en, this message translates to:
+  /// **'Magnesia'**
+  String get prefMagnesia;
+
+  /// No description provided for @prefMessenia.
+  ///
+  /// In en, this message translates to:
+  /// **'Messenia'**
+  String get prefMessenia;
+
+  /// No description provided for @prefPella.
+  ///
+  /// In en, this message translates to:
+  /// **'Pella'**
+  String get prefPella;
+
+  /// No description provided for @prefPhocis.
+  ///
+  /// In en, this message translates to:
+  /// **'Phocis'**
+  String get prefPhocis;
+
+  /// No description provided for @prefPhthiotis.
+  ///
+  /// In en, this message translates to:
+  /// **'Phthiotis'**
+  String get prefPhthiotis;
+
+  /// No description provided for @prefPieria.
+  ///
+  /// In en, this message translates to:
+  /// **'Pieria'**
+  String get prefPieria;
+
+  /// No description provided for @prefPiraeus.
+  ///
+  /// In en, this message translates to:
+  /// **'Piraeus'**
+  String get prefPiraeus;
+
+  /// No description provided for @prefPreveza.
+  ///
+  /// In en, this message translates to:
+  /// **'Preveza'**
+  String get prefPreveza;
+
+  /// No description provided for @prefRethymno.
+  ///
+  /// In en, this message translates to:
+  /// **'Rethymno'**
+  String get prefRethymno;
+
+  /// No description provided for @prefRhodope.
+  ///
+  /// In en, this message translates to:
+  /// **'Rhodope'**
+  String get prefRhodope;
+
+  /// No description provided for @prefSamos.
+  ///
+  /// In en, this message translates to:
+  /// **'Samos'**
+  String get prefSamos;
+
+  /// No description provided for @prefSerres.
+  ///
+  /// In en, this message translates to:
+  /// **'Serres'**
+  String get prefSerres;
+
+  /// No description provided for @prefThesprotia.
+  ///
+  /// In en, this message translates to:
+  /// **'Thesprotia'**
+  String get prefThesprotia;
+
+  /// No description provided for @prefThessaloniki.
+  ///
+  /// In en, this message translates to:
+  /// **'Thessaloniki'**
+  String get prefThessaloniki;
+
+  /// No description provided for @prefTrikala.
+  ///
+  /// In en, this message translates to:
+  /// **'Trikala'**
+  String get prefTrikala;
+
+  /// No description provided for @prefWestAttica.
+  ///
+  /// In en, this message translates to:
+  /// **'West Attica'**
+  String get prefWestAttica;
+
+  /// No description provided for @prefXanthi.
+  ///
+  /// In en, this message translates to:
+  /// **'Xanthi'**
+  String get prefXanthi;
+
+  /// No description provided for @prefZakynthos.
+  ///
+  /// In en, this message translates to:
+  /// **'Zakynthos'**
+  String get prefZakynthos;
+
+  /// No description provided for @search.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get search;
+
+  /// No description provided for @noResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No results'**
+  String get noResults;
 }
 
 class _AppLocalizationsDelegate

@@ -166,9 +166,12 @@ class _SignUpPageState extends State<SignUpPage> {
         bio: null,
         birthday: null,
         heightCm: null,
-        //prefilled from the university's city so almost nobody has to type it.
-        //Editable afterwards from Account Settings -> Place of residence.
-        city: cityForEmail(email),
+        //NOT prefilled from the university. Where somebody studies says
+        //nothing about where they live - a student from Alexandroupoli
+        //studying in Komotini would get the wrong answer handed to them and
+        //most would never correct it. They pick it themselves in Account
+        //Settings, or leave it empty.
+        city: null,
         imageUrl: null,
         gender: null,
         minAgeRange: null,

@@ -1393,4 +1393,172 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get placeOfResidence => 'Τόπος διαμονής';
+
+  @override
+  String get prefAchaea => 'Αχαΐα';
+
+  @override
+  String get prefAetoliaAcarnania => 'Αιτωλοακαρνανία';
+
+  @override
+  String get prefArcadia => 'Αρκαδία';
+
+  @override
+  String get prefArgolis => 'Αργολίδα';
+
+  @override
+  String get prefArta => 'Άρτα';
+
+  @override
+  String get prefAthens => 'Αθήνα';
+
+  @override
+  String get prefBoeotia => 'Βοιωτία';
+
+  @override
+  String get prefCephalonia => 'Κεφαλονιά';
+
+  @override
+  String get prefChalkidiki => 'Χαλκιδική';
+
+  @override
+  String get prefChania => 'Χανιά';
+
+  @override
+  String get prefChios => 'Χίος';
+
+  @override
+  String get prefCorfu => 'Κέρκυρα';
+
+  @override
+  String get prefCorinthia => 'Κορινθία';
+
+  @override
+  String get prefCyclades => 'Κυκλάδες';
+
+  @override
+  String get prefDodecanese => 'Δωδεκάνησα';
+
+  @override
+  String get prefDrama => 'Δράμα';
+
+  @override
+  String get prefEastAttica => 'Ανατολική Αττική';
+
+  @override
+  String get prefElis => 'Ηλεία';
+
+  @override
+  String get prefEuboea => 'Εύβοια';
+
+  @override
+  String get prefEvros => 'Έβρος';
+
+  @override
+  String get prefEvrytania => 'Ευρυτανία';
+
+  @override
+  String get prefFlorina => 'Φλώρινα';
+
+  @override
+  String get prefGrevena => 'Γρεβενά';
+
+  @override
+  String get prefHeraklion => 'Ηράκλειο';
+
+  @override
+  String get prefImathia => 'Ημαθία';
+
+  @override
+  String get prefIoannina => 'Ιωάννινα';
+
+  @override
+  String get prefKarditsa => 'Καρδίτσα';
+
+  @override
+  String get prefKastoria => 'Καστοριά';
+
+  @override
+  String get prefKavala => 'Καβάλα';
+
+  @override
+  String get prefKilkis => 'Κιλκίς';
+
+  @override
+  String get prefKozani => 'Κοζάνη';
+
+  @override
+  String get prefLaconia => 'Λακωνία';
+
+  @override
+  String get prefLarissa => 'Λάρισα';
+
+  @override
+  String get prefLasithi => 'Λασίθι';
+
+  @override
+  String get prefLefkada => 'Λευκάδα';
+
+  @override
+  String get prefLesbos => 'Λέσβος';
+
+  @override
+  String get prefMagnesia => 'Μαγνησία';
+
+  @override
+  String get prefMessenia => 'Μεσσηνία';
+
+  @override
+  String get prefPella => 'Πέλλα';
+
+  @override
+  String get prefPhocis => 'Φωκίδα';
+
+  @override
+  String get prefPhthiotis => 'Φθιώτιδα';
+
+  @override
+  String get prefPieria => 'Πιερία';
+
+  @override
+  String get prefPiraeus => 'Πειραιάς';
+
+  @override
+  String get prefPreveza => 'Πρέβεζα';
+
+  @override
+  String get prefRethymno => 'Ρέθυμνο';
+
+  @override
+  String get prefRhodope => 'Ροδόπη';
+
+  @override
+  String get prefSamos => 'Σάμος';
+
+  @override
+  String get prefSerres => 'Σέρρες';
+
+  @override
+  String get prefThesprotia => 'Θεσπρωτία';
+
+  @override
+  String get prefThessaloniki => 'Θεσσαλονίκη';
+
+  @override
+  String get prefTrikala => 'Τρίκαλα';
+
+  @override
+  String get prefWestAttica => 'Δυτική Αττική';
+
+  @override
+  String get prefXanthi => 'Ξάνθη';
+
+  @override
+  String get prefZakynthos => 'Ζάκυνθος';
+
+  @override
+  String get search => 'Αναζήτηση';
+
+  @override
+  String get noResults => 'Κανένα αποτέλεσμα';
 }
