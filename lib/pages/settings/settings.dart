@@ -13,6 +13,7 @@ import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:provider/provider.dart';
+import 'package:foitifinder/widgets/app_switch.dart';
 import 'package:foitifinder/widgets/pressable.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -79,13 +80,10 @@ class _SettingsPageState extends State<SettingsPage> {
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              Transform.scale(
-                                scale: 1,
-                                child: Switch(
-                                  value: settings.themeMode == ThemeMode.dark,
-                                  onChanged: (bool value) =>
-                                      settings.toggleTheme(value),
-                                ),
+                              AppSwitch(
+                                value: settings.themeMode == ThemeMode.dark,
+                                onChanged: (bool value) =>
+                                    settings.toggleTheme(value),
                               ),
                             ],
                           ),
@@ -128,14 +126,11 @@ class _SettingsPageState extends State<SettingsPage> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          Transform.scale(
-                            scale: 1,
-                            child: Switch(
-                              value: settings.likeNotificationsEnabled,
-                              onChanged: (bool enabled) async {
-                                await settings.toggleLikeNotifications(enabled);
-                              },
-                            ),
+                          AppSwitch(
+                            value: settings.likeNotificationsEnabled,
+                            onChanged: (bool enabled) async {
+                              await settings.toggleLikeNotifications(enabled);
+                            },
                           ),
                         ],
                       ),
