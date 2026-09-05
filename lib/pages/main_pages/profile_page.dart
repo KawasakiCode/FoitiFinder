@@ -5,10 +5,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/constants/legal.dart';
-import 'package:foitifinder/pages/profile_pages/account_settings_page.dart';
-import 'package:foitifinder/pages/profile_pages/date_preferences_page.dart';
-import 'package:foitifinder/pages/profile_pages/edit_profile.dart';
-import 'package:foitifinder/pages/settings/settings.dart';
+import 'package:foitifinder/pages/profile_pages/account_settings/account_settings_page.dart';
+import 'package:foitifinder/pages/profile_pages/date_preferences/date_preferences_page.dart';
+import 'package:foitifinder/pages/profile_pages/edit_profile/edit_profile_page.dart';
+import 'package:foitifinder/pages/profile_pages/app_settings/app_settings_page.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/widgets/pressable.dart';
 import 'package:url_launcher/url_launcher.dart';

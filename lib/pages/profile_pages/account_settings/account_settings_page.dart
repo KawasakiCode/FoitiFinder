@@ -14,7 +14,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
-import 'package:foitifinder/pages/settings/delete_account_page.dart';
+import 'package:foitifinder/pages/profile_pages/account_settings/delete_account_page.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:foitifinder/widgets/nav_row.dart';

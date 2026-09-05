@@ -9,7 +9,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
-import 'package:foitifinder/pages/settings/interest_page.dart';
+import 'package:foitifinder/pages/profile_pages/date_preferences/preferred_gender_page.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:foitifinder/widgets/pressable.dart';
 import 'package:provider/provider.dart';
