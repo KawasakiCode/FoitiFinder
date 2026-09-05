@@ -508,9 +508,13 @@ class _EditProfileState extends State<EditProfile> {
                     CardGroup(
                       dividers: true,
                       children: [
-                        //NOTE: EducationPage, OccupationPage and LocationPage
-                        //are already built and working - swapping any of these
-                        //three stubs for the real page is a one-line change.
+                        //NOTE: EducationPage and OccupationPage are already
+                        //built and working - swapping either stub for the real
+                        //page is a one-line change.
+                        //
+                        //Location is NOT here: where the user lives is one
+                        //value, so it gets one home, and that home is the
+                        //Place of residence row in Account Settings.
                         NavRow(
                           label: text.education,
                           onTap: () =>
@@ -520,11 +524,6 @@ class _EditProfileState extends State<EditProfile> {
                           label: text.occupation,
                           onTap: () =>
                               _push(ComingSoonPage(title: text.occupation)),
-                        ),
-                        NavRow(
-                          label: text.location,
-                          onTap: () =>
-                              _push(ComingSoonPage(title: text.location)),
                         ),
                       ],
                     ),

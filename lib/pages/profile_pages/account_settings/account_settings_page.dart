@@ -7,9 +7,13 @@
 //Log out and delete account sit OUTSIDE the card, unstyled and red, so a
 //destructive action never looks like one more row in a list of settings.
 //
+//Education is deliberately NOT here. Edit profile owns it, where it is the
+//detailed version (school, degree name) rather than the one-word answer an
+//account row would hold. One home per fact.
+//
 //NO FUNCTIONALITY YET. Every row is a placeholder: gender will push a page,
-//birthday / height / education will open a dialog, and email is not a button
-//at all - the account is keyed on it, so it must not be editable here.
+//birthday and height will open a dialog, and email is not a button at all -
+//the account is keyed on it, so it must not be editable here.
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -66,8 +70,6 @@ class AccountSettingsPage extends StatelessWidget {
                 //dialog
                 NavRow(label: text.height, onTap: () {}),
                 NavRow(label: text.placeOfResidence, onTap: () {}),
-                //dialog
-                NavRow(label: text.education, onTap: () {}),
                 //NOT a button: the Firebase account is keyed on this address
                 //and the university domain behind it is what proves the user
                 //is a student, so changing it is not a profile edit.
