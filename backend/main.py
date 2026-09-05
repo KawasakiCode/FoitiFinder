@@ -229,6 +229,16 @@ def update_user(user_update: schemas.UserUpdate, uid: str = Depends(verified_ema
     #exclude_unset = True doesnt override data that are null 
     #if updated_data username is null then it wont override the database value because of exclude_unset
     updated_data = user_update.model_dump(exclude_unset=True)
+
+    #The app clears a free-text field by sending "", because a null would be
+    #dropped by exclude_unset and read as "leave it alone". Store NULL for
+    #those so "never set" and "cleared" are the same state in the database.
+    #Only fields the user is allowed to empty - username and full_name are
+    #required and are validated before they ever get here.
+    for key in ("city", "job", "volunteering", "occupation_other", "major"):
+        if isinstance(updated_data.get(key), str) and not updated_data[key].strip():
+            updated_data[key] = None
+
     #loop through the dictionary adding only values that are not null
     for key, value in updated_data.items():
         setattr(db_user, key, value)

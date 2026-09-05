@@ -85,6 +85,70 @@ const Map<String, String> kUniversityNames = {
   'aspete.gr': 'ASPETE - School of Pedagogical and Technological Education',
 };
 
+/// The city each institution is seated in, used to prefill a new user's place
+/// of residence at signup so almost nobody has to type it.
+///
+/// SEAT, not campus. Several of these are genuinely multi-city - Democritus
+/// spans Komotini, Xanthi, Alexandroupoli and Orestiada; the Aegean spans six
+/// islands; the Peloponnese spans five towns - so this is a best guess, which
+/// is exactly why the Place of residence row lets the user change it.
+///
+/// Stored in English like every other canonical string in the app (see
+/// l10n/catalogue_labels.dart for the same reasoning): the value goes in the
+/// database and must not change meaning when the user switches language.
+const Map<String, String> kUniversityCities = {
+  'uoa.gr': 'Athens',
+  'ntua.gr': 'Athens',
+  'asfa.gr': 'Athens',
+  'aua.gr': 'Athens',
+  'aueb.gr': 'Athens',
+  'panteion.gr': 'Athens',
+  'hua.gr': 'Athens',
+  'uniwa.gr': 'Athens',
+  'aspete.gr': 'Athens',
+  'unipi.gr': 'Piraeus',
+  'auth.gr': 'Thessaloniki',
+  'uom.gr': 'Thessaloniki',
+  'uom.edu.gr': 'Thessaloniki',
+  'ihu.gr': 'Thessaloniki',
+  'ihu.edu.gr': 'Thessaloniki',
+  'upatras.gr': 'Patras',
+  'upnet.gr': 'Patras',
+  'eap.gr': 'Patras',
+  'uoi.gr': 'Ioannina',
+  'duth.gr': 'Komotini',
+  'uoc.gr': 'Rethymno',
+  'tuc.gr': 'Chania',
+  'hmu.gr': 'Heraklion',
+  'uth.gr': 'Volos',
+  'aegean.gr': 'Mytilene',
+  'ionio.gr': 'Corfu',
+  'uop.gr': 'Tripoli',
+  'uowm.gr': 'Kozani',
+};
+
+/// The city behind an email address, or null if the domain isn't one we know.
+/// Longest match wins, same as [universityNameForEmail].
+String? cityForEmail(String? email) => _matchDomain(email, kUniversityCities);
+
+String? _matchDomain(String? email, Map<String, String> table) {
+  if (email == null || !email.contains('@')) return null;
+  final domain = email.split('@').last.toLowerCase().trim();
+
+  String? best;
+  int bestLength = -1;
+  for (final entry in table.entries) {
+    final root = entry.key;
+    if (domain == root || domain.endsWith('.$root')) {
+      if (root.length > bestLength) {
+        bestLength = root.length;
+        best = entry.value;
+      }
+    }
+  }
+  return best;
+}
+
 /// The university behind an email address, or null if the domain isn't one we
 /// know. Longest match wins so 'uom.edu.gr' is not shadowed by 'uom.gr'.
 String? universityNameForEmail(String? email) {

@@ -166,6 +166,9 @@ class _SignUpPageState extends State<SignUpPage> {
         bio: null,
         birthday: null,
         heightCm: null,
+        //prefilled from the university's city so almost nobody has to type it.
+        //Editable afterwards from Account Settings -> Place of residence.
+        city: cityForEmail(email),
         imageUrl: null,
         gender: null,
         minAgeRange: null,

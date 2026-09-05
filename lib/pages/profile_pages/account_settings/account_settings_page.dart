@@ -21,6 +21,7 @@ import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/pages/profile_pages/account_settings/delete_account_page.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
+import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/widgets/nav_row.dart';
 import 'package:provider/provider.dart';
 
@@ -69,7 +70,11 @@ class AccountSettingsPage extends StatelessWidget {
                 NavRow(label: text.birthday, onTap: () {}),
                 //dialog
                 NavRow(label: text.height, onTap: () {}),
-                NavRow(label: text.placeOfResidence, onTap: () {}),
+                NavRow(
+                  label: text.placeOfResidence,
+                  trailing: user?.city ?? '',
+                  onTap: () => _editCity(context),
+                ),
                 //NOT a button: the Firebase account is keyed on this address
                 //and the university domain behind it is what proves the user
                 //is a student, so changing it is not a profile edit.
@@ -146,6 +151,64 @@ class AccountSettingsPage extends StatelessWidget {
       ),
     );
   }
+}
+
+//Edit the place of residence.
+//
+//A plain text box rather than a picker: it is prefilled from the university's
+//city at signup, so this exists for the minority who live somewhere else, and
+//a list of every Greek town would be worse than letting them type it.
+//
+//Clearing is offered explicitly because there is no other way to say "nowhere"
+//once a city has been prefilled for you.
+Future<void> _editCity(BuildContext context) async {
+  final text = AppLocalizations.of(context)!;
+  final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+  final current = profileProvider.currentUser?.city ?? '';
+  final controller = TextEditingController(text: current);
+
+  final result = await showDialog<String>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(text.placeOfResidence),
+      content: TextField(
+        controller: controller,
+        autofocus: true,
+        maxLength: 60,
+        textCapitalization: TextCapitalization.words,
+        decoration: InputDecoration(hintText: text.locationHint),
+      ),
+      actions: [
+        if (current.isNotEmpty)
+          TextButton(
+            //'' is the clear signal all the way down: updateLocalUser turns it
+            //into null locally and the backend turns it into NULL
+            onPressed: () => Navigator.pop(dialogContext, ''),
+            child: Text(text.clear),
+          ),
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext),
+          child: Text(text.cancel),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext, controller.text),
+          child: Text(text.save),
+        ),
+      ],
+    ),
+  );
+
+  //null means dismissed - leave it alone
+  if (result == null) return;
+  final trimmed = result.trim();
+  if (trimmed == current) return;
+
+  final uid = profileProvider.currentUser?.uid;
+  if (uid == null) return;
+
+  //local first so the row updates immediately, then the backend
+  profileProvider.updateLocalUser(city: trimmed);
+  await ApiService.updateUserData(uid: uid, city: trimmed);
 }
 
 //A row that shows a value but cannot be tapped: same metrics as NavRow so it

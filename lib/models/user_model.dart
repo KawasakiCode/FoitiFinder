@@ -17,6 +17,9 @@ class UserModel{
   final DateTime? birthday;
   //centimetres
   final int? heightCm;
+  //place of residence. Prefilled from the university's city at signup
+  //(constants/university_domains.dart) and editable afterwards.
+  final String? city;
   final String? imageUrl;
   final String? gender;
   final int? minAgeRange;
@@ -39,6 +42,7 @@ class UserModel{
     this.bio,
     this.birthday,
     this.heightCm,
+    this.city,
     this.imageUrl,
     this.gender, 
     this.minAgeRange,
@@ -59,6 +63,7 @@ class UserModel{
           ? null
           : DateTime.parse(json['birthday'] as String),
       heightCm: json['height_cm'],
+      city: json['city'],
       imageUrl: json['profile_picture'],
       gender: json['gender'],
       minAgeRange: json['min_age_range'],
@@ -81,6 +86,7 @@ class UserModel{
       //trip through SharedPreferences unchanged
       'birthday': birthday?.toIso8601String().split('T').first,
       'height_cm': heightCm,
+      'city': city,
       'profile_picture': imageUrl,
       'gender': gender,
       'min_age_range': minAgeRange,

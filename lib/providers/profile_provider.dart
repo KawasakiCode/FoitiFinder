@@ -132,6 +132,7 @@ class ProfileProvider extends ChangeNotifier {
     String? bio,
     DateTime? birthday,
     int? heightCm,
+    String? city,
     String? imageUrl,
     String? gender,
     int? minAgeRange,
@@ -153,6 +154,7 @@ class ProfileProvider extends ChangeNotifier {
         bio: bio,
         birthday: birthday,
         heightCm: heightCm,
+        city: city,
         imageUrl: imageUrl,
         gender: gender,
         minAgeRange: minAgeRange,
@@ -173,6 +175,7 @@ class ProfileProvider extends ChangeNotifier {
           fullName: fullName,
           birthday: birthday,
           heightCm: heightCm,
+          city: city,
           imageUrl: imageUrl,
           gender: gender,
           minAgeRange: minAgeRange,
@@ -200,6 +203,7 @@ class ProfileProvider extends ChangeNotifier {
     String? bio,
     DateTime? birthday,
     int? heightCm,
+    String? city,
     String? imageUrl,
     bool? hasFinishedSetUp,
     double? score,
@@ -217,6 +221,11 @@ class ProfileProvider extends ChangeNotifier {
       bio: bio ?? _currentUser!.bio,
       birthday: birthday ?? _currentUser!.birthday,
       heightCm: heightCm ?? _currentUser!.heightCm,
+      //null means "not being changed"; an empty string means "cleared", and is
+      //normalised to null so local state matches what the backend stores
+      city: city == null
+          ? _currentUser!.city
+          : (city.isEmpty ? null : city),
       imageUrl: imageUrl ?? _currentUser!.imageUrl,
     );
 
