@@ -38,10 +38,21 @@ class AppTheme {
       onSurface: textPrimary,
       surfaceTint: Colors.transparent,
       error: AppColors.error,
-      //the "card" colour used by the settings cards: white on the gray light
-      //canvas, and a dark gray (low contrast with near-black) in dark mode.
+      //THE CARD COLOUR - and all five of its neighbours.
+      //
+      //fromSeed generates the whole surfaceContainer ramp by TINTING the seed,
+      //so with a violet seed every one of these is a lavender grey. Pinning
+      //only surfaceContainerHighest left the other four tinted, and any widget
+      //that reaches for one of them (AlertDialog uses surfaceContainerHigh,
+      //BottomSheet uses surfaceContainerLow) renders visibly blue against our
+      //neutral cards. They all resolve to the same neutral now, so there is no
+      //tinted surface anywhere in the scheme to leak through.
+      surfaceContainerLowest: isDark ? const Color(0xFF101010) : Colors.white,
+      surfaceContainerLow: isDark ? const Color(0xFF141414) : Colors.white,
+      surfaceContainer: isDark ? const Color(0xFF141414) : Colors.white,
+      surfaceContainerHigh: isDark ? const Color(0xFF181818) : Colors.white,
       surfaceContainerHighest:
-          isDark ? const Color(0xFF1A1A1E) : Colors.white,
+          isDark ? const Color(0xFF181818) : Colors.white,
     );
 
     return ThemeData(
@@ -263,7 +274,11 @@ class AppTheme {
       ),
 
       dialogTheme: DialogThemeData(
-        backgroundColor: surface,
+        //In dark mode the dialog sits ABOVE the cards rather than level with
+        //them (#202020 against their #1a1a1a). With a lighter scrim the cards
+        //no longer collapse to black, so the dialog needs its own separation
+        //instead of relying on everything behind it going dark.
+        backgroundColor: isDark ? const Color(0xFF202020) : surface,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.lg),

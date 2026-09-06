@@ -219,6 +219,8 @@ class _StoryRow extends StatelessWidget {
     final hasStory = story.isNotEmpty;
 
     return Material(
+      //instant, not lerped - see widgets/nav_row.dart
+      animationDuration: Duration.zero,
       color: theme.colorScheme.surfaceContainerHighest,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       clipBehavior: Clip.antiAlias,

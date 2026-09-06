@@ -63,10 +63,21 @@ class AppColors {
   static const Color lightTextSecondary = Color(0xFF6B6B74);
 
   // ---- Dark neutrals ----
-  static const Color darkBackground = Color(0xFF0A0A0B);
-  static const Color darkSurface = Color(0xFF161618);
-  static const Color darkSurfaceVariant = Color(0xFF222225);
-  static const Color darkBorder = Color(0xFF2A2A2E);
+  //
+  //TRUE NEUTRAL (R == G == B), not "tuned". These used to carry a few units of
+  //blue bias (#0A0A0B, #1A1A1E and so on), which is invisible at rest but not
+  //when a surface is DIMMED: darkening scales all three channels toward zero,
+  //so the ratio between them is preserved while the absolute values shrink,
+  //and a bias that was 4/255 at full brightness is proportionally a third of
+  //the signal at quarter brightness. That is what made every card flash blue
+  //while a dialog's barrier faded in over it - and why light mode never did,
+  //since white dimming toward grey has no hue to amplify.
+  //
+  //Keep these grey. A tint here is a tint that only shows up mid-animation.
+  static const Color darkBackground = Color(0xFF0A0A0A);
+  static const Color darkSurface = Color(0xFF141414);
+  static const Color darkSurfaceVariant = Color(0xFF202020);
+  static const Color darkBorder = Color(0xFF282828);
   static const Color darkTextPrimary = Color(0xFFFAFAFA);
   static const Color darkTextSecondary = Color(0xFFA1A1AA);
 }

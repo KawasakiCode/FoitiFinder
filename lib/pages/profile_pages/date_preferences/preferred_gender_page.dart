@@ -50,6 +50,8 @@ class _InterestPageState extends State<InterestPage> {
               Padding(
                 padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
                 child: Material(
+                  //instant, not lerped - see widgets/nav_row.dart
+                  animationDuration: Duration.zero,
                   color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   shape: RoundedRectangleBorder(
                     side: BorderSide.none,
@@ -93,6 +95,8 @@ class _InterestPageState extends State<InterestPage> {
               Padding(
                 padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
                 child: Material(
+                  //instant, not lerped - see widgets/nav_row.dart
+                  animationDuration: Duration.zero,
                   color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   shape: RoundedRectangleBorder(
                     side: BorderSide.none,
@@ -136,6 +140,8 @@ class _InterestPageState extends State<InterestPage> {
               Padding(
                 padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
                 child: Material(
+                  //instant, not lerped - see widgets/nav_row.dart
+                  animationDuration: Duration.zero,
                   color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   shape: RoundedRectangleBorder(
                     side: BorderSide.none,

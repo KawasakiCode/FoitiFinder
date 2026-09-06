@@ -246,6 +246,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 15),
                   child: Material(
+                    //instant, not lerped - see widgets/nav_row.dart
+                    animationDuration: Duration.zero,
                     color: Theme.of(context).colorScheme.surfaceContainerHighest,
                     shape: RoundedRectangleBorder(
                       side: BorderSide.none,

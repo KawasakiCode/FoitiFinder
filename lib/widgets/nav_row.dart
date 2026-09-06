@@ -63,6 +63,13 @@ class CardGroup extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15),
       child: Material(
+        //Material lerps its colour over kThemeChangeDuration whenever the
+        //resolved value changes, so any momentary theme difference during a
+        //route transition is ANIMATED THROUGH rather than applied instantly -
+        //which is what turns a colour blip into a visible sweep. These cards
+        //never intentionally change colour, so nothing is lost by making the
+        //change instant.
+        animationDuration: Duration.zero,
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         shape: RoundedRectangleBorder(
           side: BorderSide.none,

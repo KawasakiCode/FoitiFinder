@@ -18,6 +18,24 @@ import 'package:flutter/material.dart';
 const Duration _kEnterDuration = Duration(milliseconds: 300);
 const Duration _kExitDuration = Duration(milliseconds: 180);
 
+//THE SCRIM IS LIGHTER IN DARK MODE, and it has to be.
+//
+//A scrim dims by scaling every channel toward zero, so how much room a surface
+//has to darken depends on how light it already is. In light mode 54% black
+//takes a white card to #757575 - obviously dimmed, still obviously a card. In
+//dark mode the same 54% takes a #1a1a1a card to #0c0c0c, indistinguishable
+//from the near-black canvas: the cards do not dim, they vanish, and the page
+//loses its structure the moment a dialog opens.
+//
+//The two numbers are coupled: the darker the cards are at rest, the less room
+//they have to dim before hitting black, so the dark scrim has to be gentler.
+//35% lands the current #181818 card on #101010 - the same dimmed value the
+//old lighter card reached at 40%, so the dimmed look is unchanged while the
+//resting cards are darker. Push the cards darker again and this has to drop
+//again; eventually there is nothing left to give.
+const double _kBarrierOpacityLight = 0.54;
+const double _kBarrierOpacityDark = 0.35;
+
 Future<T?> showAppDialog<T>({
   required BuildContext context,
   required WidgetBuilder builder,
@@ -28,6 +46,8 @@ Future<T?> showAppDialog<T>({
   //against the navigator's context, which sits above this one - without
   //carrying the theme across, a dialog pushed on the root navigator can lose
   //the surrounding theme.
+  final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
   final CapturedThemes themes = InheritedTheme.capture(
     from: context,
     to: Navigator.of(context, rootNavigator: useRootNavigator).context,
@@ -40,6 +60,9 @@ Future<T?> showAppDialog<T>({
       barrierDismissible: barrierDismissible,
       barrierLabel:
           MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      barrierColor: Colors.black.withValues(
+        alpha: isDark ? _kBarrierOpacityDark : _kBarrierOpacityLight,
+      ),
     ),
   );
 }
@@ -52,9 +75,10 @@ class _AppDialogRoute<T> extends RawDialogRoute<T> {
     required WidgetBuilder builder,
     required super.barrierDismissible,
     required String barrierLabel,
+    required Color barrierColor,
   }) : super(
           barrierLabel: barrierLabel,
-          barrierColor: Colors.black54,
+          barrierColor: barrierColor,
           transitionDuration: _kEnterDuration,
           pageBuilder: (dialogContext, _, _) =>
               themes.wrap(builder(dialogContext)),
