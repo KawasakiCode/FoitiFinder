@@ -17,6 +17,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/widgets/app_dialog.dart';
 
 class DeleteAccountPage extends StatefulWidget {
   const DeleteAccountPage({super.key});
@@ -66,7 +67,7 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
     try {
       // Show loading indicator
       if (!context.mounted) return;
-      showDialog(
+      showAppDialog(
         context: context,
         barrierDismissible: false,
         builder: (context) => Center(

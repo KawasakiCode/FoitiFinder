@@ -16,6 +16,7 @@ import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/utils/age.dart';
 import 'package:provider/provider.dart';
 import 'package:foitifinder/dummy_user_data.dart';
+import 'package:foitifinder/widgets/app_dialog.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -80,7 +81,7 @@ class _ProfilePageState extends State<ProfilePage> {
   //document, and a whole screen for five links is more navigation than the
   //content deserves.
   Future<void> _showPolicies() async {
-    final chosen = await showDialog<String>(
+    final chosen = await showAppDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(text.policies),

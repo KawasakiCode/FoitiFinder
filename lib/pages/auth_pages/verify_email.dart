@@ -16,6 +16,7 @@ import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/loading_overlay.dart';
 import 'package:provider/provider.dart';
+import 'package:foitifinder/widgets/app_dialog.dart';
 
 class VerifyEmail extends StatefulWidget {
   const VerifyEmail({super.key});
@@ -123,7 +124,7 @@ class _VerifyEmailState extends State<VerifyEmail> with WidgetsBindingObserver {
 
   //The escape button is destructive now, so confirm before deleting.
   Future<void> _confirmAndDelete() async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showAppDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(text.sureDeleteAccount),
@@ -199,7 +200,7 @@ class _VerifyEmailState extends State<VerifyEmail> with WidgetsBindingObserver {
   //Prompt for the account password to re-authenticate before deletion.
   Future<String?> _promptPassword() async {
     final controller = TextEditingController();
-    final password = await showDialog<String>(
+    final password = await showAppDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(text.securityCheck),

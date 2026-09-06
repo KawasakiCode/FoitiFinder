@@ -14,6 +14,7 @@ import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/models/photos_model.dart';
 import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/widgets/pressable.dart';
+import 'package:foitifinder/widgets/app_dialog.dart';
 
 class PhotoStoriesPage extends StatefulWidget {
   const PhotoStoriesPage({super.key});
@@ -70,7 +71,7 @@ class _PhotoStoriesPageState extends State<PhotoStoriesPage> {
     final controller = TextEditingController(text: photo.story ?? '');
     final hadStory = (photo.story ?? '').isNotEmpty;
 
-    final result = await showDialog<String>(
+    final result = await showAppDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(hadStory ? text.editStory : text.addStory),

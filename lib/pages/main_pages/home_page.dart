@@ -10,6 +10,7 @@ import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/animated_swipe_button.dart';
 import 'package:foitifinder/widgets/photo_card.dart';
+import 'package:foitifinder/widgets/app_dialog.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({
@@ -172,7 +173,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
     if(isMatch) {
       if(!mounted)return;
-      showDialog(
+      showAppDialog(
         context: context,
         builder: (context) => AlertDialog(
           title: Text(text.itsAMatch),
@@ -202,7 +203,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
     if(isMatch) {
       if(!mounted)return;
-      showDialog(
+      showAppDialog(
         context: context,
         builder: (context) => AlertDialog(
           title: Text(text.itsAMatch),

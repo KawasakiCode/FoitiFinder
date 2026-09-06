@@ -12,13 +12,14 @@ import 'package:flutter/material.dart';
 import 'package:foitifinder/constants/profile_options.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/l10n/catalogue_labels.dart';
+import 'package:foitifinder/widgets/app_dialog.dart';
 
 Future<List<String>?> showChoiceDialog(
   BuildContext context, {
   required ProfileChoice choice,
   List<String> initialSelected = const [],
 }) {
-  return showDialog<List<String>>(
+  return showAppDialog<List<String>>(
     context: context,
     builder: (_) => _ChoiceDialog(choice: choice, initial: initialSelected),
   );

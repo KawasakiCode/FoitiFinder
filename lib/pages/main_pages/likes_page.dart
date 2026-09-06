@@ -10,6 +10,7 @@ import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/animated_swipe_button.dart';
 import 'package:foitifinder/widgets/photo_card.dart';
+import 'package:foitifinder/widgets/app_dialog.dart';
 
 class LikesPage extends StatefulWidget {
   const LikesPage({super.key});
@@ -119,7 +120,7 @@ class LikesPageState extends State<LikesPage> {
                                 );
                                 if (isMatch) {
                                   if (!context.mounted) return;
-                                  await showDialog(
+                                  await showAppDialog(
                                     context: context,
                                     builder: (context) => AlertDialog(
                                       title: Text(text.itsAMatch),

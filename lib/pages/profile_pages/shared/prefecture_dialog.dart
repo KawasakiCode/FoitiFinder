@@ -20,12 +20,13 @@ import 'package:foitifinder/constants/greek_prefectures.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/l10n/catalogue_labels.dart';
 import 'package:foitifinder/widgets/pressable.dart';
+import 'package:foitifinder/widgets/app_dialog.dart';
 
 Future<String?> showPrefectureDialog(
   BuildContext context, {
   String? initialSelected,
 }) {
-  return showDialog<String>(
+  return showAppDialog<String>(
     context: context,
     builder: (_) => _PrefectureDialog(initialSelected: initialSelected),
   );
