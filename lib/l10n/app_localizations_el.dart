@@ -184,12 +184,6 @@ class AppLocalizationsEl extends AppLocalizations {
       'Στάλθηκε email επαναφοράς κωδικού. Παρακαλώ ελέγξτε το email σας.';
 
   @override
-  String get fullName => 'Ονοματεπώνυμο';
-
-  @override
-  String get username => 'Όνομα Χρήστη';
-
-  @override
   String get signUpLongText =>
       'Με την εγγραφή σας, συμφωνείτε με τους όρους χρήσης και την Πολιτική Απορρήτου που δημιουργήθηκαν από AI. Μάθετε πώς κλέβουμε τα δεδομένα σας και τα πουλάμε σε ύποπτες εταιρείες πολλών δισεκατομμυρίων ';
 
@@ -321,11 +315,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get lostInternet => 'Είστε εκτός σύνδεσης';
 
   @override
-  String get usernameRestrictions =>
-      'Το όνομα χρήστη πρέπει να έχει από 3 έως 20 χαρακτήρες και να περιέχει μόνο γράμματα, αριθμούς και κάτω παύλες';
-
-  @override
-  String get fullNameRestriction =>
+  String get nameRestriction =>
       'Το ονοματεπώνυμο μπορεί να περιέχει μόνο γράμματα, κενά, παύλες και αποστρόφους και να ξεκινάει με γράμμα';
 
   @override

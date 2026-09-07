@@ -422,18 +422,6 @@ abstract class AppLocalizations {
   /// **'Password reset email sent. Please check your email.'**
   String get passwordResetEmail;
 
-  /// No description provided for @fullName.
-  ///
-  /// In en, this message translates to:
-  /// **'Full Name'**
-  String get fullName;
-
-  /// No description provided for @username.
-  ///
-  /// In en, this message translates to:
-  /// **'Username'**
-  String get username;
-
   /// No description provided for @signUpLongText.
   ///
   /// In en, this message translates to:
@@ -674,17 +662,11 @@ abstract class AppLocalizations {
   /// **'You are offline'**
   String get lostInternet;
 
-  /// No description provided for @usernameRestrictions.
-  ///
-  /// In en, this message translates to:
-  /// **'Usernames must be between 3 and 20 characters and use only letters, numbers and underscores'**
-  String get usernameRestrictions;
-
-  /// No description provided for @fullNameRestriction.
+  /// No description provided for @nameRestriction.
   ///
   /// In en, this message translates to:
   /// **'Full Names can only contain letters, spaces, dashes and apostrophes and begin with a letter'**
-  String get fullNameRestriction;
+  String get nameRestriction;
 
   /// No description provided for @resendIn.
   ///

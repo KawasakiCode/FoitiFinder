@@ -9,8 +9,8 @@
 class UserModel{
   final int? id;
   final String uid;
-  //The ONE name. Was a username plus a separate full name; a dating profile
-  //has no use for a handle, so they collapsed into this.
+  //The one and only name. A dating profile has no use for a handle: nothing
+  //looks anyone up and nothing is @-mentioned, so there is no second field.
   final String name;
   final String? bio;
   //the stored truth. Age is DERIVED from this (utils/age.dart) so it can
@@ -53,15 +53,7 @@ class UserModel{
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel ( 
       uid: json['firebase_token'] ?? (throw Exception("Critical: uid missing")),
-      //full_name / username are the OLD keys. Every user upgrading from a
-      //previous build has a SharedPreferences cache written with those, and
-      //throwing here would wipe it - which SetupWrapper reads as "this account
-      //does not exist" and signs them out. Read the old keys as a fallback so
-      //an upgrade is invisible; they disappear on the next save.
-      name: json['name'] ??
-          json['full_name'] ??
-          json['username'] ??
-          (throw Exception("Critical: name missing")),
+      name: json['name'] ?? (throw Exception("Critical: name missing")),
       hasFinishedSetUp: json['has_finished_set_up'] ?? (throw Exception("Critical: finishedSetUp missing")),
       score: (json['score'] ?? 0).toDouble(),
       id: json['id'],

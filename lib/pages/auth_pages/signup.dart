@@ -80,7 +80,7 @@ class _SignUpPageState extends State<SignUpPage> {
     if(!nameRegex.hasMatch(name)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(text.fullNameRestriction),
+          content: Text(text.nameRestriction),
           backgroundColor: Colors.red,
           duration: Duration(seconds: 3),
         ),

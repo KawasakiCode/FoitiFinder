@@ -180,12 +180,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Password reset email sent. Please check your email.';
 
   @override
-  String get fullName => 'Full Name';
-
-  @override
-  String get username => 'Username';
-
-  @override
   String get signUpLongText =>
       'By signing up, you agree to our AI generated terms of service and Privacy Policy. Learn how we steal your data and sell them to shady multibillion dollar companies ';
 
@@ -315,11 +309,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lostInternet => 'You are offline';
 
   @override
-  String get usernameRestrictions =>
-      'Usernames must be between 3 and 20 characters and use only letters, numbers and underscores';
-
-  @override
-  String get fullNameRestriction =>
+  String get nameRestriction =>
       'Full Names can only contain letters, spaces, dashes and apostrophes and begin with a letter';
 
   @override
