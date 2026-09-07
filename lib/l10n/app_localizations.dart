@@ -3139,6 +3139,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No results'**
   String get noResults;
+
+  /// No description provided for @name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get name;
 }
 
 class _AppLocalizationsDelegate

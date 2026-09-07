@@ -1,4 +1,4 @@
-//Provider that loads the profile of the user (profile picture username, age)
+//Provider that loads the profile of the user (profile picture, name, age)
 //only used for profile related variables
 
 import 'dart:convert';
@@ -50,10 +50,16 @@ class ProfileProvider extends ChangeNotifier {
         Map<String, dynamic> userMap = jsonDecode(userJson);
         _currentUser = UserModel.fromJson(userMap);
       } catch (e) {
+        //Unreadable cache (corrupt, or written by a build whose shape we can
+        //no longer parse). Dropping it was not enough on its own: _currentUser
+        //stayed null, and SetupWrapper reads a null user with no load error as
+        //"this account is gone" and signs out. Fall through to the network so
+        //a bad cache costs one request instead of the user's session.
         _prefs.remove('user_data');
       }
     }
-    else {
+
+    if (_currentUser == null) {
       final resolvedUid = uid ?? FirebaseAuth.instance.currentUser?.uid;
       if(resolvedUid != null) {
         //await so currentUser is actually populated before callers read it
@@ -124,11 +130,10 @@ class ProfileProvider extends ChangeNotifier {
   //Register new user on sign up
   Future<void> registerUser({
     required String uid,
-    required String username,
+    required String name,
     required bool hasFinishedSetUp,
     required bool hasPhotos,
     required double score,
-    String? fullName,
     String? bio,
     DateTime? birthday,
     int? heightCm,
@@ -147,8 +152,7 @@ class ProfileProvider extends ChangeNotifier {
       //flight (a GET would 404 until the POST commits).
       _currentUser = UserModel(
         uid: uid,
-        username: username,
-        fullName: fullName,
+        name: name,
         hasFinishedSetUp: hasFinishedSetUp,
         score: score,
         bio: bio,
@@ -168,11 +172,10 @@ class ProfileProvider extends ChangeNotifier {
       try {
         await ApiService.createUser(
           uid: uid,
-          username: username,
+          name: name,
           hasFinishedSetUp: hasFinishedSetUp,
           score: score,
           bio: bio,
-          fullName: fullName,
           birthday: birthday,
           heightCm: heightCm,
           city: city,
@@ -198,8 +201,7 @@ class ProfileProvider extends ChangeNotifier {
 
   //Update users data (sync with database)
   void updateLocalUser({
-    String? username,
-    String? fullName,
+    String? name,
     String? bio,
     DateTime? birthday,
     int? heightCm,
@@ -213,8 +215,7 @@ class ProfileProvider extends ChangeNotifier {
 
     _currentUser = UserModel(  
       uid: _currentUser!.uid,
-      username: username ?? _currentUser!.username,
-      fullName: fullName ?? _currentUser!.fullName,
+      name: name ?? _currentUser!.name,
       hasFinishedSetUp: hasFinishedSetUp ?? _currentUser!.hasFinishedSetUp,
       score: score ?? _currentUser!.score,
       hasPhotos: hasPhotos ?? _currentUser!.hasPhotos,

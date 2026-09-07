@@ -4,13 +4,13 @@
 
 class LikerModel {
   final int id;
-  final String username;
+  final String name;
   final int age;
   final String imageUrl;
 
   LikerModel({
     required this.id,
-    required this.username,
+    required this.name,
     required this.age,
     required this.imageUrl, 
   });
@@ -18,7 +18,7 @@ class LikerModel {
   factory LikerModel.fromJson(Map<String, dynamic> json) {
     return LikerModel(  
       id: json['id'],
-      username: json['username'],
+      name: json['name'],
       age: json['age'] ?? 18,
       imageUrl: json['image_url'] ?? "https://picsum.photos/200"
     );

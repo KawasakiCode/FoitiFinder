@@ -165,7 +165,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     //capture the card before the animation advances currentIndex
     final card = cards[currentIndex];
     //animate first, register after: the card must never wait on the network
-    _animateCardOut(1.0, card.username, true, fromButton: fromButton);
+    _animateCardOut(1.0, card.name, true, fromButton: fromButton);
     bool isMatch = false;
     try {
       isMatch = await ApiService.registerSwipe(FirebaseAuth.instance.currentUser!.uid, card.id, "like");
@@ -177,7 +177,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         context: context,
         builder: (context) => AlertDialog(
           title: Text(text.itsAMatch),
-          content: Text("${text.matchText1}${card.username}${text.matchText2}"),
+          content: Text("${text.matchText1}${card.name}${text.matchText2}"),
         )
       );
     }
@@ -187,7 +187,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     final card = cards[currentIndex];
     //animate immediately so the X button / left swipe never gets stuck on a
     //slow or failing backend call, then register the pass in the background
-    _animateCardOut(-1.0, card.username, false, fromButton: fromButton);
+    _animateCardOut(-1.0, card.name, false, fromButton: fromButton);
     try {
       await ApiService.registerSwipe(FirebaseAuth.instance.currentUser!.uid, card.id, "pass");
     } catch (_) {}
@@ -195,7 +195,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   void _swipeUp({bool fromButton = false}) async {
     final card = cards[currentIndex];
-    _animateCardOut(0.0, card.username, true, fromButton: fromButton, isSuperLike: true);
+    _animateCardOut(0.0, card.name, true, fromButton: fromButton, isSuperLike: true);
     bool isMatch = false;
     try {
       isMatch = await ApiService.registerSwipe(FirebaseAuth.instance.currentUser!.uid, card.id, "super_like");
@@ -207,7 +207,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         context: context,
         builder: (context) => AlertDialog(
           title: Text(text.itsAMatch),
-          content: Text("${text.matchText1}${card.username}${text.matchText2}"),
+          content: Text("${text.matchText1}${card.name}${text.matchText2}"),
         )
       );
     }

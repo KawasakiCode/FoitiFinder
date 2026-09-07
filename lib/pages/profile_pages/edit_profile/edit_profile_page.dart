@@ -1,5 +1,5 @@
 //Edit profile page where user can change the following:
-//bio, age, fullName, username, photos
+//bio, birthday, name, photos
 
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';

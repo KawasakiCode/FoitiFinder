@@ -125,7 +125,7 @@ class LikesPageState extends State<LikesPage> {
                                     builder: (context) => AlertDialog(
                                       title: Text(text.itsAMatch),
                                       content: Text(
-                                        "${text.matchText1}${_likes[index].username}${text.matchText2}",
+                                        "${text.matchText1}${_likes[index].name}${text.matchText2}",
                                       ),
                                     ),
                                   );
@@ -204,7 +204,7 @@ class LikesPageState extends State<LikesPage> {
                             child: Align(
                               alignment: Alignment.bottomLeft,
                               child: Text(
-                                "${_likes[index].username}, ${_likes[index].age}",
+                                "${_likes[index].name}, ${_likes[index].age}",
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w600,

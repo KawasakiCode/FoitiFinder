@@ -1561,4 +1561,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get noResults => 'Κανένα αποτέλεσμα';
+
+  @override
+  String get name => 'Όνομα';
 }

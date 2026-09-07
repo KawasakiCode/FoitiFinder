@@ -9,8 +9,9 @@
 class UserModel{
   final int? id;
   final String uid;
-  final String username;
-  final String? fullName;
+  //The ONE name. Was a username plus a separate full name; a dating profile
+  //has no use for a handle, so they collapsed into this.
+  final String name;
   final String? bio;
   //the stored truth. Age is DERIVED from this (utils/age.dart) so it can
   //never go stale the way an age column does.
@@ -33,8 +34,7 @@ class UserModel{
 
   UserModel({
     required this.uid,
-    required this.username,
-    required this.fullName,
+    required this.name,
     required this.hasFinishedSetUp,
     required this.hasPhotos,
     required this.score,
@@ -53,10 +53,17 @@ class UserModel{
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel ( 
       uid: json['firebase_token'] ?? (throw Exception("Critical: uid missing")),
-      username: json['username'] ?? (throw Exception("Critical: username missing")),
+      //full_name / username are the OLD keys. Every user upgrading from a
+      //previous build has a SharedPreferences cache written with those, and
+      //throwing here would wipe it - which SetupWrapper reads as "this account
+      //does not exist" and signs them out. Read the old keys as a fallback so
+      //an upgrade is invisible; they disappear on the next save.
+      name: json['name'] ??
+          json['full_name'] ??
+          json['username'] ??
+          (throw Exception("Critical: name missing")),
       hasFinishedSetUp: json['has_finished_set_up'] ?? (throw Exception("Critical: finishedSetUp missing")),
       score: (json['score'] ?? 0).toDouble(),
-      fullName: json['full_name'],
       id: json['id'],
       bio: json['bio'],
       birthday: json['birthday'] == null
@@ -76,10 +83,9 @@ class UserModel{
   Map<String, dynamic> toMap() {
     return {
       'firebase_token': uid,
-      'username': username,
+      'name': name,
       'has_finished_set_up': hasFinishedSetUp,
       'score' : score,
-      'full_name': fullName,
       'id': id,
       'bio': bio,
       //date only, no time - matches the DATE column and survives a round

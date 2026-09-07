@@ -512,5 +512,6 @@
   "prefXanthi": "Xanthi",
   "prefZakynthos": "Zakynthos",
   "search": "Search",
-  "noResults": "No results"
+  "noResults": "No results",
+  "name": "Name"
 }

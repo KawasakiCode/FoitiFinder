@@ -27,16 +27,14 @@ class _SignUpPageState extends State<SignUpPage> {
   late TapGestureRecognizer _tapGestureRecognizer;
   late final TextEditingController _email;
   late final TextEditingController _password;
-  late final TextEditingController _fullName;
-  late final TextEditingController _username;
+  late final TextEditingController _name;
 
   @override
   void initState() {
     super.initState();
     _email = TextEditingController();
     _password = TextEditingController();
-    _fullName = TextEditingController();
-    _username = TextEditingController();
+    _name = TextEditingController();
     _tapGestureRecognizer = TapGestureRecognizer()
       ..onTap = () async {
         final url = Uri.parse('https://google.com');
@@ -51,8 +49,7 @@ class _SignUpPageState extends State<SignUpPage> {
     _tapGestureRecognizer.dispose();
     _email.dispose();
     _password.dispose();
-    _fullName.dispose();
-    _username.dispose();
+    _name.dispose();
     super.dispose();
   }
 
@@ -61,16 +58,14 @@ class _SignUpPageState extends State<SignUpPage> {
     UserCredential? userCredential;
     final email = _email.text.trim();
     final password = _password.text;
-    final username = _username.text;
-    final fullName = _fullName.text;
+    final name = _name.text;
 
     //Restrictions
     final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
-    final usernameRegex = RegExp(r'^[a-zA-Z0-9][a-zA-Z0-9_]{2,19}$');
     final nameRegex = RegExp(r"^(?=.*[a-zA-Z])[a-zA-Z\s\-']+$");
 
     //Empty fields check
-    if (email.isEmpty || password.isEmpty || username.isEmpty || fullName.isEmpty) {
+    if (email.isEmpty || password.isEmpty || name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(text.emptyFields),
@@ -82,19 +77,7 @@ class _SignUpPageState extends State<SignUpPage> {
     }
 
     //Username validity check
-    if (!usernameRegex.hasMatch(username)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(text.usernameRestrictions),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
-        ),
-      );
-      return;
-    }
-
-    //Full Name validity check
-    if(!nameRegex.hasMatch(fullName)) {
+    if(!nameRegex.hasMatch(name)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(text.fullNameRestriction),
@@ -159,8 +142,7 @@ class _SignUpPageState extends State<SignUpPage> {
       //and if a user signs up obviously has no photos or finished setup
       await Provider.of<ProfileProvider>(context, listen: false).registerUser(
         uid: newUid,
-        username: username,
-        fullName: fullName,
+        name: name,
         hasFinishedSetUp: false,
         hasPhotos: false,
         bio: null,
@@ -393,34 +375,22 @@ class _SignUpPageState extends State<SignUpPage> {
                               },
                             ),
                           ),
-                          //full name field
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8),
-                            child: TextFormField(
-                              decoration: InputDecoration(
-                                hintText: text.fullName,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(12),
-                                  ),
-                                ),
-                              ),
-                              controller: _fullName,
-                            ),
-                          ),
-                          //username field
+                          //name field - the only one. There is no separate
+                          //username: nothing in the app looks anyone up by a
+                          //handle, so it was a second thing to invent for no
+                          //purpose.
                           Padding(
                             padding: const EdgeInsets.only(top: 8, bottom: 8),
                             child: TextFormField(
                               decoration: InputDecoration(
-                                hintText: text.username,
+                                hintText: text.name,
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.all(
                                     Radius.circular(12),
                                   ),
                                 ),
                               ),
-                              controller: _username,
+                              controller: _name,
                             ),
                           ),
                           //sign up long text

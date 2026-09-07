@@ -1,6 +1,6 @@
 //Account Settings: the account itself rather than the profile others see.
 //
-//The identity fields (username, full name, gender, birthday, height, place of
+//The identity fields (name, gender, birthday, height, place of
 //residence, education) moved here from the edit profile page, which is now
 //purely about what other people look at - photos, stories, tags, prompts.
 //
@@ -51,13 +51,8 @@ class AccountSettingsPage extends StatelessWidget {
               dividers: true,
               children: [
                 NavRow(
-                  label: text.username,
-                  trailing: user?.username ?? '',
-                  onTap: () {},
-                ),
-                NavRow(
-                  label: text.fullName,
-                  trailing: user?.fullName ?? '',
+                  label: text.name,
+                  trailing: user?.name ?? '',
                   onTap: () {},
                 ),
                 //pushes its own page - more options than a dialog holds

@@ -8,8 +8,7 @@ from datetime import date, datetime
 #a caller can only ever create/modify their own row. It is returned in the User
 #response below, but never read from a request body.
 class UserBase(BaseModel):
-    username: str
-    full_name: str
+    name: str
     profile_picture: str | None = None
     bio: str | None = None
     birthday: date | None = None
@@ -49,8 +48,7 @@ class UserBase(BaseModel):
 
 #for patch endpoints to update a single attribute without needing the others too
 class UserUpdate(BaseModel):
-    username: str | None = None
-    full_name: str | None = None
+    name: str | None = None
     profile_picture: str | None = None
     bio: str | None = None
     birthday: date | None = None
@@ -109,7 +107,7 @@ class UserCreate(UserBase):
 #class when getting user data for the deck of cards
 class UserCardResponse(BaseModel):
     id: int
-    username: str
+    name: str
     age: Optional[int] = None
     bio: Optional[str] = None
     photos: List[str] = []

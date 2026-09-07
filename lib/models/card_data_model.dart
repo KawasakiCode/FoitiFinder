@@ -3,7 +3,7 @@
 
 class CardData {
   int id;
-  String username;
+  String name;
   String? bio;
   int? age;
   List<String> photos;
@@ -11,7 +11,7 @@ class CardData {
 
   CardData({
     required this.id,
-    required this.username,
+    required this.name,
     required this.bio,
     required this.age,
     this.photos = const [],
@@ -20,7 +20,7 @@ class CardData {
   factory CardData.fromPostgresRow(Map<String, dynamic> row) {
     return CardData(  
       id: row['id'],
-      username: row['username'],
+      name: row['name'],
       bio: row['bio'],
       age: row['age'],
       photos: (row['photos'] as List?) 

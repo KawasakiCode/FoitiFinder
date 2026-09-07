@@ -44,8 +44,7 @@ class ApiService {
   //Create new user (only runs on sign up)
   static Future<void> createUser({
     required String uid,
-    required String username,
-    required String? fullName,
+    required String name,
     required String? bio,
     required DateTime? birthday,
     required int? heightCm,
@@ -67,8 +66,7 @@ class ApiService {
         url,
         headers: await _authHeaders(),
         body: jsonEncode({
-          "username": username,
-          "full_name": fullName,
+          "name": name,
           "has_finished_set_up": hasFinishedSetUp,
           "bio": bio,
           "birthday": birthday?.toIso8601String().split('T').first,
@@ -99,8 +97,7 @@ class ApiService {
   //Update user data
   static Future<void> updateUserData({
     required String uid,
-    String? username,
-    String? fullName,
+    String? name,
     bool? hasFinishedSetUp,
     String? bio,
     DateTime? birthday,
@@ -117,8 +114,7 @@ class ApiService {
 
     final Map<String, dynamic> data = {};
 
-    if (username != null) data['username'] = username;
-    if (fullName != null) data['full_name'] = fullName;
+    if (name != null) data['name'] = name;
     if (hasFinishedSetUp != null) data['has_finished_set_up'] = hasFinishedSetUp;
     if (bio != null) data['bio'] = bio;
     if (birthday != null) {

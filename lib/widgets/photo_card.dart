@@ -98,7 +98,7 @@ class _PhotoCardState extends State<PhotoCard> {
               ),
               errorWidget:(context, url, error) => Container(color: Colors.grey),
             ),
-            //second layer a black gradient so username clearly shows
+            //second layer a black gradient so the name clearly shows
             Container(
               decoration: BoxDecoration(  
                 gradient: LinearGradient(  
@@ -155,7 +155,7 @@ class _PhotoCardState extends State<PhotoCard> {
                 })
               ),
             ),
-            //fifth layer the username, age and bio of the user if they exist
+            //fifth layer the name, age and bio of the user if they exist
             Positioned(
               bottom: 20,
               left: 20,
@@ -166,7 +166,7 @@ class _PhotoCardState extends State<PhotoCard> {
                   widget.card.age != null 
                   ?
                   Text(
-                    '${widget.card.username}, ${widget.card.age}',
+                    '${widget.card.name}, ${widget.card.age}',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 26,
@@ -175,7 +175,7 @@ class _PhotoCardState extends State<PhotoCard> {
                     ),
                   )
                   : Text(
-                    widget.card.username,
+                    widget.card.name,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 26,

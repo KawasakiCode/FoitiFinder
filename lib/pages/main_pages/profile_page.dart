@@ -176,7 +176,7 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       body: Column(
         children: [
-          //Main row (pfp, username, age)
+          //Main row (pfp, name, age)
           Row(
             children: [
               //Pfp
@@ -215,7 +215,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           final age = ageFromBirthday(
                             profileProvider.currentUser!.birthday,
                           );
-                          final name = profileProvider.currentUser!.username;
+                          final name = profileProvider.currentUser!.name;
                           return Text(
                             age == null ? name : '$name, $age',
                             style: const TextStyle(

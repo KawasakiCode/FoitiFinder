@@ -8,8 +8,11 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key = True, nullable = False)
-    username = Column(String, nullable = False, index = True)
-    full_name = Column(String, nullable = False)
+    #ONE name field, not a username plus a real name. A dating profile is not
+    #an account handle - nobody searches for anyone here and nothing is @-
+    #mentioned, so a second identifier was a field to fill in for no purpose.
+    #Users put whatever they want people to call them.
+    name = Column(String, nullable = False, index = True)
     firebase_token = Column(String, unique = True, nullable = False)
     profile_picture = Column(String, unique = True, nullable = True)
     bio = Column(String, nullable = True)

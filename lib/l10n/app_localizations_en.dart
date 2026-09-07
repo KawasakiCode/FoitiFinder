@@ -1554,4 +1554,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noResults => 'No results';
+
+  @override
+  String get name => 'Name';
 }

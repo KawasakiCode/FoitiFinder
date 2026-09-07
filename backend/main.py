@@ -82,7 +82,7 @@ def current_uid(claims: dict = Depends(verified_claims)) -> str:
 #we dont return likes but data from the users that liked the currentuser
 class LikerProfile(BaseModel):
     id: int
-    username: str
+    name: str
     age: Optional[int] = None
     image_url: str
 
@@ -102,7 +102,7 @@ class UserPhotos(BaseModel):
 #class that is used to return to the frontend card data with photos
 class UserCards(BaseModel):
     id: int
-    username: str
+    name: str
     age: Optional[int] = None
     bio: Optional[str] = None
     photos: List[str] = []
@@ -159,8 +159,7 @@ def create_user(
         raise HTTPException(status_code = 400, detail="User already exists")
 
     new_user = models.User(
-        username = user.username,
-        full_name=user.full_name,
+        name = user.name,
         has_finished_set_up=user.has_finished_set_up,
         firebase_token=uid,
         profile_picture=user.profile_picture,
@@ -227,13 +226,13 @@ def update_user(user_update: schemas.UserUpdate, uid: str = Depends(verified_ema
 
     #make data into a dictionary
     #exclude_unset = True doesnt override data that are null 
-    #if updated_data username is null then it wont override the database value because of exclude_unset
+    #if updated_data name is null then it wont override the database value because of exclude_unset
     updated_data = user_update.model_dump(exclude_unset=True)
 
     #The app clears a free-text field by sending "", because a null would be
     #dropped by exclude_unset and read as "leave it alone". Store NULL for
     #those so "never set" and "cleared" are the same state in the database.
-    #Only fields the user is allowed to empty - username and full_name are
+    #Only fields the user is allowed to empty - name is
     #required and are validated before they ever get here.
     for key in ("city", "job", "volunteering", "occupation_other", "major"):
         if isinstance(updated_data.get(key), str) and not updated_data[key].strip():
@@ -316,7 +315,7 @@ def get_swipe_feed(uid: str = Depends(verified_email_uid), db: Session = Depends
         
         results.append({
             "id": user.id,
-            "username": user.username,
+            "name": user.name,
             "age": age_from_birthday(user.birthday),
             "bio": user.bio,
             "photos": photo_urls,
@@ -367,7 +366,7 @@ def get_likes(uid: str = Depends(verified_email_uid), db: Session = Depends(get_
     #all the people that liked me AFTER i passed on them
     liked_by_users = db.query(
         models.User.id,
-        models.User.username,
+        models.User.name,
         models.User.birthday,
         models.Photos.photo_url.label("image_url")
     ).join(
@@ -399,7 +398,7 @@ def get_likes(uid: str = Depends(verified_email_uid), db: Session = Depends(get_
     return [
         {
             "id": row.id,
-            "username": row.username,
+            "name": row.name,
             "age": age_from_birthday(row.birthday),
             "image_url": row.image_url,
         }
@@ -444,7 +443,7 @@ def get_matches(uid: str = Depends(verified_email_uid), db: Session = Depends(ge
         results.append({
             "match_id": match.id,
             "other_user_id": other_user.id,
-            "other_user_name": other_user.username,
+            "other_user_name": other_user.name,
             "image_url": other_user.profile_picture,
         })
 
@@ -667,7 +666,7 @@ def get_single_user(user_id: int, uid: str = Depends(verified_email_uid), db: Se
 
     return {
         "id": user.id,
-        "username": user.username,
+        "name": user.name,
         "age": age_from_birthday(user.birthday),
         "bio": user.bio,
         "photos": photos_urls,
