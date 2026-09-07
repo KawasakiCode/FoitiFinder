@@ -449,6 +449,23 @@ def get_matches(uid: str = Depends(verified_email_uid), db: Session = Depends(ge
 
     return results
 
+#Keep-alive target for an external pinger (UptimeRobot / cron-job.org), hit
+#every ~10 minutes so Render never reaches its 15-minute spin-down and users
+#stop paying the ~60s cold start.
+#
+#IT MUST NOT TOUCH THE DATABASE. No Depends(get_db), no query, nothing. Neon's
+#free plan allows ~400 compute hours a month and suspends after 5 minutes of
+#inactivity, so a ping that opens a connection would keep the compute awake
+#half of every hour - roughly 365 hours a month, almost the entire allowance
+#burnt on pings before a single real user. Over the limit Neon suspends the
+#project until the next billing period.
+#
+#So: Render stays warm, Neon sleeps normally and wakes only for real traffic
+#(transparently - see pool_pre_ping in database/database.py).
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
 #get users photos
 @app.get("/photos")
 def get_user_photos(uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
