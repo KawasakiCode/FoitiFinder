@@ -15,7 +15,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/utils/age.dart';
 import 'package:provider/provider.dart';
-import 'package:foitifinder/dummy_user_data.dart';
 import 'package:foitifinder/widgets/app_dialog.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -27,8 +26,6 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   AppLocalizations get text => AppLocalizations.of(context)!;
-
-  final dummy = DummyDataService();
 
   void _push(Widget page) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => page));
