@@ -199,6 +199,46 @@ class ProfileProvider extends ChangeNotifier {
       isLoading = false;
   }
 
+  //Show one change straight away, send it, and put the old value back if the
+  //backend refuses. Returns false on failure so the caller can say so.
+  //
+  //[read] and [write] pick out a SINGLE field, so a revert only ever touches
+  //that field: a different edit that succeeded in the meantime is left alone.
+  //The revert is also skipped when the field no longer holds this value, i.e.
+  //a newer edit of the same field has already replaced it.
+  Future<bool> saveField<T>({
+    required T Function(UserModel user) read,
+    required UserModel Function(UserModel user, T value) write,
+    required T value,
+    required Future<void> Function(String uid) send,
+  }) async {
+    final user = _currentUser;
+    if (user == null) return false;
+    final previous = read(user);
+
+    _setLocalUser(write(user, value));
+
+    try {
+      await send(user.uid);
+      return true;
+    } catch (_) {
+      final current = _currentUser;
+      //logged out, or someone else logged in, while the request was out
+      if (current == null || current.uid != user.uid) return false;
+      if (read(current) == value) {
+        _setLocalUser(write(current, previous));
+      }
+      return false;
+    }
+  }
+
+  void _setLocalUser(UserModel user) {
+    _currentUser = user;
+    notifyListeners();
+    //not awaited: the disk copy is only a cache, the screen must not wait on it
+    _prefs.setString('user_data', jsonEncode(user.toMap()));
+  }
+
   //Update users data (sync with database)
   void updateLocalUser({
     String? name,

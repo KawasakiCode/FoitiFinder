@@ -516,5 +516,10 @@
   "nonConforming": "Non-conforming",
   "cm": "cm",
   "invalidHeight": "Enter a height between {min} and {max} cm",
-  "@invalidHeight": {"placeholders": {"min": {"type": "int"}, "max": {"type": "int"}}}
+  "@invalidHeight": {"placeholders": {"min": {"type": "int"}, "max": {"type": "int"}}},
+  "lblWhatDoYouWant": "What do you want?",
+  "heightRange": "Height Range",
+  "showOutsideResidence": "Show people outside my place of residence",
+  "sectionTheirHabits": "Their habits",
+  "sectionWhatTheyWant": "What they want"
 }

@@ -3157,6 +3157,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter a height between {min} and {max} cm'**
   String invalidHeight(int min, int max);
+
+  /// No description provided for @lblWhatDoYouWant.
+  ///
+  /// In en, this message translates to:
+  /// **'What do you want?'**
+  String get lblWhatDoYouWant;
+
+  /// No description provided for @heightRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Height Range'**
+  String get heightRange;
+
+  /// No description provided for @showOutsideResidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Show people outside my place of residence'**
+  String get showOutsideResidence;
+
+  /// No description provided for @sectionTheirHabits.
+  ///
+  /// In en, this message translates to:
+  /// **'Their habits'**
+  String get sectionTheirHabits;
+
+  /// No description provided for @sectionWhatTheyWant.
+  ///
+  /// In en, this message translates to:
+  /// **'What they want'**
+  String get sectionWhatTheyWant;
 }
 
 class _AppLocalizationsDelegate

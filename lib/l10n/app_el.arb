@@ -515,5 +515,10 @@
   "woman": "Γυναίκα",
   "nonConforming": "Μη συμβατικό φύλο",
   "cm": "εκ.",
-  "invalidHeight": "Εισάγετε ύψος από {min} έως {max} εκ."
+  "invalidHeight": "Εισάγετε ύψος από {min} έως {max} εκ.",
+  "lblWhatDoYouWant": "Τι θέλεις;",
+  "heightRange": "Εύρος Ύψους",
+  "showOutsideResidence": "Εμφάνιση ατόμων εκτός του τόπου διαμονής μου",
+  "sectionTheirHabits": "Οι συνήθειές τους",
+  "sectionWhatTheyWant": "Τι θέλουν"
 }

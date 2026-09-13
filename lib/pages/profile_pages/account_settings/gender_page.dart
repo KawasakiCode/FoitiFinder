@@ -10,9 +10,10 @@
 //Man / Woman. "Non-conforming" is new: no preference maps to it yet, so for now
 //these profiles only appear to people whose preference is "Everyone".
 //
-//Saves itself: the PATCH happens here, so a failed request leaves the page
-//open with the choice still selected instead of silently losing it. Pops true
-//once saved, false when nothing changed.
+//SHOW FIRST, THEN SAVE. Tapping Save updates the account page and closes this
+//page immediately; the PATCH runs behind it. If the backend refuses, the old
+//gender comes back on the account page at the same moment the error snackbar
+//appears. Pops true when a change was made, false when nothing changed.
 
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
@@ -58,7 +59,6 @@ class _GenderPageState extends State<GenderPage> {
   AppLocalizations get text => AppLocalizations.of(context)!;
 
   String? _selected;
-  bool _saving = false;
 
   @override
   void initState() {
@@ -72,9 +72,12 @@ class _GenderPageState extends State<GenderPage> {
   }
 
   Future<void> _save() async {
+    //everything that needs context is read now: the page is closed before the
+    //request comes back
     final profile = Provider.of<ProfileProvider>(context, listen: false);
     final settings = Provider.of<SettingsProvider>(context, listen: false);
     final messenger = ScaffoldMessenger.of(context);
+    final errorMessage = text.errorOccured;
     final user = profile.currentUser;
     final selected = _selected;
     if (user == null || selected == null) return;
@@ -84,24 +87,28 @@ class _GenderPageState extends State<GenderPage> {
       return;
     }
 
-    setState(() => _saving = true);
-    try {
-      await ApiService.updateUserData(uid: user.uid, gender: selected);
-    } catch (_) {
-      if (!mounted) return;
-      setState(() => _saving = false);
-      messenger.showSnackBar(SnackBar(content: Text(text.errorOccured)));
-      return;
-    }
+    final previous = user.gender;
 
-    //local state only changes once the backend has the value
-    profile.updateLocalUser(gender: selected);
+    //updates the local user synchronously, before its first await
+    final saved = profile.saveField<String?>(
+      read: (u) => u.gender,
+      write: (u, value) => u.copyWith(gender: () => value),
+      value: selected,
+      send: (uid) => ApiService.updateUserData(uid: uid, gender: selected),
+    );
     //SettingsProvider keeps its own copy of the gender (used by the setup
-    //page), so it has to hear about the change too or it goes stale on disk
-    await settings.setLocalGender(selected);
+    //page), so it follows the same show-first, revert-on-failure rule
+    settings.setLocalGender(selected);
 
-    if (!mounted) return;
     Navigator.pop(context, true);
+
+    if (await saved) return;
+
+    //only undo the settings copy if nothing newer has replaced it
+    if (settings.gender == selected) {
+      settings.setLocalGender(previous ?? '');
+    }
+    messenger.showSnackBar(SnackBar(content: Text(errorMessage)));
   }
 
   @override
@@ -120,10 +127,7 @@ class _GenderPageState extends State<GenderPage> {
           const SizedBox(height: 12),
           RadioGroup<String>(
             groupValue: _selected,
-            onChanged: (value) {
-              if (_saving) return;
-              setState(() => _selected = value);
-            },
+            onChanged: (value) => setState(() => _selected = value),
             child: Column(
               children: [
                 for (final option in kGenderOptions)
@@ -142,7 +146,6 @@ class _GenderPageState extends State<GenderPage> {
         minimum: const EdgeInsets.fromLTRB(20, 0, 20, 16),
         child: PrimaryButton(
           label: text.save,
-          isLoading: _saving,
           onPressed: _selected == null ? null : _save,
         ),
       ),

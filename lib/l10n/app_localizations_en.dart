@@ -1564,4 +1564,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String invalidHeight(int min, int max) {
     return 'Enter a height between $min and $max cm';
   }
+
+  @override
+  String get lblWhatDoYouWant => 'What do you want?';
+
+  @override
+  String get heightRange => 'Height Range';
+
+  @override
+  String get showOutsideResidence =>
+      'Show people outside my place of residence';
+
+  @override
+  String get sectionTheirHabits => 'Their habits';
+
+  @override
+  String get sectionWhatTheyWant => 'What they want';
 }
