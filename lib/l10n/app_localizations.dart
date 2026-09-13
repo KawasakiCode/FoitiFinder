@@ -3127,6 +3127,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Name'**
   String get name;
+
+  /// No description provided for @man.
+  ///
+  /// In en, this message translates to:
+  /// **'Man'**
+  String get man;
+
+  /// No description provided for @woman.
+  ///
+  /// In en, this message translates to:
+  /// **'Woman'**
+  String get woman;
+
+  /// No description provided for @nonConforming.
+  ///
+  /// In en, this message translates to:
+  /// **'Non-conforming'**
+  String get nonConforming;
+
+  /// No description provided for @cm.
+  ///
+  /// In en, this message translates to:
+  /// **'cm'**
+  String get cm;
+
+  /// No description provided for @invalidHeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a height between {min} and {max} cm'**
+  String invalidHeight(int min, int max);
 }
 
 class _AppLocalizationsDelegate

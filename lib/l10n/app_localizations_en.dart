@@ -1547,4 +1547,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get name => 'Name';
+
+  @override
+  String get man => 'Man';
+
+  @override
+  String get woman => 'Woman';
+
+  @override
+  String get nonConforming => 'Non-conforming';
+
+  @override
+  String get cm => 'cm';
+
+  @override
+  String invalidHeight(int min, int max) {
+    return 'Enter a height between $min and $max cm';
+  }
 }

@@ -262,6 +262,15 @@ class SettingsProvider extends ChangeNotifier {
     }    
   }
 
+  //Take a gender that has ALREADY been saved to the backend elsewhere (the
+  //account settings gender page). Memory and disk only - changeGender would
+  //PATCH it a second time.
+  Future<void> setLocalGender(String gender) async {
+    _gender = gender;
+    notifyListeners();
+    await _prefs.setString('gender', _gender);
+  }
+
   //Changing the locale rebuilds MaterialApp, so EVERY string on screen swaps in
   //a single frame. Done bare that reads as a violent flicker - text changes and
   //layouts jump at the same instant with nothing to explain it.

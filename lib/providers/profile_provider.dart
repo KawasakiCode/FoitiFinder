@@ -207,14 +207,23 @@ class ProfileProvider extends ChangeNotifier {
     int? heightCm,
     String? city,
     String? imageUrl,
+    String? gender,
     bool? hasFinishedSetUp,
     double? score,
     bool? hasPhotos,
   }) async {
     if(currentUser == null)return;
 
-    _currentUser = UserModel(  
+    //EVERY field has to be carried over. A field left out here is not "kept",
+    //it is reset to null - which used to wipe id, gender, the age range and the
+    //gender preference from the cached user on any edit, e.g. the city.
+    _currentUser = UserModel(
       uid: _currentUser!.uid,
+      id: _currentUser!.id,
+      gender: gender ?? _currentUser!.gender,
+      minAgeRange: _currentUser!.minAgeRange,
+      maxAgeRange: _currentUser!.maxAgeRange,
+      preferredGender: _currentUser!.preferredGender,
       name: name ?? _currentUser!.name,
       hasFinishedSetUp: hasFinishedSetUp ?? _currentUser!.hasFinishedSetUp,
       score: score ?? _currentUser!.score,

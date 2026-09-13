@@ -1554,4 +1554,21 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get name => 'Όνομα';
+
+  @override
+  String get man => 'Άνδρας';
+
+  @override
+  String get woman => 'Γυναίκα';
+
+  @override
+  String get nonConforming => 'Μη συμβατικό φύλο';
+
+  @override
+  String get cm => 'εκ.';
+
+  @override
+  String invalidHeight(int min, int max) {
+    return 'Εισάγετε ύψος από $min έως $max εκ.';
+  }
 }

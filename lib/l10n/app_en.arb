@@ -510,5 +510,11 @@
   "prefZakynthos": "Zakynthos",
   "search": "Search",
   "noResults": "No results",
-  "name": "Name"
+  "name": "Name",
+  "man": "Man",
+  "woman": "Woman",
+  "nonConforming": "Non-conforming",
+  "cm": "cm",
+  "invalidHeight": "Enter a height between {min} and {max} cm",
+  "@invalidHeight": {"placeholders": {"min": {"type": "int"}, "max": {"type": "int"}}}
 }
