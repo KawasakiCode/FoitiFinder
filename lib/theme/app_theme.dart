@@ -222,6 +222,15 @@ class AppTheme {
         trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
       ),
 
+      //ROUND CHECKBOXES, everywhere.
+      //
+      //The single-answer choice lists use radio buttons, which are round. The
+      //multi-answer ones (every date preference, religion, political view) use
+      //checkboxes, and Material's square box made those look like a different
+      //control from a different app sitting in the same dialog. Set here rather
+      //than per CheckboxListTile so no list can forget it.
+      checkboxTheme: const CheckboxThemeData(shape: CircleBorder()),
+
       sliderTheme: SliderThemeData(
         activeTrackColor: AppColors.primary,
         inactiveTrackColor:
