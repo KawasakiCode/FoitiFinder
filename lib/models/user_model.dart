@@ -7,6 +7,7 @@
 //easier to grab all data needed from one model
 
 import 'package:flutter/foundation.dart';
+import 'package:foitifinder/constants/profile_options.dart';
 
 class UserModel{
   final int? id;
@@ -34,6 +35,23 @@ class UserModel{
   final bool hasPhotos;
   final double score;
 
+  //Every pick-from-a-list answer, profile AND date preference, keyed by
+  //backend column (the ProfileChoice key): 'alcohol' -> ['Never'],
+  //'preferred_kids' -> ['I want kids', 'Have kids'].
+  //
+  //One map instead of a field each because the pages already work in exactly
+  //this shape. Single-answer columns are a plain string in the database and a
+  //list of 0 or 1 here, so every entry reads the same way. A missing key is
+  //the same as an empty list: not answered.
+  final Map<String, List<String>> choices;
+  //Hobbies & interests and Traits picks, flat. Canonical English.
+  final List<String> interestTags;
+  final List<String> traitTags;
+  //centimetres, null = no bound on that side
+  final int? minHeightPreference;
+  final int? maxHeightPreference;
+  final bool showOutsideResidence;
+
   UserModel({
     required this.uid,
     required this.name,
@@ -50,7 +68,15 @@ class UserModel{
     this.minAgeRange,
     this.maxAgeRange,
     this.preferredGender,
+    this.choices = const {},
+    this.interestTags = const [],
+    this.traitTags = const [],
+    this.minHeightPreference,
+    this.maxHeightPreference,
+    this.showOutsideResidence = true,
   });
+
+  List<String> choice(String key) => choices[key] ?? const [];
 
   //A copy with some fields replaced. Everything not passed is carried over, so
   //there is no field list to keep in sync by hand.
@@ -73,6 +99,12 @@ class UserModel{
     bool? hasFinishedSetUp,
     bool? hasPhotos,
     double? score,
+    Map<String, List<String>>? choices,
+    List<String>? interestTags,
+    List<String>? traitTags,
+    ValueGetter<int?>? minHeightPreference,
+    ValueGetter<int?>? maxHeightPreference,
+    bool? showOutsideResidence,
   }) {
     return UserModel(
       id: id,
@@ -91,8 +123,22 @@ class UserModel{
       hasFinishedSetUp: hasFinishedSetUp ?? this.hasFinishedSetUp,
       hasPhotos: hasPhotos ?? this.hasPhotos,
       score: score ?? this.score,
+      choices: choices ?? this.choices,
+      interestTags: interestTags ?? this.interestTags,
+      traitTags: traitTags ?? this.traitTags,
+      minHeightPreference: minHeightPreference != null
+          ? minHeightPreference()
+          : this.minHeightPreference,
+      maxHeightPreference: maxHeightPreference != null
+          ? maxHeightPreference()
+          : this.maxHeightPreference,
+      showOutsideResidence: showOutsideResidence ?? this.showOutsideResidence,
     );
   }
+
+  //A copy with ONE choice answer replaced
+  UserModel withChoice(String key, List<String> picks) =>
+      copyWith(choices: {...choices, key: List.unmodifiable(picks)});
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel ( 
@@ -113,6 +159,16 @@ class UserModel{
       maxAgeRange: json['max_age_range'],
       preferredGender: json['preferred_gender'],
       hasPhotos: json['has_photos'],
+      choices: {
+        for (final choice in _allChoices)
+          choice.key: _readChoice(json[choice.key]),
+      },
+      interestTags: _readList(json['interest_tags']),
+      traitTags: _readList(json['trait_tags']),
+      minHeightPreference: json['min_height_preference'],
+      maxHeightPreference: json['max_height_preference'],
+      //missing (an older cache) reads as the column default
+      showOutsideResidence: json['show_outside_residence'] ?? true,
     );
   }
 
@@ -135,6 +191,38 @@ class UserModel{
       'max_age_range': maxAgeRange,
       'preferred_gender': preferredGender,
       'has_photos': hasPhotos,
+      //the same shape the backend sends, so fromJson reads the cache back
+      for (final choice in _allChoices)
+        choice.key: choiceToJson(choice, this.choice(choice.key)),
+      'interest_tags': interestTags,
+      'trait_tags': traitTags,
+      'min_height_preference': minHeightPreference,
+      'max_height_preference': maxHeightPreference,
+      'show_outside_residence': showOutsideResidence,
     };
   }
+}
+
+const List<ProfileChoice> _allChoices = [
+  ...kProfileChoices,
+  ...kDatePreferenceChoices,
+];
+
+//A single-answer column arrives as a string or null, a multi-answer one as a
+//list. Both become a list here.
+List<String> _readChoice(dynamic value) {
+  if (value == null) return const [];
+  if (value is String) return value.isEmpty ? const [] : [value];
+  return _readList(value);
+}
+
+List<String> _readList(dynamic value) =>
+    value is List ? List.unmodifiable(value.cast<String>()) : const [];
+
+//What a choice answer looks like in a PATCH body. Single-answer columns take
+//the string, and '' to clear (null would be dropped as "unchanged" and the
+//backend turns '' into NULL). Multi-answer columns take the list.
+Object choiceToJson(ProfileChoice choice, List<String> picks) {
+  if (choice.mode == ChoiceMode.multi) return picks;
+  return picks.isEmpty ? '' : picks.first;
 }

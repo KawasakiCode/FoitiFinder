@@ -4,22 +4,31 @@
 //here from the settings page, which is for app preferences, not for who you
 //want to date.
 //
-//The gender preference and the age range write through SettingsProvider, so
-//the backend columns behind them (preferred_gender, min_age_range,
-//max_age_range) stay in sync.
+//Two different owners, for historical reasons:
+//  * gender preference and age range write through SettingsProvider (disk +
+//    PATCH preferred_gender / min_age_range / max_age_range)
+//  * height range, place of residence and the four choices write through
+//    ProfileProvider like Edit Profile does (PATCH min/max_height_preference,
+//    show_outside_residence, preferred_alcohol/_smoking/_dating_intention/_kids)
 //
-//UI ONLY, FOR NOW: height range, place of residence, alcohol, smoking, dating
-//intention and kids. They live in this page's state and are lost when it
-//closes - no provider, no API call, and no database columns yet (those need a
-//new alembic revision). The kPref* choices in constants/profile_options.dart
-//carry the column names they are meant to get.
+//SLIDERS SAVE ON RELEASE, not on every tick. onChanged fires dozens of times a
+//drag and each one used to be a PATCH; now the drag is local and onChangeEnd
+//sends the one value the user let go on.
+//
+//Only gender and age filter the feed so far - the rest is stored and waiting
+//for the feed query to use it.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/constants/profile_options.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/l10n/catalogue_labels.dart';
+import 'package:foitifinder/models/user_model.dart';
 import 'package:foitifinder/pages/profile_pages/date_preferences/preferred_gender_page.dart';
 import 'package:foitifinder/pages/profile_pages/shared/choice_dialog.dart';
+import 'package:foitifinder/pages/profile_pages/shared/save_profile_field.dart';
+import 'package:foitifinder/providers/profile_provider.dart';
+import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:foitifinder/widgets/app_switch.dart';
 import 'package:foitifinder/widgets/nav_row.dart';
@@ -42,17 +51,58 @@ class _DatePreferencesPageState extends State<DatePreferencesPage> {
   static const double _minHeightCm = 130;
   static const double _maxHeightCm = 220;
 
-  //TODO: local only until the backend columns exist
-  RangeValues _heightRange = const RangeValues(_minHeightCm, _maxHeightCm);
-  //on by default: a preference that hides people should be opted into
-  bool _showOutsideResidence = true;
-  //choice key -> acceptable answers. Empty or missing means no preference.
-  final Map<String, List<String>> _choiceAnswers = {};
+  //Only set WHILE a slider is being dragged; null the rest of the time, when
+  //the value shown is the saved one. Keeps the drag smooth without a request
+  //per tick.
+  RangeValues? _heightDrag;
+  RangeValues? _ageDrag;
+
+  UserModel get _user =>
+      Provider.of<ProfileProvider>(context, listen: false).currentUser!;
+
+  //A handle at either end of the slider is stored as null, "no limit", so
+  //someone at 225cm is not filtered out by a slider that stops at 220.
+  RangeValues get _savedHeightRange => RangeValues(
+    (_user.minHeightPreference ?? _minHeightCm).toDouble(),
+    (_user.maxHeightPreference ?? _maxHeightCm).toDouble(),
+  );
+
+  Future<void> _saveHeightRange(RangeValues values) async {
+    final int? min =
+        values.start <= _minHeightCm ? null : values.start.round();
+    final int? max = values.end >= _maxHeightCm ? null : values.end.round();
+    setState(() => _heightDrag = null);
+    if (min == _user.minHeightPreference && max == _user.maxHeightPreference) {
+      return;
+    }
+    await saveProfileField<(int?, int?)>(
+      context,
+      read: (u) => (u.minHeightPreference, u.maxHeightPreference),
+      write: (u, v) => u.copyWith(
+        minHeightPreference: () => v.$1,
+        maxHeightPreference: () => v.$2,
+      ),
+      value: (min, max),
+      //nulls are sent on purpose: that is how "no limit" is saved
+      send: (_) => ApiService.patchUser({
+        'min_height_preference': min,
+        'max_height_preference': max,
+      }),
+    );
+  }
+
+  Future<void> _saveShowOutsideResidence(bool value) => saveProfileField<bool>(
+    context,
+    read: (u) => u.showOutsideResidence,
+    write: (u, v) => u.copyWith(showOutsideResidence: v),
+    value: value,
+    send: (_) => ApiService.patchUser({'show_outside_residence': value}),
+  );
 
   //the value shown next to the height slider, marking the open ends
-  String _heightLabel() {
-    final start = _heightRange.start.round();
-    final end = _heightRange.end.round();
+  String _heightLabel(RangeValues range) {
+    final start = range.start.round();
+    final end = range.end.round();
     final from = start <= _minHeightCm ? '≤$start' : '$start';
     final to = end >= _maxHeightCm ? '$end+' : '$end';
     return '$from - $to ${text.cm}';
@@ -60,7 +110,7 @@ class _DatePreferencesPageState extends State<DatePreferencesPage> {
 
   //same summary as edit profile: nothing, the single answer, or a count
   String _choiceSummary(ProfileChoice choice) {
-    final picks = _choiceAnswers[choice.key] ?? const [];
+    final picks = _user.choice(choice.key);
     if (picks.isEmpty) return '';
     if (picks.length == 1) return catalogueLabel(text, picks.first);
     return '${picks.length}';
@@ -68,19 +118,31 @@ class _DatePreferencesPageState extends State<DatePreferencesPage> {
 
   //the same dialog edit profile opens for these categories
   Future<void> _openChoiceDialog(ProfileChoice choice) async {
+    final current = _user.choice(choice.key);
     final result = await showChoiceDialog(
       context,
       choice: choice,
-      initialSelected: _choiceAnswers[choice.key] ?? const [],
+      initialSelected: current,
     );
     //null means dismissed - leave the answer alone. An empty list means cleared.
-    if (!mounted || result == null) return;
-    setState(() => _choiceAnswers[choice.key] = result);
+    if (!mounted || result == null || listEquals(result, current)) return;
+    await saveProfileField<List<String>>(
+      context,
+      read: (u) => u.choice(choice.key),
+      write: (u, value) => u.withChoice(choice.key, value),
+      value: result,
+      //all four are multi-select, so always the list itself
+      send: (_) => ApiService.patchUser({choice.key: result}),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final settings = Provider.of<SettingsProvider>(context);
+    //subscribe, so rows redraw when a save lands or is reverted
+    Provider.of<ProfileProvider>(context);
+    final heightRange = _heightDrag ?? _savedHeightRange;
+    final ageRange = _ageDrag ?? settings.ageRange;
 
     //Interests start as a map because language can change
     //and we need to display the correct language
@@ -185,26 +247,31 @@ class _DatePreferencesPageState extends State<DatePreferencesPage> {
               _RangeCard(
                 label: text.ageRange,
                 valueLabel:
-                    '${settings.ageRange.start.toInt()} - ${settings.ageRange.end.toInt()}',
+                    '${ageRange.start.toInt()} - ${ageRange.end.toInt()}',
                 slider: RangeSlider(
-                  values: settings.ageRange,
+                  values: ageRange,
                   min: 18,
                   max: 100,
                   divisions: 82,
-                  onChanged: (v) => settings.saveAgeRange(v),
+                  onChanged: (v) => setState(() => _ageDrag = v),
+                  onChangeEnd: (v) {
+                    setState(() => _ageDrag = null);
+                    settings.saveAgeRange(v);
+                  },
                 ),
               ),
               //Height range - the same card as the age range
               _RangeCard(
                 label: text.heightRange,
-                valueLabel: _heightLabel(),
+                valueLabel: _heightLabel(heightRange),
                 slider: RangeSlider(
-                  values: _heightRange,
+                  values: heightRange,
                   min: _minHeightCm,
                   max: _maxHeightCm,
                   //one step per centimetre
                   divisions: (_maxHeightCm - _minHeightCm).round(),
-                  onChanged: (v) => setState(() => _heightRange = v),
+                  onChanged: (v) => setState(() => _heightDrag = v),
+                  onChangeEnd: _saveHeightRange,
                 ),
               ),
               //Place of residence: a plain yes/no for now. Without coordinates
@@ -231,9 +298,8 @@ class _DatePreferencesPageState extends State<DatePreferencesPage> {
                       ),
                       const SizedBox(width: 12),
                       AppSwitch(
-                        value: _showOutsideResidence,
-                        onChanged: (value) =>
-                            setState(() => _showOutsideResidence = value),
+                        value: _user.showOutsideResidence,
+                        onChanged: _saveShowOutsideResidence,
                       ),
                     ],
                   ),

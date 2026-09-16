@@ -91,6 +91,21 @@ class User(Base):
     political_view = Column(ARRAY(String), nullable = False, server_default = text("'{}'"))
     languages_spoken = Column(ARRAY(String), nullable = False, server_default = text("'{}'"))
 
+    #=====================================================================
+    #DATE PREFERENCES: what the user wants the OTHER person to have
+    #
+    #Same answer strings as the profile columns above (alcohol, smoking...),
+    #but arrays: someone can be fine with a partner who drinks "Never" OR
+    #"Sometimes". Empty array = no preference, never a filter that hides
+    #everybody. Keys match the kPref* choices in constants/profile_options.dart.
+    #=====================================================================
+    preferred_alcohol = Column(ARRAY(String), nullable = False, server_default = text("'{}'"))
+    preferred_smoking = Column(ARRAY(String), nullable = False, server_default = text("'{}'"))
+    preferred_dating_intention = Column(ARRAY(String), nullable = False, server_default = text("'{}'"))
+    preferred_kids = Column(ARRAY(String), nullable = False, server_default = text("'{}'"))
+    #false = only show people from my own prefecture (users.city)
+    show_outside_residence = Column(Boolean, nullable = False, server_default = text('true'))
+
     settings = relationship("Settings", back_populates="user", uselist=False, cascade="all, delete", passive_deletes=True)
     photos = relationship("Photos", back_populates="user", cascade="all, delete", passive_deletes=True)
     qna = relationship("UserQnA", back_populates="user", cascade="all, delete", passive_deletes=True)

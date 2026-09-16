@@ -110,8 +110,6 @@ class ApiService {
     String? preferredGender,
     bool? hasPhotos
   }) async {
-    final url = Uri.parse('$baseUrl/users/me');
-
     final Map<String, dynamic> data = {};
 
     if (name != null) data['name'] = name;
@@ -131,19 +129,24 @@ class ApiService {
     if (preferredGender != null) data['preferred_gender'] = preferredGender;
     if (hasPhotos != null) data['has_photos'] = hasPhotos;
 
-    if(data.isEmpty)return;
+    await patchUser(data);
+  }
 
-    try {
-      final response = await http.patch(
-        url,
-        headers: await _authHeaders(),
-        body: jsonEncode(data),
-      );
-      if(response.statusCode != 200) {
-        throw Exception("failed to update image in db ${response.body}");
-      }
-    } catch (e) {
-      rethrow;
+  //PATCH /users/me with exactly these columns and nothing else.
+  //
+  //Keys are backend column names. Unlike updateUserData, a null value IS sent,
+  //which is how a nullable column is cleared (e.g. min_height_preference back
+  //to "no limit"). Columns left out of the map are not touched.
+  static Future<void> patchUser(Map<String, dynamic> fields) async {
+    if (fields.isEmpty) return;
+
+    final response = await http.patch(
+      Uri.parse('$baseUrl/users/me'),
+      headers: await _authHeaders(),
+      body: jsonEncode(fields),
+    );
+    if (response.statusCode != 200) {
+      throw Exception("Failed to update user: ${response.body}");
     }
   }
 

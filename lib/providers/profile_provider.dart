@@ -254,29 +254,21 @@ class ProfileProvider extends ChangeNotifier {
   }) async {
     if(currentUser == null)return;
 
-    //EVERY field has to be carried over. A field left out here is not "kept",
-    //it is reset to null - which used to wipe id, gender, the age range and the
-    //gender preference from the cached user on any edit, e.g. the city.
-    _currentUser = UserModel(
-      uid: _currentUser!.uid,
-      id: _currentUser!.id,
-      gender: gender ?? _currentUser!.gender,
-      minAgeRange: _currentUser!.minAgeRange,
-      maxAgeRange: _currentUser!.maxAgeRange,
-      preferredGender: _currentUser!.preferredGender,
-      name: name ?? _currentUser!.name,
-      hasFinishedSetUp: hasFinishedSetUp ?? _currentUser!.hasFinishedSetUp,
-      score: score ?? _currentUser!.score,
-      hasPhotos: hasPhotos ?? _currentUser!.hasPhotos,
-      bio: bio ?? _currentUser!.bio,
-      birthday: birthday ?? _currentUser!.birthday,
-      heightCm: heightCm ?? _currentUser!.heightCm,
+    //copyWith carries every other field over. This used to build a UserModel
+    //by hand, where any field left out was silently reset to null.
+    _currentUser = _currentUser!.copyWith(
+      name: name,
+      bio: bio == null ? null : () => bio,
+      birthday: birthday == null ? null : () => birthday,
+      heightCm: heightCm == null ? null : () => heightCm,
       //null means "not being changed"; an empty string means "cleared", and is
       //normalised to null so local state matches what the backend stores
-      city: city == null
-          ? _currentUser!.city
-          : (city.isEmpty ? null : city),
-      imageUrl: imageUrl ?? _currentUser!.imageUrl,
+      city: city == null ? null : () => city.isEmpty ? null : city,
+      imageUrl: imageUrl == null ? null : () => imageUrl,
+      gender: gender == null ? null : () => gender,
+      hasFinishedSetUp: hasFinishedSetUp,
+      score: score,
+      hasPhotos: hasPhotos,
     );
 
     notifyListeners();

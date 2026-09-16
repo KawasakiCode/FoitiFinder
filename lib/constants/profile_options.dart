@@ -105,8 +105,7 @@ const ProfileChoice kChoiceKids = ProfileChoice(
 //MULTI-select, unlike the profile side: someone can be fine with a partner who
 //drinks "Never" OR "Sometimes". Picking nothing means no preference at all.
 //
-//The keys are the backend columns these are MEANT to get. They do not exist
-//yet - that needs a new alembic revision.
+//The keys are the backend columns (text[] arrays).
 const ProfileChoice kPrefAlcohol = ProfileChoice(
   key: 'preferred_alcohol',
   title: 'Alcohol',
@@ -235,6 +234,14 @@ const List<ProfileChoice> kProfileChoices = [
   kChoicePoliticalView,
   kChoiceSexualOrientation,
   kChoicePronouns,
+];
+
+//The date preference choices, same idea as kProfileChoices.
+const List<ProfileChoice> kDatePreferenceChoices = [
+  kPrefAlcohol,
+  kPrefSmoking,
+  kPrefDatingIntention,
+  kPrefKids,
 ];
 
 //Keys for the pages that are NOT simple choice lists, so the profile page can

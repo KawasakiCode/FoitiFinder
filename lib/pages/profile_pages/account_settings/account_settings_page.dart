@@ -25,9 +25,9 @@ import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/l10n/catalogue_labels.dart';
-import 'package:foitifinder/models/user_model.dart';
 import 'package:foitifinder/pages/profile_pages/account_settings/delete_account_page.dart';
 import 'package:foitifinder/pages/profile_pages/account_settings/gender_page.dart';
+import 'package:foitifinder/pages/profile_pages/shared/save_profile_field.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/pages/profile_pages/shared/prefecture_dialog.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
@@ -202,33 +202,6 @@ class AccountSettingsPage extends StatelessWidget {
   }
 }
 
-//Show the change, send it, and on failure put the old value back and say so.
-//Everything that touches context is read BEFORE the await, because the page
-//may be gone by the time the request returns.
-Future<void> _save<T>(
-  BuildContext context, {
-  required T Function(UserModel user) read,
-  required UserModel Function(UserModel user, T value) write,
-  required T value,
-  required Future<void> Function(String uid) send,
-}) async {
-  final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
-  final messenger = ScaffoldMessenger.of(context);
-  final errorMessage = AppLocalizations.of(context)!.errorOccured;
-
-  final saved = await profileProvider.saveField<T>(
-    read: read,
-    write: write,
-    value: value,
-    send: send,
-  );
-
-  //the old value has already been restored by the time this shows
-  if (!saved) {
-    messenger.showSnackBar(SnackBar(content: Text(errorMessage)));
-  }
-}
-
 //Edit the name: a text box, validated with the same rule as signup.
 Future<void> _editName(BuildContext context) async {
   final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
@@ -242,7 +215,7 @@ Future<void> _editName(BuildContext context) async {
   //null means dismissed
   if (result == null || result == current || !context.mounted) return;
 
-  await _save<String>(
+  await saveProfileField<String>(
     context,
     read: (u) => u.name,
     write: (u, value) => u.copyWith(name: value),
@@ -270,7 +243,7 @@ Future<void> _editBirthday(BuildContext context) async {
   if (picked == null || !context.mounted) return;
   if (current != null && DateUtils.isSameDay(picked, current)) return;
 
-  await _save<DateTime?>(
+  await saveProfileField<DateTime?>(
     context,
     read: (u) => u.birthday,
     write: (u, value) => u.copyWith(birthday: () => value),
@@ -291,7 +264,7 @@ Future<void> _editHeight(BuildContext context) async {
 
   if (result == null || result == current || !context.mounted) return;
 
-  await _save<int?>(
+  await saveProfileField<int?>(
     context,
     read: (u) => u.heightCm,
     write: (u, value) => u.copyWith(heightCm: () => value),
@@ -320,7 +293,7 @@ Future<void> _editCity(BuildContext context) async {
   //null means dismissed - leave it alone. '' means cleared.
   if (result == null || result == current || !context.mounted) return;
 
-  await _save<String?>(
+  await saveProfileField<String?>(
     context,
     read: (u) => u.city,
     //cleared is stored as null locally, the same as the backend stores it

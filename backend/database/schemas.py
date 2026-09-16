@@ -48,6 +48,13 @@ class UserBase(BaseModel):
     political_view: List[str] = []
     languages_spoken: List[str] = []
 
+    #---- date preferences ----
+    preferred_alcohol: List[str] = []
+    preferred_smoking: List[str] = []
+    preferred_dating_intention: List[str] = []
+    preferred_kids: List[str] = []
+    show_outside_residence: bool = True
+
 #for patch endpoints to update a single attribute without needing the others too
 class UserUpdate(BaseModel):
     name: str | None = None
@@ -91,6 +98,13 @@ class UserUpdate(BaseModel):
     religion: List[str] | None = None
     political_view: List[str] | None = None
     languages_spoken: List[str] | None = None
+
+    #---- date preferences ----
+    preferred_alcohol: List[str] | None = None
+    preferred_smoking: List[str] | None = None
+    preferred_dating_intention: List[str] | None = None
+    preferred_kids: List[str] | None = None
+    show_outside_residence: bool | None = None
 
 
 #this adds the fields produced by the database to be returned to the phone

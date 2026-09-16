@@ -1,8 +1,14 @@
-//Edit profile page where user can change the following:
-//bio, birthday, name, photos
+//Edit profile page: what other people see - photos, stories, tags, choices.
+//
+//Photos save when the page closes (they are uploaded as a batch). Everything
+//else SAVES THE MOMENT ITS DIALOG OR PAGE RETURNS, through PATCH /users/me:
+//the row updates at once and reverts with a snackbar if the backend refuses
+//(saveProfileField). Nothing is held in this page's state, so the rows always
+//show what ProfileProvider - and therefore the database - has.
 
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/constants/interest_catalogue.dart';
 import 'package:foitifinder/constants/profile_options.dart';
@@ -11,12 +17,14 @@ import 'package:foitifinder/l10n/catalogue_labels.dart';
 import 'package:foitifinder/pages/profile_pages/shared/choice_dialog.dart';
 import 'package:foitifinder/pages/profile_pages/shared/choice_page.dart';
 import 'package:foitifinder/pages/profile_pages/shared/coming_soon_page.dart';
+import 'package:foitifinder/pages/profile_pages/shared/save_profile_field.dart';
 import 'package:foitifinder/pages/profile_pages/edit_profile/personality/bio_page.dart';
 import 'package:foitifinder/pages/profile_pages/edit_profile/photo_stories_page.dart';
 import 'package:foitifinder/pages/profile_pages/edit_profile/personality/interest_group_page.dart';
 import 'package:foitifinder/pages/profile_pages/edit_profile/personality/placeholder_group_page.dart';
 import 'package:foitifinder/widgets/nav_row.dart';
 import 'package:foitifinder/models/photos_model.dart';
+import 'package:foitifinder/models/user_model.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/widgets/loading_overlay.dart';
@@ -48,30 +56,40 @@ class _EditProfileState extends State<EditProfile> {
 
   bool _isLoading = false;
 
-  //Picks made in the tag groups, keyed group title -> section title -> options.
-  //
-  //IN MEMORY ONLY: there is no column for these yet. `users.interests` is the
-  //gender preference and must not be reused - see interest_catalogue.dart.
-  //When the column lands, this map and _choiceAnswers are the only things that
-  //change: load them from the profile here, send them in _saveAndExit.
-  final Map<String, Map<String, List<String>>> _tagSelections = {};
+  //the signed-in user, read fresh each time so a save that just landed (or
+  //was reverted) is what the rows show
+  UserModel get _user =>
+      Provider.of<ProfileProvider>(context, listen: false).currentUser!;
 
-  //Answers to the simple categories, keyed by BACKEND COLUMN NAME so the map
-  //drops straight into a PATCH body. Single-choice categories hold a list of
-  //length 0 or 1 so every entry has the same shape.
-  final Map<String, List<String>> _choiceAnswers = {};
+  List<String> _tagsFor(String groupTitle) =>
+      kGroupColumns[groupTitle] == 'trait_tags'
+          ? _user.traitTags
+          : _user.interestTags;
 
-  int _pickCount(String groupTitle) =>
-      _tagSelections[groupTitle]?.values.fold(0, (sum, l) => sum! + l.length) ??
-      0;
+  int _pickCount(String groupTitle) => _tagsFor(groupTitle).length;
 
   //what a row shows on the right: the answer itself when there is one, a count
   //when there are several, nothing when empty
   String _choiceSummary(ProfileChoice choice) {
-    final picks = _choiceAnswers[choice.key] ?? const [];
+    final picks = _user.choice(choice.key);
     if (picks.isEmpty) return '';
     if (picks.length == 1) return catalogueLabel(text, picks.first);
     return '${picks.length}';
+  }
+
+  //Save one choice answer. Skipped when nothing changed, so opening a dialog
+  //and closing it again never reaches the backend.
+  Future<void> _saveChoice(ProfileChoice choice, List<String> picks) async {
+    if (listEquals(picks, _user.choice(choice.key))) return;
+    await saveProfileField<List<String>>(
+      context,
+      read: (u) => u.choice(choice.key),
+      write: (u, value) => u.withChoice(choice.key, value),
+      value: picks,
+      send: (_) => ApiService.patchUser({
+        choice.key: choiceToJson(choice, picks),
+      }),
+    );
   }
 
   //Stories attach to photos that must already exist in the backend, so flush
@@ -104,17 +122,33 @@ class _EditProfileState extends State<EditProfile> {
       return;
     }
 
+    final column = kGroupColumns[groupTitle]!;
+    final current = _tagsFor(groupTitle);
+
     final result = await Navigator.push<Map<String, List<String>>>(
       context,
       MaterialPageRoute(
         builder: (_) => InterestGroupPage(
           group: group,
-          initialSelections: _tagSelections[groupTitle] ?? const {},
+          //the database has a flat list; the page wants it per section
+          initialSelections: selectionsFromTags(group, current),
         ),
       ),
     );
     if (!mounted || result == null) return;
-    setState(() => _tagSelections[groupTitle] = result);
+
+    final tags = tagsFromSelections(group, result);
+    if (listEquals(tags, current)) return;
+
+    await saveProfileField<List<String>>(
+      context,
+      read: (u) => column == 'trait_tags' ? u.traitTags : u.interestTags,
+      write: (u, value) => column == 'trait_tags'
+          ? u.copyWith(traitTags: value)
+          : u.copyWith(interestTags: value),
+      value: tags,
+      send: (_) => ApiService.patchUser({column: tags}),
+    );
   }
 
   //Long lists (religion, political view) get a full page; a dialog would
@@ -125,12 +159,12 @@ class _EditProfileState extends State<EditProfile> {
       MaterialPageRoute(
         builder: (_) => ChoicePage(
           choice: choice,
-          initialSelected: _choiceAnswers[choice.key] ?? const [],
+          initialSelected: _user.choice(choice.key),
         ),
       ),
     );
     if (!mounted || result == null) return;
-    setState(() => _choiceAnswers[choice.key] = result);
+    await _saveChoice(choice, result);
   }
 
   //Short lists (alcohol, smoking, dating intention, kids) answer in one tap,
@@ -139,11 +173,11 @@ class _EditProfileState extends State<EditProfile> {
     final result = await showChoiceDialog(
       context,
       choice: choice,
-      initialSelected: _choiceAnswers[choice.key] ?? const [],
+      initialSelected: _user.choice(choice.key),
     );
     //null means dismissed - leave the answer alone. An empty list means cleared.
     if (!mounted || result == null) return;
-    setState(() => _choiceAnswers[choice.key] = result);
+    await _saveChoice(choice, result);
   }
 
   @override
@@ -350,6 +384,9 @@ class _EditProfileState extends State<EditProfile> {
 
   @override
   Widget build(BuildContext context) {
+    //subscribe, so rows redraw when a save lands or is reverted
+    Provider.of<ProfileProvider>(context);
+
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: PopScope(

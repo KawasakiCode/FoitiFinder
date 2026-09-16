@@ -19,11 +19,10 @@
 //them. Only the FIRST pick in those sections costs a slot - swapping one star
 //sign for another is free even at 10/10.
 //
-//NAMING WARNING: UserModel.interests already exists and means something else -
-//it is the comma separated gender preference ("Men"/"Women"/"Everyone") read by
-//interests_to_genders() in the backend. These tags are a separate concept and
-//must NOT be persisted into that column. Pick a distinct name (e.g.
-//interest_tags) when the backend column is added.
+//PERSISTED FLAT: the backend stores one text[] per group (interest_tags,
+//trait_tags) with no section. The section is looked up again from this file
+//when the page opens - see selectionsFromTags - which only works because no
+//option appears twice within a group. Keep it that way.
 //
 //TODO: these labels are hardcoded English - the app ships Greek too, so they
 //need to move to app_en.arb / app_el.arb before this goes live.
@@ -421,3 +420,38 @@ const String kGroupQA = "Q&A's";
 //routing have drifted apart and we want to know immediately.
 InterestGroup interestGroupByTitle(String title) =>
     kInterestGroups.firstWhere((g) => g.title == title);
+
+
+//Group title -> the users column its picks are saved in. Only the groups with
+//boxes have one: Bio is its own column and Q&A its own table.
+const Map<String, String> kGroupColumns = {
+  kGroupHobbies: 'interest_tags',
+  kGroupTraits: 'trait_tags',
+};
+
+//The flat list the backend stores -> section title -> picks, as
+//InterestGroupPage wants them. A tag no longer in the catalogue is dropped
+//rather than shown under a section it does not belong to.
+Map<String, List<String>> selectionsFromTags(
+  InterestGroup group,
+  List<String> tags,
+) {
+  final result = <String, List<String>>{};
+  for (final tag in tags) {
+    for (final section in group.sections) {
+      if (section.options.contains(tag)) {
+        result.putIfAbsent(section.title, () => []).add(tag);
+        break;
+      }
+    }
+  }
+  return result;
+}
+
+//The reverse: section order first, tap order within a section.
+List<String> tagsFromSelections(
+  InterestGroup group,
+  Map<String, List<String>> selections,
+) => [
+  for (final section in group.sections) ...?selections[section.title],
+];

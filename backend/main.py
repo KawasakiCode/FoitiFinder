@@ -236,9 +236,24 @@ def update_user(user_update: schemas.UserUpdate, uid: str = Depends(verified_ema
     #those so "never set" and "cleared" are the same state in the database.
     #Only fields the user is allowed to empty - name is
     #required and are validated before they ever get here.
-    for key in ("city", "job", "volunteering", "occupation_other", "major"):
+    #The single-answer choices (alcohol, smoking...) are cleared the same way.
+    for key in ("city", "job", "volunteering", "occupation_other", "major",
+                "alcohol", "smoking", "dating_intention", "kids",
+                "sexual_orientation", "pronouns"):
         if isinstance(updated_data.get(key), str) and not updated_data[key].strip():
             updated_data[key] = None
+
+    #These columns are NOT NULL, so an explicit null would be a 500 from the
+    #database. For the arrays null can only mean "nothing picked", so store
+    #that; for the rest there is no sensible meaning, so leave the value alone.
+    for key in ("interest_tags", "trait_tags", "religion", "political_view",
+                "languages_spoken", "preferred_alcohol", "preferred_smoking",
+                "preferred_dating_intention", "preferred_kids"):
+        if key in updated_data and updated_data[key] is None:
+            updated_data[key] = []
+    for key in ("name", "has_finished_set_up", "has_photos", "show_outside_residence"):
+        if key in updated_data and updated_data[key] is None:
+            del updated_data[key]
 
     #loop through the dictionary adding only values that are not null
     for key, value in updated_data.items():
