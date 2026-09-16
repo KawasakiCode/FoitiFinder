@@ -247,6 +247,9 @@ final Map<String, String Function(AppLocalizations)> _labels = {
   'What are you looking for?': (t) => t.lblWhatAreYouLookingFor,
   'Kids': (t) => t.lblKids,
   'Where do you stand on children?': (t) => t.lblWhereDoYouStandOnChildren,
+  //the date-preference subtitle shared by alcohol, smoking, dating intention
+  //and kids
+  'What do you want?': (t) => t.lblWhatDoYouWant,
   'Religion': (t) => t.lblReligion,
   'Pick any that apply.': (t) => t.lblPickAnyThatApply,
   'Political view': (t) => t.lblPoliticalView,

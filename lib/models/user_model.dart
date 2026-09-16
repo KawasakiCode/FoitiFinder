@@ -6,6 +6,8 @@
 //and not in settings model because they affect the matching algorithm and its
 //easier to grab all data needed from one model
 
+import 'package:flutter/foundation.dart';
+
 class UserModel{
   final int? id;
   final String uid;
@@ -49,6 +51,48 @@ class UserModel{
     this.maxAgeRange,
     this.preferredGender,
   });
+
+  //A copy with some fields replaced. Everything not passed is carried over, so
+  //there is no field list to keep in sync by hand.
+  //
+  //Nullable fields take a function instead of a value, because a plain `null`
+  //could not tell "leave it alone" apart from "set it to null" - and putting an
+  //empty field back after a failed save needs exactly that:
+  //  user.copyWith(birthday: () => null)
+  UserModel copyWith({
+    String? name,
+    ValueGetter<String?>? bio,
+    ValueGetter<DateTime?>? birthday,
+    ValueGetter<int?>? heightCm,
+    ValueGetter<String?>? city,
+    ValueGetter<String?>? imageUrl,
+    ValueGetter<String?>? gender,
+    ValueGetter<int?>? minAgeRange,
+    ValueGetter<int?>? maxAgeRange,
+    ValueGetter<String?>? preferredGender,
+    bool? hasFinishedSetUp,
+    bool? hasPhotos,
+    double? score,
+  }) {
+    return UserModel(
+      id: id,
+      uid: uid,
+      name: name ?? this.name,
+      bio: bio != null ? bio() : this.bio,
+      birthday: birthday != null ? birthday() : this.birthday,
+      heightCm: heightCm != null ? heightCm() : this.heightCm,
+      city: city != null ? city() : this.city,
+      imageUrl: imageUrl != null ? imageUrl() : this.imageUrl,
+      gender: gender != null ? gender() : this.gender,
+      minAgeRange: minAgeRange != null ? minAgeRange() : this.minAgeRange,
+      maxAgeRange: maxAgeRange != null ? maxAgeRange() : this.maxAgeRange,
+      preferredGender:
+          preferredGender != null ? preferredGender() : this.preferredGender,
+      hasFinishedSetUp: hasFinishedSetUp ?? this.hasFinishedSetUp,
+      hasPhotos: hasPhotos ?? this.hasPhotos,
+      score: score ?? this.score,
+    );
+  }
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel ( 

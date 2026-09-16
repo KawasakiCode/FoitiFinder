@@ -39,6 +39,25 @@ class ProfileChoice {
   });
 }
 
+//Answer lists shared by a profile question and the date preference that
+//filters on it. One list, so the two can never offer different answers and a
+//preference always compares against values people actually pick.
+const List<String> kFrequencyOptions = ['Never', 'Sometimes', 'Yes'];
+
+const List<String> kDatingIntentionOptions = [
+  'Something casual',
+  'A long-term relationship',
+  'Still figuring it out',
+];
+
+const List<String> kKidsOptions = [
+  "I'm open to kids",
+  "I want kids",
+  "I don't want kids",
+  'Have kids',
+  "Still figuring it out",
+];
+
 //=========================================================================
 //HABITS
 //=========================================================================
@@ -47,7 +66,7 @@ const ProfileChoice kChoiceAlcohol = ProfileChoice(
   title: 'Alcohol',
   subtitle: 'How often do you drink?',
   mode: ChoiceMode.single,
-  options: ['Never', 'Sometimes', 'Yes'],
+  options: kFrequencyOptions,
 );
 
 const ProfileChoice kChoiceSmoking = ProfileChoice(
@@ -55,7 +74,7 @@ const ProfileChoice kChoiceSmoking = ProfileChoice(
   title: 'Smoking',
   subtitle: 'How often do you smoke?',
   mode: ChoiceMode.single,
-  options: ['Never', 'Sometimes', 'Yes'],
+  options: kFrequencyOptions,
 );
 
 //=========================================================================
@@ -66,11 +85,7 @@ const ProfileChoice kChoiceDatingIntention = ProfileChoice(
   title: 'Dating intention',
   subtitle: 'What are you looking for?',
   mode: ChoiceMode.single,
-  options: [
-    'Something casual',
-    'A long-term relationship',
-    'Still figuring it out',
-  ],
+  options: kDatingIntentionOptions,
 );
 
 const ProfileChoice kChoiceKids = ProfileChoice(
@@ -78,13 +93,50 @@ const ProfileChoice kChoiceKids = ProfileChoice(
   title: 'Kids',
   subtitle: 'Where do you stand on children?',
   mode: ChoiceMode.single,
-  options: [
-    "I'm open to kids",
-    "I want kids",
-    "I don't want kids",
-    'Have kids',
-    "Still figuring it out",
-  ],
+  options: kKidsOptions,
+);
+
+//=========================================================================
+//DATE PREFERENCES - what the user wants the OTHER person to have
+//=========================================================================
+//Same titles and answers as the profile questions above, asked as "what do
+//you want?" instead of "what are you?".
+//
+//MULTI-select, unlike the profile side: someone can be fine with a partner who
+//drinks "Never" OR "Sometimes". Picking nothing means no preference at all.
+//
+//The keys are the backend columns these are MEANT to get. They do not exist
+//yet - that needs a new alembic revision.
+const ProfileChoice kPrefAlcohol = ProfileChoice(
+  key: 'preferred_alcohol',
+  title: 'Alcohol',
+  subtitle: 'What do you want?',
+  mode: ChoiceMode.multi,
+  options: kFrequencyOptions,
+);
+
+const ProfileChoice kPrefSmoking = ProfileChoice(
+  key: 'preferred_smoking',
+  title: 'Smoking',
+  subtitle: 'What do you want?',
+  mode: ChoiceMode.multi,
+  options: kFrequencyOptions,
+);
+
+const ProfileChoice kPrefDatingIntention = ProfileChoice(
+  key: 'preferred_dating_intention',
+  title: 'Dating intention',
+  subtitle: 'What do you want?',
+  mode: ChoiceMode.multi,
+  options: kDatingIntentionOptions,
+);
+
+const ProfileChoice kPrefKids = ProfileChoice(
+  key: 'preferred_kids',
+  title: 'Kids',
+  subtitle: 'What do you want?',
+  mode: ChoiceMode.multi,
+  options: kKidsOptions,
 );
 
 //=========================================================================

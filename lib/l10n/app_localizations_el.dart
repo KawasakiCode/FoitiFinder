@@ -1554,4 +1554,37 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get name => 'Όνομα';
+
+  @override
+  String get man => 'Άνδρας';
+
+  @override
+  String get woman => 'Γυναίκα';
+
+  @override
+  String get nonConforming => 'Μη συμβατικό φύλο';
+
+  @override
+  String get cm => 'εκ.';
+
+  @override
+  String invalidHeight(int min, int max) {
+    return 'Εισάγετε ύψος από $min έως $max εκ.';
+  }
+
+  @override
+  String get lblWhatDoYouWant => 'Τι θέλεις;';
+
+  @override
+  String get heightRange => 'Εύρος Ύψους';
+
+  @override
+  String get showOutsideResidence =>
+      'Εμφάνιση ατόμων εκτός του τόπου διαμονής μου';
+
+  @override
+  String get sectionTheirHabits => 'Οι συνήθειές τους';
+
+  @override
+  String get sectionWhatTheyWant => 'Τι θέλουν';
 }

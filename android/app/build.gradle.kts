@@ -56,8 +56,16 @@ android {
 
     buildTypes {
         getByName("release") {
-            // Change the signingConfig line to this specific syntax:
-            signingConfig = signingConfigs.getByName("release")
+            //key.properties and the keystore are gitignored, so a machine without
+            //them (fresh clone, second PC) can't sign with the real key. Fall back
+            //to the debug key there so release builds still run for testing.
+            //Never distribute an APK built that way.
+            signingConfig = if (keystorePropertiesFile.exists()) {
+                signingConfigs.getByName("release")
+            } else {
+                logger.warn("key.properties not found: signing the release build with the DEBUG key (testing only)")
+                signingConfigs.getByName("debug")
+            }
             
             isMinifyEnabled = false
             isShrinkResources = false
