@@ -169,6 +169,8 @@ def create_user(
         gender=user.gender,
         min_age_range=user.min_age_range,
         max_age_range=user.max_age_range,
+        min_height_preference=user.min_height_preference,
+        max_height_preference=user.max_height_preference,
         preferred_gender=user.preferred_gender,
         has_photos=user.has_photos,
         score=user.score

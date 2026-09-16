@@ -29,6 +29,10 @@ class User(Base):
     gender = Column(String, nullable = True)
     min_age_range = Column(Integer, nullable = True)
     max_age_range = Column(Integer, nullable = True)
+    #height preference in centimetres, same shape as the age range: null means
+    #no bound on that side
+    min_height_preference = Column(Integer, nullable = True)
+    max_height_preference = Column(Integer, nullable = True)
     #the GENDER PREFERENCE: a comma separated string of 'Men'/'Women'/
     #'Everyone'. Was called `interests`, which read as profile interests and
     #invited exactly the mix-up the warning below describes.

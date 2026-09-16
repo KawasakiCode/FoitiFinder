@@ -16,6 +16,8 @@ class UserBase(BaseModel):
     gender: str | None = None
     min_age_range: int | None = None
     max_age_range: int | None = None
+    min_height_preference: int | None = None
+    max_height_preference: int | None = None
     preferred_gender: str | None = None
     has_finished_set_up: bool | None = False
     has_photos: bool | None = False
@@ -56,6 +58,8 @@ class UserUpdate(BaseModel):
     gender: str | None = None
     min_age_range: int | None = None
     max_age_range: int | None = None
+    min_height_preference: int | None = None
+    max_height_preference: int | None = None
     preferred_gender: str | None = None
     has_finished_set_up: bool | None = False
     has_photos: bool | None = False
