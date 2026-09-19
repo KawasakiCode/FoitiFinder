@@ -7,6 +7,7 @@
 //show what ProfileProvider - and therefore the database - has.
 
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ import 'package:foitifinder/pages/profile_pages/edit_profile/personality/bio_pag
 import 'package:foitifinder/pages/profile_pages/edit_profile/photo_stories_page.dart';
 import 'package:foitifinder/pages/profile_pages/edit_profile/personality/interest_group_page.dart';
 import 'package:foitifinder/pages/profile_pages/edit_profile/personality/placeholder_group_page.dart';
+import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/nav_row.dart';
 import 'package:foitifinder/models/photos_model.dart';
 import 'package:foitifinder/models/user_model.dart';
@@ -94,8 +96,8 @@ class _EditProfileState extends State<EditProfile> {
 
   List<String> _tagsFor(String groupTitle) =>
       kGroupColumns[groupTitle] == 'trait_tags'
-          ? _user.traitTags
-          : _user.interestTags;
+      ? _user.traitTags
+      : _user.interestTags;
 
   int _pickCount(String groupTitle) => _tagsFor(groupTitle).length;
 
@@ -117,9 +119,8 @@ class _EditProfileState extends State<EditProfile> {
       read: (u) => u.choice(choice.key),
       write: (u, value) => u.withChoice(choice.key, value),
       value: picks,
-      send: (_) => ApiService.patchUser({
-        choice.key: choiceToJson(choice, picks),
-      }),
+      send: (_) =>
+          ApiService.patchUser({choice.key: choiceToJson(choice, picks)}),
     );
   }
 
@@ -240,7 +241,10 @@ class _EditProfileState extends State<EditProfile> {
         if (mounted) {
           setState(() {
             //existing photo: remember its backend URL so we never re-upload it
-            _photos[i] = _PhotoSlot(file, existingUrl: backendPhotos[i].photoUrl);
+            _photos[i] = _PhotoSlot(
+              file,
+              existingUrl: backendPhotos[i].photoUrl,
+            );
           });
         }
       }
@@ -394,16 +398,20 @@ class _EditProfileState extends State<EditProfile> {
       //photos, inserts new ones, deletes removed ones — no duplicates.
       //syncPhotos reports failure by returning false, not by throwing - it
       //was being ignored, so a failed save looked like a successful one
-      final synced =
-          await ApiService.syncPhotos(uid: uid, photoUrls: photoUrls);
+      final synced = await ApiService.syncPhotos(
+        uid: uid,
+        photoUrls: photoUrls,
+      );
       if (!synced) throw Exception('Photo sync failed');
       //the sync also sets has_photos on the backend
 
       //photo 0 is the profile picture, so this is also what updates the
       //avatar on the profile page
       if (mounted) {
-        Provider.of<ProfileProvider>(context, listen: false)
-            .setPhotoUrls(photoUrls);
+        Provider.of<ProfileProvider>(
+          context,
+          listen: false,
+        ).setPhotoUrls(photoUrls);
       }
 
       _photosChanged = false;
@@ -476,10 +484,7 @@ class _EditProfileState extends State<EditProfile> {
                     CardGroup(
                       dividers: true,
                       children: [
-                        for (final title in const [
-                          kGroupHobbies,
-                          kGroupTraits,
-                        ])
+                        for (final title in const [kGroupHobbies, kGroupTraits])
                           NavRow(
                             label: catalogueLabel(text, title),
                             trailing: _pickCount(title) == 0
@@ -509,12 +514,14 @@ class _EditProfileState extends State<EditProfile> {
                         //that is wired up
                         NavRow(
                           label: text.myTune,
-                          onTap: () => _push(ComingSoonPage(title: text.myTune)),
+                          onTap: () =>
+                              _push(ComingSoonPage(title: text.myTune)),
                         ),
                         NavRow(
                           label: text.favouriteArtists,
-                          onTap: () =>
-                              _push(ComingSoonPage(title: text.favouriteArtists)),
+                          onTap: () => _push(
+                            ComingSoonPage(title: text.favouriteArtists),
+                          ),
                         ),
                       ],
                     ),
@@ -603,9 +610,14 @@ class _EditProfileState extends State<EditProfile> {
                       children: [
                         NavRow(
                           label: catalogueLabel(text, kChoicePronouns.title),
-                          onTap: () => _push(ComingSoonPage(
-                            title: catalogueLabel(text, kChoicePronouns.title),
-                          )),
+                          onTap: () => _push(
+                            ComingSoonPage(
+                              title: catalogueLabel(
+                                text,
+                                kChoicePronouns.title,
+                              ),
+                            ),
+                          ),
                         ),
                         NavRow(
                           label: text.languagesSpoken,
@@ -626,7 +638,6 @@ class _EditProfileState extends State<EditProfile> {
       ),
     );
   }
-
 
   //Where a photo sits on screen right now: its own slot, or - mid drag - the
   //slot it has been pushed into to make room. Only the photos BETWEEN the
@@ -680,7 +691,8 @@ class _EditProfileState extends State<EditProfile> {
   void _onDragUpdate(Offset offsetFromOrigin, Size cell) {
     final from = _dragFrom;
     if (from == null) return;
-    final center = _cellOrigin(from, cell) +
+    final center =
+        _cellOrigin(from, cell) +
         Offset(cell.width / 2, cell.height / 2) +
         offsetFromOrigin;
     final to = _slotUnder(center, cell, _photos.whereType<_PhotoSlot>().length);
@@ -780,17 +792,12 @@ class _EditProfileState extends State<EditProfile> {
                 onLongPressMoveUpdate: (details) =>
                     _onDragUpdate(details.offsetFromOrigin, cell),
                 onLongPressEnd: (_) => _onDragEnd(),
-                child: AnimatedScale(
-                  //lifted off the grid while held
-                  scale: isDragged ? 1.06 : 1,
-                  duration: const Duration(milliseconds: 150),
-                  child: AnimatedOpacity(
-                    opacity: isDragged ? 0.9 : 1,
-                    duration: const Duration(milliseconds: 150),
-                    //the pencil/X belong to a slot, not a photo: hidden while
-                    //the photos are in flux, back on the drop
-                    child: _buildPhotoSlot(i, showBadges: !dragging),
-                  ),
+                //shakes while held, otherwise looks exactly as at rest
+                child: _Wiggle(
+                  active: isDragged,
+                  //the pencil/X belong to a slot, not a photo: hidden while
+                  //the photos are in flux, back on the drop
+                  child: _buildPhotoSlot(i, showBadges: !dragging),
                 ),
               ),
             ),
@@ -843,65 +850,147 @@ class _EditProfileState extends State<EditProfile> {
         // instead of an X. This is also what guarantees the user always keeps
         // at least one photo - removing any other slot can't reach zero.
         if (showBadges && photo != null && index == 0)
-          Positioned(
-            top: -5,
-            left: -5,
-            child: GestureDetector(
-              onTap: () => _pickImage(0),
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.edit,
-                  color: Theme.of(context).colorScheme.onPrimary,
-                  size: 16,
-                ),
-              ),
-            ),
-          ),
+          _PhotoCornerButton(icon: Icons.edit, onTap: () => _pickImage(0)),
 
-        // 3. The Top-Left Remove Button, on every other photo
+        // 3. The remove button, on every other photo
         if (showBadges && photo != null && index != 0)
-          Positioned(
-            top: -5,
-            left: -5,
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  // 1. Set the removed photo's slot to null
-                  _photos[index] = null;
-                  _photosChanged = true;
+          _PhotoCornerButton(
+            icon: Icons.close,
+            onTap: () {
+              setState(() {
+                // 1. Set the removed photo's slot to null
+                _photos[index] = null;
+                _photosChanged = true;
 
-                  // 2. Gather all the photos that are still left
-                  List<_PhotoSlot?> remainingPhotos = _photos
-                      .where((photo) => photo != null)
-                      .toList();
+                // 2. Gather all the photos that are still left
+                List<_PhotoSlot?> remainingPhotos = _photos
+                    .where((photo) => photo != null)
+                    .toList();
 
-                  // 3. Re-deal them into the fixed array from left to right
-                  for (int i = 0; i < _photos.length; i++) {
-                    if (i < remainingPhotos.length) {
-                      _photos[i] =
-                          remainingPhotos[i]; // Fill with remaining photos
-                    } else {
-                      _photos[i] = null; // Fill the rest with empty slots
-                    }
+                // 3. Re-deal them into the fixed array from left to right
+                for (int i = 0; i < _photos.length; i++) {
+                  if (i < remainingPhotos.length) {
+                    _photos[i] =
+                        remainingPhotos[i]; // Fill with remaining photos
+                  } else {
+                    _photos[i] = null; // Fill the rest with empty slots
                   }
-                });
-              },
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.close, color: Colors.white, size: 16),
-              ),
-            ),
+                }
+              });
+            },
           ),
       ],
+    );
+  }
+}
+
+//The small button in a photo's top-right corner: the pencil on the profile
+//picture, the X on every other photo. One widget so the two can never drift
+//apart in size, colour or placement.
+//
+//INSIDE the photo, inset from its top and right edges, rather than hanging
+//off the corner - an overhanging badge got clipped by neighbouring tiles
+//during the reorder animation and looked detached from its photo.
+class _PhotoCornerButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _PhotoCornerButton({required this.icon, required this.onTap});
+
+  //gap between the button and the photo's top and right edges
+  static const double _inset = 6;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: _inset,
+      right: _inset,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            //deeper and quieter than the bright primary, so the button sits on
+            //the photo instead of shouting over it
+            color: AppColors.primaryDeep,
+            //a rounded square, not a circle: reads as a button rather than a
+            //notification dot
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Icon(icon, color: AppColors.onPrimary, size: 15),
+        ),
+      ),
+    );
+  }
+}
+
+//Shakes its child left and right for as long as [active] is true - the "I am
+//being moved" signal on a held photo. Nothing else about the photo changes:
+//same size, same opacity.
+//
+//The controller only runs while active, so a grid of idle photos costs no
+//frames.
+class _Wiggle extends StatefulWidget {
+  final bool active;
+  final Widget child;
+
+  const _Wiggle({required this.active, required this.child});
+
+  @override
+  State<_Wiggle> createState() => _WiggleState();
+}
+
+class _WiggleState extends State<_Wiggle> with SingleTickerProviderStateMixin {
+  //one full left-right-left cycle. Fast enough to read as a vibration rather
+  //than as the photo swaying.
+  static const Duration _period = Duration(milliseconds: 260);
+  //how far it travels each way, in logical pixels
+  static const double _amplitude = 2;
+  //and how far it tilts each way, in radians (about 1.5 degrees)
+  static const double _tilt = 0.026;
+
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: _period,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.active) _controller.repeat();
+  }
+
+  @override
+  void didUpdateWidget(_Wiggle oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.active && !_controller.isAnimating) {
+      _controller.repeat();
+    } else if (!widget.active && _controller.isAnimating) {
+      //settle back to rest instead of freezing mid-tilt
+      _controller.stop();
+      _controller.value = 0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      child: widget.child,
+      builder: (context, child) {
+        //a sine wave, so it eases through each end instead of bouncing off it
+        final wave = math.sin(_controller.value * 2 * math.pi);
+        return Transform.translate(
+          offset: Offset(wave * _amplitude, 0),
+          child: Transform.rotate(angle: wave * _tilt, child: child),
+        );
+      },
     );
   }
 }
@@ -910,7 +999,8 @@ class _EditProfileState extends State<EditProfile> {
 //(existingUrl != null, so it never needs re-uploading) or a freshly-picked
 //local file that still has to be uploaded on save.
 class _PhotoSlot {
-  final File file; // local file used for display (a downloaded copy for existing)
+  final File
+  file; // local file used for display (a downloaded copy for existing)
   final String? existingUrl; // backend URL if already saved; null = new pick
   const _PhotoSlot(this.file, {this.existingUrl});
   bool get isNew => existingUrl == null;

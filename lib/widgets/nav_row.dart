@@ -22,9 +22,12 @@ class SectionHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(15, 24, 15, 6),
       child: Text(
         title,
-        style: theme.textTheme.titleSmall?.copyWith(
+        //bigger than the 16px row labels underneath (titleMedium), so a
+        //header reads as the heading of its rows rather than one of them
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontSize: 18,
           color: theme.colorScheme.primary,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w500,
         ),
       ),
     );

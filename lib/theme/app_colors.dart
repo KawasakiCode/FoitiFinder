@@ -11,6 +11,9 @@ class AppColors {
   static const Color primary = Color(0xFF7C3AED); // violet-600
   static const Color primaryDark = Color(0xFF6D28D9); // violet-700
   static const Color primaryLight = Color(0xFF8B5CF6); // violet-500
+  //violet-800. For small solid badges on top of photos, where the bright
+  //primary is too loud.
+  static const Color primaryDeep = Color(0xFF5B21B6);
   static const Color onPrimary = Color(0xFFFFFFFF);
 
   // Signature gradient for primary CTAs (violet -> fuchsia/pink).
