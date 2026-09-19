@@ -10,6 +10,7 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:foitifinder/constants/interest_catalogue.dart';
 import 'package:foitifinder/constants/profile_options.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
@@ -55,6 +56,36 @@ class _EditProfileState extends State<EditProfile> {
   final ImagePicker _picker = ImagePicker();
 
   bool _isLoading = false;
+
+  //---------------------------- drag to reorder ----------------------------
+  //
+  //Long press a photo, drag it, and the others slide out of the way. INSERT,
+  //not swap: dropping photo 3 on slot 1 puts it first and pushes 1 and 2 one
+  //place right. Slot 0 is the profile picture, so dragging a photo there is how
+  //the picture is changed without a new upload.
+  //
+  //Nothing is saved during the drag. The drop reorders _photos and sets
+  //_photosChanged, and the normal save on leaving the page syncs the list -
+  //display_order is just each URL's position in it, and stories follow their
+  //photo because the backend matches them by URL.
+  static const int _gridColumns = 3;
+  static const double _gridSpacing = 8;
+  //width / height of a tile
+  static const double _tileAspect = 0.75;
+  static const Duration _reflowDuration = Duration(milliseconds: 220);
+
+  //index in _photos of the photo being dragged, null when not dragging
+  int? _dragFrom;
+  //the slot it would land in if dropped now
+  int? _dragTo;
+  //how far the finger has moved since the long press fired
+  Offset _dragOffset = Offset.zero;
+  //the photo dragged last. Drawn on top of the others, so after the drop it
+  //glides home OVER its neighbours instead of dipping under them.
+  _PhotoSlot? _lastDragged;
+  //true while existing photos are still downloading into their slots by
+  //index. Reordering then would have them land in the wrong places.
+  bool _photosLoading = false;
 
   //the signed-in user, read fresh each time so a save that just landed (or
   //was reverted) is what the rows show
@@ -195,6 +226,9 @@ class _EditProfileState extends State<EditProfile> {
   }
 
   Future<void> _getUserPhotos() async {
+    //plain assignment: this runs from initState, where setState is not allowed
+    //and the first build reads the flag anyway
+    _photosLoading = true;
     try {
       List<PhotosModel> backendPhotos = await ApiService.getPhotos(
         FirebaseAuth.instance.currentUser!.uid,
@@ -221,6 +255,8 @@ class _EditProfileState extends State<EditProfile> {
           duration: const Duration(seconds: 3),
         ),
       );
+    } finally {
+      if (mounted) setState(() => _photosLoading = false);
     }
   }
 
@@ -421,20 +457,7 @@ class _EditProfileState extends State<EditProfile> {
                     //plus the first section fits above the fold.
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 15),
-                      child: GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          crossAxisSpacing: 8,
-                          mainAxisSpacing: 8,
-                          childAspectRatio: 0.75,
-                        ),
-                        itemCount: 6,
-                        itemBuilder: (context, index) =>
-                            _buildPhotoSlot(index),
-                      ),
+                      child: _buildPhotoGrid(),
                     ),
                     const SizedBox(height: 12),
                     CardGroup(
@@ -605,8 +628,189 @@ class _EditProfileState extends State<EditProfile> {
   }
 
 
-  //build the actual photo slot that goes inside the grid builder
-  Widget _buildPhotoSlot(int index) {
+  //Where a photo sits on screen right now: its own slot, or - mid drag - the
+  //slot it has been pushed into to make room. Only the photos BETWEEN the
+  //dragged one's origin and its target move, each by one place.
+  int _previewIndex(int index) {
+    final from = _dragFrom;
+    final to = _dragTo;
+    if (from == null || to == null || index == from) return index;
+    //dragged forwards: everything it passed shifts back one
+    if (from < to && index > from && index <= to) return index - 1;
+    //dragged backwards: everything it passed shifts forward one
+    if (from > to && index >= to && index < from) return index + 1;
+    return index;
+  }
+
+  //top-left corner of a slot inside the grid
+  Offset _cellOrigin(int index, Size cell) => Offset(
+    (index % _gridColumns) * (cell.width + _gridSpacing),
+    (index ~/ _gridColumns) * (cell.height + _gridSpacing),
+  );
+
+  //The slot the dragged tile is MORE THAN HALF over, judged by its centre:
+  //once the centre crosses the gap into a neighbour, at least half the tile
+  //is on top of it. Rows work the same way, so dragging up from the second
+  //row into the first flips at the halfway point too.
+  //
+  //Clamped to the filled slots - a photo dropped over an empty slot goes to
+  //the end of the photos, never leaving a gap before it.
+  int _slotUnder(Offset center, Size cell, int filledCount) {
+    final rows = _photos.length ~/ _gridColumns;
+    final col = ((center.dx + _gridSpacing / 2) / (cell.width + _gridSpacing))
+        .floor()
+        .clamp(0, _gridColumns - 1);
+    final row = ((center.dy + _gridSpacing / 2) / (cell.height + _gridSpacing))
+        .floor()
+        .clamp(0, rows - 1);
+    return (row * _gridColumns + col).clamp(0, filledCount - 1);
+  }
+
+  void _onDragStart(int index) {
+    if (_photosLoading || _isLoading) return;
+    HapticFeedback.mediumImpact();
+    setState(() {
+      _dragFrom = index;
+      _dragTo = index;
+      _dragOffset = Offset.zero;
+      _lastDragged = _photos[index];
+    });
+  }
+
+  void _onDragUpdate(Offset offsetFromOrigin, Size cell) {
+    final from = _dragFrom;
+    if (from == null) return;
+    final center = _cellOrigin(from, cell) +
+        Offset(cell.width / 2, cell.height / 2) +
+        offsetFromOrigin;
+    final to = _slotUnder(center, cell, _photos.whereType<_PhotoSlot>().length);
+    //a tick each time the others rearrange, so the reflow is felt too
+    if (to != _dragTo) HapticFeedback.selectionClick();
+    setState(() {
+      _dragOffset = offsetFromOrigin;
+      _dragTo = to;
+    });
+  }
+
+  void _onDragEnd() {
+    final from = _dragFrom;
+    final to = _dragTo;
+    if (from == null || to == null) return;
+    setState(() {
+      if (from != to) {
+        final filled = _photos.whereType<_PhotoSlot>().toList();
+        filled.insert(to, filled.removeAt(from));
+        for (var i = 0; i < _photos.length; i++) {
+          _photos[i] = i < filled.length ? filled[i] : null;
+        }
+        _photosChanged = true;
+      }
+      _dragFrom = null;
+      _dragTo = null;
+      _dragOffset = Offset.zero;
+    });
+  }
+
+  //The grid. A Stack of absolutely positioned tiles rather than a GridView,
+  //because a GridView lays its children out itself and cannot animate them
+  //sliding between cells.
+  //
+  //Every photo is an AnimatedPositioned keyed by the photo itself, so when
+  //its slot changes Flutter keeps the same widget and animates it to the new
+  //place instead of redrawing a different image there. The dragged tile has a
+  //zero duration while held, so it tracks the finger exactly, and gets the
+  //normal duration back on release, which is what makes it glide into the
+  //slot it was dropped on.
+  Widget _buildPhotoGrid() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cellWidth =
+            (constraints.maxWidth - _gridSpacing * (_gridColumns - 1)) /
+            _gridColumns;
+        final cell = Size(cellWidth, cellWidth / _tileAspect);
+        final rows = _photos.length ~/ _gridColumns;
+        final filledCount = _photos.whereType<_PhotoSlot>().length;
+        final dragging = _dragFrom != null;
+
+        final children = <Widget>[];
+
+        //empty slots never move: they are always the ones after the photos
+        for (var i = filledCount; i < _photos.length; i++) {
+          final origin = _cellOrigin(i, cell);
+          children.add(
+            Positioned(
+              key: ValueKey('empty-$i'),
+              left: origin.dx,
+              top: origin.dy,
+              width: cell.width,
+              height: cell.height,
+              child: _buildPhotoSlot(i),
+            ),
+          );
+        }
+
+        //photos, with the one being (or last) dragged added last so it draws
+        //above the rest
+        final order = [
+          for (var i = 0; i < filledCount; i++)
+            if (!identical(_photos[i], _lastDragged)) i,
+          for (var i = 0; i < filledCount; i++)
+            if (identical(_photos[i], _lastDragged)) i,
+        ];
+
+        for (final i in order) {
+          final isDragged = i == _dragFrom;
+          final origin = isDragged
+              ? _cellOrigin(i, cell) + _dragOffset
+              : _cellOrigin(_previewIndex(i), cell);
+
+          children.add(
+            AnimatedPositioned(
+              key: ObjectKey(_photos[i]),
+              duration: isDragged ? Duration.zero : _reflowDuration,
+              curve: Curves.easeOutCubic,
+              left: origin.dx,
+              top: origin.dy,
+              width: cell.width,
+              height: cell.height,
+              child: GestureDetector(
+                //long press, so a tap still opens the picker and a quick
+                //swipe still scrolls the page
+                onLongPressStart: (_) => _onDragStart(i),
+                onLongPressMoveUpdate: (details) =>
+                    _onDragUpdate(details.offsetFromOrigin, cell),
+                onLongPressEnd: (_) => _onDragEnd(),
+                child: AnimatedScale(
+                  //lifted off the grid while held
+                  scale: isDragged ? 1.06 : 1,
+                  duration: const Duration(milliseconds: 150),
+                  child: AnimatedOpacity(
+                    opacity: isDragged ? 0.9 : 1,
+                    duration: const Duration(milliseconds: 150),
+                    //the pencil/X belong to a slot, not a photo: hidden while
+                    //the photos are in flux, back on the drop
+                    child: _buildPhotoSlot(i, showBadges: !dragging),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
+
+        return SizedBox(
+          height: rows * cell.height + (rows - 1) * _gridSpacing,
+          child: Stack(
+            //the badges overhang the tile edges
+            clipBehavior: Clip.none,
+            children: children,
+          ),
+        );
+      },
+    );
+  }
+
+  //build the actual photo slot that goes inside the grid
+  Widget _buildPhotoSlot(int index, {bool showBadges = true}) {
     final photo = _photos[index];
 
     return Stack(
@@ -638,7 +842,7 @@ class _EditProfileState extends State<EditProfile> {
         // It is the one photo every account must have, so it gets a pencil
         // instead of an X. This is also what guarantees the user always keeps
         // at least one photo - removing any other slot can't reach zero.
-        if (photo != null && index == 0)
+        if (showBadges && photo != null && index == 0)
           Positioned(
             top: -5,
             left: -5,
@@ -660,7 +864,7 @@ class _EditProfileState extends State<EditProfile> {
           ),
 
         // 3. The Top-Left Remove Button, on every other photo
-        if (photo != null && index != 0)
+        if (showBadges && photo != null && index != 0)
           Positioned(
             top: -5,
             left: -5,
