@@ -356,11 +356,19 @@ class _EditProfileState extends State<EditProfile> {
 
       //Reconcile the backend to exactly this ordered list: keeps unchanged
       //photos, inserts new ones, deletes removed ones — no duplicates.
-      await ApiService.syncPhotos(uid: uid, photoUrls: photoUrls);
-      await ApiService.updateUserData(
-        uid: uid,
-        hasPhotos: photoUrls.isNotEmpty,
-      );
+      //syncPhotos reports failure by returning false, not by throwing - it
+      //was being ignored, so a failed save looked like a successful one
+      final synced =
+          await ApiService.syncPhotos(uid: uid, photoUrls: photoUrls);
+      if (!synced) throw Exception('Photo sync failed');
+      //the sync also sets has_photos on the backend
+
+      //photo 0 is the profile picture, so this is also what updates the
+      //avatar on the profile page
+      if (mounted) {
+        Provider.of<ProfileProvider>(context, listen: false)
+            .setPhotoUrls(photoUrls);
+      }
 
       _photosChanged = false;
     } catch (e) {

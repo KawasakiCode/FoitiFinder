@@ -154,7 +154,6 @@ class _SignUpPageState extends State<SignUpPage> {
         //most would never correct it. They pick it themselves in Account
         //Settings, or leave it empty.
         city: null,
-        imageUrl: null,
         gender: null,
         minAgeRange: null,
         maxAgeRange: null,

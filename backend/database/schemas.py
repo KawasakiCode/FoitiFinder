@@ -9,7 +9,6 @@ from datetime import date, datetime
 #response below, but never read from a request body.
 class UserBase(BaseModel):
     name: str
-    profile_picture: str | None = None
     bio: str | None = None
     birthday: date | None = None
     height_cm: int | None = None
@@ -58,7 +57,6 @@ class UserBase(BaseModel):
 #for patch endpoints to update a single attribute without needing the others too
 class UserUpdate(BaseModel):
     name: str | None = None
-    profile_picture: str | None = None
     bio: str | None = None
     birthday: date | None = None
     height_cm: int | None = None
@@ -113,6 +111,9 @@ class User(UserBase):
     created_at: datetime
     #server-derived, response only (the client reads it back as the user's uid)
     firebase_token: str
+    #the user's photos in display order; [0] is the profile picture. Read
+    #only - photos are changed through /photos/sync, never through here.
+    photo_urls: List[str] = []
 
     #allows pydantic to read sqlalchemy objects instead of only dictionaries
     class Config:

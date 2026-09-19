@@ -14,7 +14,6 @@ class User(Base):
     #Users put whatever they want people to call them.
     name = Column(String, nullable = False, index = True)
     firebase_token = Column(String, unique = True, nullable = False)
-    profile_picture = Column(String, unique = True, nullable = True)
     bio = Column(String, nullable = True)
     #Date, not an age integer: an age is only correct on the day it is
     #written. Age is derived from this wherever it is shown - see ages.py.
@@ -109,6 +108,14 @@ class User(Base):
     settings = relationship("Settings", back_populates="user", uselist=False, cascade="all, delete", passive_deletes=True)
     photos = relationship("Photos", back_populates="user", cascade="all, delete", passive_deletes=True)
     qna = relationship("UserQnA", back_populates="user", cascade="all, delete", passive_deletes=True)
+
+    #THE PROFILE PICTURE IS photo_urls[0], the photo with display_order 0.
+    #There used to be a profile_picture column as well, written by a separate
+    #upload, and nothing kept the two in step - likes showed one face and
+    #matches another. Now there is one fact in one place.
+    @property
+    def photo_urls(self):
+        return [p.photo_url for p in sorted(self.photos, key=lambda p: p.display_order)]
 
     #GIN indexes back the overlap operators (&&) and the shared-tag counting
     #the feed batch uses to score candidates. Only the two tag arrays get one:

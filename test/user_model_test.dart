@@ -43,6 +43,16 @@ void main() {
     expect(again.showOutsideResidence, isFalse);
   });
 
+  test('photo 0 is the profile picture', () {
+    final user = UserModel.fromJson({
+      ...backendJson,
+      'photo_urls': ['https://a/0.jpg', 'https://a/1.jpg'],
+    });
+    expect(user.profilePictureUrl, 'https://a/0.jpg');
+    expect(UserModel.fromJson(user.toMap()).photoUrls, user.photoUrls);
+    expect(UserModel.fromJson(backendJson).profilePictureUrl, isNull);
+  });
+
   test('an older cache without the new fields still parses', () {
     final user = UserModel.fromJson({
       'firebase_token': 'uid',

@@ -148,8 +148,9 @@ class _ProfilePageState extends State<ProfilePage> {
       backgroundImage = ResizeImage(FileImage(profileProvider.tempProfileImage!), width: 300);
     }
     //If not locally grab it from the cloud
-    else if(profileProvider.currentUser?.imageUrl != null && profileProvider.currentUser!.imageUrl!.isNotEmpty) {
-      backgroundImage = CachedNetworkImageProvider(profileProvider.currentUser!.imageUrl!);
+    //Else photo 0, which is the profile picture
+    else if(profileProvider.currentUser?.profilePictureUrl != null) {
+      backgroundImage = CachedNetworkImageProvider(profileProvider.currentUser!.profilePictureUrl!);
     }
     //Else show default pfp
     else {

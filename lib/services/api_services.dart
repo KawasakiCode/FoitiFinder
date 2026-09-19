@@ -49,7 +49,6 @@ class ApiService {
     required DateTime? birthday,
     required int? heightCm,
     required String? city,
-    required String? imageUrl,
     required String? gender,
     required int? minAgeRange,
     required int? maxAgeRange,
@@ -72,7 +71,6 @@ class ApiService {
           "birthday": birthday?.toIso8601String().split('T').first,
           "height_cm": heightCm,
           "city": city,
-          "profile_picture": imageUrl,
           "gender": gender,
           "min_age_range": minAgeRange,
           "max_age_range": maxAgeRange,
@@ -103,7 +101,6 @@ class ApiService {
     DateTime? birthday,
     int? heightCm,
     String? city,
-    String? imageUrl,
     String? gender,
     int? minAgeRange,
     int? maxAgeRange,
@@ -122,7 +119,6 @@ class ApiService {
     //'' is how the caller clears a city - it must be SENT, not skipped like a
     //null would be. The backend turns an empty string back into NULL.
     if (city != null) data['city'] = city;
-    if (imageUrl != null) data['profile_picture'] = imageUrl;
     if (gender != null) data['gender'] = gender;
     if (minAgeRange != null) data['min_age_range'] = minAgeRange;
     if (maxAgeRange != null) data['max_age_range'] = maxAgeRange;

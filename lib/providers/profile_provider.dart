@@ -1,4 +1,4 @@
-//Provider that loads the profile of the user (profile picture, name, age)
+//Provider that loads the profile of the user (photos, name, age)
 //only used for profile related variables
 
 import 'dart:convert';
@@ -82,7 +82,12 @@ class ProfileProvider extends ChangeNotifier {
     }
   }
 
-  //Pick the image file, store it temporarily and upload it to cloud and get the url back.
+  //Change the profile picture from the profile page.
+  //
+  //The profile picture IS photo 0, so this replaces photo 0 and syncs the
+  //whole list - the same thing Edit Profile does when the first slot changes.
+  //Either place changes the one picture. The rest of the photos are untouched.
+  //
   //Returns a result so the caller can show feedback instead of failing silently.
   Future<ProfilePictureUpdate> updateProfilePicture() async {
     File? file;
@@ -95,36 +100,46 @@ class ProfileProvider extends ChangeNotifier {
     //user cancelled the picker
     if (file == null) return ProfilePictureUpdate.cancelled;
 
+    final user = _currentUser;
+    if (user == null) return ProfilePictureUpdate.failed;
+
+    //show the picked file straight away while it uploads
     _tempprofileImage = file;
     notifyListeners();
 
-    final String? uid = _currentUser?.uid;
-    if (uid == null) {
-      _tempprofileImage = null;
-      notifyListeners();
-      return ProfilePictureUpdate.failed;
-    }
-
     try {
-      final String? url = await ImageService.uploadImage(file, uid);
-      //upload failed: drop the preview so the UI doesn't show an unsaved image
-      if (url == null) {
-        _tempprofileImage = null;
-        notifyListeners();
-        return ProfilePictureUpdate.failed;
-      }
+      final String? url = await ApiService.uploadToFirebase(file, user.uid);
+      if (url == null) throw Exception('upload failed');
 
-      await ApiService.updateUserData(uid: uid, imageUrl: url);
-      //clear the temp preview before refreshing so the UI shows the saved url
+      //The list comes from the BACKEND, not the cached user. Sync replaces the
+      //whole set, so a stale or empty cached list (a cache written before
+      //photo_urls existed, or an offline launch) would delete every photo but
+      //the new one.
+      final current = await ApiService.getPhotos(user.uid);
+      final photoUrls = [url, ...current.skip(1).map((p) => p.photoUrl)];
+      final synced =
+          await ApiService.syncPhotos(uid: user.uid, photoUrls: photoUrls);
+      if (!synced) throw Exception('sync failed');
+
+      //clear the preview in the same notify as the new url lands, so the
+      //avatar never flashes back to the old picture in between
       _tempprofileImage = null;
-      updateLocalUser(imageUrl: url);
+      setPhotoUrls(photoUrls);
       return ProfilePictureUpdate.success;
     } catch (e) {
-      //db update or upload threw, undo the preview and report failure
+      //nothing was saved: drop the preview, the old picture is still correct
       _tempprofileImage = null;
       notifyListeners();
       return ProfilePictureUpdate.failed;
     }
+  }
+
+  //Take a photo list that has ALREADY been synced to the backend (Edit Profile,
+  //or updateProfilePicture above). Memory and disk only.
+  void setPhotoUrls(List<String> photoUrls) {
+    final user = _currentUser;
+    if (user == null) return;
+    _setLocalUser(user.copyWith(photoUrls: List.unmodifiable(photoUrls)));
   }
 
   //Register new user on sign up
@@ -138,7 +153,6 @@ class ProfileProvider extends ChangeNotifier {
     DateTime? birthday,
     int? heightCm,
     String? city,
-    String? imageUrl,
     String? gender,
     int? minAgeRange,
     int? maxAgeRange,
@@ -159,7 +173,6 @@ class ProfileProvider extends ChangeNotifier {
         birthday: birthday,
         heightCm: heightCm,
         city: city,
-        imageUrl: imageUrl,
         gender: gender,
         minAgeRange: minAgeRange,
         maxAgeRange: maxAgeRange,
@@ -179,7 +192,6 @@ class ProfileProvider extends ChangeNotifier {
           birthday: birthday,
           heightCm: heightCm,
           city: city,
-          imageUrl: imageUrl,
           gender: gender,
           minAgeRange: minAgeRange,
           maxAgeRange: maxAgeRange,
@@ -246,7 +258,6 @@ class ProfileProvider extends ChangeNotifier {
     DateTime? birthday,
     int? heightCm,
     String? city,
-    String? imageUrl,
     String? gender,
     bool? hasFinishedSetUp,
     double? score,
@@ -264,7 +275,6 @@ class ProfileProvider extends ChangeNotifier {
       //null means "not being changed"; an empty string means "cleared", and is
       //normalised to null so local state matches what the backend stores
       city: city == null ? null : () => city.isEmpty ? null : city,
-      imageUrl: imageUrl == null ? null : () => imageUrl,
       gender: gender == null ? null : () => gender,
       hasFinishedSetUp: hasFinishedSetUp,
       score: score,

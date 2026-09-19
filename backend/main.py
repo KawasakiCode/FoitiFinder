@@ -162,7 +162,6 @@ def create_user(
         name = user.name,
         has_finished_set_up=user.has_finished_set_up,
         firebase_token=uid,
-        profile_picture=user.profile_picture,
         bio=user.bio,
         birthday=user.birthday,
         height_cm=user.height_cm,
@@ -197,7 +196,7 @@ def create_user(
     return new_user
 
 #get users data
-@app.get("/users/me")
+@app.get("/users/me", response_model=schemas.User)
 def get_user_data(uid: str = Depends(current_uid), db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.firebase_token == uid).first()
 
@@ -447,6 +446,14 @@ def get_matches(uid: str = Depends(verified_email_uid), db: Session = Depends(ge
         user.id: user
         for user in db.query(models.User).filter(models.User.id.in_(other_ids)).all()
     }
+    #and one for their profile pictures: the photo with display_order 0
+    picture_by_user = {
+        photo.user_id: photo.photo_url
+        for photo in db.query(models.Photos).filter(
+            models.Photos.user_id.in_(other_ids),
+            models.Photos.display_order == 0,
+        ).all()
+    }
 
     results = []
     for match in matches:
@@ -461,7 +468,7 @@ def get_matches(uid: str = Depends(verified_email_uid), db: Session = Depends(ge
             "match_id": match.id,
             "other_user_id": other_user.id,
             "other_user_name": other_user.name,
-            "image_url": other_user.profile_picture,
+            "image_url": picture_by_user.get(other_user.id),
         })
 
     return results

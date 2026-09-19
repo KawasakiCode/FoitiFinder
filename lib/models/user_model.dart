@@ -24,7 +24,9 @@ class UserModel{
   //place of residence. Prefilled from the university's city at signup
   //(constants/university_domains.dart) and editable afterwards.
   final String? city;
-  final String? imageUrl;
+  //The user's photos in display order. [0] IS the profile picture - there is
+  //no separate column for it any more, so the two can never disagree.
+  final List<String> photoUrls;
   final String? gender;
   final int? minAgeRange;
   final int? maxAgeRange;
@@ -63,7 +65,7 @@ class UserModel{
     this.birthday,
     this.heightCm,
     this.city,
-    this.imageUrl,
+    this.photoUrls = const [],
     this.gender, 
     this.minAgeRange,
     this.maxAgeRange,
@@ -78,6 +80,9 @@ class UserModel{
 
   List<String> choice(String key) => choices[key] ?? const [];
 
+  //null when the user has no photos yet (only possible mid-signup)
+  String? get profilePictureUrl => photoUrls.isEmpty ? null : photoUrls.first;
+
   //A copy with some fields replaced. Everything not passed is carried over, so
   //there is no field list to keep in sync by hand.
   //
@@ -91,7 +96,7 @@ class UserModel{
     ValueGetter<DateTime?>? birthday,
     ValueGetter<int?>? heightCm,
     ValueGetter<String?>? city,
-    ValueGetter<String?>? imageUrl,
+    List<String>? photoUrls,
     ValueGetter<String?>? gender,
     ValueGetter<int?>? minAgeRange,
     ValueGetter<int?>? maxAgeRange,
@@ -114,7 +119,7 @@ class UserModel{
       birthday: birthday != null ? birthday() : this.birthday,
       heightCm: heightCm != null ? heightCm() : this.heightCm,
       city: city != null ? city() : this.city,
-      imageUrl: imageUrl != null ? imageUrl() : this.imageUrl,
+      photoUrls: photoUrls ?? this.photoUrls,
       gender: gender != null ? gender() : this.gender,
       minAgeRange: minAgeRange != null ? minAgeRange() : this.minAgeRange,
       maxAgeRange: maxAgeRange != null ? maxAgeRange() : this.maxAgeRange,
@@ -153,7 +158,7 @@ class UserModel{
           : DateTime.parse(json['birthday'] as String),
       heightCm: json['height_cm'],
       city: json['city'],
-      imageUrl: json['profile_picture'],
+      photoUrls: _readList(json['photo_urls']),
       gender: json['gender'],
       minAgeRange: json['min_age_range'],
       maxAgeRange: json['max_age_range'],
@@ -185,7 +190,7 @@ class UserModel{
       'birthday': birthday?.toIso8601String().split('T').first,
       'height_cm': heightCm,
       'city': city,
-      'profile_picture': imageUrl,
+      'photo_urls': photoUrls,
       'gender': gender,
       'min_age_range': minAgeRange,
       'max_age_range': maxAgeRange,
