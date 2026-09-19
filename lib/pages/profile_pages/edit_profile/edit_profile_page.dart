@@ -634,27 +634,38 @@ class _EditProfileState extends State<EditProfile> {
           ),
         ),
 
-        // 2. The Top-Left Remove Button (Only renders if a photo exists)
-        if (photo != null)
+        // 2. Slot 0 is the profile picture: it can be REPLACED, never removed.
+        // It is the one photo every account must have, so it gets a pencil
+        // instead of an X. This is also what guarantees the user always keeps
+        // at least one photo - removing any other slot can't reach zero.
+        if (photo != null && index == 0)
+          Positioned(
+            top: -5,
+            left: -5,
+            child: GestureDetector(
+              onTap: () => _pickImage(0),
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.edit,
+                  color: Theme.of(context).colorScheme.onPrimary,
+                  size: 16,
+                ),
+              ),
+            ),
+          ),
+
+        // 3. The Top-Left Remove Button, on every other photo
+        if (photo != null && index != 0)
           Positioned(
             top: -5,
             left: -5,
             child: GestureDetector(
               onTap: () {
-                // A user must always keep at least one photo — block removing
-                // the last one instead of relying on an exit-time warning.
-                final photoCount =
-                    _photos.where((photo) => photo != null).length;
-                if (photoCount <= 1) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(text.addAtLeastAPhoto),
-                      backgroundColor: Colors.red,
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
-                  return;
-                }
                 setState(() {
                   // 1. Set the removed photo's slot to null
                   _photos[index] = null;
