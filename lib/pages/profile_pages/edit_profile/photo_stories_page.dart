@@ -6,15 +6,19 @@
 //it (the backend drops it on the next /photos/sync).
 //
 //The user may write as many or as few as they like; none is a valid state.
+//
+//THE PROFILE PICTURE IS NOT IN THIS LIST. Photo 0 is what people see beside a
+//name in the feed and in matches, where a caption has nowhere to go, so it is
+//filtered out here and refused by the backend - see photo_detail_page.dart.
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/models/photos_model.dart';
+import 'package:foitifinder/pages/profile_pages/edit_profile/story_dialog.dart';
 import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/widgets/pressable.dart';
-import 'package:foitifinder/widgets/app_dialog.dart';
 
 class PhotoStoriesPage extends StatefulWidget {
   const PhotoStoriesPage({super.key});
@@ -50,7 +54,8 @@ class _PhotoStoriesPageState extends State<PhotoStoriesPage> {
       );
       if (!mounted) return;
       setState(() {
-        _photos = photos;
+        //display_order 0 is the profile picture, which has no story
+        _photos = photos.where((p) => p.displayOrder != 0).toList();
         _loading = false;
       });
     } catch (_) {
@@ -68,42 +73,7 @@ class _PhotoStoriesPageState extends State<PhotoStoriesPage> {
   //independent, and a half-finished set should not be lost because the user
   //backed out of the page.
   Future<void> _editStory(PhotosModel photo) async {
-    final controller = TextEditingController(text: photo.story ?? '');
-    final hadStory = (photo.story ?? '').isNotEmpty;
-
-    final result = await showAppDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(hadStory ? text.editStory : text.addStory),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          maxLines: 4,
-          maxLength: 300,
-          textCapitalization: TextCapitalization.sentences,
-          decoration: InputDecoration(hintText: text.storyHint),
-        ),
-        actions: [
-          //only offer removal when there is something to remove
-          if (hadStory)
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, ''),
-              child: Text(
-                text.removeStory,
-                style: const TextStyle(color: Colors.red),
-              ),
-            ),
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(text.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, controller.text),
-            child: Text(text.save),
-          ),
-        ],
-      ),
-    );
+    final result = await showStoryDialog(context, initialStory: photo.story);
 
     //null means dismissed - leave the story alone. '' means cleared.
     if (!mounted || result == null) return;

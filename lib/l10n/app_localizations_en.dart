@@ -1366,6 +1366,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storySaved => 'Story saved.';
 
   @override
+  String get photo => 'Photo';
+
+  @override
+  String get profilePicture => 'Profile picture';
+
+  @override
+  String get changePhoto => 'Change photo';
+
+  @override
+  String get profilePictureNoStory =>
+      'Your profile picture does not get a story.';
+
+  @override
   String get gender => 'Gender';
 
   @override

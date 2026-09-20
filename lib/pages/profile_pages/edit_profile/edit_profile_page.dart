@@ -21,6 +21,7 @@ import 'package:foitifinder/pages/profile_pages/shared/choice_page.dart';
 import 'package:foitifinder/pages/profile_pages/shared/coming_soon_page.dart';
 import 'package:foitifinder/pages/profile_pages/shared/save_profile_field.dart';
 import 'package:foitifinder/pages/profile_pages/edit_profile/personality/bio_page.dart';
+import 'package:foitifinder/pages/profile_pages/edit_profile/photo_detail_page.dart';
 import 'package:foitifinder/pages/profile_pages/edit_profile/photo_stories_page.dart';
 import 'package:foitifinder/pages/profile_pages/edit_profile/personality/interest_group_page.dart';
 import 'package:foitifinder/pages/profile_pages/edit_profile/personality/placeholder_group_page.dart';
@@ -134,6 +135,52 @@ class _EditProfileState extends State<EditProfile> {
       if (!mounted) return;
     }
     _push(const PhotoStoriesPage());
+  }
+
+  //Tapping a photo opens it full size, where it can be replaced and (unless it
+  //is the profile picture) given a story.
+  //
+  //Pending photo changes are flushed FIRST, for the same reason the stories
+  //page does it: a story is saved against a photo URL, so the photo has to
+  //exist in the backend before one can be written.
+  Future<void> _openPhoto(int index) async {
+    final slot = _photos[index];
+    //an empty slot has nothing to show - go straight to the picker
+    if (slot == null) {
+      _pickImage(index);
+      return;
+    }
+
+    if (_photosChanged) {
+      try {
+        await _submitPhotos();
+      } catch (_) {
+        //_submitPhotos already told the user; the page below still opens, just
+        //without the story option on an unsaved photo
+      }
+      if (!mounted) return;
+    }
+
+    final current = _photos[index];
+    if (current == null) return;
+
+    final replacement = await Navigator.push<File>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PhotoDetailPage(
+          file: current.file,
+          photoUrl: current.existingUrl,
+          //slot 0 is the profile picture
+          allowStory: index != 0,
+        ),
+      ),
+    );
+    if (!mounted || replacement == null) return;
+
+    setState(() {
+      _photos[index] = _PhotoSlot(replacement);
+      _photosChanged = true;
+    });
   }
 
   void _push(Widget page) {
@@ -385,8 +432,16 @@ class _EditProfileState extends State<EditProfile> {
         }),
       );
 
-      //Drop any failed upload (null) so we never sync a broken URL.
-      final photoUrls = resolvedUrls.whereType<String>().toList();
+      //Drop any failed upload (null) so we never sync a broken URL, and pair
+      //each surviving slot with the URL it now lives at.
+      final List<_PhotoSlot> savedSlots = [];
+      final List<String> photoUrls = [];
+      for (var i = 0; i < orderedSlots.length; i++) {
+        final url = resolvedUrls[i];
+        if (url == null) continue;
+        savedSlots.add(_PhotoSlot(orderedSlots[i].file, existingUrl: url));
+        photoUrls.add(url);
+      }
 
       //Safety: the user always keeps at least one photo, so an empty result can
       //only mean every upload failed. Abort rather than wiping their photos.
@@ -412,6 +467,19 @@ class _EditProfileState extends State<EditProfile> {
           context,
           listen: false,
         ).setPhotoUrls(photoUrls);
+      }
+
+      //The slots now match what the backend holds: each carries its URL, so a
+      //later save re-uploads nothing, and a story can be attached to a photo
+      //that was picked a moment ago. Without this every slot stayed "new" and
+      //the next save uploaded the whole set again under fresh URLs, taking
+      //their stories with it.
+      if (mounted) {
+        setState(() {
+          for (var i = 0; i < _photos.length; i++) {
+            _photos[i] = i < savedSlots.length ? savedSlots[i] : null;
+          }
+        });
       }
 
       _photosChanged = false;
@@ -827,7 +895,7 @@ class _EditProfileState extends State<EditProfile> {
         // 1. The Main Photo Slot
         Positioned.fill(
           child: GestureDetector(
-            onTap: () => _pickImage(index),
+            onTap: () => _openPhoto(index),
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.grey[200],

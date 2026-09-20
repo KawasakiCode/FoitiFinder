@@ -2762,6 +2762,30 @@ abstract class AppLocalizations {
   /// **'Story saved.'**
   String get storySaved;
 
+  /// No description provided for @photo.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get photo;
+
+  /// No description provided for @profilePicture.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile picture'**
+  String get profilePicture;
+
+  /// No description provided for @changePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Change photo'**
+  String get changePhoto;
+
+  /// No description provided for @profilePictureNoStory.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile picture does not get a story.'**
+  String get profilePictureNoStory;
+
   /// No description provided for @gender.
   ///
   /// In en, this message translates to:

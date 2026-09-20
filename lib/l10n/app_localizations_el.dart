@@ -1373,6 +1373,19 @@ class AppLocalizationsEl extends AppLocalizations {
   String get storySaved => 'Η ιστορία αποθηκεύτηκε.';
 
   @override
+  String get photo => 'Φωτογραφία';
+
+  @override
+  String get profilePicture => 'Φωτογραφία προφίλ';
+
+  @override
+  String get changePhoto => 'Αλλαγή φωτογραφίας';
+
+  @override
+  String get profilePictureNoStory =>
+      'Η φωτογραφία προφίλ σου δεν έχει ιστορία.';
+
+  @override
   String get gender => 'Φύλο';
 
   @override

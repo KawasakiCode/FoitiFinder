@@ -557,7 +557,10 @@ def sync_photos(payload: PhotoSync, uid: str = Depends(verified_email_uid), db: 
             user_id=me.id,
             photo_url=photo_url,
             display_order=order,
-            story=existing_stories.get(photo_url),
+            #position 0 is the profile picture, which has no story - a photo
+            #dragged into that slot leaves its story behind rather than
+            #keeping one nothing will ever display
+            story=None if order == 0 else existing_stories.get(photo_url),
         ))
 
     me.has_photos = len(payload.photo_urls) > 0
@@ -589,6 +592,16 @@ def set_photo_story(payload: PhotoStory, uid: str = Depends(verified_email_uid),
     ).first()
     if not photo:
         raise HTTPException(status_code=404, detail="Photo not found")
+
+    #The profile picture gets no story. It is shown beside a name in the feed,
+    #the likes list and matches, where there is nowhere to put a caption, so a
+    #story on it would be written and never read. The app hides the option;
+    #this is what makes it a rule rather than a UI convention.
+    if photo.display_order == 0:
+        raise HTTPException(
+            status_code=400,
+            detail="The profile picture cannot have a story",
+        )
 
     story = (payload.story or "").strip()
     #an empty box means "remove the story", not "store a blank one"
