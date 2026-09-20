@@ -166,13 +166,12 @@ class _EditProfileState extends State<EditProfile> {
 
     final replacement = await Navigator.push<File>(
       context,
-      MaterialPageRoute(
-        builder: (_) => PhotoDetailPage(
-          file: current.file,
-          photoUrl: current.existingUrl,
-          //slot 0 is the profile picture
-          allowStory: index != 0,
-        ),
+      photoDetailRoute(
+        file: current.file,
+        photoUrl: current.existingUrl,
+        //slot 0 is the profile picture
+        allowStory: index != 0,
+        heroTag: _photoHeroTag(index),
       ),
     );
     if (!mounted || replacement == null) return;
@@ -182,6 +181,11 @@ class _EditProfileState extends State<EditProfile> {
       _photosChanged = true;
     });
   }
+
+  //The photo flies from this tile to the middle of the detail page. Keyed by
+  //SLOT, not by the file: duplicates are allowed in the grid, and two Heroes
+  //sharing a tag is a crash.
+  Object _photoHeroTag(int index) => 'photo-slot-$index';
 
   void _push(Widget page) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => page));
@@ -902,9 +906,12 @@ class _EditProfileState extends State<EditProfile> {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: photo != null
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.file(photo.file, fit: BoxFit.cover),
+                  ? Hero(
+                      tag: _photoHeroTag(index),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.file(photo.file, fit: BoxFit.cover),
+                      ),
                     )
                   : const Center(
                       child: Icon(Icons.add, color: Colors.grey, size: 30),
