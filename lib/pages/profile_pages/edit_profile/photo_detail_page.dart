@@ -45,9 +45,11 @@ Route<File> photoDetailRoute({
   required Object heroTag,
 }) {
   return PageRouteBuilder<File>(
-    //long enough to watch the photo travel, short enough not to be in the way
-    transitionDuration: const Duration(milliseconds: 360),
-    reverseTransitionDuration: const Duration(milliseconds: 260),
+    //long enough to watch the photo travel, short enough not to be in the way.
+    //The Hero eases itself (fastOutSlowIn), so this is purely how long the
+    //whole move takes.
+    transitionDuration: const Duration(milliseconds: 520),
+    reverseTransitionDuration: const Duration(milliseconds: 400),
     pageBuilder: (_, _, _) => PhotoDetailPage(
       file: file,
       photoUrl: photoUrl,
@@ -59,7 +61,9 @@ Route<File> photoDetailRoute({
     transitionsBuilder: (_, animation, _, child) => FadeTransition(
       opacity: CurvedAnimation(
         parent: animation,
-        curve: const Interval(0, 0.6, curve: Curves.easeOut),
+        //in over the first half, so the page has settled well before the
+        //photo finishes landing
+        curve: const Interval(0, 0.5, curve: Curves.easeOut),
       ),
       child: child,
     ),
@@ -207,8 +211,14 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
     final Animation<double> routeAnimation =
         ModalRoute.of(context)?.animation ?? kAlwaysCompleteAnimation;
     final Animation<Offset> slideIn =
-        Tween<Offset>(begin: const Offset(0.4, 0), end: Offset.zero).animate(
-          CurvedAnimation(parent: routeAnimation, curve: Curves.easeOutCubic),
+        Tween<Offset>(begin: const Offset(0.35, 0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: routeAnimation,
+            //the same easing the Hero flight uses, so the photo and the rest
+            //of the page move as one thing rather than two
+            curve: Curves.fastOutSlowIn,
+            reverseCurve: Curves.fastOutSlowIn.flipped,
+          ),
         );
 
     return Scaffold(

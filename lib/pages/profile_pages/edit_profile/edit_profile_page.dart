@@ -902,7 +902,18 @@ class _EditProfileState extends State<EditProfile> {
             onTap: () => _openPhoto(index),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.grey[200],
+                //TRANSPARENT UNDER A PHOTO. While the photo is flying to the
+                //detail page the Hero leaves an empty placeholder here, and a
+                //filled box made that read as a white hole punched in the
+                //grid. Transparent means the page background shows through,
+                //so the slot looks like it travelled with the photo.
+                //
+                //Empty slots keep a fill, since that box IS the "add a photo"
+                //target. Theme colours, not Colors.grey[200], which was a
+                //light-grey box in dark mode too.
+                color: photo != null
+                    ? Colors.transparent
+                    : Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: photo != null
@@ -913,8 +924,12 @@ class _EditProfileState extends State<EditProfile> {
                         child: Image.file(photo.file, fit: BoxFit.cover),
                       ),
                     )
-                  : const Center(
-                      child: Icon(Icons.add, color: Colors.grey, size: 30),
+                  : Center(
+                      child: Icon(
+                        Icons.add,
+                        size: 30,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
             ),
           ),
