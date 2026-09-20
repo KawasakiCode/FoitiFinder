@@ -8,7 +8,7 @@ import 'package:flutter/cupertino.dart';
 class AppTheme {
   AppTheme._();
 
-  static const String fontFamily = 'PlusJakartaSans';
+  static const String fontFamily = 'Inter';
 
   static ThemeData get light => _build(Brightness.light);
   static ThemeData get dark => _build(Brightness.dark);

@@ -88,12 +88,20 @@ flutter:
   # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/to/asset-from-package
 
-  # Plus Jakarta Sans is a variable font (weight axis ExtraLight->ExtraBold),
-  # so a single .ttf covers every weight we use. Bundled locally = offline.
+  # Inter is a variable font (weight axis 100->900), so a single .ttf covers
+  # every weight we use. Bundled locally = offline, and identical on every
+  # device.
+  #
+  # IT MUST COVER GREEK. The app ships Greek strings, and a missing glyph is
+  # not an error - Flutter silently borrows one from whatever font the OS
+  # offers, which differs per device and looks nothing like the rest of the
+  # text. Plus Jakarta Sans, used before this, had no Greek at all.
+  # test/font_coverage_test.dart fails if a string needs a glyph this file
+  # does not have.
   fonts:
-    - family: PlusJakartaSans
+    - family: Inter
       fonts:
-        - asset: assets/fonts/PlusJakartaSans.ttf
+        - asset: assets/fonts/Inter.ttf
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
