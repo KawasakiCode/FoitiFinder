@@ -18,7 +18,6 @@ class ProfileProvider extends ChangeNotifier {
   final SharedPreferences _prefs; 
   File? _tempprofileImage; //to preview updates and check for changes
   UserModel? _currentUser;
-  bool isLoading = false; //flag to check for backend activity
 
   //The provider when initialized loads data from disk or if disk is empty loads null
   //Using this way we save the time of making a call to the db
@@ -158,8 +157,6 @@ class ProfileProvider extends ChangeNotifier {
     int? maxAgeRange,
     String? preferredGender,
   }) async {
-      isLoading = true;
-
       //Optimistically set the local user + cache BEFORE the backend round-trip,
       //so the auth router (SetupWrapper) immediately treats us as a valid,
       //logged-in user and doesn't sign us out while createUser is still in
@@ -204,11 +201,9 @@ class ProfileProvider extends ChangeNotifier {
         _currentUser = null;
         await _prefs.remove('user_data');
         notifyListeners();
-        isLoading = false;
         rethrow;
       }
 
-      isLoading = false;
   }
 
   //Show one change straight away, send it, and put the old value back if the
