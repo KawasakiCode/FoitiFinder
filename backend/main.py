@@ -529,6 +529,10 @@ class PhotoSync(BaseModel):
 #uploads only NEW files to Firebase Storage (existing photos keep their URL),
 #then sends the final ordered URLs here. We wipe and re-insert the rows so
 #unchanged photos are never duplicated, removed ones are deleted, and
+#The photo grid in the app has this many slots; /photos/sync enforces the same
+#bound so the rule holds even when the request does not come from the app.
+MAX_PHOTOS = 6
+
 #display_order matches the order the user arranged. Only the photo rows are
 #touched — the Firebase Storage objects of kept photos are reused via their URL.
 @app.put("/photos/sync")
@@ -536,6 +540,29 @@ def sync_photos(payload: PhotoSync, uid: str = Depends(verified_email_uid), db: 
     me = db.query(models.User).filter(models.User.firebase_token == uid).first()
     if not me:
         raise HTTPException(status_code=404, detail="Current User not found")
+
+    #EVERY ACCOUNT KEEPS AT LEAST ONE PHOTO. This endpoint replaces the whole
+    #set, so an empty list means "delete them all" - which would leave a
+    #profile nobody can be shown, and no way back except uploading again.
+    #
+    #The app already prevents it (the first slot has no remove button, and
+    #_submitPhotos aborts when every upload failed), but that is a rule in one
+    #client. A patched build, a crash mid-upload, or a direct call would
+    #otherwise wipe the account's photos.
+    if not payload.photo_urls:
+        raise HTTPException(
+            status_code=400,
+            detail="At least one photo is required",
+        )
+
+    #...and no more than the grid can hold. The app offers exactly MAX_PHOTOS
+    #slots, so a longer list can only come from a patched client or a bug, and
+    #the extra rows would be stored and then never shown anywhere.
+    if len(payload.photo_urls) > MAX_PHOTOS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"At most {MAX_PHOTOS} photos are allowed",
+        )
 
     #This endpoint wipes and re-inserts, so a photo's story would be destroyed
     #every time the user merely REORDERED their photos. Remember the stories by
@@ -566,6 +593,7 @@ def sync_photos(payload: PhotoSync, uid: str = Depends(verified_email_uid), db: 
     me.has_photos = len(payload.photo_urls) > 0
     db.commit()
     return {"message": "photos synced"}
+
 
 #body for setting one photo's story
 #NOTE: no firebase_token - the owner is taken from the verified ID token, and
