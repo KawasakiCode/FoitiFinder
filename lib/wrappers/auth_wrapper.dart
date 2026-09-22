@@ -1,7 +1,7 @@
 //Widget that contains the stream builder that grabs firebase data and changes
 //gets called by main 
 //is const because flutter wont rebuild it everytime we call notifyListeners 
-//in settings provider. If it wasnt a const an infinite loop happens
+//in settings provider
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';

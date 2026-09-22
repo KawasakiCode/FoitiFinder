@@ -1,6 +1,4 @@
 //Internet connection wrapper
-//if it detects a connection loss it pushes a no internet page 
-//when the wifi comes back again it automatically returns to the page it was
 
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
@@ -53,7 +51,7 @@ class _InternetWrapperState extends State<InternetWrapper> {
       if (_wasOffline) {
         _wasOffline = false;
         
-        // Hide the persistent red SnackBar first
+        // Hide the persistent SnackBar first
         globalMessengerKey.currentState?.hideCurrentSnackBar();
         
         _showSnackBar(
