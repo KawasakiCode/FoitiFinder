@@ -13,7 +13,12 @@ class User(Base):
     #mentioned, so a second identifier was a field to fill in for no purpose.
     #Users put whatever they want people to call them.
     name = Column(String, nullable = False, index = True)
-    firebase_token = Column(String, unique = True, nullable = False)
+    #The Firebase UID: a permanent, public IDENTIFIER, not a credential. Named
+    #firebase_token until it was renamed, which invited the mix-up with the
+    #four things Firebase actually calls tokens (ID, refresh, custom, FCM).
+    #This is the only link between a Google identity and a row here, which is
+    #why every endpoint's first query filters on it.
+    firebase_uid = Column(String, unique = True, nullable = False)
     bio = Column(String, nullable = True)
     #Date, not an age integer: an age is only correct on the day it is
     #written. Age is derived from this wherever it is shown - see ages.py.
@@ -33,8 +38,7 @@ class User(Base):
     min_height_preference = Column(Integer, nullable = True)
     max_height_preference = Column(Integer, nullable = True)
     #the GENDER PREFERENCE: a comma separated string of 'Men'/'Women'/
-    #'Everyone'. Was called `interests`, which read as profile interests and
-    #invited exactly the mix-up the warning below describes.
+    #'Everyone'.
     preferred_gender = Column(String, nullable = True)
     has_finished_set_up = Column(Boolean, nullable = False)
     has_photos = Column(Boolean, nullable = False)

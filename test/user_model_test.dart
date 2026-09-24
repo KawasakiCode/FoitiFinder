@@ -9,7 +9,7 @@ import 'package:foitifinder/models/user_model.dart';
 
 void main() {
   final backendJson = <String, dynamic>{
-    'firebase_token': 'uid',
+    'firebase_uid': 'uid',
     'name': 'Maria',
     'has_finished_set_up': true,
     'has_photos': true,
@@ -55,7 +55,7 @@ void main() {
 
   test('an older cache without the new fields still parses', () {
     final user = UserModel.fromJson({
-      'firebase_token': 'uid',
+      'firebase_uid': 'uid',
       'name': 'Maria',
       'has_finished_set_up': true,
       'has_photos': true,

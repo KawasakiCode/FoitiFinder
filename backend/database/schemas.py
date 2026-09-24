@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from datetime import date, datetime
 
 #main user schema
-#NOTE: no firebase_token here. The uid is NOT accepted from the client — it is
+#NOTE: no firebase_uid here. The uid is NOT accepted from the client — it is
 #taken from the verified ID token server side (see current_uid in main.py), so
 #a caller can only ever create/modify their own row. It is returned in the User
 #response below, but never read from a request body.
@@ -110,7 +110,7 @@ class User(UserBase):
     id: int
     created_at: datetime
     #server-derived, response only (the client reads it back as the user's uid)
-    firebase_token: str
+    firebase_uid: str
     #the user's photos in display order; [0] is the profile picture. Read
     #only - photos are changed through /photos/sync, never through here.
     photo_urls: List[str] = []
@@ -141,7 +141,7 @@ class QnAItem(BaseModel):
     display_order: int = 0
 
 #body for replacing a user's whole Q&A set in one call, mirroring PhotoSync.
-#NOTE: no firebase_token - the owner comes from the verified ID token.
+#NOTE: no firebase_uid - the owner comes from the verified ID token.
 class QnASync(BaseModel):
     items: List[QnAItem] = []
 

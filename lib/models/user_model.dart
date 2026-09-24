@@ -1,6 +1,6 @@
 //user model for the user that will be sent to the database
 //email and password are missing because they are on firebase and not in the database
-//the database and firebase are connected through the firebase_token (uid) to find specific users
+//the database and firebase are connected through the firebase_uid to find specific users
 
 //Age, gender, minMaxAgeRange, preferredGender are here
 //and not in settings model because they affect the matching algorithm and its
@@ -147,7 +147,7 @@ class UserModel{
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel ( 
-      uid: json['firebase_token'] ?? (throw Exception("Critical: uid missing")),
+      uid: json['firebase_uid'] ?? (throw Exception("Critical: uid missing")),
       name: json['name'] ?? (throw Exception("Critical: name missing")),
       hasFinishedSetUp: json['has_finished_set_up'] ?? (throw Exception("Critical: finishedSetUp missing")),
       score: (json['score'] ?? 0).toDouble(),
@@ -179,7 +179,7 @@ class UserModel{
 
   Map<String, dynamic> toMap() {
     return {
-      'firebase_token': uid,
+      'firebase_uid': uid,
       'name': name,
       'has_finished_set_up': hasFinishedSetUp,
       'score' : score,

@@ -91,7 +91,7 @@ class LikerProfile(BaseModel):
         from_attributes = True
 
 #class that handles sending back users photos
-#NOTE: no firebase_token — the owner is taken from the verified ID token
+#NOTE: no firebase_uid — the owner is taken from the verified ID token
 class UserPhotos(BaseModel):
     photo_url: str
     display_order: int
@@ -153,15 +153,15 @@ def create_user(
         )
 
     #the row is keyed to the VERIFIED uid, so a caller can only ever create their
-    #own account — any firebase_token in the body is ignored
-    db_user = db.query(models.User).filter(models.User.firebase_token == uid).first()
+    #own account — any firebase_uid in the body is ignored
+    db_user = db.query(models.User).filter(models.User.firebase_uid == uid).first()
     if db_user:
         raise HTTPException(status_code = 400, detail="User already exists")
 
     new_user = models.User(
         name = user.name,
         has_finished_set_up=user.has_finished_set_up,
-        firebase_token=uid,
+        firebase_uid=uid,
         bio=user.bio,
         birthday=user.birthday,
         height_cm=user.height_cm,
@@ -198,7 +198,7 @@ def create_user(
 #get users data
 @app.get("/users/me", response_model=schemas.User)
 def get_user_data(uid: str = Depends(current_uid), db: Session = Depends(get_db)):
-    db_user = db.query(models.User).filter(models.User.firebase_token == uid).first()
+    db_user = db.query(models.User).filter(models.User.firebase_uid == uid).first()
 
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -210,7 +210,7 @@ def delete_user(
     uid: str = Depends(current_uid),
     db: Session = Depends(get_db),
 ):
-    db_user = db.query(models.User).filter(models.User.firebase_token == uid).first()
+    db_user = db.query(models.User).filter(models.User.firebase_uid == uid).first()
 
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -221,7 +221,7 @@ def delete_user(
 #update one/multiple user attributes without altering the others
 @app.patch("/users/me")
 def update_user(user_update: schemas.UserUpdate, uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
-    db_user = db.query(models.User).filter(models.User.firebase_token == uid).first()
+    db_user = db.query(models.User).filter(models.User.firebase_uid == uid).first()
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -266,7 +266,7 @@ def update_user(user_update: schemas.UserUpdate, uid: str = Depends(verified_ema
 @app.get("/users/feed", response_model = List[UserCards])
 def get_swipe_feed(uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
     #first get the current user id to exclude it
-    me = db.query(models.User).filter(models.User.firebase_token == uid).first()
+    me = db.query(models.User).filter(models.User.firebase_uid == uid).first()
     if not me:
         raise HTTPException(status_code=404, detail='Current User not found')
 
@@ -341,7 +341,7 @@ def get_swipe_feed(uid: str = Depends(verified_email_uid), db: Session = Depends
 #update one/multiple settings without altering the other
 @app.patch("/users/settings")
 def update_settings(settings_update: schemas.SettingsUpdate, uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
-    db_user =  db.query(models.User).filter(models.User.firebase_token == uid).first()
+    db_user =  db.query(models.User).filter(models.User.firebase_uid == uid).first()
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
     #since we defined relationship in models.py we can instantly grab the settings 
@@ -362,7 +362,7 @@ def update_settings(settings_update: schemas.SettingsUpdate, uid: str = Depends(
 #get user's settings
 @app.get("/users/settings")
 def get_users_settings(uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
-    db_user = db.query(models.User).filter(models.User.firebase_token == uid).first()
+    db_user = db.query(models.User).filter(models.User.firebase_uid == uid).first()
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -371,7 +371,7 @@ def get_users_settings(uid: str = Depends(verified_email_uid), db: Session = Dep
 #like endpoints
 @app.get("/likes", response_model = List[LikerProfile])
 def get_likes(uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
-    me = db.query(models.User).filter(models.User.firebase_token == uid).first()
+    me = db.query(models.User).filter(models.User.firebase_uid == uid).first()
     if not me:
         raise HTTPException(status_code=404, detail="Current User not found")
     
@@ -424,7 +424,7 @@ def get_likes(uid: str = Depends(verified_email_uid), db: Session = Depends(get_
 #get every match the user currently has
 @app.get("/matches", response_model = List[MatchResponse])
 def get_matches(uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
-    me = db.query(models.User).filter(models.User.firebase_token == uid).first()
+    me = db.query(models.User).filter(models.User.firebase_uid == uid).first()
     if not me:
         raise HTTPException(status_code=404, detail="Current User not found")
     
@@ -493,7 +493,7 @@ def health():
 #get users photos
 @app.get("/photos")
 def get_user_photos(uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
-    me = db.query(models.User).filter(models.User.firebase_token == uid).first()
+    me = db.query(models.User).filter(models.User.firebase_uid == uid).first()
     if not me:
         raise HTTPException(status_code=404, detail="Current User not found")
     
@@ -506,7 +506,7 @@ def get_user_photos(uid: str = Depends(verified_email_uid), db: Session = Depend
 #store a photo inside the db
 @app.post("/photos")
 def upload_photo(user_photos: UserPhotos, uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
-    me = db.query(models.User).filter(models.User.firebase_token == uid).first()
+    me = db.query(models.User).filter(models.User.firebase_uid == uid).first()
     if not me:
         raise HTTPException(status_code=404, detail="Current User not found")
     
@@ -521,7 +521,7 @@ def upload_photo(user_photos: UserPhotos, uid: str = Depends(verified_email_uid)
     db.refresh(new_photo)
 
 #body for replacing a user's whole photo set in order
-#NOTE: no firebase_token — the owner is taken from the verified ID token
+#NOTE: no firebase_uid — the owner is taken from the verified ID token
 class PhotoSync(BaseModel):
     photo_urls: List[str]
 
@@ -537,7 +537,7 @@ MAX_PHOTOS = 6
 #touched — the Firebase Storage objects of kept photos are reused via their URL.
 @app.put("/photos/sync")
 def sync_photos(payload: PhotoSync, uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
-    me = db.query(models.User).filter(models.User.firebase_token == uid).first()
+    me = db.query(models.User).filter(models.User.firebase_uid == uid).first()
     if not me:
         raise HTTPException(status_code=404, detail="Current User not found")
 
@@ -596,7 +596,7 @@ def sync_photos(payload: PhotoSync, uid: str = Depends(verified_email_uid), db: 
 
 
 #body for setting one photo's story
-#NOTE: no firebase_token - the owner is taken from the verified ID token, and
+#NOTE: no firebase_uid - the owner is taken from the verified ID token, and
 #the photo is looked up scoped to that owner so one user cannot caption
 #another user's photo by guessing a URL.
 class PhotoStory(BaseModel):
@@ -610,7 +610,7 @@ class PhotoStory(BaseModel):
 #saves one row without touching anything else.
 @app.put("/photos/story")
 def set_photo_story(payload: PhotoStory, uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
-    me = db.query(models.User).filter(models.User.firebase_token == uid).first()
+    me = db.query(models.User).filter(models.User.firebase_uid == uid).first()
     if not me:
         raise HTTPException(status_code=404, detail="Current User not found")
 
@@ -641,7 +641,7 @@ def set_photo_story(payload: PhotoStory, uid: str = Depends(verified_email_uid),
 #register a swipe
 @app.post("/swipes")
 def record_swipe(swipe: SwipeRequest, uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
-    me = db.query(models.User).filter(models.User.firebase_token == uid).first()
+    me = db.query(models.User).filter(models.User.firebase_uid == uid).first()
     if not me:
        raise HTTPException(status_code=404, detail="Current User not found")
 
@@ -711,7 +711,7 @@ def record_swipe(swipe: SwipeRequest, uid: str = Depends(verified_email_uid), db
         if not target_user:
             raise HTTPException(status_code=404, detail="Target User not found")
 
-        user_ref = firestore_db.collection('users').document(target_user.firebase_token)
+        user_ref = firestore_db.collection('users').document(target_user.firebase_uid)
         user_doc = user_ref.get()
 
         if user_doc.exists:
@@ -722,10 +722,10 @@ def record_swipe(swipe: SwipeRequest, uid: str = Depends(verified_email_uid), db
             if target_fcm_token:
                 if is_match:
                     notify_user_of_like_or_match(target_fcm_token, 'match')
-                    send_smart_notification(target_user.firebase_token, 'match', firestore_db)
+                    send_smart_notification(target_user.firebase_uid, 'match', firestore_db)
                 elif not is_match:
                     notify_user_of_like_or_match(target_fcm_token, 'like')
-                    send_smart_notification(target_user.firebase_token, 'like', firestore_db)
+                    send_smart_notification(target_user.firebase_uid, 'like', firestore_db)
                 else: 
                     raise HTTPException(status_code=404, detail="Target User not found")
             else: 
@@ -754,7 +754,7 @@ def get_single_user(user_id: int, uid: str = Depends(verified_email_uid), db: Se
         "photos": photos_urls,
     }
 
-def notify_user_of_like_or_match(target_user_firebase_token: str, caller: str):
+def notify_user_of_like_or_match(target_fcm_token: str, caller: str):
     #Make a data message not a notification
     if caller == "like":
         message = messaging.Message(
@@ -763,7 +763,7 @@ def notify_user_of_like_or_match(target_user_firebase_token: str, caller: str):
                 'count': '1',
                 'click_action': 'FLUTTER_NOTIFICATION_CLICK'
             },
-            token = target_user_firebase_token
+            token = target_fcm_token
         )
     else:
         message = messaging.Message(  
@@ -772,7 +772,7 @@ def notify_user_of_like_or_match(target_user_firebase_token: str, caller: str):
                 'count': '1',
                 'click_action': 'FLUTTER_NOTIFICATION_CLICK'
             },
-            token = target_user_firebase_token
+            token = target_fcm_token
         )
     messaging.send(message)
     
