@@ -1,37 +1,31 @@
-//The Edit / View pair that sits where an app bar title normally goes, with a
-//line under whichever one you are on.
+//The Edit / View pair in the middle of the app bar, with a line under
+//whichever side the body is showing.
 //
-//Not a TabBar, and not a TabBarView: the two sides are separate PAGES, pushed
-//and popped, so each keeps its own scroll position and its own state, and the
-//view side can be opened from anywhere later. A TabBarView would force both to
-//live in one widget and rebuild together.
+//THE APP BAR NEVER MOVES. Edit and View are two pages of one PageView inside a
+//single Scaffold, so switching slides the BODY under a header that stays put.
+//Two separate routes would have slid the whole screen, header and all.
 //
-//The indicator is positioned from MEASURED text widths rather than by giving
-//the labels equal space. "Edit" and "View" are different lengths, and in Greek
-//they are very different lengths («Επεξεργασία» / «Προβολή»), so an even split
+//The line is driven by [progress], the PageView's own position (0 = Edit,
+//1 = View, and every fraction in between), so it tracks the body exactly
+//instead of running its own animation that merely looks similar.
+//
+//Widths are MEASURED rather than split evenly. "Edit" and "View" differ, and
+//in Greek they differ a lot («Επεξεργασία» / «Προβολή»), so an even split
 //would leave the line obviously wider than the word it belongs to.
 
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 
-enum ProfileTab { edit, view }
-
 class ProfileTabs extends StatelessWidget {
-  final ProfileTab selected;
-  //called only for the tab that is NOT selected; tapping the current one does
-  //nothing rather than pushing a second copy of the page you are on
-  final VoidCallback onSwitch;
+  //0 = Edit, 1 = View. Fractions are mid-slide.
+  final double progress;
+  final ValueChanged<int> onSelect;
 
-  const ProfileTabs({
-    super.key,
-    required this.selected,
-    required this.onSwitch,
-  });
+  const ProfileTabs({super.key, required this.progress, required this.onSelect});
 
   //gap between the two words
   static const double _gap = 20;
   static const double _lineHeight = 2.5;
-  static const Duration _slide = Duration(milliseconds: 260);
 
   double _widthOf(BuildContext context, String label, TextStyle style) {
     final painter = TextPainter(
@@ -51,55 +45,58 @@ class ProfileTabs extends StatelessWidget {
       fontWeight: FontWeight.w700,
     );
 
-    final labels = {
-      ProfileTab.edit: text.tabEdit,
-      ProfileTab.view: text.tabView,
-    };
-    final editWidth = _widthOf(context, labels[ProfileTab.edit]!, style);
-    final viewWidth = _widthOf(context, labels[ProfileTab.view]!, style);
+    final labels = [text.tabEdit, text.tabView];
+    final widths = [
+      _widthOf(context, labels[0], style),
+      _widthOf(context, labels[1], style),
+    ];
 
-    final isEdit = selected == ProfileTab.edit;
+    final t = progress.clamp(0.0, 1.0);
+    //the line walks from under one word to under the other, and resizes on the
+    //way, so it always ends the width of the word it lands on
+    final left = t * (widths[0] + _gap);
+    final width = widths[0] + (widths[1] - widths[0]) * t;
+
+    final onSurface = theme.colorScheme.onSurface;
+    //the side you are not on recedes rather than disappearing: it has to stay
+    //readable to be worth tapping
+    const double dim = 0.38;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            for (final tab in ProfileTab.values) ...[
+            for (var i = 0; i < labels.length; i++) ...[
               GestureDetector(
                 //the whole word, including its padding, not just the glyphs
                 behavior: HitTestBehavior.opaque,
-                onTap: tab == selected ? null : onSwitch,
-                child: AnimatedDefaultTextStyle(
-                  duration: _slide,
+                onTap: () => onSelect(i),
+                child: Text(
+                  labels[i],
                   style: style.copyWith(
-                    //the one you are not on recedes rather than disappearing:
-                    //it has to stay readable to be worth tapping
-                    color: tab == selected
-                        ? theme.colorScheme.onSurface
-                        : theme.colorScheme.onSurface.withValues(alpha: 0.38),
+                    //fades with the slide, so neither side snaps
+                    color: onSurface.withValues(
+                      alpha: dim + (1 - dim) * (i == 0 ? 1 - t : t),
+                    ),
                   ),
-                  child: Text(labels[tab]!),
                 ),
               ),
-              if (tab != ProfileTab.values.last) const SizedBox(width: _gap),
+              if (i == 0) const SizedBox(width: _gap),
             ],
           ],
         ),
         const SizedBox(height: 6),
-        //the line, as wide as the word above it, sliding between the two
         SizedBox(
-          width: editWidth + _gap + viewWidth,
+          width: widths[0] + _gap + widths[1],
           height: _lineHeight,
           child: Stack(
             children: [
-              AnimatedPositioned(
-                duration: _slide,
-                curve: Curves.easeOutCubic,
-                left: isEdit ? 0 : editWidth + _gap,
-                width: isEdit ? editWidth : viewWidth,
+              Positioned(
+                left: left,
+                width: width,
                 height: _lineHeight,
                 child: DecoratedBox(
                   decoration: BoxDecoration(

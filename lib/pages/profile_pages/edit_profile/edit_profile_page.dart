@@ -25,7 +25,7 @@ import 'package:foitifinder/pages/profile_pages/shared/choice_page.dart';
 import 'package:foitifinder/pages/profile_pages/shared/coming_soon_page.dart';
 import 'package:foitifinder/pages/profile_pages/shared/profile_tabs.dart';
 import 'package:foitifinder/pages/profile_pages/shared/save_profile_field.dart';
-import 'package:foitifinder/pages/profile_pages/view_profile/view_profile_page.dart';
+import 'package:foitifinder/pages/profile_pages/view_profile/view_profile_body.dart';
 import 'package:foitifinder/pages/profile_pages/edit_profile/personality/bio_page.dart';
 import 'package:foitifinder/pages/profile_pages/edit_profile/photo_detail_page.dart';
 import 'package:foitifinder/pages/profile_pages/edit_profile/photo_stories_page.dart';
@@ -95,6 +95,11 @@ class _EditProfileState extends State<EditProfile> {
   //true while existing photos are still downloading into their slots by
   //index. Reordering then would have them land in the wrong places.
   bool _photosLoading = false;
+
+  //Edit and View are the two pages of this controller. The app bar sits
+  //OUTSIDE it, so switching slides the body and nothing else.
+  final PageController _pages = PageController();
+  static const Duration _tabSlide = Duration(milliseconds: 320);
 
   //the signed-in user, read fresh each time so a save that just landed (or
   //was reverted) is what the rows show
@@ -244,11 +249,12 @@ class _EditProfileState extends State<EditProfile> {
     _push(const PhotoStoriesPage());
   }
 
-  //The View tab. Photos are flushed first for the same reason the stories page
-  //does it: the preview shows what the backend has, so an unsaved photo would
-  //be missing from a page whose whole job is "this is what others see".
-  Future<void> _openView() async {
-    if (_photosChanged) {
+  //Switching tabs. Photos are flushed on the way to View for the same reason
+  //the stories page does it: the preview shows what the BACKEND has, so an
+  //unsaved photo would be missing from the one page whose whole job is
+  //"this is what others see".
+  Future<void> _selectTab(int index) async {
+    if (index == 1 && _photosChanged) {
       try {
         await _submitPhotos();
       } catch (_) {
@@ -257,7 +263,11 @@ class _EditProfileState extends State<EditProfile> {
       }
       if (!mounted) return;
     }
-    _push(const ViewProfilePage());
+    _pages.animateToPage(
+      index,
+      duration: _tabSlide,
+      curve: Curves.easeOutCubic,
+    );
   }
 
   //Tapping a photo opens it full size, where it can be replaced and (unless it
@@ -384,6 +394,12 @@ class _EditProfileState extends State<EditProfile> {
     //null means dismissed - leave the answer alone. An empty list means cleared.
     if (!mounted || result == null) return;
     await _saveChoice(choice, result);
+  }
+
+  @override
+  void dispose() {
+    _pages.dispose();
+    super.dispose();
   }
 
   @override
@@ -647,183 +663,206 @@ class _EditProfileState extends State<EditProfile> {
             isLoading: _isLoading,
             child: Scaffold(
               appBar: AppBar(
-                title: ProfileTabs(
-                  selected: ProfileTab.edit,
-                  onSwitch: _openView,
+                centerTitle: true,
+                //rebuilt on every frame of the slide, so the line tracks the
+                //body instead of animating separately
+                title: AnimatedBuilder(
+                  animation: _pages,
+                  builder: (context, _) => ProfileTabs(
+                    progress: _pages.hasClients && _pages.page != null
+                        ? _pages.page!
+                        : 0,
+                    onSelect: _selectTab,
+                  ),
                 ),
                 automaticallyImplyLeading: true,
               ),
-              body: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    //=========================== PHOTOS ===========================
-                    SectionHeader(text.photos),
-                    //3 per row, 2 rows. Smaller than before so the whole grid
-                    //plus the first section fits above the fold.
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15),
-                      child: _buildPhotoGrid(),
-                    ),
-                    const SizedBox(height: 12),
-                    CardGroup(
-                      dividers: true,
+              body: PageView(
+                controller: _pages,
+                //SWIPING IS OFF. The photo grid owns horizontal drags for
+                //reordering, and a page swipe would fight it for the gesture.
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        NavRow(
-                          icon: Icons.auto_stories_outlined,
-                          label: text.addStoryToPhoto,
-                          onTap: _openPhotoStories,
+                        //=========================== PHOTOS ===========================
+                        SectionHeader(text.photos),
+                        //3 per row, 2 rows. Smaller than before so the whole grid
+                        //plus the first section fits above the fold.
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 15),
+                          child: _buildPhotoGrid(),
                         ),
+                        const SizedBox(height: 12),
+                        CardGroup(
+                          dividers: true,
+                          children: [
+                            NavRow(
+                              icon: Icons.auto_stories_outlined,
+                              label: text.addStoryToPhoto,
+                              onTap: _openPhotoStories,
+                            ),
+                          ],
+                        ),
+
+                        //======================= MY PERSONALITY =======================
+                        SectionHeader(text.sectionMyPersonality),
+                        CardGroup(
+                          dividers: true,
+                          children: [
+                            for (final title in const [
+                              kGroupHobbies,
+                              kGroupTraits,
+                            ])
+                              NavRow(
+                                label: catalogueLabel(text, title),
+                                trailing: _pickCount(title) == 0
+                                    ? ''
+                                    : '${_pickCount(title)}',
+                                onTap: () => _openGroup(title),
+                              ),
+                            //Bio saves itself on its own page, so there is nothing
+                            //to summarise on the row
+                            NavRow(
+                              label: catalogueLabel(text, kGroupBio),
+                              onTap: () => _openGroup(kGroupBio),
+                            ),
+                            NavRow(
+                              label: catalogueLabel(text, kGroupQA),
+                              onTap: () => _openGroup(kGroupQA),
+                            ),
+                          ],
+                        ),
+
+                        //======================= MY MUSIC TASTE =======================
+                        SectionHeader(text.sectionMyMusicTaste),
+                        CardGroup(
+                          dividers: true,
+                          children: [
+                            //both need the Spotify API, so both are stubs until
+                            //that is wired up
+                            NavRow(
+                              label: text.myTune,
+                              onTap: () =>
+                                  _push(ComingSoonPage(title: text.myTune)),
+                            ),
+                            NavRow(
+                              label: text.favouriteArtists,
+                              onTap: () => _push(
+                                ComingSoonPage(title: text.favouriteArtists),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        //=================== MY BELIEFS AND VALUES ===================
+                        SectionHeader(text.sectionMyBeliefs),
+                        CardGroup(
+                          dividers: true,
+                          children: [
+                            for (final choice in const [
+                              kChoiceReligion,
+                              kChoicePoliticalView,
+                            ])
+                              NavRow(
+                                label: catalogueLabel(text, choice.title),
+                                trailing: _choiceSummary(choice),
+                                //16 and 18 options: too many for a dialog
+                                onTap: () => _openChoicePage(choice),
+                              ),
+                          ],
+                        ),
+
+                        //========================= MY HABITS =========================
+                        SectionHeader(text.sectionMyHabits),
+                        CardGroup(
+                          dividers: true,
+                          children: [
+                            for (final choice in const [
+                              kChoiceAlcohol,
+                              kChoiceSmoking,
+                            ])
+                              NavRow(
+                                label: catalogueLabel(text, choice.title),
+                                trailing: _choiceSummary(choice),
+                                onTap: () => _openChoiceDialog(choice),
+                              ),
+                          ],
+                        ),
+
+                        //=============== WHAT I WANT IN MY RELATIONSHIPS ==============
+                        SectionHeader(text.sectionMyRelationships),
+                        CardGroup(
+                          dividers: true,
+                          children: [
+                            for (final choice in const [
+                              kChoiceDatingIntention,
+                              kChoiceKids,
+                            ])
+                              NavRow(
+                                label: catalogueLabel(text, choice.title),
+                                trailing: _choiceSummary(choice),
+                                onTap: () => _openChoiceDialog(choice),
+                              ),
+                          ],
+                        ),
+
+                        //======================= MY BACKGROUND =======================
+                        SectionHeader(text.sectionMyBackground),
+                        CardGroup(
+                          dividers: true,
+                          children: [
+                            //NOTE: EducationPage and OccupationPage are already
+                            //built and working - swapping either stub for the real
+                            //page is a one-line change.
+                            //
+                            //Location is NOT here: where the user lives is one
+                            //value, so it gets one home, and that home is the
+                            //Place of residence row in Account Settings.
+                            NavRow(
+                              label: text.education,
+                              trailing: _user.major ?? '',
+                              onTap: _openEducation,
+                            ),
+                            NavRow(
+                              label: text.occupation,
+                              trailing: _user.job ?? '',
+                              onTap: _openOccupation,
+                            ),
+                          ],
+                        ),
+
+                        //========================== WHO I AM ==========================
+                        SectionHeader(text.sectionWhoIAm),
+                        CardGroup(
+                          dividers: true,
+                          children: [
+                            NavRow(
+                              label: catalogueLabel(
+                                text,
+                                kChoicePronouns.title,
+                              ),
+                              trailing: _choiceSummary(kChoicePronouns),
+                              onTap: _openPronouns,
+                            ),
+                            NavRow(
+                              label: text.languagesSpoken,
+                              trailing: _user.languagesSpoken.isEmpty
+                                  ? ''
+                                  : '${_user.languagesSpoken.length}',
+                              onTap: _openLanguages,
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 32),
                       ],
                     ),
-
-                    //======================= MY PERSONALITY =======================
-                    SectionHeader(text.sectionMyPersonality),
-                    CardGroup(
-                      dividers: true,
-                      children: [
-                        for (final title in const [kGroupHobbies, kGroupTraits])
-                          NavRow(
-                            label: catalogueLabel(text, title),
-                            trailing: _pickCount(title) == 0
-                                ? ''
-                                : '${_pickCount(title)}',
-                            onTap: () => _openGroup(title),
-                          ),
-                        //Bio saves itself on its own page, so there is nothing
-                        //to summarise on the row
-                        NavRow(
-                          label: catalogueLabel(text, kGroupBio),
-                          onTap: () => _openGroup(kGroupBio),
-                        ),
-                        NavRow(
-                          label: catalogueLabel(text, kGroupQA),
-                          onTap: () => _openGroup(kGroupQA),
-                        ),
-                      ],
-                    ),
-
-                    //======================= MY MUSIC TASTE =======================
-                    SectionHeader(text.sectionMyMusicTaste),
-                    CardGroup(
-                      dividers: true,
-                      children: [
-                        //both need the Spotify API, so both are stubs until
-                        //that is wired up
-                        NavRow(
-                          label: text.myTune,
-                          onTap: () =>
-                              _push(ComingSoonPage(title: text.myTune)),
-                        ),
-                        NavRow(
-                          label: text.favouriteArtists,
-                          onTap: () => _push(
-                            ComingSoonPage(title: text.favouriteArtists),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    //=================== MY BELIEFS AND VALUES ===================
-                    SectionHeader(text.sectionMyBeliefs),
-                    CardGroup(
-                      dividers: true,
-                      children: [
-                        for (final choice in const [
-                          kChoiceReligion,
-                          kChoicePoliticalView,
-                        ])
-                          NavRow(
-                            label: catalogueLabel(text, choice.title),
-                            trailing: _choiceSummary(choice),
-                            //16 and 18 options: too many for a dialog
-                            onTap: () => _openChoicePage(choice),
-                          ),
-                      ],
-                    ),
-
-                    //========================= MY HABITS =========================
-                    SectionHeader(text.sectionMyHabits),
-                    CardGroup(
-                      dividers: true,
-                      children: [
-                        for (final choice in const [
-                          kChoiceAlcohol,
-                          kChoiceSmoking,
-                        ])
-                          NavRow(
-                            label: catalogueLabel(text, choice.title),
-                            trailing: _choiceSummary(choice),
-                            onTap: () => _openChoiceDialog(choice),
-                          ),
-                      ],
-                    ),
-
-                    //=============== WHAT I WANT IN MY RELATIONSHIPS ==============
-                    SectionHeader(text.sectionMyRelationships),
-                    CardGroup(
-                      dividers: true,
-                      children: [
-                        for (final choice in const [
-                          kChoiceDatingIntention,
-                          kChoiceKids,
-                        ])
-                          NavRow(
-                            label: catalogueLabel(text, choice.title),
-                            trailing: _choiceSummary(choice),
-                            onTap: () => _openChoiceDialog(choice),
-                          ),
-                      ],
-                    ),
-
-                    //======================= MY BACKGROUND =======================
-                    SectionHeader(text.sectionMyBackground),
-                    CardGroup(
-                      dividers: true,
-                      children: [
-                        //NOTE: EducationPage and OccupationPage are already
-                        //built and working - swapping either stub for the real
-                        //page is a one-line change.
-                        //
-                        //Location is NOT here: where the user lives is one
-                        //value, so it gets one home, and that home is the
-                        //Place of residence row in Account Settings.
-                        NavRow(
-                          label: text.education,
-                          trailing: _user.major ?? '',
-                          onTap: _openEducation,
-                        ),
-                        NavRow(
-                          label: text.occupation,
-                          trailing: _user.job ?? '',
-                          onTap: _openOccupation,
-                        ),
-                      ],
-                    ),
-
-                    //========================== WHO I AM ==========================
-                    SectionHeader(text.sectionWhoIAm),
-                    CardGroup(
-                      dividers: true,
-                      children: [
-                        NavRow(
-                          label: catalogueLabel(text, kChoicePronouns.title),
-                          trailing: _choiceSummary(kChoicePronouns),
-                          onTap: _openPronouns,
-                        ),
-                        NavRow(
-                          label: text.languagesSpoken,
-                          trailing: _user.languagesSpoken.isEmpty
-                              ? ''
-                              : '${_user.languagesSpoken.length}',
-                          onTap: _openLanguages,
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 32),
-                  ],
-                ),
+                  ),
+                  const ViewProfileBody(),
+                ],
               ),
             ),
           ),
