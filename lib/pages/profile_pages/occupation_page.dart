@@ -1,9 +1,14 @@
-//The Occupation category: job, volunteering, and anything that fits neither.
+//The Occupation category: job and volunteering.
 //
-//Three free-text fields, all optional. Students often have no job, so nothing
+//Two free-text fields, both optional. Students often have neither, so nothing
 //here is required and an empty page is a valid answer.
 //
-//Pops with a Map<String, dynamic> of the three fields.
+//There used to be a third "Other" box. It was dropped: it invited the same
+//answers as the other two in a vaguer form, and a field nobody can describe
+//the purpose of gets filled with noise. users.occupation_other still exists
+//but nothing writes it any more.
+//
+//Pops with a Map<String, dynamic> of the two fields.
 
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
@@ -12,13 +17,11 @@ import 'package:foitifinder/widgets/primary_button.dart';
 class OccupationPage extends StatefulWidget {
   final String? initialJob;
   final String? initialVolunteering;
-  final String? initialOther;
 
   const OccupationPage({
     super.key,
     this.initialJob,
     this.initialVolunteering,
-    this.initialOther,
   });
 
   @override
@@ -30,7 +33,6 @@ class _OccupationPageState extends State<OccupationPage> {
 
   late final TextEditingController _jobController;
   late final TextEditingController _volunteeringController;
-  late final TextEditingController _otherController;
 
   @override
   void initState() {
@@ -38,21 +40,18 @@ class _OccupationPageState extends State<OccupationPage> {
     _jobController = TextEditingController(text: widget.initialJob ?? '');
     _volunteeringController =
         TextEditingController(text: widget.initialVolunteering ?? '');
-    _otherController = TextEditingController(text: widget.initialOther ?? '');
   }
 
   @override
   void dispose() {
     _jobController.dispose();
     _volunteeringController.dispose();
-    _otherController.dispose();
     super.dispose();
   }
 
   Map<String, dynamic> get _result => {
         'job': _jobController.text.trim(),
         'volunteering': _volunteeringController.text.trim(),
-        'occupation_other': _otherController.text.trim(),
       };
 
   @override
@@ -98,16 +97,6 @@ class _OccupationPageState extends State<OccupationPage> {
                   border: const OutlineInputBorder(),
                   labelText: text.volunteering,
                   hintText: text.volunteeringHint,
-                ),
-              ),
-              TextField(
-                controller: _otherController,
-                maxLength: 120,
-                textCapitalization: TextCapitalization.sentences,
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
-                  labelText: text.otherOccupation,
-                  hintText: text.otherOccupationHint,
                 ),
               ),
             ],

@@ -49,6 +49,15 @@ class UserModel{
   //Hobbies & interests and Traits picks, flat. Canonical English.
   final List<String> interestTags;
   final List<String> traitTags;
+  //Languages spoken, canonical English, from constants/languages.dart
+  final List<String> languagesSpoken;
+  //---- background, all free text and all optional ----
+  //the degree/programme. The university itself is NOT here: it is derived
+  //from the verified student email, never typed.
+  final String? major;
+  final bool? isCurrentlyStudying;
+  final String? job;
+  final String? volunteering;
   //centimetres, null = no bound on that side
   final int? minHeightPreference;
   final int? maxHeightPreference;
@@ -73,6 +82,11 @@ class UserModel{
     this.choices = const {},
     this.interestTags = const [],
     this.traitTags = const [],
+    this.languagesSpoken = const [],
+    this.major,
+    this.isCurrentlyStudying,
+    this.job,
+    this.volunteering,
     this.minHeightPreference,
     this.maxHeightPreference,
     this.showOutsideResidence = true,
@@ -107,6 +121,11 @@ class UserModel{
     Map<String, List<String>>? choices,
     List<String>? interestTags,
     List<String>? traitTags,
+    List<String>? languagesSpoken,
+    ValueGetter<String?>? major,
+    ValueGetter<bool?>? isCurrentlyStudying,
+    ValueGetter<String?>? job,
+    ValueGetter<String?>? volunteering,
     ValueGetter<int?>? minHeightPreference,
     ValueGetter<int?>? maxHeightPreference,
     bool? showOutsideResidence,
@@ -131,6 +150,13 @@ class UserModel{
       choices: choices ?? this.choices,
       interestTags: interestTags ?? this.interestTags,
       traitTags: traitTags ?? this.traitTags,
+      languagesSpoken: languagesSpoken ?? this.languagesSpoken,
+      major: major != null ? major() : this.major,
+      isCurrentlyStudying: isCurrentlyStudying != null
+          ? isCurrentlyStudying()
+          : this.isCurrentlyStudying,
+      job: job != null ? job() : this.job,
+      volunteering: volunteering != null ? volunteering() : this.volunteering,
       minHeightPreference: minHeightPreference != null
           ? minHeightPreference()
           : this.minHeightPreference,
@@ -170,6 +196,11 @@ class UserModel{
       },
       interestTags: _readList(json['interest_tags']),
       traitTags: _readList(json['trait_tags']),
+      languagesSpoken: _readList(json['languages_spoken']),
+      major: json['major'],
+      isCurrentlyStudying: json['is_currently_studying'],
+      job: json['job'],
+      volunteering: json['volunteering'],
       minHeightPreference: json['min_height_preference'],
       maxHeightPreference: json['max_height_preference'],
       //missing (an older cache) reads as the column default
@@ -201,6 +232,11 @@ class UserModel{
         choice.key: choiceToJson(choice, this.choice(choice.key)),
       'interest_tags': interestTags,
       'trait_tags': traitTags,
+      'languages_spoken': languagesSpoken,
+      'major': major,
+      'is_currently_studying': isCurrentlyStudying,
+      'job': job,
+      'volunteering': volunteering,
       'min_height_preference': minHeightPreference,
       'max_height_preference': maxHeightPreference,
       'show_outside_residence': showOutsideResidence,

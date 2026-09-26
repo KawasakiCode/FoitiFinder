@@ -16,10 +16,16 @@ import 'package:foitifinder/constants/interest_catalogue.dart';
 import 'package:foitifinder/constants/profile_options.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/l10n/catalogue_labels.dart';
+import 'package:foitifinder/pages/profile_pages/education_page.dart';
+import 'package:foitifinder/pages/profile_pages/languages_page.dart';
+import 'package:foitifinder/pages/profile_pages/occupation_page.dart';
+import 'package:foitifinder/pages/profile_pages/pronouns_page.dart';
 import 'package:foitifinder/pages/profile_pages/shared/choice_dialog.dart';
 import 'package:foitifinder/pages/profile_pages/shared/choice_page.dart';
 import 'package:foitifinder/pages/profile_pages/shared/coming_soon_page.dart';
+import 'package:foitifinder/pages/profile_pages/shared/profile_tabs.dart';
 import 'package:foitifinder/pages/profile_pages/shared/save_profile_field.dart';
+import 'package:foitifinder/pages/profile_pages/view_profile/view_profile_page.dart';
 import 'package:foitifinder/pages/profile_pages/edit_profile/personality/bio_page.dart';
 import 'package:foitifinder/pages/profile_pages/edit_profile/photo_detail_page.dart';
 import 'package:foitifinder/pages/profile_pages/edit_profile/photo_stories_page.dart';
@@ -125,6 +131,107 @@ class _EditProfileState extends State<EditProfile> {
     );
   }
 
+  //Education and Occupation pop a map of column -> value, which is already a
+  //PATCH body. Saved as one request so the page's fields land together.
+  //
+  //The empty strings matter: '' is how a cleared free-text field is sent, and
+  //the backend turns it back into NULL. A null would be dropped as "unchanged".
+  Future<void> _openEducation() async {
+    final result = await Navigator.push<Map<String, dynamic>>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EducationPage(
+          initialMajor: _user.major,
+          initialIsCurrentlyStudying: _user.isCurrentlyStudying,
+        ),
+      ),
+    );
+    if (!mounted || result == null) return;
+
+    final major = result['major'] as String;
+    final studying = result['is_currently_studying'] as bool;
+    if (major == (_user.major ?? '') &&
+        studying == (_user.isCurrentlyStudying ?? false)) {
+      return;
+    }
+
+    await saveProfileField<UserModel>(
+      context,
+      read: (u) => u,
+      write: (u, _) => u.copyWith(
+        major: () => major.isEmpty ? null : major,
+        isCurrentlyStudying: () => studying,
+      ),
+      value: _user,
+      send: (_) => ApiService.patchUser(result),
+    );
+  }
+
+  Future<void> _openOccupation() async {
+    final result = await Navigator.push<Map<String, dynamic>>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => OccupationPage(
+          initialJob: _user.job,
+          initialVolunteering: _user.volunteering,
+        ),
+      ),
+    );
+    if (!mounted || result == null) return;
+
+    final job = result['job'] as String;
+    final volunteering = result['volunteering'] as String;
+    if (job == (_user.job ?? '') &&
+        volunteering == (_user.volunteering ?? '')) {
+      return;
+    }
+
+    await saveProfileField<UserModel>(
+      context,
+      read: (u) => u,
+      write: (u, _) => u.copyWith(
+        job: () => job.isEmpty ? null : job,
+        volunteering: () => volunteering.isEmpty ? null : volunteering,
+      ),
+      value: _user,
+      send: (_) => ApiService.patchUser(result),
+    );
+  }
+
+  //Pronouns are one column holding either a picked option or the user's own
+  //wording, so this goes through the same path as every other single answer.
+  Future<void> _openPronouns() async {
+    final current = _user.choice(kChoicePronouns.key);
+    final result = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(
+        builder: (_) =>
+            PronounsPage(initialValue: current.isEmpty ? null : current.first),
+      ),
+    );
+    if (!mounted || result == null) return;
+    await _saveChoice(kChoicePronouns, result.isEmpty ? const [] : [result]);
+  }
+
+  Future<void> _openLanguages() async {
+    final current = _user.languagesSpoken;
+    final result = await Navigator.push<List<String>>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => LanguagesPage(initialSelected: current),
+      ),
+    );
+    if (!mounted || result == null || listEquals(result, current)) return;
+
+    await saveProfileField<List<String>>(
+      context,
+      read: (u) => u.languagesSpoken,
+      write: (u, value) => u.copyWith(languagesSpoken: value),
+      value: result,
+      send: (_) => ApiService.patchUser({'languages_spoken': result}),
+    );
+  }
+
   //Stories attach to photos that must already exist in the backend, so flush
   //any unsaved photo changes first. Opening the page with a photo the server
   //has never seen would show a stale list and save a story against a URL that
@@ -135,6 +242,22 @@ class _EditProfileState extends State<EditProfile> {
       if (!mounted) return;
     }
     _push(const PhotoStoriesPage());
+  }
+
+  //The View tab. Photos are flushed first for the same reason the stories page
+  //does it: the preview shows what the backend has, so an unsaved photo would
+  //be missing from a page whose whole job is "this is what others see".
+  Future<void> _openView() async {
+    if (_photosChanged) {
+      try {
+        await _submitPhotos();
+      } catch (_) {
+        //_submitPhotos already reported it; the preview still opens, just
+        //without the newest photo
+      }
+      if (!mounted) return;
+    }
+    _push(const ViewProfilePage());
   }
 
   //Tapping a photo opens it full size, where it can be replaced and (unless it
@@ -524,7 +647,10 @@ class _EditProfileState extends State<EditProfile> {
             isLoading: _isLoading,
             child: Scaffold(
               appBar: AppBar(
-                title: Text(text.editProfile),
+                title: ProfileTabs(
+                  selected: ProfileTab.edit,
+                  onSwitch: _openView,
+                ),
                 automaticallyImplyLeading: true,
               ),
               body: SingleChildScrollView(
@@ -664,13 +790,13 @@ class _EditProfileState extends State<EditProfile> {
                         //Place of residence row in Account Settings.
                         NavRow(
                           label: text.education,
-                          onTap: () =>
-                              _push(ComingSoonPage(title: text.education)),
+                          trailing: _user.major ?? '',
+                          onTap: _openEducation,
                         ),
                         NavRow(
                           label: text.occupation,
-                          onTap: () =>
-                              _push(ComingSoonPage(title: text.occupation)),
+                          trailing: _user.job ?? '',
+                          onTap: _openOccupation,
                         ),
                       ],
                     ),
@@ -682,20 +808,15 @@ class _EditProfileState extends State<EditProfile> {
                       children: [
                         NavRow(
                           label: catalogueLabel(text, kChoicePronouns.title),
-                          onTap: () => _push(
-                            ComingSoonPage(
-                              title: catalogueLabel(
-                                text,
-                                kChoicePronouns.title,
-                              ),
-                            ),
-                          ),
+                          trailing: _choiceSummary(kChoicePronouns),
+                          onTap: _openPronouns,
                         ),
                         NavRow(
                           label: text.languagesSpoken,
-                          onTap: () => _push(
-                            ComingSoonPage(title: text.languagesSpoken),
-                          ),
+                          trailing: _user.languagesSpoken.isEmpty
+                              ? ''
+                              : '${_user.languagesSpoken.length}',
+                          onTap: _openLanguages,
                         ),
                       ],
                     ),

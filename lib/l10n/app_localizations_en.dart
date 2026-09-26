@@ -1244,7 +1244,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Taken from your student email and cannot be changed.';
 
   @override
-  String get major => 'Major';
+  String get major => 'Major/Program';
 
   @override
   String get majorHint => 'e.g. Applied Informatics';
@@ -1593,4 +1593,76 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sectionWhatTheyWant => 'What they want';
+
+  @override
+  String get pronounsIntro =>
+      'Here you can share your pronouns with other users. Sharing them is completely optional.';
+
+  @override
+  String get pronounsCustom => 'Pronoun description';
+
+  @override
+  String get pronounsCustomHint => 'Your own wording';
+
+  @override
+  String get pronounsCustomLocked =>
+      'Clear the selection above to write your own.';
+
+  @override
+  String get languagesIntro =>
+      'You will only see people that speak at least one common language.';
+
+  @override
+  String get lblGreek => 'Greek';
+
+  @override
+  String get lblEnglish => 'English';
+
+  @override
+  String get lblAlbanian => 'Albanian';
+
+  @override
+  String get lblArabic => 'Arabic';
+
+  @override
+  String get lblBulgarian => 'Bulgarian';
+
+  @override
+  String get lblChinese => 'Chinese';
+
+  @override
+  String get lblFrench => 'French';
+
+  @override
+  String get lblGerman => 'German';
+
+  @override
+  String get lblItalian => 'Italian';
+
+  @override
+  String get lblRomanian => 'Romanian';
+
+  @override
+  String get lblRussian => 'Russian';
+
+  @override
+  String get lblSpanish => 'Spanish';
+
+  @override
+  String get lblTurkish => 'Turkish';
+
+  @override
+  String get lblUkrainian => 'Ukrainian';
+
+  @override
+  String get lblGreekSignLanguage => 'Greek Sign Language';
+
+  @override
+  String get tabEdit => 'Edit';
+
+  @override
+  String get tabView => 'View';
+
+  @override
+  String get profilePreviewSoon => 'Your profile, as other people see it.';
 }

@@ -2525,7 +2525,7 @@ abstract class AppLocalizations {
   /// No description provided for @major.
   ///
   /// In en, this message translates to:
-  /// **'Major'**
+  /// **'Major/Program'**
   String get major;
 
   /// No description provided for @majorHint.
@@ -3211,6 +3211,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'What they want'**
   String get sectionWhatTheyWant;
+
+  /// No description provided for @pronounsIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Here you can share your pronouns with other users. Sharing them is completely optional.'**
+  String get pronounsIntro;
+
+  /// No description provided for @pronounsCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Pronoun description'**
+  String get pronounsCustom;
+
+  /// No description provided for @pronounsCustomHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your own wording'**
+  String get pronounsCustomHint;
+
+  /// No description provided for @pronounsCustomLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear the selection above to write your own.'**
+  String get pronounsCustomLocked;
+
+  /// No description provided for @languagesIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'You will only see people that speak at least one common language.'**
+  String get languagesIntro;
+
+  /// No description provided for @lblGreek.
+  ///
+  /// In en, this message translates to:
+  /// **'Greek'**
+  String get lblGreek;
+
+  /// No description provided for @lblEnglish.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get lblEnglish;
+
+  /// No description provided for @lblAlbanian.
+  ///
+  /// In en, this message translates to:
+  /// **'Albanian'**
+  String get lblAlbanian;
+
+  /// No description provided for @lblArabic.
+  ///
+  /// In en, this message translates to:
+  /// **'Arabic'**
+  String get lblArabic;
+
+  /// No description provided for @lblBulgarian.
+  ///
+  /// In en, this message translates to:
+  /// **'Bulgarian'**
+  String get lblBulgarian;
+
+  /// No description provided for @lblChinese.
+  ///
+  /// In en, this message translates to:
+  /// **'Chinese'**
+  String get lblChinese;
+
+  /// No description provided for @lblFrench.
+  ///
+  /// In en, this message translates to:
+  /// **'French'**
+  String get lblFrench;
+
+  /// No description provided for @lblGerman.
+  ///
+  /// In en, this message translates to:
+  /// **'German'**
+  String get lblGerman;
+
+  /// No description provided for @lblItalian.
+  ///
+  /// In en, this message translates to:
+  /// **'Italian'**
+  String get lblItalian;
+
+  /// No description provided for @lblRomanian.
+  ///
+  /// In en, this message translates to:
+  /// **'Romanian'**
+  String get lblRomanian;
+
+  /// No description provided for @lblRussian.
+  ///
+  /// In en, this message translates to:
+  /// **'Russian'**
+  String get lblRussian;
+
+  /// No description provided for @lblSpanish.
+  ///
+  /// In en, this message translates to:
+  /// **'Spanish'**
+  String get lblSpanish;
+
+  /// No description provided for @lblTurkish.
+  ///
+  /// In en, this message translates to:
+  /// **'Turkish'**
+  String get lblTurkish;
+
+  /// No description provided for @lblUkrainian.
+  ///
+  /// In en, this message translates to:
+  /// **'Ukrainian'**
+  String get lblUkrainian;
+
+  /// No description provided for @lblGreekSignLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Greek Sign Language'**
+  String get lblGreekSignLanguage;
+
+  /// No description provided for @tabEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get tabEdit;
+
+  /// No description provided for @tabView.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get tabView;
+
+  /// No description provided for @profilePreviewSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile, as other people see it.'**
+  String get profilePreviewSoon;
 }
 
 class _AppLocalizationsDelegate

@@ -1250,7 +1250,7 @@ class AppLocalizationsEl extends AppLocalizations {
       'Λαμβάνεται από το φοιτητικό σου email και δεν αλλάζει.';
 
   @override
-  String get major => 'Τμήμα';
+  String get major => 'Σχολή/Τμήμα';
 
   @override
   String get majorHint => 'π.χ. Εφαρμοσμένη Πληροφορική';
@@ -1600,4 +1600,76 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get sectionWhatTheyWant => 'Τι θέλουν';
+
+  @override
+  String get pronounsIntro =>
+      'Εδώ μπορείς να μοιραστείς τις αντωνυμίες σου με άλλους χρήστες. Είναι εντελώς προαιρετικό.';
+
+  @override
+  String get pronounsCustom => 'Περιγραφή αντωνυμίας';
+
+  @override
+  String get pronounsCustomHint => 'Με τα δικά σου λόγια';
+
+  @override
+  String get pronounsCustomLocked =>
+      'Καθάρισε την επιλογή πιο πάνω για να γράψεις δική σου.';
+
+  @override
+  String get languagesIntro =>
+      'Θα βλέπεις μόνο άτομα που μιλούν τουλάχιστον μία κοινή γλώσσα με εσένα.';
+
+  @override
+  String get lblGreek => 'Ελληνικά';
+
+  @override
+  String get lblEnglish => 'Αγγλικά';
+
+  @override
+  String get lblAlbanian => 'Αλβανικά';
+
+  @override
+  String get lblArabic => 'Αραβικά';
+
+  @override
+  String get lblBulgarian => 'Βουλγαρικά';
+
+  @override
+  String get lblChinese => 'Κινεζικά';
+
+  @override
+  String get lblFrench => 'Γαλλικά';
+
+  @override
+  String get lblGerman => 'Γερμανικά';
+
+  @override
+  String get lblItalian => 'Ιταλικά';
+
+  @override
+  String get lblRomanian => 'Ρουμανικά';
+
+  @override
+  String get lblRussian => 'Ρωσικά';
+
+  @override
+  String get lblSpanish => 'Ισπανικά';
+
+  @override
+  String get lblTurkish => 'Τουρκικά';
+
+  @override
+  String get lblUkrainian => 'Ουκρανικά';
+
+  @override
+  String get lblGreekSignLanguage => 'Ελληνική Νοηματική Γλώσσα';
+
+  @override
+  String get tabEdit => 'Επεξεργασία';
+
+  @override
+  String get tabView => 'Προβολή';
+
+  @override
+  String get profilePreviewSoon => 'Το προφίλ σου, όπως το βλέπουν οι άλλοι.';
 }

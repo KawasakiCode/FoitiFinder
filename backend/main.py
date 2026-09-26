@@ -14,7 +14,7 @@ from sqlalchemy import and_, or_
 from firebase_admin import messaging, credentials, firestore, auth
 import firebase_admin
 from preferences.preferences import preference_to_genders
-from university_domains import is_university_email
+from university_domains import is_university_email, university_name_for_email
 from ages import age_from_birthday, years_ago
 
 load_dotenv()
@@ -160,6 +160,10 @@ def create_user(
 
     new_user = models.User(
         name = user.name,
+        #DERIVED HERE, never taken from the request. It comes from the same
+        #verified email the domain check above just passed, which is what makes
+        #"studies at X" worth anything - see university_name_for_email.
+        university = university_name_for_email(email),
         has_finished_set_up=user.has_finished_set_up,
         firebase_uid=uid,
         bio=user.bio,
@@ -235,6 +239,11 @@ def update_user(user_update: schemas.UserUpdate, uid: str = Depends(verified_ema
     #those so "never set" and "cleared" are the same state in the database.
     #Only fields the user is allowed to empty - name is
     #required and are validated before they ever get here.
+    #`university` is derived from the verified email at signup and is not the
+    #client's to change. Dropping it here rather than erroring keeps old app
+    #builds working: they simply cannot move it.
+    updated_data.pop("university", None)
+
     #The single-answer choices (alcohol, smoking...) are cleared the same way.
     for key in ("city", "job", "volunteering", "occupation_other", "major",
                 "alcohol", "smoking", "dating_intention", "kids",
