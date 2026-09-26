@@ -679,9 +679,14 @@ class _EditProfileState extends State<EditProfile> {
               ),
               body: PageView(
                 controller: _pages,
-                //SWIPING IS OFF. The photo grid owns horizontal drags for
-                //reordering, and a page swipe would fight it for the gesture.
-                physics: const NeverScrollableScrollPhysics(),
+                //Swipe between Edit and View, EXCEPT while a photo is being
+                //dragged. The long press has already won the gesture arena by
+                //then, so the PageView would not steal the drag anyway - but
+                //locking it means the page cannot creep sideways while
+                //somebody is carefully placing a photo near the screen edge.
+                physics: _dragFrom != null
+                    ? const NeverScrollableScrollPhysics()
+                    : const PageScrollPhysics(),
                 children: [
                   SingleChildScrollView(
                     child: Column(
