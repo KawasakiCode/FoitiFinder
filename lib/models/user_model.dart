@@ -52,8 +52,11 @@ class UserModel{
   //Languages spoken, canonical English, from constants/languages.dart
   final List<String> languagesSpoken;
   //---- background, all free text and all optional ----
-  //the degree/programme. The university itself is NOT here: it is derived
-  //from the verified student email, never typed.
+  //Where they study. DERIVED BY THE BACKEND from the verified student email at
+  //signup and read-only here - the app cannot set it, which is what makes it
+  //worth showing on a profile at all.
+  final String? university;
+  //the degree/programme, typed by the user
   final String? major;
   final bool? isCurrentlyStudying;
   final String? job;
@@ -83,6 +86,7 @@ class UserModel{
     this.interestTags = const [],
     this.traitTags = const [],
     this.languagesSpoken = const [],
+    this.university,
     this.major,
     this.isCurrentlyStudying,
     this.job,
@@ -122,6 +126,7 @@ class UserModel{
     List<String>? interestTags,
     List<String>? traitTags,
     List<String>? languagesSpoken,
+    ValueGetter<String?>? university,
     ValueGetter<String?>? major,
     ValueGetter<bool?>? isCurrentlyStudying,
     ValueGetter<String?>? job,
@@ -151,6 +156,7 @@ class UserModel{
       interestTags: interestTags ?? this.interestTags,
       traitTags: traitTags ?? this.traitTags,
       languagesSpoken: languagesSpoken ?? this.languagesSpoken,
+      university: university != null ? university() : this.university,
       major: major != null ? major() : this.major,
       isCurrentlyStudying: isCurrentlyStudying != null
           ? isCurrentlyStudying()
@@ -197,6 +203,7 @@ class UserModel{
       interestTags: _readList(json['interest_tags']),
       traitTags: _readList(json['trait_tags']),
       languagesSpoken: _readList(json['languages_spoken']),
+      university: json['university'],
       major: json['major'],
       isCurrentlyStudying: json['is_currently_studying'],
       job: json['job'],
@@ -233,6 +240,7 @@ class UserModel{
       'interest_tags': interestTags,
       'trait_tags': traitTags,
       'languages_spoken': languagesSpoken,
+      'university': university,
       'major': major,
       'is_currently_studying': isCurrentlyStudying,
       'job': job,
