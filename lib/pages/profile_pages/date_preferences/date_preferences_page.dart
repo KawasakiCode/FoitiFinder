@@ -334,16 +334,21 @@ class _DatePreferencesPageState extends State<DatePreferencesPage> {
 
               //Languages, in the discovery block: like the age and height
               //ranges it decides WHO is shown, not what they are like.
-              CardGroup(
-                children: [
-                  NavRow(
-                    label: text.languagesSpoken,
-                    trailing: _user.preferredLanguages.isEmpty
-                        ? ''
-                        : '${_user.preferredLanguages.length}',
-                    onTap: _openPreferredLanguages,
-                  ),
-                ],
+              //the residence switch sits in its own padded container, so this
+              //needs the same gap or the two cards touch
+              Padding(
+                padding: const EdgeInsets.only(top: 20),
+                child: CardGroup(
+                  children: [
+                    NavRow(
+                      label: text.languagesSpoken,
+                      trailing: _user.preferredLanguages.isEmpty
+                          ? ''
+                          : '${_user.preferredLanguages.length}',
+                      onTap: _openPreferredLanguages,
+                    ),
+                  ],
+                ),
               ),
 
               //Their habits: alcohol and smoking, asked as "what do you want?"
