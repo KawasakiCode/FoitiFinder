@@ -29,6 +29,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/constants/choice_icons.dart';
+import 'package:foitifinder/constants/interest_catalogue.dart';
 import 'package:foitifinder/constants/profile_options.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/l10n/catalogue_labels.dart';
@@ -132,7 +133,10 @@ class _ViewProfileBodyState extends State<ViewProfileBody> {
                   _PhotoCard(url: photos[1], story: _stories[photos[1]]),
 
                 if (hobbies.isNotEmpty)
-                  _TagPills(tags: hobbies),
+                  _TagPills(
+                    title: catalogueLabel(text, kGroupHobbies),
+                    tags: hobbies,
+                  ),
 
                 if (photos.length > 2)
                   _PhotoCard(url: photos[2], story: _stories[photos[2]]),
@@ -140,7 +144,11 @@ class _ViewProfileBodyState extends State<ViewProfileBody> {
                 const SizedBox(height: 16),
                 _SoonCard(title: text.favouriteArtists),
 
-                if (traits.isNotEmpty) _TagPills(tags: traits),
+                if (traits.isNotEmpty)
+                  _TagPills(
+                    title: catalogueLabel(text, kGroupTraits),
+                    tags: traits,
+                  ),
 
                 //room to scroll past the last block
                 const SizedBox(height: 32),
@@ -447,22 +455,39 @@ class _Pills extends StatelessWidget {
 //words on the background, which is what keeps them from competing with the
 //answers above.
 class _TagPills extends StatelessWidget {
+  final String title;
   final List<String> tags;
 
-  const _TagPills({required this.tags});
+  const _TagPills({required this.title, required this.tags});
 
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(_kSidePadding, 16, _kSidePadding, 0),
-      child: Wrap(
-        spacing: 8,
-        runSpacing: 8,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          for (final tag in tags)
-            _Pill(icon: null, label: catalogueLabel(text, tag)),
+          //Not the purple SectionHeader the edit side uses: there a header
+          //labels a list of controls, here it labels content, and a row of
+          //coloured headings would pull the eye past the profile itself.
+          Text(
+            title,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final tag in tags)
+                _Pill(icon: null, label: catalogueLabel(text, tag)),
+            ],
+          ),
         ],
       ),
     );
