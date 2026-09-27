@@ -20,7 +20,6 @@ class UserBase(BaseModel):
     preferred_gender: str | None = None
     has_finished_set_up: bool | None = False
     has_photos: bool | None = False
-    score: float | None = 0
 
     #---- profile: single-answer categories ----
     #named after the `key` in the app's constants/profile_options.dart
@@ -69,7 +68,6 @@ class UserUpdate(BaseModel):
     preferred_gender: str | None = None
     has_finished_set_up: bool | None = False
     has_photos: bool | None = False
-    score: float | None = 0
 
     #---- profile: single-answer categories ----
     #named after the `key` in the app's constants/profile_options.dart

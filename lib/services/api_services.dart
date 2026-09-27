@@ -55,7 +55,6 @@ class ApiService {
     required String? preferredGender,
     required bool? hasFinishedSetUp,
     required bool? hasPhotos,
-    required double? score,
   }) async {
     
     final url = Uri.parse('$baseUrl/users/');
@@ -76,7 +75,6 @@ class ApiService {
           "max_age_range": maxAgeRange,
           "preferred_gender": preferredGender,
           "has_photos": hasPhotos,
-          "score": score,
         }),
       );
 

@@ -176,7 +176,6 @@ def create_user(
         max_height_preference=user.max_height_preference,
         preferred_gender=user.preferred_gender,
         has_photos=user.has_photos,
-        score=user.score
     )
 
     try:
@@ -280,13 +279,6 @@ def get_swipe_feed(uid: str = Depends(verified_email_uid), db: Session = Depends
     if not me:
         raise HTTPException(status_code=404, detail='Current User not found')
 
-    if me.score is not None and me.score != 0:
-        min_score = me.score - 1.5
-        max_score = me.score + 1.5
-    else:
-        min_score = 0
-        max_score = 10
-
     #get users other than you and not users we already saw
     seen_ids = db.query(models.UserSwipes.target_id).filter(
         models.UserSwipes.user_id == me.id
@@ -296,11 +288,15 @@ def get_swipe_feed(uid: str = Depends(verified_email_uid), db: Session = Depends
 
     seen_ids_list.append(me.id)
 
-    #base filters: skip already swiped users and stay within the score band
+    #base filter: skip yourself and anyone already swiped.
+    #
+    #There USED to be a score band here - candidates had to sit within +-1.5 of
+    #the viewer's users.score. Nothing ever computed that score (the client sent
+    #0 at signup), so the band silently passed everyone, and a patched client
+    #could have placed itself in anyone's band. Ranking belongs in the ORDER BY,
+    #computed per viewer - see the note in the matching design.
     filters = [
         models.User.id.notin_(seen_ids_list),
-        models.User.score >= min_score,
-        models.User.score <= max_score,
     ]
 
     #Age range filter, always applied - the range the user picked is the range

@@ -158,7 +158,6 @@ class _SignUpPageState extends State<SignUpPage> {
         minAgeRange: null,
         maxAgeRange: null,
         preferredGender: null,
-        score: 0
       );
 
       setState(() {

@@ -46,7 +46,7 @@ class DatePreferencesPage extends StatefulWidget {
 class _DatePreferencesPageState extends State<DatePreferencesPage> {
   AppLocalizations get text => AppLocalizations.of(context)!;
 
-  //Breeze's range. BOTH ENDS ARE OPEN: a handle left at 130 means "130 or
+  //BOTH ENDS ARE OPEN: a handle left at 130 means "130 or
   //shorter" and at 220 "220 or taller", so nobody is filtered out just for
   //being outside the slider - the profile height box accepts values beyond it.
   static const double _minHeightCm = 130;

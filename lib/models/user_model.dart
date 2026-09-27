@@ -35,7 +35,6 @@ class UserModel{
   final String? preferredGender;
   final bool hasFinishedSetUp;
   final bool hasPhotos;
-  final double score;
 
   //Every pick-from-a-list answer, profile AND date preference, keyed by
   //backend column (the ProfileChoice key): 'alcohol' -> ['Never'],
@@ -74,7 +73,6 @@ class UserModel{
     required this.name,
     required this.hasFinishedSetUp,
     required this.hasPhotos,
-    required this.score,
     this.id,
     this.bio,
     this.birthday,
@@ -125,7 +123,6 @@ class UserModel{
     ValueGetter<String?>? preferredGender,
     bool? hasFinishedSetUp,
     bool? hasPhotos,
-    double? score,
     Map<String, List<String>>? choices,
     List<String>? interestTags,
     List<String>? traitTags,
@@ -156,7 +153,6 @@ class UserModel{
           preferredGender != null ? preferredGender() : this.preferredGender,
       hasFinishedSetUp: hasFinishedSetUp ?? this.hasFinishedSetUp,
       hasPhotos: hasPhotos ?? this.hasPhotos,
-      score: score ?? this.score,
       choices: choices ?? this.choices,
       interestTags: interestTags ?? this.interestTags,
       traitTags: traitTags ?? this.traitTags,
@@ -188,7 +184,6 @@ class UserModel{
       uid: json['firebase_uid'] ?? (throw Exception("Critical: uid missing")),
       name: json['name'] ?? (throw Exception("Critical: name missing")),
       hasFinishedSetUp: json['has_finished_set_up'] ?? (throw Exception("Critical: finishedSetUp missing")),
-      score: (json['score'] ?? 0).toDouble(),
       id: json['id'],
       bio: json['bio'],
       birthday: json['birthday'] == null
@@ -227,7 +222,6 @@ class UserModel{
       'firebase_uid': uid,
       'name': name,
       'has_finished_set_up': hasFinishedSetUp,
-      'score' : score,
       'id': id,
       'bio': bio,
       //date only, no time - matches the DATE column and survives a round

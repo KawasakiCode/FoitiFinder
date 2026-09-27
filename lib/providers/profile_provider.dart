@@ -147,7 +147,6 @@ class ProfileProvider extends ChangeNotifier {
     required String name,
     required bool hasFinishedSetUp,
     required bool hasPhotos,
-    required double score,
     String? bio,
     DateTime? birthday,
     int? heightCm,
@@ -165,7 +164,6 @@ class ProfileProvider extends ChangeNotifier {
         uid: uid,
         name: name,
         hasFinishedSetUp: hasFinishedSetUp,
-        score: score,
         bio: bio,
         birthday: birthday,
         heightCm: heightCm,
@@ -184,7 +182,6 @@ class ProfileProvider extends ChangeNotifier {
           uid: uid,
           name: name,
           hasFinishedSetUp: hasFinishedSetUp,
-          score: score,
           bio: bio,
           birthday: birthday,
           heightCm: heightCm,
@@ -255,7 +252,6 @@ class ProfileProvider extends ChangeNotifier {
     String? city,
     String? gender,
     bool? hasFinishedSetUp,
-    double? score,
     bool? hasPhotos,
   }) async {
     if(currentUser == null)return;
@@ -272,7 +268,6 @@ class ProfileProvider extends ChangeNotifier {
       city: city == null ? null : () => city.isEmpty ? null : city,
       gender: gender == null ? null : () => gender,
       hasFinishedSetUp: hasFinishedSetUp,
-      score: score,
       hasPhotos: hasPhotos,
     );
 

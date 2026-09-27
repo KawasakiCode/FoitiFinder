@@ -42,7 +42,6 @@ class User(Base):
     preferred_gender = Column(String, nullable = True)
     has_finished_set_up = Column(Boolean, nullable = False)
     has_photos = Column(Boolean, nullable = False)
-    score = Column(Float, nullable = True)
 
     #=====================================================================
     #PROFILE: single-answer categories
