@@ -267,35 +267,57 @@ class _DatePreferencesPageState extends State<DatePreferencesPage> {
                   ),
                 ),
               ),
-              //Discovery Settings (Age range and toggle out of range switch)
-              _RangeCard(
-                label: text.ageRange,
-                valueLabel:
-                    '${ageRange.start.toInt()} - ${ageRange.end.toInt()}',
-                slider: RangeSlider(
-                  values: ageRange,
-                  min: 18,
-                  max: 100,
-                  divisions: 82,
-                  onChanged: (v) => setState(() => _ageDrag = v),
-                  onChangeEnd: (v) {
-                    setState(() => _ageDrag = null);
-                    settings.saveAgeRange(v);
-                  },
-                ),
+              //The two ranges share ONE card, divided like the habits rows
+              //below: they are the same kind of setting answered the same way,
+              //and two separate cards made them look unrelated.
+              _RangeGroup(
+                children: [
+                  _RangeRow(
+                    label: text.ageRange,
+                    valueLabel:
+                        '${ageRange.start.toInt()} - ${ageRange.end.toInt()}',
+                    slider: RangeSlider(
+                      values: ageRange,
+                      min: 18,
+                      max: 100,
+                      divisions: 82,
+                      onChanged: (v) => setState(() => _ageDrag = v),
+                      onChangeEnd: (v) {
+                        setState(() => _ageDrag = null);
+                        settings.saveAgeRange(v);
+                      },
+                    ),
+                  ),
+                  _RangeRow(
+                    label: text.heightRange,
+                    valueLabel: _heightLabel(heightRange),
+                    slider: RangeSlider(
+                      values: heightRange,
+                      min: _minHeightCm,
+                      max: _maxHeightCm,
+                      //one step per centimetre
+                      divisions: (_maxHeightCm - _minHeightCm).round(),
+                      onChanged: (v) => setState(() => _heightDrag = v),
+                      onChangeEnd: _saveHeightRange,
+                    ),
+                  ),
+                ],
               ),
-              //Height range - the same card as the age range
-              _RangeCard(
-                label: text.heightRange,
-                valueLabel: _heightLabel(heightRange),
-                slider: RangeSlider(
-                  values: heightRange,
-                  min: _minHeightCm,
-                  max: _maxHeightCm,
-                  //one step per centimetre
-                  divisions: (_maxHeightCm - _minHeightCm).round(),
-                  onChanged: (v) => setState(() => _heightDrag = v),
-                  onChangeEnd: _saveHeightRange,
+
+              //Languages, in the discovery block: like the two ranges above it
+              //decides WHO is shown, not what they are like.
+              Padding(
+                padding: const EdgeInsets.only(top: 20),
+                child: CardGroup(
+                  children: [
+                    NavRow(
+                      label: text.languagesSpoken,
+                      trailing: _user.preferredLanguages.isEmpty
+                          ? ''
+                          : '${_user.preferredLanguages.length}',
+                      onTap: _openPreferredLanguages,
+                    ),
+                  ],
                 ),
               ),
               //Place of residence: a plain yes/no for now. Without coordinates
@@ -329,25 +351,6 @@ class _DatePreferencesPageState extends State<DatePreferencesPage> {
                       ),
                     ],
                   ),
-                ),
-              ),
-
-              //Languages, in the discovery block: like the age and height
-              //ranges it decides WHO is shown, not what they are like.
-              //the residence switch sits in its own padded container, so this
-              //needs the same gap or the two cards touch
-              Padding(
-                padding: const EdgeInsets.only(top: 20),
-                child: CardGroup(
-                  children: [
-                    NavRow(
-                      label: text.languagesSpoken,
-                      trailing: _user.preferredLanguages.isEmpty
-                          ? ''
-                          : '${_user.preferredLanguages.length}',
-                      onTap: _openPreferredLanguages,
-                    ),
-                  ],
                 ),
               ),
 
@@ -395,12 +398,45 @@ class _DatePreferencesPageState extends State<DatePreferencesPage> {
 //A label, its current value on the right, and a range slider underneath, in
 //the page's filled card. Shared by the age and height ranges so the two stay
 //visually identical.
-class _RangeCard extends StatelessWidget {
+//The card the ranges sit in, with a hairline between them - the same treatment
+//CardGroup gives the rows below.
+class _RangeGroup extends StatelessWidget {
+  final List<Widget> children;
+
+  const _RangeGroup({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 15, right: 15, top: 20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (var i = 0; i < children.length; i++) ...[
+              if (i > 0) const Divider(height: 1, indent: 15, endIndent: 15),
+              children[i],
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+//A label, its current value, and the slider under them. No card of its own -
+//_RangeGroup provides it.
+class _RangeRow extends StatelessWidget {
   final String label;
   final String valueLabel;
   final Widget slider;
 
-  const _RangeCard({
+  const _RangeRow({
     required this.label,
     required this.valueLabel,
     required this.slider,
@@ -409,42 +445,30 @@ class _RangeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 15, right: 15, top: 20),
-      child: Container(
-        padding: const EdgeInsets.only(
-          left: 15,
-          right: 15,
-          top: 10,
-          bottom: 10,
-        ),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                //the label gives way, the value never does: "≤130 - 220+ cm"
-                //next to a Greek label, or with a large system font, is wider
-                //than the card and used to overflow
-                Expanded(
-                  child: Text(
-                    label,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  valueLabel,
+      padding: const EdgeInsets.fromLTRB(15, 10, 15, 6),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              //the label gives way, the value never does: "≤130 - 220+ cm"
+              //next to a Greek label, or with a large system font, is wider
+              //than the card and used to overflow
+              Expanded(
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
                 ),
-              ],
-            ),
-            slider,
-          ],
-        ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                valueLabel,
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
+          slider,
+        ],
       ),
     );
   }
