@@ -18,8 +18,17 @@ import 'package:foitifinder/widgets/primary_button.dart';
 
 class LanguagesPage extends StatefulWidget {
   final List<String> initialSelected;
+  //The line above the list. Two callers, two meanings: on the profile side it
+  //is "languages I speak", in date preferences it is "languages they must
+  //speak". Same list, same storage shape, so the same page - only the sentence
+  //at the top changes. Defaults to the profile wording.
+  final String? intro;
 
-  const LanguagesPage({super.key, this.initialSelected = const []});
+  const LanguagesPage({
+    super.key,
+    this.initialSelected = const [],
+    this.intro,
+  });
 
   @override
   State<LanguagesPage> createState() => _LanguagesPageState();
@@ -61,7 +70,7 @@ class _LanguagesPageState extends State<LanguagesPage> {
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
         children: [
           Text(
-            text.languagesIntro,
+            widget.intro ?? text.languagesIntro,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),

@@ -106,6 +106,10 @@ class User(Base):
     preferred_smoking = Column(ARRAY(String), nullable = False, server_default = text("'{}'"))
     preferred_dating_intention = Column(ARRAY(String), nullable = False, server_default = text("'{}'"))
     preferred_kids = Column(ARRAY(String), nullable = False, server_default = text("'{}'"))
+    #Languages the other person must speak - at least ONE has to match, not all
+    #of them. Empty = no language filter, which is the honest default: a new
+    #account has not said anything about who it wants to see.
+    preferred_languages = Column(ARRAY(String), nullable = False, server_default = text("'{}'"))
     #false = only show people from my own prefecture (users.city)
     show_outside_residence = Column(Boolean, nullable = False, server_default = text('true'))
 

@@ -256,7 +256,8 @@ def update_user(user_update: schemas.UserUpdate, uid: str = Depends(verified_ema
     #that; for the rest there is no sensible meaning, so leave the value alone.
     for key in ("interest_tags", "trait_tags", "religion", "political_view",
                 "languages_spoken", "preferred_alcohol", "preferred_smoking",
-                "preferred_dating_intention", "preferred_kids"):
+                "preferred_dating_intention", "preferred_kids",
+                "preferred_languages"):
         if key in updated_data and updated_data[key] is None:
             updated_data[key] = []
     for key in ("name", "has_finished_set_up", "has_photos", "show_outside_residence"):

@@ -1669,4 +1669,8 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get profilePreviewSoon => 'Το προφίλ σου, όπως το βλέπουν οι άλλοι.';
+
+  @override
+  String get preferredLanguagesIntro =>
+      'Θα σου εμφανίζονται μόνο άτομα που μιλούν τουλάχιστον μία από τις γλώσσες που επιλέγεις.';
 }

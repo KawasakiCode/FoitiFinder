@@ -51,6 +51,9 @@ class UserModel{
   final List<String> traitTags;
   //Languages spoken, canonical English, from constants/languages.dart
   final List<String> languagesSpoken;
+  //Languages the other person must speak - at least one match. Empty = no
+  //language filter at all.
+  final List<String> preferredLanguages;
   //---- background, all free text and all optional ----
   //Where they study. DERIVED BY THE BACKEND from the verified student email at
   //signup and read-only here - the app cannot set it, which is what makes it
@@ -86,6 +89,7 @@ class UserModel{
     this.interestTags = const [],
     this.traitTags = const [],
     this.languagesSpoken = const [],
+    this.preferredLanguages = const [],
     this.university,
     this.major,
     this.isCurrentlyStudying,
@@ -126,6 +130,7 @@ class UserModel{
     List<String>? interestTags,
     List<String>? traitTags,
     List<String>? languagesSpoken,
+    List<String>? preferredLanguages,
     ValueGetter<String?>? university,
     ValueGetter<String?>? major,
     ValueGetter<bool?>? isCurrentlyStudying,
@@ -156,6 +161,7 @@ class UserModel{
       interestTags: interestTags ?? this.interestTags,
       traitTags: traitTags ?? this.traitTags,
       languagesSpoken: languagesSpoken ?? this.languagesSpoken,
+      preferredLanguages: preferredLanguages ?? this.preferredLanguages,
       university: university != null ? university() : this.university,
       major: major != null ? major() : this.major,
       isCurrentlyStudying: isCurrentlyStudying != null
@@ -203,6 +209,7 @@ class UserModel{
       interestTags: _readList(json['interest_tags']),
       traitTags: _readList(json['trait_tags']),
       languagesSpoken: _readList(json['languages_spoken']),
+      preferredLanguages: _readList(json['preferred_languages']),
       university: json['university'],
       major: json['major'],
       isCurrentlyStudying: json['is_currently_studying'],
@@ -240,6 +247,7 @@ class UserModel{
       'interest_tags': interestTags,
       'trait_tags': traitTags,
       'languages_spoken': languagesSpoken,
+      'preferred_languages': preferredLanguages,
       'university': university,
       'major': major,
       'is_currently_studying': isCurrentlyStudying,

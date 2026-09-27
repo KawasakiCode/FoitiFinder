@@ -25,6 +25,7 @@ import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/l10n/catalogue_labels.dart';
 import 'package:foitifinder/models/user_model.dart';
 import 'package:foitifinder/pages/profile_pages/date_preferences/preferred_gender_page.dart';
+import 'package:foitifinder/pages/profile_pages/languages_page.dart';
 import 'package:foitifinder/pages/profile_pages/shared/choice_dialog.dart';
 import 'package:foitifinder/pages/profile_pages/shared/save_profile_field.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
@@ -68,8 +69,7 @@ class _DatePreferencesPageState extends State<DatePreferencesPage> {
   );
 
   Future<void> _saveHeightRange(RangeValues values) async {
-    final int? min =
-        values.start <= _minHeightCm ? null : values.start.round();
+    final int? min = values.start <= _minHeightCm ? null : values.start.round();
     final int? max = values.end >= _maxHeightCm ? null : values.end.round();
     setState(() => _heightDrag = null);
     if (min == _user.minHeightPreference && max == _user.maxHeightPreference) {
@@ -88,6 +88,30 @@ class _DatePreferencesPageState extends State<DatePreferencesPage> {
         'min_height_preference': min,
         'max_height_preference': max,
       }),
+    );
+  }
+
+  //The languages the other person must speak. Same page as the profile side,
+  //different sentence at the top and a different column - see LanguagesPage.
+  Future<void> _openPreferredLanguages() async {
+    final current = _user.preferredLanguages;
+    final result = await Navigator.push<List<String>>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => LanguagesPage(
+          initialSelected: current,
+          intro: text.preferredLanguagesIntro,
+        ),
+      ),
+    );
+    if (!mounted || result == null || listEquals(result, current)) return;
+
+    await saveProfileField<List<String>>(
+      context,
+      read: (u) => u.preferredLanguages,
+      write: (u, value) => u.copyWith(preferredLanguages: value),
+      value: result,
+      send: (_) => ApiService.patchUser({'preferred_languages': result}),
     );
   }
 
@@ -282,7 +306,9 @@ class _DatePreferencesPageState extends State<DatePreferencesPage> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 15),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
@@ -304,6 +330,20 @@ class _DatePreferencesPageState extends State<DatePreferencesPage> {
                     ],
                   ),
                 ),
+              ),
+
+              //Languages, in the discovery block: like the age and height
+              //ranges it decides WHO is shown, not what they are like.
+              CardGroup(
+                children: [
+                  NavRow(
+                    label: text.languagesSpoken,
+                    trailing: _user.preferredLanguages.isEmpty
+                        ? ''
+                        : '${_user.preferredLanguages.length}',
+                    onTap: _openPreferredLanguages,
+                  ),
+                ],
               ),
 
               //Their habits: alcohol and smoking, asked as "what do you want?"
@@ -331,10 +371,7 @@ class _DatePreferencesPageState extends State<DatePreferencesPage> {
               CardGroup(
                 dividers: true,
                 children: [
-                  for (final choice in const [
-                    kPrefDatingIntention,
-                    kPrefKids,
-                  ])
+                  for (final choice in const [kPrefDatingIntention, kPrefKids])
                     NavRow(
                       label: catalogueLabel(text, choice.title),
                       trailing: _choiceSummary(choice),

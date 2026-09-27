@@ -556,5 +556,6 @@
   "lblGreekSignLanguage": "Greek Sign Language",
   "tabEdit": "Edit",
   "tabView": "View",
-  "profilePreviewSoon": "Your profile, as other people see it."
+  "profilePreviewSoon": "Your profile, as other people see it.",
+  "preferredLanguagesIntro": "You will only be shown people that speak at least one of your selected languages."
 }

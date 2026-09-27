@@ -52,6 +52,7 @@ class UserBase(BaseModel):
     preferred_smoking: List[str] = []
     preferred_dating_intention: List[str] = []
     preferred_kids: List[str] = []
+    preferred_languages: List[str] = []
     show_outside_residence: bool = True
 
 #for patch endpoints to update a single attribute without needing the others too
@@ -102,6 +103,7 @@ class UserUpdate(BaseModel):
     preferred_smoking: List[str] | None = None
     preferred_dating_intention: List[str] | None = None
     preferred_kids: List[str] | None = None
+    preferred_languages: List[str] | None = None
     show_outside_residence: bool | None = None
 
 

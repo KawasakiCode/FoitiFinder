@@ -3343,6 +3343,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your profile, as other people see it.'**
   String get profilePreviewSoon;
+
+  /// No description provided for @preferredLanguagesIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'You will only be shown people that speak at least one of your selected languages.'**
+  String get preferredLanguagesIntro;
 }
 
 class _AppLocalizationsDelegate
