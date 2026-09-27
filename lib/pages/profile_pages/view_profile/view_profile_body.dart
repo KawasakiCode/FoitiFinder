@@ -257,13 +257,13 @@ class _Pills extends StatelessWidget {
       kChoiceSmoking,
     ];
 
-    //an icon per answer, because three of these four share the same words -
+    //an icon per category, because three of these four share the same words -
     //see constants/choice_icons.dart
     final answers = <(IconData?, String)>[
       for (final choice in order)
         if (user.choice(choice.key).isNotEmpty)
           (
-            iconForChoice(choice, user.choice(choice.key).first),
+            iconForChoice(choice),
             catalogueLabel(text, user.choice(choice.key).first),
           ),
     ];

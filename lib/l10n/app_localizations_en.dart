@@ -350,9 +350,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lblBio => 'Bio';
 
   @override
-  String get lblQA => 'Q&A';
-
-  @override
   String get lblActivities => 'Activities';
 
   @override

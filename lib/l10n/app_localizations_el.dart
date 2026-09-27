@@ -356,9 +356,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get lblBio => 'Λίγα λόγια';
 
   @override
-  String get lblQA => 'Ερωτήσεις & απαντήσεις';
-
-  @override
   String get lblActivities => 'Δραστηριότητες';
 
   @override

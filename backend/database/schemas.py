@@ -134,17 +134,6 @@ class UserCardResponse(BaseModel):
     class Config:
         orm_mode = True
 
-#one prompt/answer pair
-class QnAItem(BaseModel):
-    prompt_key: str
-    answer: str
-    display_order: int = 0
-
-#body for replacing a user's whole Q&A set in one call, mirroring PhotoSync.
-#NOTE: no firebase_uid - the owner comes from the verified ID token.
-class QnASync(BaseModel):
-    items: List[QnAItem] = []
-
 class Photos(BaseModel):
     user_id: int
     photo_url: str

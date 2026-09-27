@@ -1,8 +1,8 @@
 //The interest catalogue: the data behind the Hobbies & interests / Traits /
-//Bio / Q&A's categories reachable from the profile page.
+//Bio categories reachable from the profile page.
 //
 //Three levels deep:
-//  group    -> the 4 broad blocks, one per row on the profile page
+//  group    -> the 3 broad blocks, one per row on the profile page
 //  section  -> the subcategory inside a group (Activities, Music, MBTI, ...)
 //  option   -> the actual tappable box
 //
@@ -46,14 +46,11 @@ class InterestGroup {
   final List<InterestSection> sections;
   //when set, every section in this group draws from this one budget
   final int? sharedMax;
-  //shown instead of the sections while a group has no content yet
-  final String? placeholder;
 
   const InterestGroup(
     this.title, {
     this.sections = const [],
     this.sharedMax,
-    this.placeholder,
   });
 }
 
@@ -395,17 +392,10 @@ const List<InterestGroup> kInterestGroups = [
   ),
 
   //=========================================================================
-  //3-5. Declared but empty — these are free text / their own mechanic, not
-  //boxes, so they need a different widget than the chip grid above.
+  //3. Free text, not boxes - it has its own page rather than the chip grid
+  //above, and _openGroup sends it there before it looks for any sections.
   //=========================================================================
-  InterestGroup(
-    'Bio',
-    placeholder: 'Free text — needs a text field, not boxes.',
-  ),
-  InterestGroup(
-    "Q&A's",
-    placeholder: 'Prompt + answer pairs. Catalogue of questions still to come.',
-  ),
+  InterestGroup('Bio'),
 ];
 
 //Group titles, used to route each profile row to the right page. Kept as
@@ -413,7 +403,6 @@ const List<InterestGroup> kInterestGroups = [
 const String kGroupHobbies = 'Hobbies & interests';
 const String kGroupTraits = 'Traits';
 const String kGroupBio = 'Bio';
-const String kGroupQA = "Q&A's";
 
 //Look a group up by title. Throws rather than returning null: every caller
 //passes one of the constants above, so a miss means the catalogue and the
@@ -423,7 +412,7 @@ InterestGroup interestGroupByTitle(String title) =>
 
 
 //Group title -> the users column its picks are saved in. Only the groups with
-//boxes have one: Bio is its own column and Q&A its own table.
+//boxes have one: Bio is a plain column of its own.
 const Map<String, String> kGroupColumns = {
   kGroupHobbies: 'interest_tags',
   kGroupTraits: 'trait_tags',

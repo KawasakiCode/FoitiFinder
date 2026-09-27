@@ -740,12 +740,6 @@ abstract class AppLocalizations {
   /// **'Bio'**
   String get lblBio;
 
-  /// No description provided for @lblQA.
-  ///
-  /// In en, this message translates to:
-  /// **'Q&A'**
-  String get lblQA;
-
   /// No description provided for @lblActivities.
   ///
   /// In en, this message translates to:

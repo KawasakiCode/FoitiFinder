@@ -111,7 +111,6 @@ class User(Base):
 
     settings = relationship("Settings", back_populates="user", uselist=False, cascade="all, delete", passive_deletes=True)
     photos = relationship("Photos", back_populates="user", cascade="all, delete", passive_deletes=True)
-    qna = relationship("UserQnA", back_populates="user", cascade="all, delete", passive_deletes=True)
 
     #THE PROFILE PICTURE IS photo_urls[0], the photo with display_order 0.
     #There used to be a profile_picture column as well, written by a separate
@@ -154,26 +153,6 @@ class Photos(Base):
     created_at = Column(TIMESTAMP(timezone=True), nullable = False, server_default = text('now()'))
     
     user = relationship("User", back_populates="photos")
-
-#The user's answers to the prompt catalogue.
-#
-#A table rather than an array or a jsonb blob: each entry is a PAIR (which
-#prompt, what answer) plus an order, one user has any number of them, and a
-#child table gives cascade delete and per-answer moderation queries for free.
-class UserQnA(Base):
-    __tablename__ = "user_qna"
-
-    id = Column(Integer, primary_key = True, nullable = False)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable = False, index = True)
-    #STABLE KEY, never the question text. The key is what survives rewording
-    #the prompt or translating it to Greek - same reasoning as the canonical
-    #strings behind l10n/catalogue_labels.dart.
-    prompt_key = Column(String, nullable = False)
-    answer = Column(String, nullable = False)
-    display_order = Column(Integer, nullable = False, server_default = text("0"))
-
-    user = relationship("User", back_populates="qna")
-
 
 class Settings(Base):
     __tablename__ = "settings"

@@ -30,7 +30,6 @@ import 'package:foitifinder/pages/profile_pages/edit_profile/personality/bio_pag
 import 'package:foitifinder/pages/profile_pages/edit_profile/photo_detail_page.dart';
 import 'package:foitifinder/pages/profile_pages/edit_profile/photo_stories_page.dart';
 import 'package:foitifinder/pages/profile_pages/edit_profile/personality/interest_group_page.dart';
-import 'package:foitifinder/pages/profile_pages/edit_profile/personality/placeholder_group_page.dart';
 import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/nav_row.dart';
 import 'package:foitifinder/models/photos_model.dart';
@@ -333,11 +332,6 @@ class _EditProfileState extends State<EditProfile> {
       _push(const BioPage());
       return;
     }
-    if (group.sections.isEmpty) {
-      _push(PlaceholderGroupPage(group: group));
-      return;
-    }
-
     final column = kGroupColumns[groupTitle]!;
     final current = _tagsFor(groupTitle);
 
@@ -733,10 +727,6 @@ class _EditProfileState extends State<EditProfile> {
                             NavRow(
                               label: catalogueLabel(text, kGroupBio),
                               onTap: () => _openGroup(kGroupBio),
-                            ),
-                            NavRow(
-                              label: catalogueLabel(text, kGroupQA),
-                              onTap: () => _openGroup(kGroupQA),
                             ),
                           ],
                         ),

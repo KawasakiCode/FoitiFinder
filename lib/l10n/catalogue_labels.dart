@@ -24,7 +24,6 @@ final Map<String, String Function(AppLocalizations)> _labels = {
   'Hobbies & interests': (t) => t.lblHobbiesInterests,
   'Traits': (t) => t.lblTraits,
   'Bio': (t) => t.lblBio,
-  'Q&A': (t) => t.lblQA,
   'Activities': (t) => t.lblActivities,
   'Interests': (t) => t.lblInterests,
   'Entertainment': (t) => t.lblEntertainment,
