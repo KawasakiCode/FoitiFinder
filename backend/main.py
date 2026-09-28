@@ -104,6 +104,8 @@ class UserCards(BaseModel):
     id: int
     name: str
     age: Optional[int] = None
+    #shown under the name on the swipe card, so it travels with the card
+    job: Optional[str] = None
     bio: Optional[str] = None
     photos: List[str] = []
 
@@ -339,6 +341,7 @@ def get_swipe_feed(uid: str = Depends(verified_email_uid), db: Session = Depends
             "id": user.id,
             "name": user.name,
             "age": age_from_birthday(user.birthday),
+            "job": user.job,
             "bio": user.bio,
             "photos": photo_urls,
         })
@@ -756,6 +759,7 @@ def get_single_user(user_id: int, uid: str = Depends(verified_email_uid), db: Se
         "id": user.id,
         "name": user.name,
         "age": age_from_birthday(user.birthday),
+        "job": user.job,
         "bio": user.bio,
         "photos": photos_urls,
     }

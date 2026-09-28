@@ -6,14 +6,16 @@ class CardData {
   String name;
   String? bio;
   int? age;
+  //shown under the name on the card, beside the age
+  String? job;
   List<String> photos;
-
 
   CardData({
     required this.id,
     required this.name,
     required this.bio,
     required this.age,
+    this.job,
     this.photos = const [],
   });
 
@@ -23,6 +25,7 @@ class CardData {
       name: row['name'],
       bio: row['bio'],
       age: row['age'],
+      job: row['job'],
       photos: (row['photos'] as List?) 
       ?.map((item) => item.toString()).toList() ?? [],
     );

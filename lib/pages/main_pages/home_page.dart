@@ -8,7 +8,6 @@ import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/models/card_data_model.dart';
 import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/theme/app_colors.dart';
-import 'package:foitifinder/widgets/animated_swipe_button.dart';
 import 'package:foitifinder/widgets/photo_card.dart';
 import 'package:foitifinder/widgets/app_dialog.dart';
 
@@ -30,6 +29,14 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
+//How much of the swipe area the card fills. Not the whole screen: the gaps at
+//the sides and under it are what make the deck look like a deck.
+const double _kCardWidthFactor = 0.86;
+const double _kCardHeightFactor = 0.96;
+//The dots under the deck count PROFILES, and stop counting past this - twenty
+//dots is a smear, not information.
+const int _kMaxDeckDots = 8;
+
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   AppLocalizations get text => AppLocalizations.of(context)!;
 
@@ -47,8 +54,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   double _tapPositionY = 0;
   final ValueNotifier<Offset> _swipeNotifier = ValueNotifier(Offset.zero);
   bool _isAnimating = false;
-  // Track swiped cards for rewind functionality
-  List<CardData> swipedCards = [];
 
   //card creation
   @override
@@ -310,17 +315,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     _isAnimating = false;
   }
 
-  //rewind function
-  void _rewindCard() {
-    if (currentIndex > 0) {
-      setState(() {
-        currentIndex--;
-
-        _swipeNotifier.value = Offset.zero;
-        _animationController.reset();
-      });
-    }
-  }
+  //REWIND IS GONE FROM THE UI. The card now carries exactly three buttons -
+  //pass, super like, like - so there is nowhere to put it. The state it needed
+  //is still here (currentIndex only moves forward, and maxHistory keeps the
+  //last few cards in the list), so bringing it back is a button, not a rebuild.
 
   //This function is responsible for grabbing more cards from the database if less
   //than 10 remain in the active deck
@@ -366,11 +364,17 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             ],
           ),
         ),
-        body: Stack(
+        body: Column(
           children: [
-            Column(
-              children: [
-                Expanded(
+            //room between the app bar and the card
+            const SizedBox(height: 12),
+            Expanded(
+              child: Center(
+                child: FractionallySizedBox(
+                  //the card leaves the sides of the screen visible, so the deck
+                  //reads as a stack of objects rather than as the page itself
+                  widthFactor: _kCardWidthFactor,
+                  heightFactor: _kCardHeightFactor,
                   child: KeyedSubtree(
                     key: widget.cardAreaKey,
                     child: cards.isNotEmpty && currentIndex < cards.length
@@ -378,9 +382,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                         : _buildNoMoreCards(),
                   ),
                 ),
-                _buildActionButtons(),
-              ],
+              ),
             ),
+            _buildDeckDots(),
+            const SizedBox(height: 12),
           ],
         ),
       ),
@@ -474,12 +479,19 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   //build top card
   Widget _buildCard(CardData card, bool isTop) {
     return Container(
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(kCardRadius)),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(kCardRadius),
         child: Stack(
           children: [
-            PhotoCard(card: card),
+            //only the top card's buttons do anything: the ones behind are a
+            //preview, and a tap through to them would swipe the wrong person
+            PhotoCard(
+              card: card,
+              onPass: isTop ? () => _swipeLeft(fromButton: true) : null,
+              onSuperLike: isTop ? () => _swipeUp(fromButton: true) : null,
+              onLike: isTop ? () => _swipeRight(fromButton: true) : null,
+            ),
 
             // Swipe indicators (only on top card)
             if (isTop) ...[
@@ -574,80 +586,34 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
   }
 
-  //Build the buttons under the cards
-  Widget _buildActionButtons() {
-    // Show rewind button even when no more cards if we have swiped cards
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: ValueListenableBuilder(
-        valueListenable: _swipeNotifier,
-        builder: (context, offset, child) {
-          final dx = offset.dx;
-          final dy = offset.dy;
-          final isHorizontal = dx.abs() > dy.abs();
-          final isVertical = dy.abs() > dx.abs();
+  //Dots under the deck: one per profile still to see, the filled one being the
+  //card on top. Capped, and a "+n" is not worth the clutter - past a handful
+  //the only message is "there are more".
+  Widget _buildDeckDots() {
+    final remaining = cards.length - currentIndex;
+    if (remaining <= 1) return const SizedBox(height: 8);
 
-          final bool isLikeActive = dx > 45 && isHorizontal;
-          final bool isPassActive = dx < -45 && isHorizontal;
-          final bool isSuperLikeActive = dy < 45 && isVertical;
+    final shown = remaining.clamp(0, _kMaxDeckDots);
+    final theme = Theme.of(context);
 
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              // Rewind button
-              AnimatedSwipeButton(
-                icon: Icons.replay,
-                gradient: AppColors.rewindGradient,
-                size: 50,
-                // If no history, pass null to disable it visually
-                onPressed: currentIndex > 0
-                    ? _rewindCard
-                    : null
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        for (var i = 0; i < shown; i++)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 3),
+            child: Container(
+              width: i == 0 ? 8 : 6,
+              height: i == 0 ? 8 : 6,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: i == 0
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.onSurface.withValues(alpha: 0.25),
               ),
-
-              // Only show other buttons if there are cards to swipe
-              if (currentIndex < cards.length) ...[
-                // Pass button
-                AnimatedSwipeButton(
-                  icon: Icons.close,
-                  gradient: AppColors.passGradient,
-                  size: 65, // Main buttons are bigger
-                  forcePressed: isPassActive,
-                  onPressed: () => _swipeLeft(fromButton: true),
-                ),
-
-                // Super like button
-                AnimatedSwipeButton(
-                  icon: Icons.star,
-                  gradient: AppColors.superLikeGradient,
-                  size: 50,
-                  forcePressed: isSuperLikeActive,
-                  onPressed: () => _swipeUp(fromButton: true),
-                ),
-
-                // Like button
-                AnimatedSwipeButton(
-                  icon: Icons.favorite,
-                  gradient: AppColors.likeGradient,
-                  size: 65,
-                  forcePressed: isLikeActive,
-                  onPressed: () => _swipeRight(fromButton: true),
-                ),
-
-                // DM button
-                AnimatedSwipeButton(
-                  icon: Icons.message,
-                  gradient: AppColors.dmGradient,
-                  size: 50,
-                  onPressed: () {
-                    // Handle DM
-                  },
-                ),
-              ],
-            ],
-          );
-        }
-      ),
+            ),
+          ),
+      ],
     );
   }
 }
