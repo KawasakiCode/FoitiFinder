@@ -45,7 +45,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   List<CardData> cards = [];
   int currentIndex = 0;
   final int maxHistory = 5; //how many rewinds until no more
-  final int fetchThreshold = 10; //when 10 cards remain in the current stack load more
+  final int fetchThreshold =
+      10; //when 10 cards remain in the current stack load more
   final int batchSize = 20; // how many cards to load at a time
   bool _isFetching = false;
   bool _hasNoMoreProfiles = false;
@@ -95,7 +96,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   //gesture detector functions
   void _onPanUpdate(DragUpdateDetails details) {
-      _swipeNotifier.value += details.delta;
+    _swipeNotifier.value += details.delta;
   }
 
   void _onPanEnd(DragEndDetails details) {
@@ -118,7 +119,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     bool isFlickLeft = velocity < -velocityThreshold && offset.dx < 0;
     bool isSwipeUp = offset.dy.abs() > offset.dx.abs();
 
-    if(isSwipeUp && offset.dy < -verticalThreshold) {
+    if (isSwipeUp && offset.dy < -verticalThreshold) {
       _swipeUp();
       return;
     }
@@ -149,18 +150,17 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   void _precacheUserPhotos(CardData card) {
-  if (card.photos.isNotEmpty) {
-    for (int i = 0; i < card.photos.length; i++) {
-      
-      // OPTIMIZATION: Only cache the first 3 photos. 
-      // If the user taps past photo #3, Flutter will load #4 on demand.
-      // This prevents the "Swipe Stutter" caused by downloading too much at once.
-      if (i > 2) break; 
-      
-      precacheImage(CachedNetworkImageProvider(card.photos[i]), context);
+    if (card.photos.isNotEmpty) {
+      for (int i = 0; i < card.photos.length; i++) {
+        // OPTIMIZATION: Only cache the first 3 photos.
+        // If the user taps past photo #3, Flutter will load #4 on demand.
+        // This prevents the "Swipe Stutter" caused by downloading too much at once.
+        if (i > 2) break;
+
+        precacheImage(CachedNetworkImageProvider(card.photos[i]), context);
+      }
     }
   }
-}
 
   //swiping functions
   //These are shared by the gestures AND the action buttons so a swipe is always
@@ -172,17 +172,21 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     _animateCardOut(1.0, card.name, true, fromButton: fromButton);
     bool isMatch = false;
     try {
-      isMatch = await ApiService.registerSwipe(FirebaseAuth.instance.currentUser!.uid, card.id, "like");
+      isMatch = await ApiService.registerSwipe(
+        FirebaseAuth.instance.currentUser!.uid,
+        card.id,
+        "like",
+      );
     } catch (_) {}
 
-    if(isMatch) {
-      if(!mounted)return;
+    if (isMatch) {
+      if (!mounted) return;
       showAppDialog(
         context: context,
         builder: (context) => AlertDialog(
           title: Text(text.itsAMatch),
           content: Text("${text.matchText1}${card.name}${text.matchText2}"),
-        )
+        ),
       );
     }
   }
@@ -193,26 +197,40 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     //slow or failing backend call, then register the pass in the background
     _animateCardOut(-1.0, card.name, false, fromButton: fromButton);
     try {
-      await ApiService.registerSwipe(FirebaseAuth.instance.currentUser!.uid, card.id, "pass");
+      await ApiService.registerSwipe(
+        FirebaseAuth.instance.currentUser!.uid,
+        card.id,
+        "pass",
+      );
     } catch (_) {}
   }
 
   void _swipeUp({bool fromButton = false}) async {
     final card = cards[currentIndex];
-    _animateCardOut(0.0, card.name, true, fromButton: fromButton, isSuperLike: true);
+    _animateCardOut(
+      0.0,
+      card.name,
+      true,
+      fromButton: fromButton,
+      isSuperLike: true,
+    );
     bool isMatch = false;
     try {
-      isMatch = await ApiService.registerSwipe(FirebaseAuth.instance.currentUser!.uid, card.id, "super_like");
+      isMatch = await ApiService.registerSwipe(
+        FirebaseAuth.instance.currentUser!.uid,
+        card.id,
+        "super_like",
+      );
     } catch (_) {}
 
-    if(isMatch) {
-      if(!mounted)return;
+    if (isMatch) {
+      if (!mounted) return;
       showAppDialog(
         context: context,
         builder: (context) => AlertDialog(
           title: Text(text.itsAMatch),
           content: Text("${text.matchText1}${card.name}${text.matchText2}"),
-        )
+        ),
       );
     }
   }
@@ -227,27 +245,27 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   void _animateCardOut(
     double direction,
     String cardName,
-    bool isLike,
-    {bool fromButton = false,
-    bool isSuperLike = false}) {
-    
-    if(_isAnimating)return;
+    bool isLike, {
+    bool fromButton = false,
+    bool isSuperLike = false,
+  }) {
+    if (_isAnimating) return;
     _isAnimating = true;
 
     if (fromButton) {
       _tapPositionY = 0.0;
     }
-    
+
     final startOffset = _swipeNotifier.value;
     Offset endOffset;
 
-    if(isSuperLike) {
+    if (isSuperLike) {
       endOffset = Offset(0, -MediaQuery.of(context).size.height);
     } else {
       endOffset = Offset(
-      MediaQuery.of(context).size.width * 1.5 * direction,
-      0,
-    );
+        MediaQuery.of(context).size.width * 1.5 * direction,
+        0,
+      );
     }
 
     final animation = Tween<Offset>(begin: startOffset, end: endOffset).animate(
@@ -285,7 +303,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   //Reset card animation
   //This animation takes the card from wherever it is and sends it to the center where it started
   void _resetCard() {
-    if(_isAnimating)return;
+    if (_isAnimating) return;
     _isAnimating = true;
 
     final startOffset = _swipeNotifier.value;
@@ -329,7 +347,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     try {
       String uid = FirebaseAuth.instance.currentUser!.uid;
       List<CardData> users = await ApiService.getMultipleUsers(uid);
-      if(users.isEmpty) {
+      if (users.isEmpty) {
         _hasNoMoreProfiles = true;
         _isFetching = false;
         return;
@@ -338,7 +356,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         setState(() {
           cards.addAll(users);
         });
-      } 
+      }
     } catch (e) {
       setState(() => _isFetching = false);
     }
@@ -432,9 +450,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 bottom: 0,
                 child: Transform.scale(
                   scale:
-                  //0.05 makes each subsequent card 5% smaller than the previous so
-                  //card 1 100% scale, card 2 95%, card 3 90% etc...
-                  //bgRatio makes card 2 grow bigger as card one gets swiped off the screen
+                      //0.05 makes each subsequent card 5% smaller than the previous so
+                      //card 1 100% scale, card 2 95%, card 3 90% etc...
+                      //bgRatio makes card 2 grow bigger as card one gets swiped off the screen
                       (1.0 - (((i - currentIndex)) * 0.05)) + (bgRatio * 0.05),
                   child: _buildCard(cards[i], false),
                 ),
@@ -448,11 +466,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               bottom: 0,
               child: GestureDetector(
                 onPanUpdate: (details) {
-                  if(_isAnimating)return;
-                  _onPanUpdate(details);},
+                  if (_isAnimating) return;
+                  _onPanUpdate(details);
+                },
                 onPanEnd: (details) {
-                  if(_isAnimating)return;
-                  _onPanEnd(details);},
+                  if (_isAnimating) return;
+                  _onPanEnd(details);
+                },
                 onPanStart: _onPanStart,
                 child: ValueListenableBuilder<Offset>(
                   valueListenable: _swipeNotifier,
@@ -477,7 +497,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   //build top card
   Widget _buildCard(CardData card, bool isTop) {
     return Container(
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(kCardRadius)),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(kCardRadius),
+      ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(kCardRadius),
         child: Stack(
@@ -486,6 +508,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             //preview, and a tap through to them would swipe the wrong person
             PhotoCard(
               card: card,
+              //only the top card flies, so no two Heroes ever share a tag
+              photoHeroTag: isTop ? _cardPhotoHeroTag(card) : null,
               onOpen: isTop ? () => _openProfile(card) : null,
               onPass: isTop ? () => _swipeLeft(fromButton: true) : null,
               onSuperLike: isTop ? () => _swipeUp(fromButton: true) : null,
@@ -495,7 +519,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             // Swipe indicators (only on top card)
             if (isTop) ...[
               // Like indicator (right swipe)
-              if (_swipeNotifier.value.dx > 50 && _swipeNotifier.value.dx.abs() > _swipeNotifier.value.dy.abs())
+              if (_swipeNotifier.value.dx > 50 &&
+                  _swipeNotifier.value.dx.abs() > _swipeNotifier.value.dy.abs())
                 Positioned(
                   top: 60,
                   left: 60,
@@ -515,7 +540,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 ),
 
               // Pass indicator (left swipe)
-              if (_swipeNotifier.value.dx < -50 && _swipeNotifier.value.dx.abs() > _swipeNotifier.value.dy.abs())
+              if (_swipeNotifier.value.dx < -50 &&
+                  _swipeNotifier.value.dx.abs() > _swipeNotifier.value.dy.abs())
                 Positioned(
                   top: 60,
                   right: 60,
@@ -533,14 +559,15 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     ),
                   ),
                 ),
-              
+
               // Super like indicator (up swippe)
-              if (_swipeNotifier.value.dy < -50 && _swipeNotifier.value.dy.abs() > _swipeNotifier.value.dx.abs())
-                Positioned(  
-                  top:  200, 
-                  left: 0, 
+              if (_swipeNotifier.value.dy < -50 &&
+                  _swipeNotifier.value.dy.abs() > _swipeNotifier.value.dx.abs())
+                Positioned(
+                  top: 200,
+                  left: 0,
                   right: 0,
-                  child: Center(  
+                  child: Center(
                     child: Transform.rotate(
                       angle: 0,
                       child: ShaderMask(
@@ -552,9 +579,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                           color: Colors.white,
                           size: 120,
                         ),
-                      )
-                    )
-                  )
+                      ),
+                    ),
+                  ),
                 ),
             ],
           ],
@@ -585,6 +612,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
   }
 
+  //Keyed by the PROFILE, not by position: the deck shifts under the page while
+  //it is open, and the photo still has to know which card to fly back to.
+  Object _cardPhotoHeroTag(CardData card) => 'card-photo-${card.id}';
+
   //Open the whole profile, and act on what comes back.
   //
   //THE PAGE POPS A DECISION, it does not swipe by itself: the deck owns the
@@ -593,19 +624,18 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Future<void> _openProfile(CardData card) async {
     final decision = await Navigator.push<ProfileDecision>(
       context,
-      MaterialPageRoute(
-        builder: (_) => ProfileDetailPage(
-          userId: card.id,
-          //what the deck already knows, so the page opens with a face and a
-          //name instead of a spinner
-          preview: PublicProfile(
-            id: card.id,
-            name: card.name,
-            age: card.age,
-            bio: card.bio,
-            job: card.job,
-            photos: [for (final url in card.photos) ProfilePhoto(url: url)],
-          ),
+      profileDetailRoute(
+        userId: card.id,
+        photoHeroTag: _cardPhotoHeroTag(card),
+        //what the deck already knows, so the page opens with a face and a
+        //name instead of a spinner
+        preview: PublicProfile(
+          id: card.id,
+          name: card.name,
+          age: card.age,
+          bio: card.bio,
+          job: card.job,
+          photos: [for (final url in card.photos) ProfilePhoto(url: url)],
         ),
       ),
     );

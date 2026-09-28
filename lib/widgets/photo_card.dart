@@ -21,8 +21,59 @@ import 'package:foitifinder/theme/app_colors.dart';
 //how round the card is; the deck and the photo clip share it
 const double kCardRadius = 24;
 
+//THE SCRIM TRAVELS WITH THE PHOTO. Drawn inside the Hero on both ends - here
+//and on the profile page - so it is present for the whole flight. Left outside
+//it, the darkening vanished the instant the photo lifted off and snapped back
+//when it landed.
+const LinearGradient kPhotoTopScrim = LinearGradient(
+  begin: Alignment.topCenter,
+  end: Alignment.bottomCenter,
+  stops: [0.0, 0.3],
+  colors: [Color(0x8C000000), Color(0x00000000)],
+);
+
+//The widget that actually flies between a card and a profile page.
+//
+//Without this, Flutter uses the DESTINATION's child for the whole flight - so
+//the corners went square the moment the photo lifted, and on the way back they
+//only rounded once it had landed. Here the radius is interpolated instead, and
+//the scrim rides along, so the shape changes while it moves.
+Widget photoHeroFlightShuttle(
+  BuildContext flightContext,
+  Animation<double> animation,
+  HeroFlightDirection direction,
+  BuildContext fromContext,
+  BuildContext toContext,
+) {
+  final bool opening = direction == HeroFlightDirection.push;
+  final Animation<double> radius = Tween<double>(
+    begin: opening ? kCardRadius : 0,
+    end: opening ? 0 : kCardRadius,
+  ).animate(
+    CurvedAnimation(parent: animation, curve: Curves.fastOutSlowIn),
+  );
+
+  //whichever end we are flying TO decides what is drawn; only the shape moves
+  final Widget child = (opening ? toContext : fromContext).widget is Hero
+      ? ((opening ? toContext : fromContext).widget as Hero).child
+      : const SizedBox.shrink();
+
+  return AnimatedBuilder(
+    animation: radius,
+    builder: (context, _) => ClipRRect(
+      borderRadius: BorderRadius.circular(radius.value),
+      child: child,
+    ),
+  );
+}
+
 class PhotoCard extends StatefulWidget {
   final CardData card;
+  //Ties this card's photo to the header photo of the profile page, so opening
+  //a profile grows the photo out of the card instead of sliding a new screen
+  //over it. Null on the cards behind: only the top one is ever opened, and two
+  //Heroes sharing a tag is a crash.
+  final Object? photoHeroTag;
   //null on the cards stacked behind: only the top card acts
   final VoidCallback? onOpen;
   final VoidCallback? onPass;
@@ -32,6 +83,7 @@ class PhotoCard extends StatefulWidget {
   const PhotoCard({
     super.key,
     required this.card,
+    this.photoHeroTag,
     this.onOpen,
     this.onPass,
     this.onSuperLike,
@@ -69,6 +121,15 @@ class _PhotoCardState extends State<PhotoCard> {
     });
   }
 
+  //Only the top card flies; the ones behind are drawn plainly.
+  Widget _maybeHero(Widget child) => widget.photoHeroTag == null
+      ? child
+      : Hero(
+          tag: widget.photoHeroTag!,
+          flightShuttleBuilder: photoHeroFlightShuttle,
+          child: child,
+        );
+
   @override
   Widget build(BuildContext context) {
     //age and job on one line under the name, either half optional
@@ -82,32 +143,42 @@ class _PhotoCardState extends State<PhotoCard> {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          //first layer is the photo itself
-          CachedNetworkImage(
-            imageUrl: _photo,
-            fit: BoxFit.cover,
-            memCacheWidth: 800,
-            fadeInDuration: const Duration(milliseconds: 200),
-            placeholder: (context, url) => Container(
-              color: Colors.grey[200],
-              child: const Center(
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
+          //first layer: the photo AND the top scrim, together, because both
+          //have to survive the flight to the profile page
+          _maybeHero(
+            Stack(
+              fit: StackFit.expand,
+              children: [
+                CachedNetworkImage(
+                  imageUrl: _photo,
+                  fit: BoxFit.cover,
+                  memCacheWidth: 800,
+                  fadeInDuration: const Duration(milliseconds: 200),
+                  placeholder: (context, url) => Container(
+                    color: Colors.grey[200],
+                    child: const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) =>
+                      Container(color: Colors.grey),
+                ),
+                const DecoratedBox(
+                  decoration: BoxDecoration(gradient: kPhotoTopScrim),
+                ),
+              ],
             ),
-            errorWidget: (context, url, error) => Container(color: Colors.grey),
           ),
 
-          //second layer: dark at BOTH ends now, because the card has text at
-          //the top and controls at the bottom
+          //second layer: the bottom half of the darkening, which belongs to
+          //this card alone - the profile page puts its controls elsewhere
           DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                stops: const [0.0, 0.28, 0.5, 1.0],
+                stops: const [0.5, 1.0],
                 colors: [
-                  Colors.black.withValues(alpha: 0.55),
-                  Colors.transparent,
                   Colors.transparent,
                   Colors.black.withValues(alpha: 0.85),
                 ],

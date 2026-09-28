@@ -9,6 +9,13 @@
 //back arrow and the report menu float over it. That is why the Scaffold
 //extends behind its own app bar instead of starting below it.
 //
+//OPENING IS A TRANSFORMATION, NOT A SLIDE. The card's photo grows and travels
+//up into the header - one Hero, matched by tag - while the profile below
+//slides in from the right and the controls simply appear on top. The route
+//itself applies no transform, because a Hero works out where it is flying to
+//from the destination's real position, and sliding the page would move that
+//target out from under it. Same trick as photo_detail_page.dart.
+//
 //Everything under the photo is ProfileDetailsBody - the same widget the user's
 //own preview draws, so what they arranged is what a stranger reads.
 
@@ -24,6 +31,32 @@ import 'package:foitifinder/widgets/photo_card.dart';
 //what the page pops with, so the deck knows what to do next
 enum ProfileDecision { pass, superLike, like }
 
+//How the page is opened, kept beside the layout it depends on.
+Route<ProfileDecision> profileDetailRoute({
+  required int userId,
+  required PublicProfile preview,
+  required Object photoHeroTag,
+}) {
+  return PageRouteBuilder<ProfileDecision>(
+    transitionDuration: const Duration(milliseconds: 520),
+    reverseTransitionDuration: const Duration(milliseconds: 400),
+    pageBuilder: (_, _, _) => ProfileDetailPage(
+      userId: userId,
+      preview: preview,
+      photoHeroTag: photoHeroTag,
+    ),
+    //no transform on the page: the Hero needs its destination to sit still.
+    //The background fades so the deck does not simply vanish under it.
+    transitionsBuilder: (_, animation, _, child) => FadeTransition(
+      opacity: CurvedAnimation(
+        parent: animation,
+        curve: const Interval(0, 0.45, curve: Curves.easeOut),
+      ),
+      child: child,
+    ),
+  );
+}
+
 //how much of the screen the photo takes, top edge included
 const double _kPhotoFraction = 0.55;
 
@@ -32,11 +65,14 @@ class ProfileDetailPage extends StatefulWidget {
   //shown immediately, before the full profile arrives: the deck already has
   //the name and the photos, so the page never opens empty
   final PublicProfile preview;
+  //matches the card the photo flew out of
+  final Object? photoHeroTag;
 
   const ProfileDetailPage({
     super.key,
     required this.userId,
     required this.preview,
+    this.photoHeroTag,
   });
 
   @override
@@ -68,13 +104,25 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
     }
   }
 
-  void _decide(ProfileDecision decision) =>
-      Navigator.pop(context, decision);
+  void _decide(ProfileDecision decision) => Navigator.pop(context, decision);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final photoHeight = MediaQuery.sizeOf(context).height * _kPhotoFraction;
+
+    //everything except the photo comes in from the right, on the same easing
+    //the Hero flight uses, so the two read as one movement
+    final Animation<double> routeAnimation =
+        ModalRoute.of(context)?.animation ?? kAlwaysCompleteAnimation;
+    final Animation<Offset> slideIn =
+        Tween<Offset>(begin: const Offset(0.35, 0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: routeAnimation,
+            curve: Curves.fastOutSlowIn,
+            reverseCurve: Curves.fastOutSlowIn.flipped,
+          ),
+        );
 
     return Scaffold(
       //the photo runs under the bar and up to the very top of the screen
@@ -103,13 +151,19 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
                 SizedBox(
                   width: double.infinity,
                   height: photoHeight,
-                  child: _HeaderPhoto(url: _profile.profilePictureUrl),
+                  child: _HeaderPhoto(
+                    url: _profile.profilePictureUrl,
+                    heroTag: widget.photoHeroTag,
+                  ),
                 ),
                 //pulled up so the first card crops into the photo, as in the
                 //user's own preview
                 Transform.translate(
                   offset: const Offset(0, -28),
-                  child: ProfileDetailsBody(profile: _profile),
+                  child: SlideTransition(
+                    position: slideIn,
+                    child: ProfileDetailsBody(profile: _profile),
+                  ),
                 ),
                 //clear of the buttons pinned below
                 const SizedBox(height: 120),
@@ -136,7 +190,10 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
             left: 0,
             right: 0,
             bottom: 0,
-            child: _DecisionBar(onDecide: _decide),
+            child: SlideTransition(
+              position: slideIn,
+              child: _DecisionBar(onDecide: _decide),
+            ),
           ),
         ],
       ),
@@ -158,9 +215,9 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
                 Navigator.pop(sheetContext);
                 //TODO: reporting needs a backend table and a reason list -
                 //until then the menu exists but promises nothing
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(text.comingSoon)),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text(text.comingSoon)));
               },
             ),
           ],
@@ -172,8 +229,19 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
 
 class _HeaderPhoto extends StatelessWidget {
   final String? url;
+  final Object? heroTag;
 
-  const _HeaderPhoto({required this.url});
+  const _HeaderPhoto({required this.url, this.heroTag});
+
+  //the photo AND its scrim fly together - see kPhotoTopScrim. The shuttle
+  //rounds the corners off on the way up and back on the way down.
+  Widget _maybeHero(Widget child) => heroTag == null
+      ? child
+      : Hero(
+          tag: heroTag!,
+          flightShuttleBuilder: photoHeroFlightShuttle,
+          child: child,
+        );
 
   @override
   Widget build(BuildContext context) {
@@ -191,27 +259,24 @@ class _HeaderPhoto extends StatelessWidget {
 
     if (url == null) return placeholder;
 
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        CachedNetworkImage(
-          imageUrl: url!,
-          fit: BoxFit.cover,
-          placeholder: (_, _) => placeholder,
-          errorWidget: (_, _, _) => placeholder,
-        ),
-        //so the white back arrow and menu stay legible over a bright photo
-        DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              stops: const [0.0, 0.3],
-              colors: [Colors.black.withValues(alpha: 0.45), Colors.transparent],
-            ),
+    //the scrim is INSIDE the Hero, so the back arrow and the menu keep the
+    //same darkening under them the whole way up from the card, instead of it
+    //vanishing for the flight and snapping back on landing
+    return _maybeHero(
+      Stack(
+        fit: StackFit.expand,
+        children: [
+          CachedNetworkImage(
+            imageUrl: url!,
+            fit: BoxFit.cover,
+            placeholder: (_, _) => placeholder,
+            errorWidget: (_, _, _) => placeholder,
           ),
-        ),
-      ],
+          const DecoratedBox(
+            decoration: BoxDecoration(gradient: kPhotoTopScrim),
+          ),
+        ],
+      ),
     );
   }
 }
