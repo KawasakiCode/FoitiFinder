@@ -7,6 +7,8 @@
 //show what ProfileProvider - and therefore the database - has.
 
 import 'dart:io';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:math' as math;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -37,10 +39,7 @@ import 'package:foitifinder/models/user_model.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/widgets/loading_overlay.dart';
-import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
 class EditProfile extends StatefulWidget {
@@ -309,7 +308,7 @@ class _EditProfileState extends State<EditProfile> {
     if (!mounted || replacement == null) return;
 
     setState(() {
-      _photos[index] = _PhotoSlot(replacement);
+      _photos[index] = _PhotoSlot.picked(replacement);
       _photosChanged = true;
     });
   }
@@ -418,20 +417,16 @@ class _EditProfileState extends State<EditProfile> {
       List<PhotosModel> backendPhotos = await ApiService.getPhotos(
         FirebaseAuth.instance.currentUser!.uid,
       );
-      for (int i = 0; i < backendPhotos.length; i++) {
-        if (i >= 6) break;
-        File file = await urlToFile(backendPhotos[i].photoUrl);
-
-        if (mounted) {
-          setState(() {
-            //existing photo: remember its backend URL so we never re-upload it
-            _photos[i] = _PhotoSlot(
-              file,
-              existingUrl: backendPhotos[i].photoUrl,
-            );
-          });
+      if (!mounted) return;
+      //ONE request, no image downloads: the grid draws each URL through the
+      //shared cache, so a photo already seen anywhere in the app is instant.
+      setState(() {
+        for (int i = 0; i < _photos.length; i++) {
+          _photos[i] = i < backendPhotos.length
+              ? _PhotoSlot.saved(backendPhotos[i].photoUrl)
+              : null;
         }
-      }
+      });
     } catch (e) {
       //called fire-and-forget from initState, so surface the error instead of
       //throwing into an unhandled future
@@ -446,25 +441,6 @@ class _EditProfileState extends State<EditProfile> {
     } finally {
       if (mounted) setState(() => _photosLoading = false);
     }
-  }
-
-  //download and save actual photo file
-  Future<File> urlToFile(String imageUrl) async {
-    final directory = await getTemporaryDirectory();
-    final filename = path.basename(imageUrl);
-    final file = File('${directory.path}/$filename');
-
-    if (await file.exists()) {
-      return file;
-    }
-    final response = await http.get(Uri.parse(imageUrl));
-    //don't write a failed response (e.g. an error page) as if it were an image
-    if (response.statusCode != 200) {
-      throw Exception('Failed to download image (${response.statusCode})');
-    }
-
-    await file.writeAsBytes(response.bodyBytes);
-    return file;
   }
 
   //Save what this page still owns - the photos - and leave.
@@ -533,7 +509,7 @@ class _EditProfileState extends State<EditProfile> {
 
     // Save the valid photo and compact the grid (no gaps)
     setState(() {
-      _photos[index] = _PhotoSlot(File(image!.path)); // new pick, needs upload
+      _photos[index] = _PhotoSlot.picked(File(image!.path)); // needs upload
       _photosChanged = true;
 
       List<_PhotoSlot?> validPhotos = _photos
@@ -565,7 +541,7 @@ class _EditProfileState extends State<EditProfile> {
       final List<String?> resolvedUrls = await Future.wait(
         orderedSlots.map((slot) async {
           if (!slot.isNew) return slot.existingUrl; // reuse — no upload
-          return await ApiService.uploadToFirebase(slot.file, uid);
+          return await ApiService.uploadToFirebase(slot.file!, uid);
         }),
       );
 
@@ -576,7 +552,7 @@ class _EditProfileState extends State<EditProfile> {
       for (var i = 0; i < orderedSlots.length; i++) {
         final url = resolvedUrls[i];
         if (url == null) continue;
-        savedSlots.add(_PhotoSlot(orderedSlots[i].file, existingUrl: url));
+        savedSlots.add(_PhotoSlot.saved(url));
         photoUrls.add(url);
       }
 
@@ -1076,7 +1052,7 @@ class _EditProfileState extends State<EditProfile> {
                       tag: _photoHeroTag(index),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(10),
-                        child: Image.file(photo.file, fit: BoxFit.cover),
+                        child: _SlotImage(slot: photo),
                       ),
                     )
                   : Center(
@@ -1169,6 +1145,38 @@ class _PhotoCornerButton extends StatelessWidget {
   }
 }
 
+//Draws a slot: a freshly picked file, or a saved photo through the shared
+//cache. A saved photo that cannot be fetched shows a broken-image tile and
+//KEEPS ITS URL, so a failed download can never drop it from the list on save.
+class _SlotImage extends StatelessWidget {
+  final _PhotoSlot slot;
+
+  const _SlotImage({required this.slot});
+
+  @override
+  Widget build(BuildContext context) {
+    final file = slot.file;
+    if (file != null) return Image.file(file, fit: BoxFit.cover);
+
+    final theme = Theme.of(context);
+    return CachedNetworkImage(
+      imageUrl: slot.existingUrl!,
+      fit: BoxFit.cover,
+      //a plain block, not a spinner: the tile must not change size or flicker
+      placeholder: (_, _) =>
+          ColoredBox(color: theme.colorScheme.surfaceContainerHighest),
+      errorWidget: (_, _, _) => ColoredBox(
+        color: theme.colorScheme.surfaceContainerHighest,
+        child: Icon(
+          Icons.broken_image_outlined,
+          size: 22,
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+}
+
 //Shakes its child left and right for as long as [active] is true - the "I am
 //being moved" signal on a held photo. Nothing else about the photo changes:
 //same size, same opacity.
@@ -1243,10 +1251,22 @@ class _WiggleState extends State<_Wiggle> with SingleTickerProviderStateMixin {
 //A photo shown in the edit grid: either one already saved on the backend
 //(existingUrl != null, so it never needs re-uploading) or a freshly-picked
 //local file that still has to be uploaded on save.
+//A photo in the grid: EITHER a file just picked from the gallery, OR a URL the
+//backend already has. Never both, and never neither.
+//
+//It used to always hold a File, which meant every saved photo had to be
+//DOWNLOADED to a temp file before the grid could draw it - one at a time, into
+//a cache nothing else in the app shared, so the same photos were fetched twice
+//and the slots sat empty for seconds. Saved photos now draw straight from
+//CachedNetworkImage, the same cache the profile page and the preview fill.
 class _PhotoSlot {
-  final File
-  file; // local file used for display (a downloaded copy for existing)
-  final String? existingUrl; // backend URL if already saved; null = new pick
-  const _PhotoSlot(this.file, {this.existingUrl});
+  //set only for a photo picked in this session and not yet uploaded
+  final File? file;
+  //set only for a photo the backend already has
+  final String? existingUrl;
+
+  const _PhotoSlot.picked(File this.file) : existingUrl = null;
+  const _PhotoSlot.saved(String this.existingUrl) : file = null;
+
   bool get isNew => existingUrl == null;
 }

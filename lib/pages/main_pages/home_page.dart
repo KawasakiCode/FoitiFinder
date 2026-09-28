@@ -6,6 +6,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/models/card_data_model.dart';
+import 'package:foitifinder/models/public_profile.dart';
+import 'package:foitifinder/pages/main_pages/profile_detail_page.dart';
 import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/photo_card.dart';
@@ -33,9 +35,6 @@ class MyHomePage extends StatefulWidget {
 //the sides and under it are what make the deck look like a deck.
 const double _kCardWidthFactor = 0.86;
 const double _kCardHeightFactor = 0.96;
-//The dots under the deck count PROFILES, and stop counting past this - twenty
-//dots is a smear, not information.
-const int _kMaxDeckDots = 8;
 
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   AppLocalizations get text => AppLocalizations.of(context)!;
@@ -384,7 +383,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 ),
               ),
             ),
-            _buildDeckDots(),
             const SizedBox(height: 12),
           ],
         ),
@@ -488,6 +486,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             //preview, and a tap through to them would swipe the wrong person
             PhotoCard(
               card: card,
+              onOpen: isTop ? () => _openProfile(card) : null,
               onPass: isTop ? () => _swipeLeft(fromButton: true) : null,
               onSuperLike: isTop ? () => _swipeUp(fromButton: true) : null,
               onLike: isTop ? () => _swipeRight(fromButton: true) : null,
@@ -586,34 +585,39 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
   }
 
-  //Dots under the deck: one per profile still to see, the filled one being the
-  //card on top. Capped, and a "+n" is not worth the clutter - past a handful
-  //the only message is "there are more".
-  Widget _buildDeckDots() {
-    final remaining = cards.length - currentIndex;
-    if (remaining <= 1) return const SizedBox(height: 8);
-
-    final shown = remaining.clamp(0, _kMaxDeckDots);
-    final theme = Theme.of(context);
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        for (var i = 0; i < shown; i++)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 3),
-            child: Container(
-              width: i == 0 ? 8 : 6,
-              height: i == 0 ? 8 : 6,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: i == 0
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.onSurface.withValues(alpha: 0.25),
-              ),
-            ),
+  //Open the whole profile, and act on what comes back.
+  //
+  //THE PAGE POPS A DECISION, it does not swipe by itself: the deck owns the
+  //animation, the index and the backend call, so a like from in there is the
+  //same code path as a like from the card.
+  Future<void> _openProfile(CardData card) async {
+    final decision = await Navigator.push<ProfileDecision>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ProfileDetailPage(
+          userId: card.id,
+          //what the deck already knows, so the page opens with a face and a
+          //name instead of a spinner
+          preview: PublicProfile(
+            id: card.id,
+            name: card.name,
+            age: card.age,
+            bio: card.bio,
+            job: card.job,
+            photos: [for (final url in card.photos) ProfilePhoto(url: url)],
           ),
-      ],
+        ),
+      ),
     );
+    if (!mounted || decision == null) return;
+
+    switch (decision) {
+      case ProfileDecision.pass:
+        _swipeLeft(fromButton: true);
+      case ProfileDecision.superLike:
+        _swipeUp(fromButton: true);
+      case ProfileDecision.like:
+        _swipeRight(fromButton: true);
+    }
   }
 }

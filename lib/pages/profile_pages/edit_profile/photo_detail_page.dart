@@ -28,6 +28,8 @@
 
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
+
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/models/photos_model.dart';
@@ -39,7 +41,7 @@ import 'package:image_picker/image_picker.dart';
 //How the page is opened. Kept next to the page so the animation and the
 //layout it depends on stay together.
 Route<File> photoDetailRoute({
-  required File file,
+  required File? file,
   required String? photoUrl,
   required bool allowStory,
   required Object heroTag,
@@ -75,8 +77,10 @@ const double _kPhotoAspect = 3 / 4;
 const double _kPhotoRadius = 16;
 
 class PhotoDetailPage extends StatefulWidget {
-  //the local copy shown on screen
-  final File file;
+  //Set only for a photo picked in this session. A photo the backend already
+  //has is drawn from its URL through the shared cache instead - the grid stopped
+  //downloading copies of saved photos, so there is no file to show.
+  final File? file;
   //the backend URL, null while the photo has never been saved. A story can
   //only be attached to a photo the backend knows about.
   final String? photoUrl;
@@ -248,7 +252,12 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
                         borderRadius: BorderRadius.circular(_kPhotoRadius),
                         //cover, not contain: with contain the image stops
                         //short of the rounded corners and they never show
-                        child: Image.file(widget.file, fit: BoxFit.cover),
+                        child: widget.file != null
+                            ? Image.file(widget.file!, fit: BoxFit.cover)
+                            : CachedNetworkImage(
+                                imageUrl: widget.photoUrl!,
+                                fit: BoxFit.cover,
+                              ),
                       ),
                     ),
                   ),

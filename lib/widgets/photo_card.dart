@@ -4,13 +4,14 @@
 //the top, stats and the three buttons at the bottom - with a dark gradient at
 //each end so white text stays readable over a bright photo.
 //
-//TAPS CHANGE PHOTO, and only taps: the left half goes back, the right half
-//goes forward. Dragging belongs to the deck above (pass / like / super like),
-//so these are GestureDetectors with onTap only and nothing else.
+//A TAP OPENS THE WHOLE PROFILE. It used to flick between this person's photos,
+//left half back and right half forward, with thin bars along the top counting
+//them - both are gone. The card shows one photo and one question: do you want
+//to know more? The rest of the photos live on the profile page, where they sit
+//beside the text that explains them.
 //
-//The thin bars along the very top count the PHOTOS of this person. The dots
-//under the card, in home_page.dart, count the PROFILES in the deck - two
-//different things, deliberately drawn differently.
+//Dragging still belongs to the deck above (pass / like / super like), so this
+//is a GestureDetector with onTap and nothing else.
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ const double kCardRadius = 24;
 class PhotoCard extends StatefulWidget {
   final CardData card;
   //null on the cards stacked behind: only the top card acts
+  final VoidCallback? onOpen;
   final VoidCallback? onPass;
   final VoidCallback? onSuperLike;
   final VoidCallback? onLike;
@@ -30,6 +32,7 @@ class PhotoCard extends StatefulWidget {
   const PhotoCard({
     super.key,
     required this.card,
+    this.onOpen,
     this.onPass,
     this.onSuperLike,
     this.onLike,
@@ -40,49 +43,15 @@ class PhotoCard extends StatefulWidget {
 }
 
 class _PhotoCardState extends State<PhotoCard> {
-  int _currentIndex = 0;
-
-  List<String> get _photos {
-    if (widget.card.photos.isNotEmpty) {
-      return widget.card.photos;
-    }
-    return ["https://picsum.photos/400/600"];
-  }
+  //only photo 0 is shown here; the rest are on the profile page
+  String get _photo => widget.card.photos.isNotEmpty
+      ? widget.card.photos.first
+      : "https://picsum.photos/400/600";
 
   @override
   void initState() {
     super.initState();
     _precacheRemainingPhotos();
-  }
-
-  //reset currentIndex if user changes card
-  @override
-  void didUpdateWidget(PhotoCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    if (widget.card.id != oldWidget.card.id) {
-      setState(() {
-        _currentIndex = 0;
-      });
-    }
-  }
-
-  //tap to next photo
-  void _nextPhoto() {
-    if (_currentIndex < _photos.length - 1) {
-      setState(() {
-        _currentIndex++;
-      });
-    }
-  }
-
-  //tap to previous photo
-  void _previousPhoto() {
-    if (_currentIndex > 0) {
-      setState(() {
-        _currentIndex--;
-      });
-    }
   }
 
   //function to precache the users other photos
@@ -115,7 +84,7 @@ class _PhotoCardState extends State<PhotoCard> {
         children: [
           //first layer is the photo itself
           CachedNetworkImage(
-            imageUrl: _photos[_currentIndex],
+            imageUrl: _photo,
             fit: BoxFit.cover,
             memCacheWidth: 800,
             fadeInDuration: const Duration(milliseconds: 200),
@@ -146,53 +115,16 @@ class _PhotoCardState extends State<PhotoCard> {
             ),
           ),
 
-          //third layer the gesture detectors for next and previous photo
-          Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: _previousPhoto, // Only catches Taps
-                  behavior: HitTestBehavior.translucent,
-                  child: Container(),
-                ),
-              ),
-              Expanded(
-                child: GestureDetector(
-                  onTap: _nextPhoto, // Only catches Taps
-                  behavior: HitTestBehavior.translucent,
-                  child: Container(),
-                ),
-              ),
-            ],
+          //third layer: a tap anywhere opens the profile. Translucent so the
+          //drag above still gets the gesture, and the buttons below still get
+          //their taps.
+          GestureDetector(
+            onTap: widget.onOpen,
+            behavior: HitTestBehavior.translucent,
+            child: const SizedBox.expand(),
           ),
 
-          //fourth layer the photo bars, which change depending on the number of
-          //photos this person has
-          Positioned(
-            top: 10,
-            left: 10,
-            right: 10,
-            child: Row(
-              children: List.generate(_photos.length, (index) {
-                return Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 2),
-                    child: Container(
-                      height: 3,
-                      decoration: BoxDecoration(
-                        color: index == _currentIndex
-                            ? Colors.white
-                            : Colors.white.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                );
-              }),
-            ),
-          ),
-
-          //fifth layer: who this is, at the top
+          //fourth layer: who this is, at the top
           Positioned(
             top: 28,
             left: 20,
@@ -226,7 +158,7 @@ class _PhotoCardState extends State<PhotoCard> {
             ),
           ),
 
-          //sixth layer: the stats, then the actions
+          //fifth layer: the stats, then the actions
           Positioned(
             left: 16,
             right: 16,
@@ -296,19 +228,19 @@ class _CardActions extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        _ActionButton(
+        SwipeActionButton(
           icon: Icons.close,
           gradient: AppColors.passGradient,
           size: 58,
           onPressed: onPass,
         ),
-        _ActionButton(
+        SwipeActionButton(
           icon: Icons.star,
           gradient: AppColors.superLikeGradient,
           size: 48,
           onPressed: onSuperLike,
         ),
-        _ActionButton(
+        SwipeActionButton(
           icon: Icons.favorite,
           gradient: AppColors.likeGradient,
           size: 58,
@@ -319,13 +251,16 @@ class _CardActions extends StatelessWidget {
   }
 }
 
-class _ActionButton extends StatelessWidget {
+//Shared with the profile page behind a card, so the same three buttons are
+//literally the same widget wherever a decision is made.
+class SwipeActionButton extends StatelessWidget {
   final IconData icon;
   final Gradient gradient;
   final double size;
   final VoidCallback? onPressed;
 
-  const _ActionButton({
+  const SwipeActionButton({
+    super.key,
     required this.icon,
     required this.gradient,
     required this.size,

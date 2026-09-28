@@ -1666,4 +1666,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get preferredLanguagesIntro =>
       'You will only be shown people that speak at least one of your selected languages.';
+
+  @override
+  String get reportUser => 'Report this profile';
 }

@@ -6,6 +6,7 @@ import 'package:foitifinder/models/card_data_model.dart';
 import 'package:foitifinder/models/liker_model.dart';
 import 'package:foitifinder/models/matches_model.dart';
 import 'package:foitifinder/models/photos_model.dart';
+import 'package:foitifinder/models/public_profile.dart';
 import 'package:foitifinder/models/settings_model.dart';
 import 'package:foitifinder/models/user_model.dart';
 import 'package:http/http.dart' as http;
@@ -423,6 +424,20 @@ class ApiService {
   }
 
   //Get a single user by id
+  //The full profile of another user, for the page behind a swipe card.
+  //Everything a stranger may see and nothing else - the endpoint decides that,
+  //not this call.
+  static Future<PublicProfile> getUserProfile(int userId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/users/$userId/profile'),
+      headers: await _authHeaders(),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load profile: ${response.body}');
+    }
+    return PublicProfile.fromJson(jsonDecode(response.body));
+  }
+
   static Future<CardData> getSingleUser(int userId) async {
     final url = Uri.parse("$baseUrl/single/user/$userId");
 

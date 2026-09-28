@@ -3349,6 +3349,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You will only be shown people that speak at least one of your selected languages.'**
   String get preferredLanguagesIntro;
+
+  /// No description provided for @reportUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Report this profile'**
+  String get reportUser;
 }
 
 class _AppLocalizationsDelegate

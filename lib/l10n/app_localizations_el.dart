@@ -1673,4 +1673,7 @@ class AppLocalizationsEl extends AppLocalizations {
   @override
   String get preferredLanguagesIntro =>
       'Θα σου εμφανίζονται μόνο άτομα που μιλούν τουλάχιστον μία από τις γλώσσες που επιλέγεις.';
+
+  @override
+  String get reportUser => 'Αναφορά προφίλ';
 }
