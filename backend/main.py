@@ -248,14 +248,15 @@ def update_user(user_update: schemas.UserUpdate, uid: str = Depends(verified_ema
     #The single-answer choices (alcohol, smoking...) are cleared the same way.
     for key in ("city", "job", "volunteering", "major",
                 "alcohol", "smoking", "dating_intention", "kids",
-                "sexual_orientation", "pronouns"):
+                "sexual_orientation", "pronouns",
+                "religion", "political_view"):
         if isinstance(updated_data.get(key), str) and not updated_data[key].strip():
             updated_data[key] = None
 
     #These columns are NOT NULL, so an explicit null would be a 500 from the
     #database. For the arrays null can only mean "nothing picked", so store
     #that; for the rest there is no sensible meaning, so leave the value alone.
-    for key in ("interest_tags", "trait_tags", "religion", "political_view",
+    for key in ("interest_tags", "trait_tags",
                 "languages_spoken", "preferred_alcohol", "preferred_smoking",
                 "preferred_dating_intention", "preferred_kids",
                 "preferred_languages"):

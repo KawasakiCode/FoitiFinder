@@ -29,6 +29,8 @@ class UserBase(BaseModel):
     kids: str | None = None
     sexual_orientation: str | None = None
     pronouns: str | None = None
+    religion: str | None = None
+    political_view: str | None = None
     university: str | None = None
     major: str | None = None
     is_currently_studying: bool | None = None
@@ -41,8 +43,6 @@ class UserBase(BaseModel):
     #default [] not None, matching the NOT NULL DEFAULT '{}' columns
     interest_tags: List[str] = []
     trait_tags: List[str] = []
-    religion: List[str] = []
-    political_view: List[str] = []
     languages_spoken: List[str] = []
 
     #---- date preferences ----
@@ -76,6 +76,8 @@ class UserUpdate(BaseModel):
     kids: str | None = None
     sexual_orientation: str | None = None
     pronouns: str | None = None
+    religion: str | None = None
+    political_view: str | None = None
     university: str | None = None
     major: str | None = None
     is_currently_studying: bool | None = None
@@ -90,8 +92,6 @@ class UserUpdate(BaseModel):
     #indistinguishable from the user deliberately clearing every tag.
     interest_tags: List[str] | None = None
     trait_tags: List[str] | None = None
-    religion: List[str] | None = None
-    political_view: List[str] | None = None
     languages_spoken: List[str] | None = None
 
     #---- date preferences ----

@@ -54,6 +54,11 @@ class User(Base):
     #empty string - the app's dialogs normalise a cleared answer to NULL.
     #=====================================================================
     alcohol = Column(String, nullable = True)
+    #ONE ANSWER EACH, not arrays. They were text[] while the app let people
+    #tick several, which allowed Christian + Atheist and Liberal +
+    #Conservative at the same time.
+    religion = Column(String, nullable = True)
+    political_view = Column(String, nullable = True)
     smoking = Column(String, nullable = True)
     dating_intention = Column(String, nullable = True)
     kids = Column(String, nullable = True)
@@ -88,8 +93,6 @@ class User(Base):
     #discovery filtering, these describe the user.
     interest_tags = Column(ARRAY(String), nullable = False, server_default = text("'{}'"))
     trait_tags = Column(ARRAY(String), nullable = False, server_default = text("'{}'"))
-    religion = Column(ARRAY(String), nullable = False, server_default = text("'{}'"))
-    political_view = Column(ARRAY(String), nullable = False, server_default = text("'{}'"))
     languages_spoken = Column(ARRAY(String), nullable = False, server_default = text("'{}'"))
 
     #=====================================================================

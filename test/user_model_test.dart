@@ -15,7 +15,7 @@ void main() {
     'has_photos': true,
     'alcohol': 'Sometimes',
     'smoking': null,
-    'religion': ['Christian', 'Spiritual'],
+    'religion': 'Christian',
     'preferred_kids': ['I want kids'],
     'interest_tags': ['Jazz', 'Hiking'],
     'trait_tags': ['Leo'],
@@ -28,8 +28,22 @@ void main() {
     final user = UserModel.fromJson(backendJson);
     expect(user.choice('alcohol'), ['Sometimes']);
     expect(user.choice('smoking'), isEmpty);
-    expect(user.choice('religion'), ['Christian', 'Spiritual']);
+    expect(user.choice('religion'), ['Christian']);
     expect(user.choice('preferred_kids'), ['I want kids']);
+  });
+
+  test('a legacy list answer collapses to its first pick', () {
+    //religion and political_view were text[] while the picker allowed several,
+    //which let someone be Christian AND Atheist. Both are single answers now,
+    //and the migration keeps the first one (USING religion[1]) - so a cache
+    //written by the old build must land on the same value, not throw.
+    final user = UserModel.fromJson({
+      ...backendJson,
+      'religion': ['Christian', 'Spiritual'],
+      'political_view': ['Liberal', 'Conservative'],
+    });
+    expect(user.choice('religion'), ['Christian']);
+    expect(user.choice('political_view'), ['Liberal']);
   });
 
   test('the cache round trip keeps every new field', () {

@@ -141,13 +141,19 @@ const ProfileChoice kPrefKids = ProfileChoice(
 //=========================================================================
 //BELIEFS AND VALUES
 //=========================================================================
+//ONE ANSWER, not several. Multi-select let someone be Christian AND Atheist,
+//which is not nuance, it is a contradiction - and on a profile it read as two
+//pills arguing with each other. The genuinely in-between answers are already
+//in the list ('Spiritual', 'Agnostic'), so the honest question is "which one
+//would you tell someone", and that has exactly one answer.
+//
 //Orthodox first: it is by far the most common answer in Greece, and burying
 //it under an alphabetical list would make the common case the slowest to pick.
 const ProfileChoice kChoiceReligion = ProfileChoice(
   key: 'religion',
   title: 'Religion',
-  subtitle: 'Pick any that apply.',
-  mode: ChoiceMode.multi,
+  subtitle: 'Pick the one that fits you best.',
+  mode: ChoiceMode.single,
   options: [
     'Christian',
     'Catholic',
@@ -168,14 +174,13 @@ const ProfileChoice kChoiceReligion = ProfileChoice(
   ],
 );
 
-//NOTE: multi-select because the layout says "same as religion". If a single
-//answer reads better, flipping mode to ChoiceMode.single is the only change
-//needed here - but the backend column has to become a scalar to match.
+//Single for the same reason as religion: 'Liberal' and 'Conservative' at once
+//says nothing at all. Both columns are plain text now, not arrays.
 const ProfileChoice kChoicePoliticalView = ProfileChoice(
   key: 'political_view',
   title: 'Political view',
-  subtitle: 'Pick any that apply.',
-  mode: ChoiceMode.multi,
+  subtitle: 'Pick the one that fits you best.',
+  mode: ChoiceMode.single,
   options: [
     'Anarchist',
     'Apolitical',

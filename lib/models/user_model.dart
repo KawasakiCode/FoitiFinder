@@ -199,7 +199,10 @@ class UserModel{
       hasPhotos: json['has_photos'],
       choices: {
         for (final choice in _allChoices)
-          choice.key: _readChoice(json[choice.key]),
+          choice.key: _readChoice(
+            json[choice.key],
+            single: choice.mode == ChoiceMode.single,
+          ),
       },
       interestTags: _readList(json['interest_tags']),
       traitTags: _readList(json['trait_tags']),
@@ -261,10 +264,18 @@ const List<ProfileChoice> _allChoices = [
 
 //A single-answer column arrives as a string or null, a multi-answer one as a
 //list. Both become a list here.
-List<String> _readChoice(dynamic value) {
+//
+//A SINGLE ANSWER IS TRUNCATED TO ONE even when a list arrives. Religion and
+//political view used to allow several picks, so a cache written by an older
+//build - or a row migrated from the old text[] column - can still hold two.
+//Keeping both would draw two contradicting pills on the profile; the database
+//kept the first (USING religion[1]) and so does this.
+List<String> _readChoice(dynamic value, {required bool single}) {
   if (value == null) return const [];
   if (value is String) return value.isEmpty ? const [] : [value];
-  return _readList(value);
+  final list = _readList(value);
+  if (!single || list.length <= 1) return list;
+  return List.unmodifiable([list.first]);
 }
 
 List<String> _readList(dynamic value) =>
