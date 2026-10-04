@@ -21,6 +21,19 @@ import 'package:foitifinder/theme/app_colors.dart';
 //how round the card is; the deck and the photo clip share it
 const double kCardRadius = 24;
 
+//THREE PHOTOS MINIMUM, SIX MAXIMUM.
+//
+//Three because the profile page is built around them: one photo sits after the
+//answers, one after the hobbies, the rest at the end. With a single photo that
+//page is a wall of cards with nothing to break it up - and the swipe card asks
+//"want to see more?", which only works when there is more. It is also a cheap
+//honesty signal: one photo is what a half-hearted or fake account has.
+//
+//Enforced at signup, in the edit grid, and by /photos/sync - the last one is
+//what makes it a rule rather than a suggestion.
+const int kMinPhotos = 3;
+const int kMaxPhotos = 6;
+
 //THE SCRIM TRAVELS WITH THE PHOTO. Drawn inside the Hero on both ends - here
 //and on the profile page - so it is present for the whole flight. Left outside
 //it, the darkening vanished the instant the photo lifted off and snapped back

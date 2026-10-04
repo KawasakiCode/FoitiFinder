@@ -81,6 +81,12 @@ class ProfileDetailsBody extends StatelessWidget {
 
         if (traits.isNotEmpty)
           _TagPills(title: catalogueLabel(text, kGroupTraits), tags: traits),
+
+        //whatever is left: photos 4, 5 and 6, one after another. The first
+        //three are spaced between sections so the page reads as text with
+        //pictures in it; past that there is nothing left to space them with.
+        for (final photo in photos.skip(3))
+          _PhotoCard(url: photo.url, story: photo.story),
       ],
     );
   }
@@ -290,6 +296,9 @@ class _Facts extends StatelessWidget {
     final facts = <(IconData, String)>[
       if ((user.job ?? '').trim().isNotEmpty)
         (Icons.work_outline, user.job!.trim()),
+      //under the job, because it answers the same question
+      if ((user.volunteering ?? '').trim().isNotEmpty)
+        (Icons.volunteer_activism_outlined, user.volunteering!.trim()),
       if (studies.isNotEmpty) (Icons.school_outlined, studies),
       if ((user.city ?? '').trim().isNotEmpty)
         (Icons.location_on_outlined, catalogueLabel(text, user.city!.trim())),
@@ -352,6 +361,7 @@ class _Pills extends StatelessWidget {
       kChoiceSmoking,
       kChoiceReligion,
       kChoicePoliticalView,
+      kChoiceSexualOrientation,
     ];
 
     final answers = <(IconData?, String)>[

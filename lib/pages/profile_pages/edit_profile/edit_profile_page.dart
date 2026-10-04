@@ -34,6 +34,7 @@ import 'package:foitifinder/pages/profile_pages/edit_profile/photo_stories_page.
 import 'package:foitifinder/pages/profile_pages/edit_profile/personality/interest_group_page.dart';
 import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/nav_row.dart';
+import 'package:foitifinder/widgets/photo_card.dart';
 import 'package:foitifinder/models/photos_model.dart';
 import 'package:foitifinder/models/user_model.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
@@ -818,6 +819,20 @@ class _EditProfileState extends State<EditProfile> {
                               trailing: _choiceSummary(kChoicePronouns),
                               onTap: _openPronouns,
                             ),
+                            //one answer, five options: a dialog like the
+                            //habits rather than a whole page. The column
+                            //existed from the start and nothing could set it.
+                            NavRow(
+                              label: catalogueLabel(
+                                text,
+                                kChoiceSexualOrientation.title,
+                              ),
+                              trailing: _choiceSummary(
+                                kChoiceSexualOrientation,
+                              ),
+                              onTap: () =>
+                                  _openChoiceDialog(kChoiceSexualOrientation),
+                            ),
                             NavRow(
                               label: text.languagesSpoken,
                               trailing: _user.languagesSpoken.isEmpty
@@ -1078,6 +1093,16 @@ class _EditProfileState extends State<EditProfile> {
           _PhotoCornerButton(
             icon: Icons.close,
             onTap: () {
+              //never below the minimum, the same rule signup enforces
+              if (_photos.whereType<_PhotoSlot>().length <= kMinPhotos) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(text.addAtLeastPhotos(kMinPhotos)),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+                return;
+              }
               setState(() {
                 // 1. Set the removed photo's slot to null
                 _photos[index] = null;

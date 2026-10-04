@@ -3355,6 +3355,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Report this profile'**
   String get reportUser;
+
+  /// No description provided for @addAtLeastPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least {count} photos to continue'**
+  String addAtLeastPhotos(int count);
 }
 
 class _AppLocalizationsDelegate

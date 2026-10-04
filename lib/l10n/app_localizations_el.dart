@@ -1676,4 +1676,9 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get reportUser => 'Αναφορά προφίλ';
+
+  @override
+  String addAtLeastPhotos(int count) {
+    return 'Πρόσθεσε τουλάχιστον $count φωτογραφίες για να συνεχίσεις';
+  }
 }

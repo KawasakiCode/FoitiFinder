@@ -33,6 +33,7 @@ class PublicProfile {
   final List<ProfilePhoto> photos;
 
   final String? job;
+  final String? volunteering;
   final String? university;
   final String? major;
   final String? city;
@@ -52,6 +53,7 @@ class PublicProfile {
     this.bio,
     this.photos = const [],
     this.job,
+    this.volunteering,
     this.university,
     this.major,
     this.city,
@@ -87,6 +89,7 @@ class PublicProfile {
           ProfilePhoto.fromJson(photo as Map<String, dynamic>),
       ],
       job: json['job'] as String?,
+      volunteering: json['volunteering'] as String?,
       university: json['university'] as String?,
       major: json['major'] as String?,
       city: json['city'] as String?,
@@ -120,6 +123,7 @@ class PublicProfile {
           ),
       ],
       job: user.job,
+      volunteering: user.volunteering,
       university: user.university,
       major: user.major,
       city: user.city,

@@ -10,8 +10,10 @@ import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/widgets/app_dialog.dart';
 
-//long enough for a paragraph, short enough to stay a caption
-const int kStoryMaxLength = 300;
+//A CAPTION, NOT A PARAGRAPH. 150 is enough for "this was five minutes before
+//it started raining" and not enough to retell the holiday - the bio is where
+//prose belongs. Breeze lands in the same place.
+const int kStoryMaxLength = 150;
 
 Future<String?> showStoryDialog(
   BuildContext context, {

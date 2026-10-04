@@ -1,5 +1,5 @@
 from typing import List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import date, datetime
 
 #main user schema
@@ -9,7 +9,7 @@ from datetime import date, datetime
 #response below, but never read from a request body.
 class UserBase(BaseModel):
     name: str
-    bio: str | None = None
+    bio: str | None = Field(default=None, max_length=300)
     birthday: date | None = None
     height_cm: int | None = None
     gender: str | None = None
@@ -56,7 +56,7 @@ class UserBase(BaseModel):
 #for patch endpoints to update a single attribute without needing the others too
 class UserUpdate(BaseModel):
     name: str | None = None
-    bio: str | None = None
+    bio: str | None = Field(default=None, max_length=300)
     birthday: date | None = None
     height_cm: int | None = None
     gender: str | None = None

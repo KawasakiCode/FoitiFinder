@@ -558,5 +558,13 @@
   "tabView": "View",
   "profilePreviewSoon": "Your profile, as other people see it.",
   "preferredLanguagesIntro": "You will only be shown people that speak at least one of your selected languages.",
-  "reportUser": "Report this profile"
+  "reportUser": "Report this profile",
+  "addAtLeastPhotos": "Add at least {count} photos to continue",
+  "@addAtLeastPhotos": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

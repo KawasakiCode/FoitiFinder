@@ -1669,4 +1669,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportUser => 'Report this profile';
+
+  @override
+  String addAtLeastPhotos(int count) {
+    return 'Add at least $count photos to continue';
+  }
 }

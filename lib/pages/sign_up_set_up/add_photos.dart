@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/pages/sign_up_set_up/set_up_page.dart';
 import 'package:foitifinder/services/api_services.dart';
+import 'package:foitifinder/widgets/photo_card.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:foitifinder/widgets/loading_overlay.dart';
 import 'package:foitifinder/widgets/primary_button.dart';
@@ -87,8 +88,9 @@ class _AddPhotos extends State<AddPhotos> {
     setState(() {
       _isLoading = true;
     });
-    //if no photos in the list exit submit
-    if (_photos.every((img) => img == null)) {
+    //under the minimum: say so and stay here. The button is disabled too, so
+    //this only catches a race (a photo removed while the upload starts).
+    if (_photos.whereType<File>().length < kMinPhotos) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(text.addPhotoText),
@@ -201,7 +203,7 @@ class _AddPhotos extends State<AddPhotos> {
               Padding(
                 padding: EdgeInsets.all(16),
                 child: Text(
-                  text.addAtLeastAPhoto,
+                  text.addAtLeastPhotos(kMinPhotos),
                   style: TextStyle(fontSize: 15),
                 ),
               ),
@@ -225,7 +227,13 @@ class _AddPhotos extends State<AddPhotos> {
                 padding: const EdgeInsets.all(15),
                 child: PrimaryButton(
                   label: text.submit,
-                  onPressed: _isUploading ? null : _submitPhotos,
+                  //greyed out until the minimum is met: a disabled button
+                  //explains the rule better than an error after the tap
+                  onPressed:
+                      _isUploading ||
+                          _photos.whereType<File>().length < kMinPhotos
+                      ? null
+                      : _submitPhotos,
                 ),
               ),
             ],

@@ -3,7 +3,7 @@ from typing import List, Optional
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import func
 from notifications import send_smart_notification
 from database import models
@@ -539,8 +539,9 @@ class PhotoSync(BaseModel):
 #uploads only NEW files to Firebase Storage (existing photos keep their URL),
 #then sends the final ordered URLs here. We wipe and re-insert the rows so
 #unchanged photos are never duplicated, removed ones are deleted, and
-#The photo grid in the app has this many slots; /photos/sync enforces the same
-#bound so the rule holds even when the request does not come from the app.
+#The app's own bounds (kMinPhotos / kMaxPhotos in widgets/photo_card.dart),
+#enforced here so they hold even when the request does not come from the app.
+MIN_PHOTOS = 3
 MAX_PHOTOS = 6
 
 #display_order matches the order the user arranged. Only the photo rows are
@@ -551,18 +552,19 @@ def sync_photos(payload: PhotoSync, uid: str = Depends(verified_email_uid), db: 
     if not me:
         raise HTTPException(status_code=404, detail="Current User not found")
 
-    #EVERY ACCOUNT KEEPS AT LEAST ONE PHOTO. This endpoint replaces the whole
-    #set, so an empty list means "delete them all" - which would leave a
-    #profile nobody can be shown, and no way back except uploading again.
+    #EVERY ACCOUNT KEEPS AT LEAST THREE PHOTOS. This endpoint replaces the
+    #whole set, so a short list means "delete the rest" - and the profile page
+    #is built around three (one after the answers, one after the hobbies, the
+    #rest at the end), while the swipe card asks "want to see more?".
     #
-    #The app already prevents it (the first slot has no remove button, and
-    #_submitPhotos aborts when every upload failed), but that is a rule in one
-    #client. A patched build, a crash mid-upload, or a direct call would
-    #otherwise wipe the account's photos.
-    if not payload.photo_urls:
+    #The app already prevents it (signup will not continue under three, and the
+    #edit grid refuses the removal), but that is a rule in one client. A patched
+    #build, a crash mid-upload, or a direct call would otherwise leave an
+    #account with a profile nobody wants to look at.
+    if len(payload.photo_urls) < MIN_PHOTOS:
         raise HTTPException(
             status_code=400,
-            detail="At least one photo is required",
+            detail=f"At least {MIN_PHOTOS} photos are required",
         )
 
     #...and no more than the grid can hold. The app offers exactly MAX_PHOTOS
@@ -611,7 +613,10 @@ def sync_photos(payload: PhotoSync, uid: str = Depends(verified_email_uid), db: 
 #another user's photo by guessing a URL.
 class PhotoStory(BaseModel):
     photo_url: str
-    story: Optional[str] = None
+    #150 matches kStoryMaxLength in the app. The field there stops typing; this
+    #stops a patched client, which is the only reason a length rule in one
+    #place is not a rule at all.
+    story: Optional[str] = Field(default=None, max_length=150)
 
 #Set (or clear) the story attached to a single photo.
 #
