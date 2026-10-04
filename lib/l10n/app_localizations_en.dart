@@ -1049,9 +1049,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lblSomethingCasual => 'Something casual';
 
   @override
-  String get lblALongTermRelationship => 'A long-term relationship';
-
-  @override
   String get lblStillFiguringItOut => 'Still figuring it out';
 
   @override
@@ -1674,4 +1671,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String addAtLeastPhotos(int count) {
     return 'Add at least $count photos to continue';
   }
+
+  @override
+  String get lblSomethingSerious => 'Something serious';
 }

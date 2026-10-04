@@ -76,9 +76,6 @@ class ProfileDetailsBody extends StatelessWidget {
         if (photos.length > 2)
           _PhotoCard(url: photos[2].url, story: photos[2].story),
 
-        const SizedBox(height: 16),
-        _SoonCard(title: text.favouriteArtists),
-
         if (traits.isNotEmpty)
           _TagPills(title: catalogueLabel(text, kGroupTraits), tags: traits),
 
@@ -87,6 +84,11 @@ class ProfileDetailsBody extends StatelessWidget {
         //pictures in it; past that there is nothing left to space them with.
         for (final photo in photos.skip(3))
           _PhotoCard(url: photo.url, story: photo.story),
+
+        //ALWAYS LAST, under the final photo, however many there are - so a
+        //profile ends in the same place whether it has three photos or six
+        const SizedBox(height: 16),
+        _SoonCard(title: text.favouriteArtists),
       ],
     );
   }
@@ -323,10 +325,16 @@ class _Facts extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    icon,
-                    size: 18,
-                    color: theme.colorScheme.onSurfaceVariant,
+                  //nudged down so the icon sits ON the text baseline. Top
+                  //aligned, an 18px icon floats above a 16px line's baseline
+                  //and reads as not quite lined up.
+                  Padding(
+                    padding: const EdgeInsets.only(top: 3),
+                    child: Icon(
+                      icon,
+                      size: 18,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(

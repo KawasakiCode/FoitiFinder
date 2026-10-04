@@ -81,6 +81,11 @@ class _LanguagesPageState extends State<LanguagesPage> {
               value: _selected.contains(language),
               title: Text(catalogueLabel(text, language)),
               contentPadding: EdgeInsets.zero,
+              dense: true,
+              visualDensity: const VisualDensity(
+                horizontal: -4,
+                vertical: -4,
+              ),
               controlAffinity: ListTileControlAffinity.leading,
               onChanged: (_) => _toggle(language),
             ),

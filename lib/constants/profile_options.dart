@@ -46,7 +46,7 @@ const List<String> kFrequencyOptions = ['Never', 'Sometimes', 'Yes'];
 
 const List<String> kDatingIntentionOptions = [
   'Something casual',
-  'A long-term relationship',
+  'Something serious',
   'Still figuring it out',
 ];
 

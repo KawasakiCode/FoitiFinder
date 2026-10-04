@@ -339,7 +339,6 @@
   "lblSometimes": "Sometimes",
   "lblYes": "Yes",
   "lblSomethingCasual": "Something casual",
-  "lblALongTermRelationship": "A long-term relationship",
   "lblStillFiguringItOut": "Still figuring it out",
   "lblIMOpenToKids": "I'm open to kids",
   "lblIWantKids": "I want kids",
@@ -566,5 +565,6 @@
         "type": "int"
       }
     }
-  }
+  },
+  "lblSomethingSerious": "Something serious"
 }

@@ -111,6 +111,13 @@ class _ChoicePageState extends State<ChoicePage> {
                         value: option,
                         title: Text(catalogueLabel(text, option)),
                         contentPadding: EdgeInsets.zero,
+                        //the same tightening as choice_dialog.dart: these are
+                        //answers to one question, not unrelated settings
+                        dense: true,
+                        visualDensity: const VisualDensity(
+                          horizontal: -4,
+                          vertical: -4,
+                        ),
                       ),
                   ],
                 ),
@@ -121,6 +128,11 @@ class _ChoicePageState extends State<ChoicePage> {
                   value: _isSelected(option),
                   title: Text(catalogueLabel(text, option)),
                   contentPadding: EdgeInsets.zero,
+                  dense: true,
+                  visualDensity: const VisualDensity(
+                    horizontal: -4,
+                    vertical: -4,
+                  ),
                   controlAffinity: ListTileControlAffinity.leading,
                   onChanged: (_) => _toggle(option),
                 ),

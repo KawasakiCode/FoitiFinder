@@ -87,6 +87,16 @@ class _ChoiceDialogState extends State<_ChoiceDialog> {
                               RadioListTile<String>(
                                 value: option,
                                 title: Text(catalogueLabel(text, option)),
+                                //A LIST OF ANSWERS, NOT A SETTINGS SCREEN. Material's row is 56px
+                                //tall - a 48px touch target plus padding -
+                                //which spread five options over half the
+                                //screen with gaps wide enough that they
+                                //stopped reading as one question.
+                                dense: true,
+                                visualDensity: const VisualDensity(
+                                  horizontal: -4,
+                                  vertical: -4,
+                                ),
                               ),
                           ],
                         ),
@@ -98,6 +108,11 @@ class _ChoiceDialogState extends State<_ChoiceDialog> {
                             CheckboxListTile(
                               value: _selected.contains(option),
                               title: Text(catalogueLabel(text, option)),
+                              dense: true,
+                              visualDensity: const VisualDensity(
+                                horizontal: -4,
+                                vertical: -4,
+                              ),
                               controlAffinity:
                                   ListTileControlAffinity.leading,
                               onChanged: (_) => setState(() {

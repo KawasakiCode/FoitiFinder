@@ -108,6 +108,11 @@ class _PronounsPageState extends State<PronounsPage> {
                       value: option,
                       title: Text(catalogueLabel(text, option)),
                       contentPadding: EdgeInsets.zero,
+                      dense: true,
+                      visualDensity: const VisualDensity(
+                        horizontal: -4,
+                        vertical: -4,
+                      ),
                     ),
                 ],
               ),

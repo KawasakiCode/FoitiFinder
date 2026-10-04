@@ -1055,9 +1055,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get lblSomethingCasual => 'Κάτι χαλαρό';
 
   @override
-  String get lblALongTermRelationship => 'Μακροχρόνια σχέση';
-
-  @override
   String get lblStillFiguringItOut => 'Το ψάχνω ακόμα';
 
   @override
@@ -1681,4 +1678,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String addAtLeastPhotos(int count) {
     return 'Πρόσθεσε τουλάχιστον $count φωτογραφίες για να συνεχίσεις';
   }
+
+  @override
+  String get lblSomethingSerious => 'Κάτι σοβαρό';
 }

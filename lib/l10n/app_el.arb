@@ -339,7 +339,6 @@
   "lblSometimes": "Μερικές φορές",
   "lblYes": "Ναι",
   "lblSomethingCasual": "Κάτι χαλαρό",
-  "lblALongTermRelationship": "Μακροχρόνια σχέση",
   "lblStillFiguringItOut": "Το ψάχνω ακόμα",
   "lblIMOpenToKids": "Ανοιχτός/ή στα παιδιά",
   "lblIWantKids": "Θέλω παιδιά",
@@ -549,5 +548,6 @@
   "profilePreviewSoon": "Το προφίλ σου, όπως το βλέπουν οι άλλοι.",
   "preferredLanguagesIntro": "Θα σου εμφανίζονται μόνο άτομα που μιλούν τουλάχιστον μία από τις γλώσσες που επιλέγεις.",
   "reportUser": "Αναφορά προφίλ",
-  "addAtLeastPhotos": "Πρόσθεσε τουλάχιστον {count} φωτογραφίες για να συνεχίσεις"
+  "addAtLeastPhotos": "Πρόσθεσε τουλάχιστον {count} φωτογραφίες για να συνεχίσεις",
+  "lblSomethingSerious": "Κάτι σοβαρό"
 }

@@ -2138,12 +2138,6 @@ abstract class AppLocalizations {
   /// **'Something casual'**
   String get lblSomethingCasual;
 
-  /// No description provided for @lblALongTermRelationship.
-  ///
-  /// In en, this message translates to:
-  /// **'A long-term relationship'**
-  String get lblALongTermRelationship;
-
   /// No description provided for @lblStillFiguringItOut.
   ///
   /// In en, this message translates to:
@@ -3361,6 +3355,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add at least {count} photos to continue'**
   String addAtLeastPhotos(int count);
+
+  /// No description provided for @lblSomethingSerious.
+  ///
+  /// In en, this message translates to:
+  /// **'Something serious'**
+  String get lblSomethingSerious;
 }
 
 class _AppLocalizationsDelegate
