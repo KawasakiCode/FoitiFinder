@@ -68,7 +68,6 @@ class User(Base):
     is_currently_studying = Column(Boolean, nullable = True)
     job = Column(String, nullable = True)
     volunteering = Column(String, nullable = True)
-    occupation_other = Column(String, nullable = True)
     city = Column(String, nullable = True)
 
     #handed over when two people match; not shown before that

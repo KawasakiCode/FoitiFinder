@@ -34,7 +34,6 @@ class UserBase(BaseModel):
     is_currently_studying: bool | None = None
     job: str | None = None
     volunteering: str | None = None
-    occupation_other: str | None = None
     city: str | None = None
     instagram_handle: str | None = None
 
@@ -82,7 +81,6 @@ class UserUpdate(BaseModel):
     is_currently_studying: bool | None = None
     job: str | None = None
     volunteering: str | None = None
-    occupation_other: str | None = None
     city: str | None = None
     instagram_handle: str | None = None
 

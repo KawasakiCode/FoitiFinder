@@ -5,8 +5,7 @@
 //
 //There used to be a third "Other" box. It was dropped: it invited the same
 //answers as the other two in a vaguer form, and a field nobody can describe
-//the purpose of gets filled with noise. users.occupation_other still exists
-//but nothing writes it any more.
+//the purpose of gets filled with noise. Its column went with it.
 //
 //Pops with a Map<String, dynamic> of the two fields.
 

@@ -246,7 +246,7 @@ def update_user(user_update: schemas.UserUpdate, uid: str = Depends(verified_ema
     updated_data.pop("university", None)
 
     #The single-answer choices (alcohol, smoking...) are cleared the same way.
-    for key in ("city", "job", "volunteering", "occupation_other", "major",
+    for key in ("city", "job", "volunteering", "major",
                 "alcohol", "smoking", "dating_intention", "kids",
                 "sexual_orientation", "pronouns"):
         if isinstance(updated_data.get(key), str) and not updated_data[key].strip():
