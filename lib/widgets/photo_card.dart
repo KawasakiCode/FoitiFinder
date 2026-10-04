@@ -45,17 +45,22 @@ Widget photoHeroFlightShuttle(
   BuildContext fromContext,
   BuildContext toContext,
 ) {
-  final bool opening = direction == HeroFlightDirection.push;
+  //ONE TWEEN FOR BOTH DIRECTIONS, and it must not be flipped by hand: the
+  //flight animation itself already runs 0 -> 1 opening and 1 -> 0 closing. A
+  //reversed tween on a reversed animation cancels out, which is why the photo
+  //used to land back on the card still square.
+  //
+  //  opening:  t 0 -> 1   gives  24 -> 0   (card corners to full bleed)
+  //  closing:  t 1 -> 0   gives   0 -> 24  (full bleed back to card corners)
   final Animation<double> radius = Tween<double>(
-    begin: opening ? kCardRadius : 0,
-    end: opening ? 0 : kCardRadius,
-  ).animate(
-    CurvedAnimation(parent: animation, curve: Curves.fastOutSlowIn),
-  );
+    begin: kCardRadius,
+    end: 0,
+  ).animate(CurvedAnimation(parent: animation, curve: Curves.fastOutSlowIn));
 
-  //whichever end we are flying TO decides what is drawn; only the shape moves
-  final Widget child = (opening ? toContext : fromContext).widget is Hero
-      ? ((opening ? toContext : fromContext).widget as Hero).child
+  //both ends draw the same thing (photo + scrim), so either Hero's child will
+  //do; the destination's is the one whose size the flight is heading for
+  final Widget child = toContext.widget is Hero
+      ? (toContext.widget as Hero).child
       : const SizedBox.shrink();
 
   return AnimatedBuilder(
