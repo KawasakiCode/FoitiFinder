@@ -12,6 +12,11 @@
 //
 //Dragging still belongs to the deck above (pass / like / super like), so this
 //is a GestureDetector with onTap and nothing else.
+//
+//OPENING THE PROFILE TAKES THE CARD APART, rather than covering it: the photo
+//grows into the page header, the three buttons travel down and become the
+//page's buttons (both Heroes, matched by tag), and the stat pills stay where
+//they are and fade out. What is left behind is nothing anyone looks at.
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +25,22 @@ import 'package:foitifinder/theme/app_colors.dart';
 
 //how round the card is; the deck and the photo clip share it
 const double kCardRadius = 24;
+
+//How long the stat pills take to fade out when the profile opens.
+//
+//They do NOT fly anywhere and they do NOT disappear on the tap: the profile
+//page has nothing they correspond to, so they dim out in place while the photo
+//lifts off around them. Shorter than the flight, so they are gone before the
+//photo settles.
+const Duration kStatsFadeDuration = Duration(milliseconds: 180);
+
+//A straight line between two rects, for a Hero that should simply travel.
+//
+//MaterialApp's hero controller arcs flights along a curve, which is right for
+//a photo growing across the screen and wrong for the button row: an arc on a
+//short vertical move reads as a wobble sideways. The buttons move down.
+RectTween straightHeroPath(Rect? begin, Rect? end) =>
+    RectTween(begin: begin, end: end);
 
 //THREE PHOTOS MINIMUM, SIX MAXIMUM.
 //
@@ -92,6 +113,14 @@ class PhotoCard extends StatefulWidget {
   //over it. Null on the cards behind: only the top one is ever opened, and two
   //Heroes sharing a tag is a crash.
   final Object? photoHeroTag;
+  //Ties this card's three buttons to the profile page's button bar, so they
+  //slide down into it instead of the page's bar appearing from nowhere. Null
+  //on the cards behind, for the same reason photoHeroTag is.
+  final Object? actionsHeroTag;
+  //true from the moment the profile starts opening: the pills fade out in
+  //place while the photo flies. The deck owns this because the deck is what
+  //knows a route was pushed.
+  final bool statsHidden;
   //null on the cards stacked behind: only the top card acts
   final VoidCallback? onOpen;
   final VoidCallback? onPass;
@@ -102,6 +131,8 @@ class PhotoCard extends StatefulWidget {
     super.key,
     required this.card,
     this.photoHeroTag,
+    this.actionsHeroTag,
+    this.statsHidden = false,
     this.onOpen,
     this.onPass,
     this.onSuperLike,
@@ -138,6 +169,17 @@ class _PhotoCardState extends State<PhotoCard> {
       }
     });
   }
+
+  //The buttons fly as themselves - no custom shuttle, because both ends draw
+  //the same row at the same sizes, so there is nothing to interpolate but the
+  //rect. Only the path is overridden, to a straight one.
+  Widget _maybeActionsHero(Widget child) => widget.actionsHeroTag == null
+      ? child
+      : Hero(
+          tag: widget.actionsHeroTag!,
+          createRectTween: straightHeroPath,
+          child: child,
+        );
 
   //Only the top card flies; the ones behind are drawn plainly.
   Widget _maybeHero(Widget child) => widget.photoHeroTag == null
@@ -255,12 +297,21 @@ class _PhotoCardState extends State<PhotoCard> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const _StatSlots(),
+                //fades, never moves: AnimatedOpacity keeps the pills in place
+                //and keeps the row's height, so nothing below them shifts
+                AnimatedOpacity(
+                  opacity: widget.statsHidden ? 0 : 1,
+                  duration: kStatsFadeDuration,
+                  curve: Curves.easeOut,
+                  child: const _StatSlots(),
+                ),
                 const SizedBox(height: 14),
-                _CardActions(
-                  onPass: widget.onPass,
-                  onSuperLike: widget.onSuperLike,
-                  onLike: widget.onLike,
+                _maybeActionsHero(
+                  _CardActions(
+                    onPass: widget.onPass,
+                    onSuperLike: widget.onSuperLike,
+                    onLike: widget.onLike,
+                  ),
                 ),
               ],
             ),

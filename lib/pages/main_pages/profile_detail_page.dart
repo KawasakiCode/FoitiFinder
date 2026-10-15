@@ -9,9 +9,11 @@
 //back arrow and the report menu float over it. That is why the Scaffold
 //extends behind its own app bar instead of starting below it.
 //
-//OPENING IS A TRANSFORMATION, NOT A SLIDE. The card's photo grows and travels
-//up into the header - one Hero, matched by tag - and the profile under it
-//settles into place once the photo has arrived. The route itself applies no
+//OPENING IS A TRANSFORMATION, NOT A SLIDE. The card comes apart and becomes
+//this page: the photo grows and travels up into the header, the card's three
+//buttons travel down into the bar at the bottom (a second Hero, so they are
+//literally the same buttons), and the profile between them slides in from the
+//right once the photo has arrived. The route itself applies no
 //transform, because a Hero works out where it is flying to from the
 //destination's real position, and sliding the page would move that target out
 //from under it. Same trick as photo_detail_page.dart.
@@ -24,12 +26,14 @@
 //photo still covers most of it, including where the name card lands.
 //Animating that card during the flight therefore showed it sliding along
 //UNDERNEATH the photo and then jumping in front the instant the flight ended
-//and the photo returned to this page's tree. The fix is to not show it until
-//there is nothing in front of it: the body and the buttons fade and settle in
-//over the tail of the route animation, by which point the photo is within a
-//few pixels of its final rect. Closing runs it in reverse - the content
-//clears out first, then the photo flies home - so there is no snap either
-//way.
+//and the photo returned to this page's tree.
+//
+//So the two things are SEQUENCED, not overlapped. Nothing in the page is
+//painted until the flight finishes (_landed); then the profile slides in from
+//the right on its own controller, at its own duration, which is why it runs
+//at the same speed as a normal page push rather than being squeezed into
+//whatever is left of the route animation. Closing runs it backwards, and
+//faster: the content clears out while the photo is still on its way home.
 //
 //Everything under the photo is ProfileDetailsBody - the same widget the user's
 //own preview draws, so what they arranged is what a stranger reads.
@@ -53,6 +57,7 @@ Route<ProfileDecision> profileDetailRoute({
   required int userId,
   required PublicProfile preview,
   required Object photoHeroTag,
+  Object? actionsHeroTag,
   bool showSuperLike = true,
 }) {
   return PageRouteBuilder<ProfileDecision>(
@@ -62,6 +67,7 @@ Route<ProfileDecision> profileDetailRoute({
       userId: userId,
       preview: preview,
       photoHeroTag: photoHeroTag,
+      actionsHeroTag: actionsHeroTag,
       showSuperLike: showSuperLike,
     ),
     //no transform on the page: the Hero needs its destination to sit still.
@@ -79,13 +85,11 @@ Route<ProfileDecision> profileDetailRoute({
 //how much of the screen the photo takes, top edge included
 const double _kPhotoFraction = 0.55;
 
-//Where in the route animation the profile under the photo appears.
-//
-//0.72 of fastOutSlowIn is ~0.96 of the way through the flight, so the photo's
-//bottom edge is within a handful of pixels of where it will rest. Earlier than
-//this and the card is visibly behind the photo; later and it reads as a pop
-//rather than a settle.
-const double _kSettleStart = 0.72;
+//How long the profile takes to slide in once the photo has landed, and how
+//quickly it leaves. The forward number is the route's own transition duration:
+//this is a page arriving, and it should move like one.
+const Duration _kBodySlideIn = Duration(milliseconds: 520);
+const Duration _kBodySlideOut = Duration(milliseconds: 240);
 
 class ProfileDetailPage extends StatefulWidget {
   final int userId;
@@ -94,6 +98,10 @@ class ProfileDetailPage extends StatefulWidget {
   final PublicProfile preview;
   //matches the card the photo flew out of
   final Object? photoHeroTag;
+  //matches the card's button row, when it was opened from something that has
+  //one. Null from the likes grid: a tile has no buttons to fly from, so the
+  //bar arrives with the rest of the page instead.
+  final Object? actionsHeroTag;
   //FALSE ON THE LIKES PAGE. A super like is a way to get noticed by someone
   //who has not seen you yet; this person already liked you, so liking back
   //matches on its own and the star would buy nothing. Offering a button that
@@ -105,6 +113,7 @@ class ProfileDetailPage extends StatefulWidget {
     required this.userId,
     required this.preview,
     this.photoHeroTag,
+    this.actionsHeroTag,
     this.showSuperLike = true,
   });
 
@@ -112,14 +121,74 @@ class ProfileDetailPage extends StatefulWidget {
   State<ProfileDetailPage> createState() => _ProfileDetailPageState();
 }
 
-class _ProfileDetailPageState extends State<ProfileDetailPage> {
+class _ProfileDetailPageState extends State<ProfileDetailPage>
+    with SingleTickerProviderStateMixin {
   late PublicProfile _profile = widget.preview;
   bool _loading = true;
+
+  //false until the hero flight has finished. While it is false NOTHING in this
+  //page is painted - see the note at the top of the file.
+  bool _landed = false;
+  late final AnimationController _body = AnimationController(
+    vsync: this,
+    duration: _kBodySlideIn,
+    reverseDuration: _kBodySlideOut,
+  );
+  late final Animation<Offset> _bodySlide =
+      Tween<Offset>(begin: const Offset(0.35, 0), end: Offset.zero).animate(
+        CurvedAnimation(
+          parent: _body,
+          curve: Curves.fastOutSlowIn,
+          reverseCurve: Curves.fastOutSlowIn.flipped,
+        ),
+      );
+  //the route's own animation, watched for the end of the flight
+  Animation<double>? _route;
 
   @override
   void initState() {
     super.initState();
     _load();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context)?.animation;
+    if (route == _route) return;
+    _route?.removeStatusListener(_onRouteStatus);
+    _route = route;
+    //pushed with no transition at all (or already finished): there is no
+    //flight to wait for, so the page is simply here
+    if (route == null || route.isCompleted) {
+      _land();
+    } else {
+      route.addStatusListener(_onRouteStatus);
+    }
+  }
+
+  @override
+  void dispose() {
+    _route?.removeStatusListener(_onRouteStatus);
+    _body.dispose();
+    super.dispose();
+  }
+
+  void _onRouteStatus(AnimationStatus status) {
+    //completed = the photo (and the buttons) have arrived
+    if (status.isCompleted) {
+      _land();
+    } else if (status == AnimationStatus.reverse) {
+      //closing: hide the real buttons again so the only ones on screen are
+      //the pair flying back to the card, and send the profile out to the right
+      if (_landed) setState(() => _landed = false);
+      _body.reverse();
+    }
+  }
+
+  void _land() {
+    if (!_landed && mounted) setState(() => _landed = true);
+    _body.forward();
   }
 
   Future<void> _load() async {
@@ -143,26 +212,6 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final photoHeight = MediaQuery.sizeOf(context).height * _kPhotoFraction;
-
-    final Animation<double> routeAnimation =
-        ModalRoute.of(context)?.animation ?? kAlwaysCompleteAnimation;
-
-    //The tail of the route animation, and only the tail: before _kSettleStart
-    //the flying photo is still large enough to cover this content, so it
-    //stays invisible rather than sliding about behind it. See the note at the
-    //top of the file - the overlay the flight lives in is above this page.
-    final Animation<double> settle = CurvedAnimation(
-      parent: routeAnimation,
-      curve: const Interval(_kSettleStart, 1, curve: Curves.easeOut),
-      //closing: the parent runs 1 -> 0, so this reaches 0 while the photo has
-      //barely started home - the content is gone before it could be covered
-      reverseCurve: const Interval(_kSettleStart, 1, curve: Curves.easeIn),
-    );
-    //a short drift from the right, not a slide across the screen: by now the
-    //photo has landed and this is the page arriving, not travelling
-    final Animation<Offset> settleIn =
-        Tween<Offset>(begin: const Offset(0.12, 0), end: Offset.zero)
-            .animate(settle);
 
     return Scaffold(
       //the photo runs under the bar and up to the very top of the screen
@@ -200,10 +249,13 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
                 //user's own preview
                 Transform.translate(
                   offset: const Offset(0, -28),
-                  child: FadeTransition(
-                    opacity: settle,
+                  //OPACITY, NOT A FADE, and not Visibility: it must keep its
+                  //size so the scroll view does not jump when it appears, and
+                  //it must not be painted at all while the photo is in the air
+                  child: Opacity(
+                    opacity: _landed ? 1 : 0,
                     child: SlideTransition(
-                      position: settleIn,
+                      position: _bodySlide,
                       child: ProfileDetailsBody(profile: _profile),
                     ),
                   ),
@@ -216,8 +268,18 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
 
           //a hairline of progress while the rest of the profile loads; the
           //preview is already readable behind it
+          //KEYED, and that is a bug fix, not tidiness. A Stack's children are
+          //matched by position when nothing is keyed, so the frame this one
+          //disappears on handed the bar's widget to the progress bar's
+          //element - both are Positioned. The bar's subtree was rebuilt from
+          //scratch mid-flight, which gave its Hero a fresh state that knew
+          //nothing about the flight in progress, so the real buttons appeared
+          //at the bottom while their copy was still travelling. The profile
+          //loads in a few milliseconds against a local backend, which is why
+          //it happened every single time there.
           if (_loading)
             Positioned(
+              key: const ValueKey('loading-hairline'),
               left: 0,
               right: 0,
               bottom: 0,
@@ -230,19 +292,36 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
 
           //the decision, pinned to the screen rather than to the scroll
           Positioned(
+            key: const ValueKey('decision-bar'),
             left: 0,
             right: 0,
             bottom: 0,
-            //on the same settle as the body: a decision button that arrives
-            //before the profile it decides about is an invitation to misclick
-            child: FadeTransition(
-              opacity: settle,
-              child: SlideTransition(
-                position: settleIn,
-                child: _DecisionBar(
-                  onDecide: _decide,
-                  showSuperLike: widget.showSuperLike,
-                ),
+            //INVISIBLE AND UNTAPPABLE UNTIL THE FLIGHT LANDS. The copy of
+            //these buttons travelling down from the card is the only pair on
+            //screen until then; these take over the instant it arrives.
+            //Opacity is deliberate - a SlideTransition would move them, and a
+            //Hero measures its destination where it currently sits, so the
+            //flight would aim at the wrong place.
+            child: IgnorePointer(
+              ignoring: !_landed,
+              child: Opacity(
+                opacity: _landed ? 1 : 0,
+                child: widget.actionsHeroTag != null
+                    //flown in from the card: already where it belongs
+                    ? _DecisionBar(
+                        onDecide: _decide,
+                        showSuperLike: widget.showSuperLike,
+                        heroTag: widget.actionsHeroTag,
+                      )
+                    //nothing to fly from (the likes grid), so it arrives with
+                    //the profile instead
+                    : SlideTransition(
+                        position: _bodySlide,
+                        child: _DecisionBar(
+                          onDecide: _decide,
+                          showSuperLike: widget.showSuperLike,
+                        ),
+                      ),
               ),
             ),
           ),
@@ -337,8 +416,21 @@ class _HeaderPhoto extends StatelessWidget {
 class _DecisionBar extends StatelessWidget {
   final ValueChanged<ProfileDecision> onDecide;
   final bool showSuperLike;
+  //set when these buttons are the card's buttons, arriving from above
+  final Object? heroTag;
 
-  const _DecisionBar({required this.onDecide, required this.showSuperLike});
+  const _DecisionBar({
+    required this.onDecide,
+    required this.showSuperLike,
+    this.heroTag,
+  });
+
+  //ONLY THE ROW FLIES, not the bar. The gradient behind it belongs to this
+  //page - carrying it along would drag a slab of background colour across the
+  //photo for the whole flight.
+  Widget _maybeHero(Widget child) => heroTag == null
+      ? child
+      : Hero(tag: heroTag!, createRectTween: straightHeroPath, child: child);
 
   @override
   Widget build(BuildContext context) {
@@ -358,29 +450,31 @@ class _DecisionBar extends StatelessWidget {
           ],
         ),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          SwipeActionButton(
-            icon: Icons.close,
-            gradient: AppColors.passGradient,
-            size: 58,
-            onPressed: () => onDecide(ProfileDecision.pass),
-          ),
-          if (showSuperLike)
+      child: _maybeHero(
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
             SwipeActionButton(
-              icon: Icons.star,
-              gradient: AppColors.superLikeGradient,
-              size: 48,
-              onPressed: () => onDecide(ProfileDecision.superLike),
+              icon: Icons.close,
+              gradient: AppColors.passGradient,
+              size: 58,
+              onPressed: () => onDecide(ProfileDecision.pass),
             ),
-          SwipeActionButton(
-            icon: Icons.favorite,
-            gradient: AppColors.likeGradient,
-            size: 58,
-            onPressed: () => onDecide(ProfileDecision.like),
-          ),
-        ],
+            if (showSuperLike)
+              SwipeActionButton(
+                icon: Icons.star,
+                gradient: AppColors.superLikeGradient,
+                size: 48,
+                onPressed: () => onDecide(ProfileDecision.superLike),
+              ),
+            SwipeActionButton(
+              icon: Icons.favorite,
+              gradient: AppColors.likeGradient,
+              size: 58,
+              onPressed: () => onDecide(ProfileDecision.like),
+            ),
+          ],
+        ),
       ),
     );
   }
