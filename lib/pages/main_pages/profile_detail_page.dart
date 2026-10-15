@@ -10,11 +10,26 @@
 //extends behind its own app bar instead of starting below it.
 //
 //OPENING IS A TRANSFORMATION, NOT A SLIDE. The card's photo grows and travels
-//up into the header - one Hero, matched by tag - while the profile below
-//slides in from the right and the controls simply appear on top. The route
-//itself applies no transform, because a Hero works out where it is flying to
-//from the destination's real position, and sliding the page would move that
-//target out from under it. Same trick as photo_detail_page.dart.
+//up into the header - one Hero, matched by tag - and the profile under it
+//settles into place once the photo has arrived. The route itself applies no
+//transform, because a Hero works out where it is flying to from the
+//destination's real position, and sliding the page would move that target out
+//from under it. Same trick as photo_detail_page.dart.
+//
+//THE PROFILE WAITS FOR THE PHOTO, and that is not a stylistic choice. A hero
+//flight is an OverlayEntry inserted into the Navigator's overlay
+//(heroes.dart), which sits above every route - so while the photo is in the
+//air NOTHING in this page can paint over it, no matter how the widgets here
+//are stacked. The deck card is nearly the whole screen, so mid-flight the
+//photo still covers most of it, including where the name card lands.
+//Animating that card during the flight therefore showed it sliding along
+//UNDERNEATH the photo and then jumping in front the instant the flight ended
+//and the photo returned to this page's tree. The fix is to not show it until
+//there is nothing in front of it: the body and the buttons fade and settle in
+//over the tail of the route animation, by which point the photo is within a
+//few pixels of its final rect. Closing runs it in reverse - the content
+//clears out first, then the photo flies home - so there is no snap either
+//way.
 //
 //Everything under the photo is ProfileDetailsBody - the same widget the user's
 //own preview draws, so what they arranged is what a stranger reads.
@@ -63,6 +78,14 @@ Route<ProfileDecision> profileDetailRoute({
 
 //how much of the screen the photo takes, top edge included
 const double _kPhotoFraction = 0.55;
+
+//Where in the route animation the profile under the photo appears.
+//
+//0.72 of fastOutSlowIn is ~0.96 of the way through the flight, so the photo's
+//bottom edge is within a handful of pixels of where it will rest. Earlier than
+//this and the card is visibly behind the photo; later and it reads as a pop
+//rather than a settle.
+const double _kSettleStart = 0.72;
 
 class ProfileDetailPage extends StatefulWidget {
   final int userId;
@@ -121,18 +144,25 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
     final theme = Theme.of(context);
     final photoHeight = MediaQuery.sizeOf(context).height * _kPhotoFraction;
 
-    //everything except the photo comes in from the right, on the same easing
-    //the Hero flight uses, so the two read as one movement
     final Animation<double> routeAnimation =
         ModalRoute.of(context)?.animation ?? kAlwaysCompleteAnimation;
-    final Animation<Offset> slideIn =
-        Tween<Offset>(begin: const Offset(0.35, 0), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: routeAnimation,
-            curve: Curves.fastOutSlowIn,
-            reverseCurve: Curves.fastOutSlowIn.flipped,
-          ),
-        );
+
+    //The tail of the route animation, and only the tail: before _kSettleStart
+    //the flying photo is still large enough to cover this content, so it
+    //stays invisible rather than sliding about behind it. See the note at the
+    //top of the file - the overlay the flight lives in is above this page.
+    final Animation<double> settle = CurvedAnimation(
+      parent: routeAnimation,
+      curve: const Interval(_kSettleStart, 1, curve: Curves.easeOut),
+      //closing: the parent runs 1 -> 0, so this reaches 0 while the photo has
+      //barely started home - the content is gone before it could be covered
+      reverseCurve: const Interval(_kSettleStart, 1, curve: Curves.easeIn),
+    );
+    //a short drift from the right, not a slide across the screen: by now the
+    //photo has landed and this is the page arriving, not travelling
+    final Animation<Offset> settleIn =
+        Tween<Offset>(begin: const Offset(0.12, 0), end: Offset.zero)
+            .animate(settle);
 
     return Scaffold(
       //the photo runs under the bar and up to the very top of the screen
@@ -170,9 +200,12 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
                 //user's own preview
                 Transform.translate(
                   offset: const Offset(0, -28),
-                  child: SlideTransition(
-                    position: slideIn,
-                    child: ProfileDetailsBody(profile: _profile),
+                  child: FadeTransition(
+                    opacity: settle,
+                    child: SlideTransition(
+                      position: settleIn,
+                      child: ProfileDetailsBody(profile: _profile),
+                    ),
                   ),
                 ),
                 //clear of the buttons pinned below
@@ -200,11 +233,16 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
             left: 0,
             right: 0,
             bottom: 0,
-            child: SlideTransition(
-              position: slideIn,
-              child: _DecisionBar(
-                onDecide: _decide,
-                showSuperLike: widget.showSuperLike,
+            //on the same settle as the body: a decision button that arrives
+            //before the profile it decides about is an invitation to misclick
+            child: FadeTransition(
+              opacity: settle,
+              child: SlideTransition(
+                position: settleIn,
+                child: _DecisionBar(
+                  onDecide: _decide,
+                  showSuperLike: widget.showSuperLike,
+                ),
               ),
             ),
           ),
