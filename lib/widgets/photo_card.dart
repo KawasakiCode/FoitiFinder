@@ -15,8 +15,17 @@
 //
 //OPENING THE PROFILE TAKES THE CARD APART, rather than covering it: the photo
 //grows into the page header, the three buttons travel down and become the
-//page's buttons (both Heroes, matched by tag), and the stat pills stay where
-//they are and fade out. What is left behind is nothing anyone looks at.
+//page's buttons (both Heroes, matched by tag), and the stat pills ride up with
+//the photo while fading out.
+//
+//THE PILLS FLY WITH THE PHOTO, which is why they are inside its Hero and are
+//redrawn by the flight shuttle. A hero flies in the navigator's overlay, above
+//every page, so anything left behind in the deck is hidden underneath it - the
+//pills were fading where nobody could see them. Drawn by the shuttle they are
+//on top of the photo, which is the whole point of fading them. The card's
+//bottom darkening travels the same way and for the same reason: it belongs to
+//the card, the page header has none, so it fades out over the flight instead
+//of blinking off at lift-off.
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -26,13 +35,19 @@ import 'package:foitifinder/theme/app_colors.dart';
 //how round the card is; the deck and the photo clip share it
 const double kCardRadius = 24;
 
-//How long the stat pills take to fade out when the profile opens.
+//How far into the flight the card's own furniture - the pills and the bottom
+//darkening - has finished fading. Early, because they belong to a card and the
+//thing flying stops looking like a card almost immediately.
+const double kCardFurnitureFadeEnd = 0.4;
+
+//Where the pills sit above the bottom of the photo: clear of the buttons (58)
+//plus the gap between them (14) plus the card's own bottom inset (16).
 //
-//They do NOT fly anywhere and they do NOT disappear on the tap: the profile
-//page has nothing they correspond to, so they dim out in place while the photo
-//lifts off around them. Shorter than the flight, so they are gone before the
-//photo settles.
-const Duration kStatsFadeDuration = Duration(milliseconds: 180);
+//A number rather than a Column, because the shuttle has to put a copy of them
+//in exactly the same place over a rect that is in mid-flight, and there is no
+//Column out there to ask.
+const double kStatsBottomInset = 16 + 58 + 14;
+const double kCardSideInset = 16;
 
 //A straight line between two rects, for a Hero that should simply travel.
 //
@@ -64,6 +79,17 @@ const LinearGradient kPhotoTopScrim = LinearGradient(
   end: Alignment.bottomCenter,
   stops: [0.0, 0.3],
   colors: [Color(0x8C000000), Color(0x00000000)],
+);
+
+//The darkening under the pills and the buttons. Unlike the top scrim this one
+//is the CARD'S, not the photo's - the profile page puts its controls
+//elsewhere - so it fades out during the flight rather than landing on the page
+//header.
+const LinearGradient kPhotoBottomScrim = LinearGradient(
+  begin: Alignment.topCenter,
+  end: Alignment.bottomCenter,
+  stops: [0.5, 1.0],
+  colors: [Color(0x00000000), Color(0xD9000000)],
 );
 
 //The widget that actually flies between a card and a profile page.
@@ -106,6 +132,79 @@ Widget photoHeroFlightShuttle(
   );
 }
 
+//The deck's flight: the photo, plus the card furniture fading off it.
+//
+//IT MUST LIVE ON THE CARD, not on the profile page. Flutter picks the
+//DESTINATION hero's shuttle first (heroes.dart: `toHero.widget
+//.flightShuttleBuilder ?? fromHero.widget...`), so a shuttle declared on the
+//page would also be used for the flight out of the likes grid - and a grid
+//tile has no pills to fade. Each source describes its own flight; the page's
+//header declares none.
+Widget deckPhotoHeroFlightShuttle(
+  BuildContext flightContext,
+  Animation<double> animation,
+  HeroFlightDirection direction,
+  BuildContext fromContext,
+  BuildContext toContext,
+) {
+  //0 is the card end of the flight and 1 is the page end, whichever way it is
+  //travelling - see the note in photoHeroFlightShuttle.
+  final Animation<double> radius = Tween<double>(
+    begin: kCardRadius,
+    end: 0,
+  ).animate(CurvedAnimation(parent: animation, curve: Curves.fastOutSlowIn));
+
+  //solid at the card end, gone shortly after. Opening fades it out; closing
+  //runs the same animation backwards, so it fades back in and is already
+  //solid when the photo lands on the card.
+  final Animation<double> furniture = Tween<double>(begin: 1, end: 0).animate(
+    CurvedAnimation(
+      parent: animation,
+      curve: const Interval(0, kCardFurnitureFadeEnd, curve: Curves.easeOut),
+    ),
+  );
+
+  //THE BARE PHOTO COMES FROM THE PAGE'S END of the flight. The card's own hero
+  //child carries the pills and the darkening, and drawing that would put a
+  //second, never-fading copy underneath the ones this shuttle animates.
+  final BuildContext pageContext = direction == HeroFlightDirection.push
+      ? toContext
+      : fromContext;
+  final Widget photo = pageContext.widget is Hero
+      ? (pageContext.widget as Hero).child
+      : const SizedBox.shrink();
+
+  return AnimatedBuilder(
+    animation: animation,
+    builder: (context, _) => ClipRRect(
+      borderRadius: BorderRadius.circular(radius.value),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          photo,
+          Opacity(
+            opacity: furniture.value,
+            child: const DecoratedBox(
+              decoration: BoxDecoration(gradient: kPhotoBottomScrim),
+            ),
+          ),
+          //positioned against the rect being flown, so at lift-off they are
+          //exactly where the card had them
+          Positioned(
+            left: kCardSideInset,
+            right: kCardSideInset,
+            bottom: kStatsBottomInset,
+            child: Opacity(
+              opacity: furniture.value,
+              child: const _StatSlots(),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
 class PhotoCard extends StatefulWidget {
   final CardData card;
   //Ties this card's photo to the header photo of the profile page, so opening
@@ -117,10 +216,6 @@ class PhotoCard extends StatefulWidget {
   //slide down into it instead of the page's bar appearing from nowhere. Null
   //on the cards behind, for the same reason photoHeroTag is.
   final Object? actionsHeroTag;
-  //true from the moment the profile starts opening: the pills fade out in
-  //place while the photo flies. The deck owns this because the deck is what
-  //knows a route was pushed.
-  final bool statsHidden;
   //null on the cards stacked behind: only the top card acts
   final VoidCallback? onOpen;
   final VoidCallback? onPass;
@@ -132,7 +227,6 @@ class PhotoCard extends StatefulWidget {
     required this.card,
     this.photoHeroTag,
     this.actionsHeroTag,
-    this.statsHidden = false,
     this.onOpen,
     this.onPass,
     this.onSuperLike,
@@ -186,7 +280,7 @@ class _PhotoCardState extends State<PhotoCard> {
       ? child
       : Hero(
           tag: widget.photoHeroTag!,
-          flightShuttleBuilder: photoHeroFlightShuttle,
+          flightShuttleBuilder: deckPhotoHeroFlightShuttle,
           child: child,
         );
 
@@ -203,8 +297,9 @@ class _PhotoCardState extends State<PhotoCard> {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          //first layer: the photo AND the top scrim, together, because both
-          //have to survive the flight to the profile page
+          //first layer: the photo, the scrims and the pills, all together,
+          //because all of them have to be IN the flight - what stays behind
+          //in the deck is hidden under the flying photo anyway
           _maybeHero(
             Stack(
               fit: StackFit.expand,
@@ -226,23 +321,20 @@ class _PhotoCardState extends State<PhotoCard> {
                 const DecoratedBox(
                   decoration: BoxDecoration(gradient: kPhotoTopScrim),
                 ),
+                //the bottom darkening belongs to this card alone, so it leaves
+                //with it: the shuttle fades it off during the flight
+                const DecoratedBox(
+                  decoration: BoxDecoration(gradient: kPhotoBottomScrim),
+                ),
+                //and the pills sit on it, in the place the shuttle redraws
+                //them in - kStatsBottomInset is that place
+                const Positioned(
+                  left: kCardSideInset,
+                  right: kCardSideInset,
+                  bottom: kStatsBottomInset,
+                  child: _StatSlots(),
+                ),
               ],
-            ),
-          ),
-
-          //second layer: the bottom half of the darkening, which belongs to
-          //this card alone - the profile page puts its controls elsewhere
-          DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                stops: const [0.5, 1.0],
-                colors: [
-                  Colors.transparent,
-                  Colors.black.withValues(alpha: 0.85),
-                ],
-              ),
             ),
           ),
 
@@ -289,31 +381,19 @@ class _PhotoCardState extends State<PhotoCard> {
             ),
           ),
 
-          //fifth layer: the stats, then the actions
+          //fifth layer: the actions. The pills used to share this Column and
+          //now live in the photo's Hero above - kStatsBottomInset is what
+          //keeps them the same distance apart as the Column did.
           Positioned(
-            left: 16,
-            right: 16,
-            bottom: 16,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                //fades, never moves: AnimatedOpacity keeps the pills in place
-                //and keeps the row's height, so nothing below them shifts
-                AnimatedOpacity(
-                  opacity: widget.statsHidden ? 0 : 1,
-                  duration: kStatsFadeDuration,
-                  curve: Curves.easeOut,
-                  child: const _StatSlots(),
-                ),
-                const SizedBox(height: 14),
-                _maybeActionsHero(
-                  _CardActions(
-                    onPass: widget.onPass,
-                    onSuperLike: widget.onSuperLike,
-                    onLike: widget.onLike,
-                  ),
-                ),
-              ],
+            left: kCardSideInset,
+            right: kCardSideInset,
+            bottom: kCardSideInset,
+            child: _maybeActionsHero(
+              _CardActions(
+                onPass: widget.onPass,
+                onSuperLike: widget.onSuperLike,
+                onLike: widget.onLike,
+              ),
             ),
           ),
         ],

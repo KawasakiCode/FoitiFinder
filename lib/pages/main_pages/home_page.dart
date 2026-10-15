@@ -54,9 +54,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   double _tapPositionY = 0;
   final ValueNotifier<Offset> _swipeNotifier = ValueNotifier(Offset.zero);
   bool _isAnimating = false;
-  //true while the profile page is open or opening. The top card's stat pills
-  //fade out in place for the flight, and fade back in if the user backs out
-  //without deciding.
+  //guards against a second tap pushing the profile page twice
   bool _openingProfile = false;
 
   //card creation
@@ -515,7 +513,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               //only the top card flies, so no two Heroes ever share a tag
               photoHeroTag: isTop ? _cardPhotoHeroTag(card) : null,
               actionsHeroTag: isTop ? _cardActionsHeroTag(card) : null,
-              statsHidden: isTop && _openingProfile,
               onOpen: isTop ? () => _openProfile(card) : null,
               onPass: isTop ? () => _swipeLeft(fromButton: true) : null,
               onSuperLike: isTop ? () => _swipeUp(fromButton: true) : null,
@@ -630,18 +627,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   //animation, the index and the backend call, so a like from in there is the
   //same code path as a like from the card.
   Future<void> _openProfile(CardData card) async {
-    //a second tap during the pills' fade would push the page twice
     if (_openingProfile) return;
-
-    //THE PILLS FADE FIRST, AND THE PAGE WAITS FOR THEM. The flying photo is
-    //the whole card at lift-off and it flies in the navigator's overlay,
-    //above everything - so a fade that runs underneath it is invisible, which
-    //is exactly how it looked: the pills simply vanished with the tap. Fading
-    //them while the card is still sitting there costs one short delay before
-    //the flight and is the only way the fade is ever seen.
-    setState(() => _openingProfile = true);
-    await Future.delayed(kStatsFadeDuration);
-    if (!mounted) return;
+    //no setState: nothing on the deck changes. The pills now fade as part of
+    //the flight itself (deckPhotoHeroFlightShuttle), so there is nothing to
+    //wait for and the photo lifts the instant the card is tapped.
+    _openingProfile = true;
 
     final decision = await Navigator.push<ProfileDecision>(
       context,
@@ -661,11 +651,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         ),
       ),
     );
-    if (!mounted) return;
-    //back on the deck: the pills belong to a card that is still there, unless
-    //a decision is about to animate it away
-    setState(() => _openingProfile = false);
-    if (decision == null) return;
+    _openingProfile = false;
+    if (!mounted || decision == null) return;
 
     switch (decision) {
       case ProfileDecision.pass:

@@ -61,8 +61,11 @@ Route<ProfileDecision> profileDetailRoute({
   bool showSuperLike = true,
 }) {
   return PageRouteBuilder<ProfileDecision>(
-    transitionDuration: const Duration(milliseconds: 520),
-    reverseTransitionDuration: const Duration(milliseconds: 400),
+    //THIS IS THE FLIGHT'S DURATION TOO. A hero flight runs on the route's
+    //animation, so these two numbers are what makes the photo and the buttons
+    //travel at the speed they do.
+    transitionDuration: const Duration(milliseconds: 680),
+    reverseTransitionDuration: const Duration(milliseconds: 520),
     pageBuilder: (_, _, _) => ProfileDetailPage(
       userId: userId,
       preview: preview,
@@ -88,8 +91,8 @@ const double _kPhotoFraction = 0.55;
 //How long the profile takes to slide in once the photo has landed, and how
 //quickly it leaves. The forward number is the route's own transition duration:
 //this is a page arriving, and it should move like one.
-const Duration _kBodySlideIn = Duration(milliseconds: 520);
-const Duration _kBodySlideOut = Duration(milliseconds: 240);
+const Duration _kBodySlideIn = Duration(milliseconds: 620);
+const Duration _kBodySlideOut = Duration(milliseconds: 300);
 
 class ProfileDetailPage extends StatefulWidget {
   final int userId;
@@ -363,15 +366,15 @@ class _HeaderPhoto extends StatelessWidget {
 
   const _HeaderPhoto({required this.url, this.heroTag});
 
-  //the photo AND its scrim fly together - see kPhotoTopScrim. The shuttle
-  //rounds the corners off on the way up and back on the way down.
-  Widget _maybeHero(Widget child) => heroTag == null
-      ? child
-      : Hero(
-          tag: heroTag!,
-          flightShuttleBuilder: photoHeroFlightShuttle,
-          child: child,
-        );
+  //NO flightShuttleBuilder HERE, deliberately. Flutter prefers the
+  //destination hero's shuttle, so one declared on this page would describe
+  //every flight that lands here - including the one out of the likes grid,
+  //which has no pills and no card darkening to fade. Leaving it null falls
+  //through to whichever source the photo came from, and each of those knows
+  //what it looks like: deckPhotoHeroFlightShuttle for a swipe card,
+  //photoHeroFlightShuttle for a grid tile.
+  Widget _maybeHero(Widget child) =>
+      heroTag == null ? child : Hero(tag: heroTag!, child: child);
 
   @override
   Widget build(BuildContext context) {
