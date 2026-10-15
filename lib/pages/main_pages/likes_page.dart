@@ -35,6 +35,11 @@ const int _kGridColumns = 2;
 const double _kTileAspect = 0.75;
 const double _kGridGap = 8;
 
+//where the name sits on a tile. Constants because the flight redraws it in
+//the same place over a rect that is in mid-air, with no tile to measure.
+const double _kTileLabelInset = 10;
+const double _kTileLabelBottom = 8;
+
 class LikesPage extends StatefulWidget {
   const LikesPage({super.key});
 
@@ -211,6 +216,11 @@ class LikesPageState extends State<LikesPage> {
 }
 
 //One face in the grid: the photo, and the name over it.
+//
+//THE NAME FLIES WITH THE PHOTO AND FADES OFF IT, the same way the swipe
+//card's pills do - it is inside the Hero, and photoHeroShuttle redraws it on
+//top of the flying photo. The profile page writes the name in its own place,
+//so carrying this one all the way there would mean two of them.
 class _LikerTile extends StatelessWidget {
   final LikerModel liker;
   final Object heroTag;
@@ -225,6 +235,29 @@ class _LikerTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    //built once and used twice: in the tile, and by the flight that fades it
+    //off the photo. A widget is immutable configuration, so sharing it is
+    //free - it is the same description drawn in two places.
+    final Widget label = Positioned(
+      left: _kTileLabelInset,
+      right: _kTileLabelInset,
+      bottom: _kTileLabelBottom,
+      child: Text(
+        "${liker.name}, ${liker.age}",
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+          shadows: [
+            //cheaper than a second gradient, and enough to keep the name
+            //readable over a bright photo
+            Shadow(blurRadius: 8, color: Color(0xCC000000)),
+          ],
+        ),
+      ),
+    );
     final placeholder = ColoredBox(
       color: theme.colorScheme.surfaceContainerHighest,
       child: Center(
@@ -243,55 +276,28 @@ class _LikerTile extends StatelessWidget {
       onTap: onTap,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(kCardRadius),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            //the photo and its scrim are INSIDE the Hero on both ends, so the
-            //darkening under the name travels with it instead of blinking
-            Hero(
-              tag: heroTag,
-              flightShuttleBuilder: photoHeroFlightShuttle,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  CachedNetworkImage(
-                    //the same URL the profile page's header asks for, so it is
-                    //already in the cache when the Hero lands
-                    imageUrl: liker.imageUrl,
-                    fit: BoxFit.cover,
-                    placeholder: (_, _) => placeholder,
-                    errorWidget: (_, _, _) => placeholder,
-                  ),
-                  const DecoratedBox(
-                    decoration: BoxDecoration(gradient: kPhotoTopScrim),
-                  ),
-                ],
+        //the photo, its scrim AND the name are all inside the Hero, so the
+        //three of them leave the tile together at lift-off
+        child: Hero(
+          tag: heroTag,
+          flightShuttleBuilder: photoHeroShuttle(furniture: [label]),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              CachedNetworkImage(
+                //the same URL the profile page's header asks for, so it is
+                //already in the cache when the Hero lands
+                imageUrl: liker.imageUrl,
+                fit: BoxFit.cover,
+                placeholder: (_, _) => placeholder,
+                errorWidget: (_, _, _) => placeholder,
               ),
-            ),
-
-            //name and age sit outside the Hero: they belong to the tile, and
-            //the profile page writes them again in its own place
-            Positioned(
-              left: 10,
-              right: 10,
-              bottom: 8,
-              child: Text(
-                "${liker.name}, ${liker.age}",
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                  shadows: [
-                    //cheaper than a second gradient, and enough to keep the
-                    //name readable over a bright photo
-                    Shadow(blurRadius: 8, color: Color(0xCC000000)),
-                  ],
-                ),
+              const DecoratedBox(
+                decoration: BoxDecoration(gradient: kPhotoTopScrim),
               ),
-            ),
-          ],
+              label,
+            ],
+          ),
         ),
       ),
     );

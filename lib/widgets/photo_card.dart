@@ -92,118 +92,105 @@ const LinearGradient kPhotoBottomScrim = LinearGradient(
   colors: [Color(0x00000000), Color(0xD9000000)],
 );
 
-//The widget that actually flies between a card and a profile page.
+//THE FLIGHT. One builder, used by every source a photo can fly out of.
 //
-//Without this, Flutter uses the DESTINATION's child for the whole flight - so
-//the corners went square the moment the photo lifted, and on the way back they
-//only rounded once it had landed. Here the radius is interpolated instead, and
-//the scrim rides along, so the shape changes while it moves.
-Widget photoHeroFlightShuttle(
-  BuildContext flightContext,
-  Animation<double> animation,
-  HeroFlightDirection direction,
-  BuildContext fromContext,
-  BuildContext toContext,
-) {
-  //ONE TWEEN FOR BOTH DIRECTIONS, and it must not be flipped by hand: the
-  //flight animation itself already runs 0 -> 1 opening and 1 -> 0 closing. A
-  //reversed tween on a reversed animation cancels out, which is why the photo
-  //used to land back on the card still square.
-  //
-  //  opening:  t 0 -> 1   gives  24 -> 0   (card corners to full bleed)
-  //  closing:  t 1 -> 0   gives   0 -> 24  (full bleed back to card corners)
-  final Animation<double> radius = Tween<double>(
-    begin: kCardRadius,
-    end: 0,
-  ).animate(CurvedAnimation(parent: animation, curve: Curves.fastOutSlowIn));
-
-  //both ends draw the same thing (photo + scrim), so either Hero's child will
-  //do; the destination's is the one whose size the flight is heading for
-  final Widget child = toContext.widget is Hero
-      ? (toContext.widget as Hero).child
-      : const SizedBox.shrink();
-
-  return AnimatedBuilder(
-    animation: radius,
-    builder: (context, _) => ClipRRect(
-      borderRadius: BorderRadius.circular(radius.value),
-      child: child,
-    ),
-  );
-}
-
-//The deck's flight: the photo, plus the card furniture fading off it.
+//Without a shuttle Flutter draws the DESTINATION's child for the whole
+//flight - so the corners went square the moment the photo lifted and only
+//rounded again after it had landed. Here the radius is interpolated, and
+//anything the source draws ON the photo rides along and fades off it.
 //
-//IT MUST LIVE ON THE CARD, not on the profile page. Flutter picks the
-//DESTINATION hero's shuttle first (heroes.dart: `toHero.widget
-//.flightShuttleBuilder ?? fromHero.widget...`), so a shuttle declared on the
-//page would also be used for the flight out of the likes grid - and a grid
-//tile has no pills to fade. Each source describes its own flight; the page's
-//header declares none.
-Widget deckPhotoHeroFlightShuttle(
-  BuildContext flightContext,
-  Animation<double> animation,
-  HeroFlightDirection direction,
-  BuildContext fromContext,
-  BuildContext toContext,
-) {
-  //0 is the card end of the flight and 1 is the page end, whichever way it is
-  //travelling - see the note in photoHeroFlightShuttle.
-  final Animation<double> radius = Tween<double>(
-    begin: kCardRadius,
-    end: 0,
-  ).animate(CurvedAnimation(parent: animation, curve: Curves.fastOutSlowIn));
+//`furniture` is what belongs to the source and not to the page: the swipe
+//card's stat pills and bottom darkening, a likes tile's name. It is drawn
+//over the photo and faded out across kCardFurnitureFadeEnd of the flight, in
+//the navigator's overlay, which is the only place in the app that is above
+//the flying photo. Left in the page it came from, it would spend the whole
+//flight hidden underneath it - which is exactly how the pills "vanished
+//instantly" before this existed.
+//
+//IT MUST BE DECLARED ON THE SOURCE, never on the profile page. Flutter
+//prefers the destination hero's shuttle (heroes.dart: `toHero.widget
+//.flightShuttleBuilder ?? fromHero.widget...`), so one declared on the page
+//would describe every flight that lands there - and a deck card and a likes
+//tile do not look alike.
+HeroFlightShuttleBuilder photoHeroShuttle({
+  List<Widget> furniture = const <Widget>[],
+}) {
+  return (
+    BuildContext flightContext,
+    Animation<double> animation,
+    HeroFlightDirection direction,
+    BuildContext fromContext,
+    BuildContext toContext,
+  ) {
+    //ONE TWEEN FOR BOTH DIRECTIONS, and it must not be flipped by hand: the
+    //flight animation itself already runs 0 -> 1 opening and 1 -> 0 closing. A
+    //reversed tween on a reversed animation cancels out, which is why the photo
+    //used to land back on the card still square.
+    //
+    //  opening:  t 0 -> 1   gives  24 -> 0   (card corners to full bleed)
+    //  closing:  t 1 -> 0   gives   0 -> 24  (full bleed back to card corners)
+    final Animation<double> radius = Tween<double>(
+      begin: kCardRadius,
+      end: 0,
+    ).animate(CurvedAnimation(parent: animation, curve: Curves.fastOutSlowIn));
 
-  //solid at the card end, gone shortly after. Opening fades it out; closing
-  //runs the same animation backwards, so it fades back in and is already
-  //solid when the photo lands on the card.
-  final Animation<double> furniture = Tween<double>(begin: 1, end: 0).animate(
-    CurvedAnimation(
-      parent: animation,
-      curve: const Interval(0, kCardFurnitureFadeEnd, curve: Curves.easeOut),
-    ),
-  );
-
-  //THE BARE PHOTO COMES FROM THE PAGE'S END of the flight. The card's own hero
-  //child carries the pills and the darkening, and drawing that would put a
-  //second, never-fading copy underneath the ones this shuttle animates.
-  final BuildContext pageContext = direction == HeroFlightDirection.push
-      ? toContext
-      : fromContext;
-  final Widget photo = pageContext.widget is Hero
-      ? (pageContext.widget as Hero).child
-      : const SizedBox.shrink();
-
-  return AnimatedBuilder(
-    animation: animation,
-    builder: (context, _) => ClipRRect(
-      borderRadius: BorderRadius.circular(radius.value),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          photo,
-          Opacity(
-            opacity: furniture.value,
-            child: const DecoratedBox(
-              decoration: BoxDecoration(gradient: kPhotoBottomScrim),
-            ),
-          ),
-          //positioned against the rect being flown, so at lift-off they are
-          //exactly where the card had them
-          Positioned(
-            left: kCardSideInset,
-            right: kCardSideInset,
-            bottom: kStatsBottomInset,
-            child: Opacity(
-              opacity: furniture.value,
-              child: const _StatSlots(),
-            ),
-          ),
-        ],
+    //solid at the source end of the flight, gone shortly after. Closing runs
+    //the same animation backwards, so it fades back in and is already solid
+    //when the photo lands - no flag, no second animation to keep in step.
+    final Animation<double> fade = Tween<double>(begin: 1, end: 0).animate(
+      CurvedAnimation(
+        parent: animation,
+        curve: const Interval(0, kCardFurnitureFadeEnd, curve: Curves.easeOut),
       ),
-    ),
-  );
+    );
+
+    //THE BARE PHOTO COMES FROM THE PAGE'S END of the flight. The source's own
+    //hero child carries the furniture, and drawing that would put a second,
+    //never-fading copy underneath the one this fades.
+    final BuildContext pageContext = direction == HeroFlightDirection.push
+        ? toContext
+        : fromContext;
+    final Widget photo = pageContext.widget is Hero
+        ? (pageContext.widget as Hero).child
+        : const SizedBox.shrink();
+
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, _) => ClipRRect(
+        borderRadius: BorderRadius.circular(radius.value),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            photo,
+            //ONE Opacity around the lot, holding its own Stack: a Positioned
+            //has to be a direct child of a Stack, so it cannot be wrapped
+            //individually. The inner stack expands, so the furniture sits
+            //against the rect being flown and is where the source had it.
+            if (furniture.isNotEmpty)
+              Opacity(
+                opacity: fade.value,
+                child: Stack(fit: StackFit.expand, children: furniture),
+              ),
+          ],
+        ),
+      ),
+    );
+  };
 }
+
+//The swipe card's flight: the pills and the bottom darkening fade off the
+//photo on the way up, and back onto it on the way down.
+final HeroFlightShuttleBuilder deckPhotoHeroFlightShuttle = photoHeroShuttle(
+  furniture: const [
+    DecoratedBox(decoration: BoxDecoration(gradient: kPhotoBottomScrim)),
+    Positioned(
+      left: kCardSideInset,
+      right: kCardSideInset,
+      bottom: kStatsBottomInset,
+      child: _StatSlots(),
+    ),
+  ],
+);
 
 class PhotoCard extends StatefulWidget {
   final CardData card;
