@@ -28,7 +28,9 @@ import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/photo_card.dart';
 
-//what the page pops with, so the deck knows what to do next
+//what the page pops with, so the deck knows what to do next.
+//superLike is never popped when the page is opened without that button - see
+//showSuperLike below.
 enum ProfileDecision { pass, superLike, like }
 
 //How the page is opened, kept beside the layout it depends on.
@@ -36,6 +38,7 @@ Route<ProfileDecision> profileDetailRoute({
   required int userId,
   required PublicProfile preview,
   required Object photoHeroTag,
+  bool showSuperLike = true,
 }) {
   return PageRouteBuilder<ProfileDecision>(
     transitionDuration: const Duration(milliseconds: 520),
@@ -44,6 +47,7 @@ Route<ProfileDecision> profileDetailRoute({
       userId: userId,
       preview: preview,
       photoHeroTag: photoHeroTag,
+      showSuperLike: showSuperLike,
     ),
     //no transform on the page: the Hero needs its destination to sit still.
     //The background fades so the deck does not simply vanish under it.
@@ -67,12 +71,18 @@ class ProfileDetailPage extends StatefulWidget {
   final PublicProfile preview;
   //matches the card the photo flew out of
   final Object? photoHeroTag;
+  //FALSE ON THE LIKES PAGE. A super like is a way to get noticed by someone
+  //who has not seen you yet; this person already liked you, so liking back
+  //matches on its own and the star would buy nothing. Offering a button that
+  //changes nothing is worse than not offering it.
+  final bool showSuperLike;
 
   const ProfileDetailPage({
     super.key,
     required this.userId,
     required this.preview,
     this.photoHeroTag,
+    this.showSuperLike = true,
   });
 
   @override
@@ -192,7 +202,10 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
             bottom: 0,
             child: SlideTransition(
               position: slideIn,
-              child: _DecisionBar(onDecide: _decide),
+              child: _DecisionBar(
+                onDecide: _decide,
+                showSuperLike: widget.showSuperLike,
+              ),
             ),
           ),
         ],
@@ -281,11 +294,13 @@ class _HeaderPhoto extends StatelessWidget {
   }
 }
 
-//Pass, super like, like - the same three, in the same order, as on the card.
+//Pass, super like, like - the same order as on the card, with the star
+//dropped where it means nothing (see showSuperLike).
 class _DecisionBar extends StatelessWidget {
   final ValueChanged<ProfileDecision> onDecide;
+  final bool showSuperLike;
 
-  const _DecisionBar({required this.onDecide});
+  const _DecisionBar({required this.onDecide, required this.showSuperLike});
 
   @override
   Widget build(BuildContext context) {
@@ -314,12 +329,13 @@ class _DecisionBar extends StatelessWidget {
             size: 58,
             onPressed: () => onDecide(ProfileDecision.pass),
           ),
-          SwipeActionButton(
-            icon: Icons.star,
-            gradient: AppColors.superLikeGradient,
-            size: 48,
-            onPressed: () => onDecide(ProfileDecision.superLike),
-          ),
+          if (showSuperLike)
+            SwipeActionButton(
+              icon: Icons.star,
+              gradient: AppColors.superLikeGradient,
+              size: 48,
+              onPressed: () => onDecide(ProfileDecision.superLike),
+            ),
           SwipeActionButton(
             icon: Icons.favorite,
             gradient: AppColors.likeGradient,
