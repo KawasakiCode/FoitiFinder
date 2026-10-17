@@ -21,8 +21,8 @@
 //Every block disappears when it has nothing to show, so a half-finished
 //profile reads as short rather than as broken.
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:foitifinder/widgets/profile_photo.dart';
 import 'package:foitifinder/constants/choice_icons.dart';
 import 'package:foitifinder/constants/interest_catalogue.dart';
 import 'package:foitifinder/constants/profile_options.dart';
@@ -117,14 +117,9 @@ class _Photo extends StatelessWidget {
 
     if (url == null) return placeholder;
 
-    return CachedNetworkImage(
-      imageUrl: url!,
-      fit: BoxFit.cover,
-      //a block of the right size, not a spinner: nothing below must jump when
-      //the image lands
-      placeholder: (_, _) => placeholder,
-      errorWidget: (_, _, _) => placeholder,
-    );
+    //the same key the deck precaches while a card is on screen, so these are
+    //usually decoded before the profile is ever opened
+    return PersonPhoto(url: url);
   }
 }
 

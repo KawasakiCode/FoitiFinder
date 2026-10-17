@@ -21,7 +21,6 @@
 //back into a pass, which is a loss but a private one - nobody is told, because
 //the other side was never told a match existed in the first place.
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
@@ -31,6 +30,7 @@ import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/widgets/app_dialog.dart';
 import 'package:foitifinder/widgets/photo_card.dart';
+import 'package:foitifinder/widgets/profile_photo.dart';
 import 'package:foitifinder/widgets/primary_button.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -100,9 +100,7 @@ class _MatchPageState extends State<MatchPage> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(text.matchConfirmTitle),
-        content: Text(
-          text.matchConfirmBody(widget.otherName, _myHandle),
-        ),
+        content: Text(text.matchConfirmBody(widget.otherName, _myHandle)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
@@ -203,7 +201,8 @@ class _MatchPageState extends State<MatchPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final photoHeight = MediaQuery.sizeOf(context).height * _kMatchPhotoFraction;
+    final photoHeight =
+        MediaQuery.sizeOf(context).height * _kMatchPhotoFraction;
 
     //NO WAY OUT BUT AN ANSWER while the decision is open. The match row
     //already exists - it was created by the swipe that opened this page - so a
@@ -350,32 +349,15 @@ class _MatchPhoto extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final placeholder = ColoredBox(
-      color: theme.colorScheme.surfaceContainerHighest,
-      child: Center(
-        child: Icon(
-          Icons.person_outline,
-          size: 64,
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-      ),
-    );
-
-    if (url == null) return placeholder;
+    if (url == null) return const PhotoMissingBox();
 
     return Stack(
       fit: StackFit.expand,
       children: [
-        CachedNetworkImage(
-          imageUrl: url!,
-          fit: BoxFit.cover,
-          placeholder: (_, _) => placeholder,
-          errorWidget: (_, _, _) => placeholder,
-        ),
-        const DecoratedBox(
-          decoration: BoxDecoration(gradient: kPhotoTopScrim),
-        ),
+        //the same key the card and the profile header use, so the photo is
+        //already decoded by the time a match opens
+        PersonPhoto(url: url),
+        const DecoratedBox(decoration: BoxDecoration(gradient: kPhotoTopScrim)),
       ],
     );
   }

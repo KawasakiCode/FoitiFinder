@@ -27,10 +27,10 @@
 //the card, the page header has none, so it fades out over the flight instead
 //of blinking off at lift-off.
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/models/card_data_model.dart';
 import 'package:foitifinder/theme/app_colors.dart';
+import 'package:foitifinder/widgets/profile_photo.dart';
 
 //how round the card is; the deck and the photo clip share it
 const double kCardRadius = 24;
@@ -255,8 +255,10 @@ class _PhotoCardState extends State<PhotoCard> {
       if (widget.card.photos.length > 1) {
         for (int i = 1; i < widget.card.photos.length; i++) {
           if (i > 5) break;
+          //the SAME key the profile page will ask for, or this fills the
+          //cache with an entry nothing reads - see profile_photo.dart
           precacheImage(
-            CachedNetworkImageProvider(widget.card.photos[i]),
+            profilePhotoProvider(widget.card.photos[i]),
             context,
           );
         }
@@ -304,20 +306,10 @@ class _PhotoCardState extends State<PhotoCard> {
             Stack(
               fit: StackFit.expand,
               children: [
-                CachedNetworkImage(
-                  imageUrl: _photo,
-                  fit: BoxFit.cover,
-                  memCacheWidth: 800,
-                  fadeInDuration: const Duration(milliseconds: 200),
-                  placeholder: (context, url) => Container(
-                    color: Colors.grey[200],
-                    child: const Center(
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  ),
-                  errorWidget: (context, url, error) =>
-                      Container(color: Colors.grey),
-                ),
+                //kPhotoDecodeWidth, which the profile page's header also
+                //asks for: the photo this card has already decoded is the one
+                //that flies, so there is nothing to decode on the way in
+                PersonPhoto(url: _photo),
                 const DecoratedBox(
                   decoration: BoxDecoration(gradient: kPhotoTopScrim),
                 ),

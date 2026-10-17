@@ -1,9 +1,9 @@
 //The main page of the app where swiping takes place
 //Here the deck of cards shows and the user swipes left(pass), right(like), up(super_like) to other users
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:foitifinder/widgets/profile_photo.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/models/card_data_model.dart';
 import 'package:foitifinder/models/public_profile.dart';
@@ -75,10 +75,15 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       for (int i = 0; i < usersToPrecache; i++) {
         final card = cards[i];
 
-        // 1. Pre-cache the main list of photos
+        // 1. Pre-cache the main list of photos.
+        //
+        //profilePhotoProvider, NOT NetworkImage: a bare NetworkImage keys a
+        //different cache entry AND bypasses the disk cache, so this used to
+        //download every photo a second time and warm an entry no widget here
+        //ever asks for.
         if (card.photos.isNotEmpty) {
           for (String url in card.photos) {
-            precacheImage(NetworkImage(url), context);
+            precacheImage(profilePhotoProvider(url), context);
           }
         }
       }
@@ -160,7 +165,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         // This prevents the "Swipe Stutter" caused by downloading too much at once.
         if (i > 2) break;
 
-        precacheImage(CachedNetworkImageProvider(card.photos[i]), context);
+        precacheImage(profilePhotoProvider(card.photos[i]), context);
       }
     }
   }

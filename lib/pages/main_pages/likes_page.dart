@@ -18,7 +18,6 @@
 //button: the star exists to get you noticed by someone who has not seen you,
 //and this person already has.
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
@@ -29,6 +28,7 @@ import 'package:foitifinder/pages/main_pages/match_page.dart';
 import 'package:foitifinder/pages/main_pages/profile_detail_page.dart';
 import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/widgets/photo_card.dart';
+import 'package:foitifinder/widgets/profile_photo.dart';
 
 //two across: big enough to recognise a face, small enough to scan a page of
 //them. The ratio is the one a portrait photo wants.
@@ -173,10 +173,7 @@ class LikesPageState extends State<LikesPage> {
         automaticallyImplyLeading: true,
         title: const Text("FoitiFinder"),
       ),
-      body: RefreshIndicator(
-        onRefresh: loadLikes,
-        child: _buildBody(),
-      ),
+      body: RefreshIndicator(onRefresh: loadLikes, child: _buildBody()),
     );
   }
 
@@ -250,7 +247,6 @@ class _LikerTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     //built once and used twice: in the tile, and by the flight that fades it
     //off the photo. A widget is immutable configuration, so sharing it is
     //free - it is the same description drawn in two places.
@@ -274,16 +270,6 @@ class _LikerTile extends StatelessWidget {
         ),
       ),
     );
-    final placeholder = ColoredBox(
-      color: theme.colorScheme.surfaceContainerHighest,
-      child: Center(
-        child: Icon(
-          Icons.person_outline,
-          size: 40,
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-      ),
-    );
 
     //kCardRadius, not a radius of its own: the flight shuttle interpolates
     //from that exact value down to 0, so any other number makes the corners
@@ -300,13 +286,13 @@ class _LikerTile extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              CachedNetworkImage(
-                //the same URL the profile page's header asks for, so it is
-                //already in the cache when the Hero lands
-                imageUrl: liker.imageUrl,
-                fit: BoxFit.cover,
-                placeholder: (_, _) => placeholder,
-                errorWidget: (_, _, _) => placeholder,
+              //a tile is half the screen wide, so it decodes at the
+              //thumbnail width; the profile header it flies to uses this copy
+              //as its stand-in while the full-size one decodes
+              PersonPhoto(
+                url: liker.imageUrl,
+                decodeWidth: kThumbDecodeWidth,
+                missingIconSize: 40,
               ),
               const DecoratedBox(
                 decoration: BoxDecoration(gradient: kPhotoTopScrim),

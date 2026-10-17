@@ -34,7 +34,6 @@
 //Everything under the photo is ProfileDetailsBody - the same widget the user's
 //own preview draws, so what they arranged is what a stranger reads.
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/models/public_profile.dart';
@@ -42,6 +41,7 @@ import 'package:foitifinder/pages/profile_pages/view_profile/profile_details_bod
 import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/photo_card.dart';
+import 'package:foitifinder/widgets/profile_photo.dart';
 
 //the body's slide, for tests that need to watch it
 const Key kProfileBodySlideKey = Key('profile-body-slide');
@@ -376,19 +376,7 @@ class _HeaderPhoto extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final placeholder = ColoredBox(
-      color: theme.colorScheme.surfaceContainerHighest,
-      child: Center(
-        child: Icon(
-          Icons.person_outline,
-          size: 64,
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-      ),
-    );
-
-    if (url == null) return placeholder;
+    if (url == null) return const PhotoMissingBox();
 
     //the scrim is INSIDE the Hero, so the back arrow and the menu keep the
     //same darkening under them the whole way up from the card, instead of it
@@ -397,11 +385,17 @@ class _HeaderPhoto extends StatelessWidget {
       Stack(
         fit: StackFit.expand,
         children: [
-          CachedNetworkImage(
-            imageUrl: url!,
-            fit: BoxFit.cover,
-            placeholder: (_, _) => placeholder,
-            errorWidget: (_, _, _) => placeholder,
+          PersonPhoto(
+            url: url,
+            //ARRIVING FROM A LIKES TILE, the only copy of this photo in
+            //memory is the tile's small one, so that is what stands in while
+            //the full-size decode runs: a slightly soft version of the right
+            //face beats an empty box. Arriving from a swipe card this never
+            //builds - the card decoded this exact key already.
+            whileLoading: PersonPhoto(
+              url: url,
+              decodeWidth: kThumbDecodeWidth,
+            ),
           ),
           const DecoratedBox(
             decoration: BoxDecoration(gradient: kPhotoTopScrim),
