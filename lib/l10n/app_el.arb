@@ -549,5 +549,13 @@
   "preferredLanguagesIntro": "Θα σου εμφανίζονται μόνο άτομα που μιλούν τουλάχιστον μία από τις γλώσσες που επιλέγεις.",
   "reportUser": "Αναφορά προφίλ",
   "addAtLeastPhotos": "Πρόσθεσε τουλάχιστον {count} φωτογραφίες για να συνεχίσεις",
-  "lblSomethingSerious": "Κάτι σοβαρό"
+  "lblSomethingSerious": "Κάτι σοβαρό",
+  "instagramTitle": "Το Instagram σου",
+  "instagramIntro": "Το FoitiFinder δεν έχει chat. Όταν εσύ και κάποιος άλλος πείτε και οι δύο ναι σε ένα ταίριασμα, ανταλλάσσετε usernames στο Instagram και συνεχίζετε εκεί.",
+  "instagramPrivacy": "Κανείς δεν μπορεί να το δει ψάχνοντας προφίλ. Εμφανίζεται μόνο σε άτομο με το οποίο έχεις ταιριάξει, αφού το επιβεβαιώσετε και οι δύο.",
+  "instagramLabel": "Username στο Instagram",
+  "instagramHint": "to.username.sou",
+  "instagramPasteOk": "Μπορείς να επικολλήσεις και τον σύνδεσμο του προφίλ σου, το αναλαμβάνουμε.",
+  "instagramInvalid": "Αυτό δεν μοιάζει με username του Instagram. Μόνο γράμματα, αριθμοί, τελείες και κάτω παύλες.",
+  "instagramRequiredNote": "Απαιτείται, γιατί χωρίς αυτό ένα ταίριασμα δεν έχει πώς να συνεχίσει."
 }

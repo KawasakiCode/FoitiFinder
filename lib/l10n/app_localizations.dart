@@ -3361,6 +3361,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Something serious'**
   String get lblSomethingSerious;
+
+  /// No description provided for @instagramTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Instagram'**
+  String get instagramTitle;
+
+  /// No description provided for @instagramIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'FoitiFinder has no chat. When you and someone else both say yes to a match, you swap Instagram usernames and carry on there.'**
+  String get instagramIntro;
+
+  /// No description provided for @instagramPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody can see it by browsing. It is shown only to a person you have matched with, after you have both confirmed it.'**
+  String get instagramPrivacy;
+
+  /// No description provided for @instagramLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Instagram username'**
+  String get instagramLabel;
+
+  /// No description provided for @instagramHint.
+  ///
+  /// In en, this message translates to:
+  /// **'your.username'**
+  String get instagramHint;
+
+  /// No description provided for @instagramPasteOk.
+  ///
+  /// In en, this message translates to:
+  /// **'You can paste a link to your profile, we will sort it out.'**
+  String get instagramPasteOk;
+
+  /// No description provided for @instagramInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'That does not look like an Instagram username. Letters, numbers, full stops and underscores only.'**
+  String get instagramInvalid;
+
+  /// No description provided for @instagramRequiredNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Required, because without it a match has no way to continue.'**
+  String get instagramRequiredNote;
 }
 
 class _AppLocalizationsDelegate

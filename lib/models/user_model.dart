@@ -64,6 +64,14 @@ class UserModel{
   final String? job;
   final String? volunteering;
   //centimetres, null = no bound on that side
+  //REQUIRED, although the column is nullable: registration happens before
+  //setup, so the row exists for a moment without one. Setup will not let the
+  //user past it, the same way photos will not - see SetupWrapper.
+  //
+  //Private. It is never in a feed card or a profile view; only a confirmed
+  //match is ever handed someone else's.
+  final String? instagramHandle;
+
   final int? minHeightPreference;
   final int? maxHeightPreference;
   final bool showOutsideResidence;
@@ -93,6 +101,7 @@ class UserModel{
     this.isCurrentlyStudying,
     this.job,
     this.volunteering,
+    this.instagramHandle,
     this.minHeightPreference,
     this.maxHeightPreference,
     this.showOutsideResidence = true,
@@ -102,6 +111,10 @@ class UserModel{
 
   //null when the user has no photos yet (only possible mid-signup)
   String? get profilePictureUrl => photoUrls.isEmpty ? null : photoUrls.first;
+
+  //An empty string counts as missing: the column is text, and a row written
+  //by an older build (or a cache from one) can hold '' rather than NULL.
+  bool get hasInstagramHandle => (instagramHandle ?? '').trim().isNotEmpty;
 
   //A copy with some fields replaced. Everything not passed is carried over, so
   //there is no field list to keep in sync by hand.
@@ -133,6 +146,7 @@ class UserModel{
     ValueGetter<bool?>? isCurrentlyStudying,
     ValueGetter<String?>? job,
     ValueGetter<String?>? volunteering,
+    ValueGetter<String?>? instagramHandle,
     ValueGetter<int?>? minHeightPreference,
     ValueGetter<int?>? maxHeightPreference,
     bool? showOutsideResidence,
@@ -165,6 +179,9 @@ class UserModel{
           : this.isCurrentlyStudying,
       job: job != null ? job() : this.job,
       volunteering: volunteering != null ? volunteering() : this.volunteering,
+      instagramHandle: instagramHandle != null
+          ? instagramHandle()
+          : this.instagramHandle,
       minHeightPreference: minHeightPreference != null
           ? minHeightPreference()
           : this.minHeightPreference,
@@ -213,6 +230,7 @@ class UserModel{
       isCurrentlyStudying: json['is_currently_studying'],
       job: json['job'],
       volunteering: json['volunteering'],
+      instagramHandle: json['instagram_handle'],
       minHeightPreference: json['min_height_preference'],
       maxHeightPreference: json['max_height_preference'],
       //missing (an older cache) reads as the column default
@@ -250,6 +268,7 @@ class UserModel{
       'is_currently_studying': isCurrentlyStudying,
       'job': job,
       'volunteering': volunteering,
+      'instagram_handle': instagramHandle,
       'min_height_preference': minHeightPreference,
       'max_height_preference': maxHeightPreference,
       'show_outside_residence': showOutsideResidence,

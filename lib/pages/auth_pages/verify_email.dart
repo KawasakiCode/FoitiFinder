@@ -9,7 +9,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
-import 'package:foitifinder/pages/sign_up_set_up/add_photos.dart';
+import 'package:foitifinder/pages/sign_up_set_up/instagram_page.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:foitifinder/services/api_services.dart';
@@ -99,7 +99,8 @@ class _VerifyEmailState extends State<VerifyEmail> with WidgetsBindingObserver {
     //Verified — continue onboarding at the photo step. Uses pushReplacement so
     //the user can't navigate back into the verification gate.
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const AddPhotos()),
+      //the first setup step; SetupWrapper keeps the same order on later launches
+      MaterialPageRoute(builder: (_) => const InstagramPage()),
     );
   }
 

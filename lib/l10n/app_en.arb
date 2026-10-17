@@ -566,5 +566,13 @@
       }
     }
   },
-  "lblSomethingSerious": "Something serious"
+  "lblSomethingSerious": "Something serious",
+  "instagramTitle": "Your Instagram",
+  "instagramIntro": "FoitiFinder has no chat. When you and someone else both say yes to a match, you swap Instagram usernames and carry on there.",
+  "instagramPrivacy": "Nobody can see it by browsing. It is shown only to a person you have matched with, after you have both confirmed it.",
+  "instagramLabel": "Instagram username",
+  "instagramHint": "your.username",
+  "instagramPasteOk": "You can paste a link to your profile, we will sort it out.",
+  "instagramInvalid": "That does not look like an Instagram username. Letters, numbers, full stops and underscores only.",
+  "instagramRequiredNote": "Required, because without it a match has no way to continue."
 }

@@ -15,6 +15,7 @@ from firebase_admin import messaging, credentials, firestore, auth
 import firebase_admin
 from preferences.preferences import preference_to_genders
 from university_domains import is_university_email, university_name_for_email
+from instagram import normalise_instagram_handle
 from ages import age_from_birthday, years_ago
 
 load_dotenv()
@@ -252,6 +253,21 @@ def update_user(user_update: schemas.UserUpdate, uid: str = Depends(verified_ema
                 "religion", "political_view"):
         if isinstance(updated_data.get(key), str) and not updated_data[key].strip():
             updated_data[key] = None
+
+    #THE HANDLE IS CLEANED SERVER SIDE TOO, not only in the app. It is the
+    #entire payoff of a match (there is no chat), it is the one field another
+    #user will be handed, and an old or patched client must not be able to put
+    #"@maria pap" or a share link with a tracking query string into the column.
+    #None back from the normaliser means it cannot be a handle at all - and
+    #since a handle is required, that is an error rather than "cleared".
+    if "instagram_handle" in updated_data:
+        handle = normalise_instagram_handle(updated_data["instagram_handle"])
+        if handle is None:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="instagram_handle is not a valid Instagram username",
+            )
+        updated_data["instagram_handle"] = handle
 
     #These columns are NOT NULL, so an explicit null would be a 500 from the
     #database. For the arrays null can only mean "nothing picked", so store

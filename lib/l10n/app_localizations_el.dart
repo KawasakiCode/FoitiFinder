@@ -1681,4 +1681,33 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get lblSomethingSerious => 'Κάτι σοβαρό';
+
+  @override
+  String get instagramTitle => 'Το Instagram σου';
+
+  @override
+  String get instagramIntro =>
+      'Το FoitiFinder δεν έχει chat. Όταν εσύ και κάποιος άλλος πείτε και οι δύο ναι σε ένα ταίριασμα, ανταλλάσσετε usernames στο Instagram και συνεχίζετε εκεί.';
+
+  @override
+  String get instagramPrivacy =>
+      'Κανείς δεν μπορεί να το δει ψάχνοντας προφίλ. Εμφανίζεται μόνο σε άτομο με το οποίο έχεις ταιριάξει, αφού το επιβεβαιώσετε και οι δύο.';
+
+  @override
+  String get instagramLabel => 'Username στο Instagram';
+
+  @override
+  String get instagramHint => 'to.username.sou';
+
+  @override
+  String get instagramPasteOk =>
+      'Μπορείς να επικολλήσεις και τον σύνδεσμο του προφίλ σου, το αναλαμβάνουμε.';
+
+  @override
+  String get instagramInvalid =>
+      'Αυτό δεν μοιάζει με username του Instagram. Μόνο γράμματα, αριθμοί, τελείες και κάτω παύλες.';
+
+  @override
+  String get instagramRequiredNote =>
+      'Απαιτείται, γιατί χωρίς αυτό ένα ταίριασμα δεν έχει πώς να συνεχίσει.';
 }

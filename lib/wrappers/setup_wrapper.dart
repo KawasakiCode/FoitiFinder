@@ -9,6 +9,7 @@ import 'package:foitifinder/models/user_model.dart';
 import 'package:foitifinder/pages/auth_pages/login.dart';
 import 'package:foitifinder/pages/auth_pages/verify_email.dart';
 import 'package:foitifinder/pages/sign_up_set_up/add_photos.dart';
+import 'package:foitifinder/pages/sign_up_set_up/instagram_page.dart';
 import 'package:foitifinder/pages/sign_up_set_up/set_up_page.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
@@ -153,12 +154,31 @@ class _SetupWrapperState extends State<SetupWrapper> {
     if (currentUser == null) {
       return const LoginPage();
     }
-    //Onboarding order (email verified -> photos -> profile setup).
+    //Onboarding order: email verified -> instagram -> photos -> profile setup.
+    //
+    //EVERY LAUNCH COMES THROUGH HERE, so an unfinished step is not something
+    //the user can walk away from: closing the app during setup and reopening
+    //it lands them back on the step they left. That is the only thing making
+    //the handle and the photos actually required, since both columns are
+    //nullable in Postgres (the row is created at registration, before any of
+    //this is asked).
+    //THE HANDLE IS CHECKED BEFORE has_finished_set_up, which is what makes it
+    //required for EVERY account and not just new ones. The column was added
+    //after people had already finished setup, so a check further down would
+    //have been skipped for exactly the accounts that are missing it. It is
+    //also the first thing asked of a new user, before anything is invested:
+    //it is the most personal question here and the likeliest reason to
+    //abandon setup, so someone unwilling to share it should find that out now
+    //rather than after three photos and a bio. See instagram_page.dart.
+    if (!currentUser!.hasInstagramHandle) {
+      return const InstagramPage();
+    }
+
     bool hasFinishedSetUp = currentUser!.hasFinishedSetUp;
     if (hasFinishedSetUp) {
       return MainScreen(uid: fbUser!.uid);
     }
-    //no photos yet -> start with the photo step
+    //no photos yet -> the photo step
     else if (!currentUser!.hasPhotos) {
       return const AddPhotos();
     }
