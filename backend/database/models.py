@@ -145,6 +145,21 @@ class Matches(Base):
     user_b_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable = False)
     created_at = Column(TIMESTAMP(timezone=True), nullable = False, server_default = text('now()'))
 
+    #A MATCH IS NOT AN EXCHANGE YET. Mutual likes create the row; the Instagram
+    #handles are only swapped once BOTH sides have said yes again, on the match
+    #page. A swipe can be weeks stale, so the confirm is where someone decides
+    #with current information - and it is the only "changed my mind" exit,
+    #because a handle cannot be un-revealed afterwards.
+    #
+    #NULL means "has not answered". There is no stored "declined": a decline
+    #deletes the row (see POST /matches/{id}/decline), since nothing about a
+    #refused match is worth keeping and the likes page must not resurface it.
+    #
+    #Timestamps rather than booleans: whoever confirmed first is waiting, and
+    #that is what decides who gets told when the other one answers.
+    a_confirmed_at = Column(TIMESTAMP(timezone=True), nullable = True)
+    b_confirmed_at = Column(TIMESTAMP(timezone=True), nullable = True)
+
 class Photos(Base):
     __tablename__ = "photos"
 

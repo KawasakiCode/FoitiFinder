@@ -59,6 +59,7 @@ Route<ProfileDecision> profileDetailRoute({
   required Object photoHeroTag,
   Object? actionsHeroTag,
   bool showSuperLike = true,
+  bool decisions = true,
 }) {
   return PageRouteBuilder<ProfileDecision>(
     //THIS IS THE FLIGHT'S DURATION TOO. A hero flight runs on the route's
@@ -72,6 +73,7 @@ Route<ProfileDecision> profileDetailRoute({
       photoHeroTag: photoHeroTag,
       actionsHeroTag: actionsHeroTag,
       showSuperLike: showSuperLike,
+      decisions: decisions,
     ),
     //no transform on the page: the Hero needs its destination to sit still.
     //The background fades so the deck does not simply vanish under it.
@@ -110,6 +112,12 @@ class ProfileDetailPage extends StatefulWidget {
   //matches on its own and the star would buy nothing. Offering a button that
   //changes nothing is worse than not offering it.
   final bool showSuperLike;
+  //FALSE WHEN THE DECISION IS SOMEBODY ELSE'S PAGE. The match page asks one
+  //question and asks it there; a second set of like/pass buttons under the
+  //profile would be a different answer to the same thing. The page is then
+  //purely something to read - which is the point of opening it from a match
+  //you swiped on weeks ago and have forgotten.
+  final bool decisions;
 
   const ProfileDetailPage({
     super.key,
@@ -118,6 +126,7 @@ class ProfileDetailPage extends StatefulWidget {
     this.photoHeroTag,
     this.actionsHeroTag,
     this.showSuperLike = true,
+    this.decisions = true,
   });
 
   @override
@@ -294,7 +303,8 @@ class _ProfileDetailPageState extends State<ProfileDetailPage>
             ),
 
           //the decision, pinned to the screen rather than to the scroll
-          Positioned(
+          if (widget.decisions)
+            Positioned(
             key: const ValueKey('decision-bar'),
             left: 0,
             right: 0,

@@ -1,0 +1,382 @@
+//The match: the one screen where two people decide to actually meet.
+//
+//THIS IS THE SIDE THAT COMPLETED THE MATCH. They swiped right on someone who
+//had already liked them, so the match exists the moment they get here and they
+//answer for it NOW - there is no "decide later", because a match nobody has
+//answered is a match the other person waits on forever. The other side's view
+//(arriving from a notification, hours later) is not built yet.
+//
+//A MATCH IS NOT AN EXCHANGE. Mutual likes only make the row; the Instagram
+//handles move when BOTH sides say yes again here. A swipe can be weeks stale,
+//so this is where someone decides with current information - and the only
+//"changed my mind" exit there will ever be, since a handle cannot be
+//un-revealed once somebody has read it.
+//
+//SHARING TAKES TWO TAPS. It is a one-way door: the handle is the user's real
+//identity, outside this app, and nothing can walk it back. The confirm dialog
+//is the one place in the app where a second tap is worth the friction - and it
+//names the handle being shared, so a typo caught here costs nothing.
+//
+//Declining is one tap, deliberately. It deletes the match and turns the like
+//back into a pass, which is a loss but a private one - nobody is told, because
+//the other side was never told a match existed in the first place.
+
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/models/public_profile.dart';
+import 'package:foitifinder/pages/main_pages/profile_detail_page.dart';
+import 'package:foitifinder/providers/profile_provider.dart';
+import 'package:foitifinder/services/api_services.dart';
+import 'package:foitifinder/widgets/app_dialog.dart';
+import 'package:foitifinder/widgets/photo_card.dart';
+import 'package:foitifinder/widgets/primary_button.dart';
+import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+//the photo keeps the profile page's proportions, so arriving here from a card
+//feels like the same place
+const double _kMatchPhotoFraction = 0.5;
+
+//HOW LONG THE BUTTONS STAY DEAD after the page appears. The user arrives here
+//by tapping Like, so their thumb is already moving towards the bottom of the
+//screen - and the share button lands roughly where that button was. Without
+//this, a double tap sails straight through a one-way door.
+const Duration _kButtonsArmAfter = Duration(milliseconds: 450);
+
+//what the page is showing
+enum _Stage { decide, waiting, revealed }
+
+class MatchPage extends StatefulWidget {
+  final int matchId;
+  final int otherUserId;
+  final String otherName;
+  final int? otherAge;
+  final String? otherPhotoUrl;
+
+  const MatchPage({
+    super.key,
+    required this.matchId,
+    required this.otherUserId,
+    required this.otherName,
+    this.otherAge,
+    this.otherPhotoUrl,
+  });
+
+  @override
+  State<MatchPage> createState() => _MatchPageState();
+}
+
+class _MatchPageState extends State<MatchPage> {
+  AppLocalizations get text => AppLocalizations.of(context)!;
+
+  _Stage _stage = _Stage.decide;
+  bool _busy = false;
+  bool _armed = false;
+  //set when the exchange completed - only possible for the side that confirms
+  //second, which this side is not, until the other half of the flow exists
+  String? _theirHandle;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(_kButtonsArmAfter, () {
+      if (mounted) setState(() => _armed = true);
+    });
+  }
+
+  //The user's own handle, to name in the confirm dialog. Already required and
+  //already validated by the time anyone can swipe (SetupWrapper), so the
+  //fallback is only for a cache written before the handle existed.
+  String get _myHandle =>
+      context.read<ProfileProvider>().currentUser?.instagramHandle ?? '';
+
+  Future<void> _share() async {
+    //STEP TWO. The dialog says the handle out loud rather than asking an
+    //abstract "are you sure" - the thing worth checking is what is about to
+    //be shared, not whether the user meant to tap.
+    final confirmed = await showAppDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(text.matchConfirmTitle),
+        content: Text(
+          text.matchConfirmBody(widget.otherName, _myHandle),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(text.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(text.matchConfirmAction),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _busy = true);
+    try {
+      final result = await ApiService.confirmMatch(widget.matchId);
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        //revealed can only come back true if the other side had already said
+        //yes. It cannot happen on this side today - their confirm needs a
+        //match that only this swipe just created - but the server answers it
+        //either way, and dropping it would be a dead end the day it can.
+        _stage = result.revealed ? _Stage.revealed : _Stage.waiting;
+        _theirHandle = result.instagramHandle;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _busy = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(text.errorOccured)));
+    }
+  }
+
+  Future<void> _decline() async {
+    setState(() => _busy = true);
+    try {
+      await ApiService.declineMatch(widget.matchId);
+      if (mounted) Navigator.pop(context);
+    } catch (_) {
+      if (!mounted) return;
+      //STAYS ON THE PAGE on failure. Popping would leave a match the user
+      //thinks they refused, and the other side would eventually be shown it.
+      setState(() => _busy = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(text.errorOccured)));
+    }
+  }
+
+  Future<void> _copyHandle() async {
+    final handle = _theirHandle;
+    if (handle == null) return;
+    await Clipboard.setData(ClipboardData(text: handle));
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(text.matchCopied)));
+  }
+
+  Future<void> _openInstagram() async {
+    final handle = _theirHandle;
+    if (handle == null) return;
+    //the app's own scheme first, the web profile if it is not installed
+    for (final uri in [
+      Uri.parse('instagram://user?username=$handle'),
+      Uri.parse('https://instagram.com/$handle'),
+    ]) {
+      if (await launchUrl(uri, mode: LaunchMode.externalApplication)) return;
+    }
+  }
+
+  void _openProfile() {
+    Navigator.push(
+      context,
+      profileDetailRoute(
+        userId: widget.otherUserId,
+        photoHeroTag: 'match-profile-${widget.otherUserId}',
+        //READ ONLY. The decision being made is on this page, and a second set
+        //of like/pass buttons on the profile would be a different answer to
+        //the same question.
+        decisions: false,
+        preview: PublicProfile(
+          id: widget.otherUserId,
+          name: widget.otherName,
+          age: widget.otherAge,
+          photos: [
+            if (widget.otherPhotoUrl != null)
+              ProfilePhoto(url: widget.otherPhotoUrl!),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final photoHeight = MediaQuery.sizeOf(context).height * _kMatchPhotoFraction;
+
+    //NO WAY OUT BUT AN ANSWER while the decision is open. The match row
+    //already exists - it was created by the swipe that opened this page - so a
+    //back gesture here would leave it unanswered and the other person waiting
+    //on somebody who has moved on. Once answered, back works normally.
+    return PopScope(
+      canPop: _stage != _Stage.decide,
+      child: Scaffold(
+        body: Column(
+          children: [
+            SizedBox(
+              width: double.infinity,
+              height: photoHeight,
+              child: _MatchPhoto(url: widget.otherPhotoUrl),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
+                child: switch (_stage) {
+                  _Stage.decide => _buildDecide(theme),
+                  _Stage.waiting => _buildWaiting(theme),
+                  _Stage.revealed => _buildRevealed(theme),
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDecide(ThemeData theme) {
+    final name = widget.otherName;
+    final who = widget.otherAge == null ? name : '$name, ${widget.otherAge}';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(text.matchTitle, style: theme.textTheme.headlineSmall),
+        const SizedBox(height: 4),
+        Text(who, style: theme.textTheme.titleMedium),
+        const SizedBox(height: 16),
+        Text(
+          text.matchHowItWorks(name),
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 8),
+        //for the side that swiped weeks ago and does not remember this person.
+        //Harmless here, essential once the other half of the flow exists.
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton(
+            onPressed: _openProfile,
+            child: Text(text.matchViewProfile),
+          ),
+        ),
+        const Spacer(),
+        PrimaryButton(
+          label: text.matchShare,
+          onPressed: (_busy || !_armed) ? null : _share,
+        ),
+        TextButton(
+          onPressed: (_busy || !_armed) ? null : _decline,
+          child: Text(
+            text.matchDecline,
+            style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWaiting(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          text.matchWaitingTitle(widget.otherName),
+          style: theme.textTheme.headlineSmall,
+        ),
+        const SizedBox(height: 12),
+        Text(
+          text.matchWaitingBody(widget.otherName),
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const Spacer(),
+        PrimaryButton(
+          label: text.matchDone,
+          onPressed: () => Navigator.pop(context),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRevealed(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(text.matchRevealedTitle, style: theme.textTheme.headlineSmall),
+        const SizedBox(height: 16),
+        //big, because people screenshot this
+        SelectableText(
+          '@${_theirHandle ?? ''}',
+          style: theme.textTheme.headlineMedium,
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _copyHandle,
+                icon: const Icon(Icons.copy_outlined),
+                label: Text(text.matchCopy),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _openInstagram,
+                icon: const Icon(Icons.open_in_new),
+                label: Text(text.matchOpenInstagram),
+              ),
+            ),
+          ],
+        ),
+        const Spacer(),
+        PrimaryButton(
+          label: text.matchDone,
+          onPressed: () => Navigator.pop(context),
+        ),
+      ],
+    );
+  }
+}
+
+class _MatchPhoto extends StatelessWidget {
+  final String? url;
+
+  const _MatchPhoto({required this.url});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final placeholder = ColoredBox(
+      color: theme.colorScheme.surfaceContainerHighest,
+      child: Center(
+        child: Icon(
+          Icons.person_outline,
+          size: 64,
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
+
+    if (url == null) return placeholder;
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        CachedNetworkImage(
+          imageUrl: url!,
+          fit: BoxFit.cover,
+          placeholder: (_, _) => placeholder,
+          errorWidget: (_, _, _) => placeholder,
+        ),
+        const DecoratedBox(
+          decoration: BoxDecoration(gradient: kPhotoTopScrim),
+        ),
+      ],
+    );
+  }
+}

@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:foitifinder/models/card_data_model.dart';
 import 'package:foitifinder/models/liker_model.dart';
 import 'package:foitifinder/models/matches_model.dart';
+import 'package:foitifinder/models/match_models.dart';
 import 'package:foitifinder/models/photos_model.dart';
 import 'package:foitifinder/models/public_profile.dart';
 import 'package:foitifinder/models/settings_model.dart';
@@ -401,7 +402,7 @@ class ApiService {
   }
 
   //Register swipe (pass, like, super like)
-  static Future<bool> registerSwipe(String uid, int otherUserId, String action) async {
+  static Future<SwipeResult> registerSwipe(String uid, int otherUserId, String action) async {
     final url = Uri.parse("$baseUrl/swipes");
 
     try {
@@ -413,13 +414,50 @@ class ApiService {
       }));
       if(response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
-        return data['data'] ?? false;
+        return SwipeResult(
+          isMatch: data['data'] ?? false,
+          //absent from an older backend: the caller then knows it is a match
+          //but cannot open the match page for it
+          matchId: data['match_id'],
+        );
       }
       else {
         throw Exception("Failed to register swipe ${response.body}");
       }
     } catch (e) {
       rethrow;
+    }
+  }
+
+  //Say yes to a match.
+  //
+  //The handle comes back ONLY when the other side had already said yes - the
+  //server decides that, not the app, and a null handle with revealed: false
+  //is the normal answer for whoever confirms first.
+  static Future<MatchConfirmation> confirmMatch(int matchId) async {
+    final response = await http.post(
+      Uri.parse("$baseUrl/matches/$matchId/confirm"),
+      headers: await _authHeaders(),
+    );
+    if (response.statusCode != 200) {
+      throw Exception("Failed to confirm match ${response.body}");
+    }
+    final Map<String, dynamic> data = jsonDecode(response.body);
+    return MatchConfirmation(
+      revealed: data['revealed'] ?? false,
+      otherName: data['name'] ?? '',
+      instagramHandle: data['instagram_handle'],
+    );
+  }
+
+  //Change your mind: the match is deleted and the like becomes a pass.
+  static Future<void> declineMatch(int matchId) async {
+    final response = await http.post(
+      Uri.parse("$baseUrl/matches/$matchId/decline"),
+      headers: await _authHeaders(),
+    );
+    if (response.statusCode != 200) {
+      throw Exception("Failed to decline match ${response.body}");
     }
   }
 

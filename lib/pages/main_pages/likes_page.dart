@@ -23,10 +23,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/models/liker_model.dart';
+import 'package:foitifinder/models/match_models.dart';
 import 'package:foitifinder/models/public_profile.dart';
+import 'package:foitifinder/pages/main_pages/match_page.dart';
 import 'package:foitifinder/pages/main_pages/profile_detail_page.dart';
 import 'package:foitifinder/services/api_services.dart';
-import 'package:foitifinder/widgets/app_dialog.dart';
 import 'package:foitifinder/widgets/photo_card.dart';
 
 //two across: big enough to recognise a face, small enough to scan a page of
@@ -120,17 +121,20 @@ class LikesPageState extends State<LikesPage> {
     }
   }
 
-  //Register the swipe, drop the tile, and celebrate a match.
+  //Register the swipe, drop the tile, and open the match.
   //
   //THE TILE GOES FIRST. A decision has been made either way, so leaving the
   //person on screen while the request is in flight invites a second tap on
   //someone already decided about.
+  //
+  //LIKING BACK FROM HERE ALWAYS COMPLETES A MATCH - everyone on this page has
+  //already liked you - so this is the main way the match page is reached.
   Future<void> _decide(LikerModel liker, String action) async {
     setState(() => _likes.removeWhere((l) => l.id == liker.id));
 
-    bool isMatch = false;
+    SwipeResult result = SwipeResult.none;
     try {
-      isMatch = await ApiService.registerSwipe(
+      result = await ApiService.registerSwipe(
         FirebaseAuth.instance.currentUser!.uid,
         liker.id,
         action,
@@ -140,14 +144,26 @@ class LikesPageState extends State<LikesPage> {
       //Both want a retry queue rather than two separate patches.
     }
 
-    if (!isMatch || !mounted) return;
-    showAppDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(text.itsAMatch),
-        content: Text("${text.matchText1}${liker.name}${text.matchText2}"),
+    final matchId = result.matchId;
+    //no match id means there is nothing to answer for yet, so there is nothing
+    //worth announcing either - see match_page.dart
+    if (!result.isMatch || matchId == null || !mounted) return;
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MatchPage(
+          matchId: matchId,
+          otherUserId: liker.id,
+          otherName: liker.name,
+          otherAge: liker.age,
+          otherPhotoUrl: liker.imageUrl,
+        ),
       ),
     );
+    //a decline deleted the match and withdrew the like, and an accept
+    //consumed it: either way this page's list is out of date
+    if (mounted) await loadLikes();
   }
 
   @override

@@ -7,11 +7,12 @@ import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/models/card_data_model.dart';
 import 'package:foitifinder/models/public_profile.dart';
+import 'package:foitifinder/models/match_models.dart';
+import 'package:foitifinder/pages/main_pages/match_page.dart';
 import 'package:foitifinder/pages/main_pages/profile_detail_page.dart';
 import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/photo_card.dart';
-import 'package:foitifinder/widgets/app_dialog.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({
@@ -172,26 +173,41 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     final card = cards[currentIndex];
     //animate first, register after: the card must never wait on the network
     _animateCardOut(1.0, card.name, true, fromButton: fromButton);
-    bool isMatch = false;
+    SwipeResult result = SwipeResult.none;
     try {
-      isMatch = await ApiService.registerSwipe(
+      result = await ApiService.registerSwipe(
         FirebaseAuth.instance.currentUser!.uid,
         card.id,
         "like",
       );
     } catch (_) {}
 
-    if (isMatch) {
-      if (!mounted) return;
-      showAppDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(text.itsAMatch),
-          content: Text("${text.matchText1}${card.name}${text.matchText2}"),
-        ),
-      );
-    }
+    await _openMatch(card, result);
   }
+  //A match opens the match page, not a dialog.
+  //
+  //The old dialog said "it's a match" and left: nothing was exchanged and
+  //there was nothing to do. The page is where this side answers for the match
+  //it just created - see match_page.dart - so a match that cannot be opened
+  //(an older backend sending no match_id) is better left alone than announced
+  //with no way to act on it.
+  Future<void> _openMatch(CardData card, SwipeResult result) async {
+    final matchId = result.matchId;
+    if (!result.isMatch || matchId == null || !mounted) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MatchPage(
+          matchId: matchId,
+          otherUserId: card.id,
+          otherName: card.name,
+          otherAge: card.age,
+          otherPhotoUrl: card.photos.isEmpty ? null : card.photos.first,
+        ),
+      ),
+    );
+  }
+
 
   void _swipeLeft({bool fromButton = false}) async {
     final card = cards[currentIndex];
@@ -216,25 +232,16 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       fromButton: fromButton,
       isSuperLike: true,
     );
-    bool isMatch = false;
+    SwipeResult result = SwipeResult.none;
     try {
-      isMatch = await ApiService.registerSwipe(
+      result = await ApiService.registerSwipe(
         FirebaseAuth.instance.currentUser!.uid,
         card.id,
         "super_like",
       );
     } catch (_) {}
 
-    if (isMatch) {
-      if (!mounted) return;
-      showAppDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(text.itsAMatch),
-          content: Text("${text.matchText1}${card.name}${text.matchText2}"),
-        ),
-      );
-    }
+    await _openMatch(card, result);
   }
 
   //This function handles the swiping animation

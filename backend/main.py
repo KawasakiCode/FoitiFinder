@@ -17,6 +17,7 @@ from preferences.preferences import preference_to_genders
 from university_domains import is_university_email, university_name_for_email
 from instagram import normalise_instagram_handle
 from ages import age_from_birthday, years_ago
+import logger
 
 load_dotenv()
 
@@ -684,6 +685,8 @@ def record_swipe(swipe: SwipeRequest, uid: str = Depends(verified_email_uid), db
     existing = query.first()
 
     is_match = False
+    #the row the two of them now share, when this swipe completed one
+    match_id = None
 
     if existing:
         #only write when the action actually changed (re-swiping the same way
@@ -734,6 +737,11 @@ def record_swipe(swipe: SwipeRequest, uid: str = Depends(verified_email_uid), db
                 db.add(new_match)
                 db.commit()
                 is_match = True
+                match_id = new_match.id
+            else:
+                #re-swiping the same way reaches here with the match already
+                #made; the client still needs its id to open the match page
+                match_id = existing_match.id
 
         #The following code is used to grab the target user's fcm token to be able to send 
         #a notification to them
@@ -742,27 +750,162 @@ def record_swipe(swipe: SwipeRequest, uid: str = Depends(verified_email_uid), db
         if not target_user:
             raise HTTPException(status_code=404, detail="Target User not found")
 
-        user_ref = firestore_db.collection('users').document(target_user.firebase_uid)
-        user_doc = user_ref.get()
+        #A MATCH IS NOT ANNOUNCED HERE ANY MORE. The person being liked only
+        #hears about it once the one who completed the match has confirmed on
+        #the match page (POST /matches/{id}/confirm) - until then there is
+        #nothing to tell them about, and telling them early would mean
+        #announcing matches that get declined seconds later.
+        #
+        #A like is still announced, and it is deliberately the same message
+        #whether or not it completed a match: "someone liked you" leaks
+        #nothing, while "it's a match" would say who.
+        #
+        #NOTHING HERE MAY FAIL THE SWIPE. The swipe is already committed, and
+        #this used to raise 404 when the target had no FCM token - so the
+        #caller was told the swipe failed, and never learned it was a match,
+        #for a reason that has nothing to do with the swipe.
+        if not is_match:
+            try:
+                send_smart_notification(target_user.firebase_uid, 'like', firestore_db)
+            except Exception as exc:
+                logger.warning("like notification failed: %s: %s",
+                               type(exc).__name__, exc)
 
-        if user_doc.exists:
-            user_data = user_doc.to_dict()
+    #match_id so the client can confirm or decline the match it just created.
+    #`data` keeps its name: older builds read it and only care whether it is
+    #a match at all.
+    return {"data": is_match, "match_id": match_id}
 
-            target_fcm_token = user_data.get('fcm_token')
+#THE TWO HALVES OF A MATCH. Mutual likes make the row; these decide whether
+#anything is actually exchanged.
+#
+#Both take the match id rather than a user id, and both check that the caller
+#is one of its two participants - a match is the only context in which these
+#two users are allowed to affect each other, so it is the match that is
+#addressed, not the person.
+def _match_for_participant(match_id: int, me: models.User, db: Session) -> models.Matches:
+    match = db.query(models.Matches).filter(models.Matches.id == match_id).first()
+    #the same 404 whether it does not exist or belongs to other people: a
+    #different answer for each would let anyone count other people's matches
+    if not match or me.id not in (match.user_a_id, match.user_b_id):
+        raise HTTPException(status_code=404, detail="Match not found")
+    return match
 
-            if target_fcm_token:
-                if is_match:
-                    notify_user_of_like_or_match(target_fcm_token, 'match')
-                    send_smart_notification(target_user.firebase_uid, 'match', firestore_db)
-                elif not is_match:
-                    notify_user_of_like_or_match(target_fcm_token, 'like')
-                    send_smart_notification(target_user.firebase_uid, 'like', firestore_db)
-                else: 
-                    raise HTTPException(status_code=404, detail="Target User not found")
-            else: 
-                raise HTTPException(status_code=404, detail="Target User not found")
 
-    return {"data": is_match}
+@app.post("/matches/{match_id}/confirm")
+def confirm_match(match_id: int, uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
+    """Say yes to a match, and get the other handle once both sides have.
+
+    IDEMPOTENT. A second call from the same user changes nothing and answers
+    the same thing - a retry after a dropped connection must not look like a
+    different decision, and the client cannot tell the two apart.
+    """
+    me = db.query(models.User).filter(models.User.firebase_uid == uid).first()
+    if not me:
+        raise HTTPException(status_code=404, detail="Current User not found")
+
+    match = _match_for_participant(match_id, me, db)
+    i_am_a = match.user_a_id == me.id
+    other_id = match.user_b_id if i_am_a else match.user_a_id
+
+    #whether they were already waiting decides what they get told below, so it
+    #is read BEFORE this confirmation is written
+    other_confirmed = match.a_confirmed_at if not i_am_a else match.b_confirmed_at
+
+    now = datetime.datetime.now(datetime.timezone.utc)
+    if i_am_a and match.a_confirmed_at is None:
+        match.a_confirmed_at = now
+    elif not i_am_a and match.b_confirmed_at is None:
+        match.b_confirmed_at = now
+    db.commit()
+
+    other = db.query(models.User).filter(models.User.id == other_id).first()
+    if not other:
+        #their account is gone, so there is nobody to exchange with
+        db.delete(match)
+        db.commit()
+        raise HTTPException(status_code=404, detail="Match not found")
+
+    #BOTH HANDLES HAVE TO EXIST for there to be an exchange. Setup refuses to
+    #let anyone past without one, but a row written before that page existed
+    #can still be NULL until its owner next opens the app - and an exchange
+    #that hands over nothing is worse than one that has not happened yet.
+    #Saying "not yet" keeps both confirmations on the row, so it completes on
+    #its own once the missing handle is filled in.
+    both_have_handles = bool(me.instagram_handle) and bool(other.instagram_handle)
+    revealed = other_confirmed is not None and both_have_handles
+
+    #The handle crosses between users HERE AND NOWHERE ELSE, and only when
+    #both of them have asked for it. Everything else about another user comes
+    #from /users/{id}/profile, which deliberately has no handle in it.
+    try:
+        send_smart_notification(
+            other.firebase_uid,
+            #they were waiting -> this completes it, and their copy of the
+            #handle arrives with the notification. Otherwise it is their turn.
+            'match_revealed' if revealed else 'match',
+            firestore_db,
+        )
+    except Exception as exc:
+        #a lost notification must not lose the confirmation that is already
+        #committed; the app asks the server for pending matches on launch
+        logger.warning("match notification failed: %s: %s", type(exc).__name__, exc)
+
+    return {
+        "revealed": revealed,
+        "name": other.name,
+        "instagram_handle": other.instagram_handle if revealed else None,
+    }
+
+
+@app.post("/matches/{match_id}/decline")
+def decline_match(match_id: int, uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
+    """Change your mind: the match is deleted and the like is withdrawn.
+
+    THE SWIPE IS TURNED INTO A PASS, not just the match deleted. The like that
+    created it would otherwise still stand, so the other side's likes page
+    would show this person as a fresh like (it re-surfaces anyone whose like
+    is newer than your own swipe) and the next re-swipe would rebuild the
+    match that was just refused.
+    """
+    me = db.query(models.User).filter(models.User.firebase_uid == uid).first()
+    if not me:
+        raise HTTPException(status_code=404, detail="Current User not found")
+
+    match = _match_for_participant(match_id, me, db)
+    i_am_a = match.user_a_id == me.id
+    other_id = match.user_b_id if i_am_a else match.user_a_id
+    #only somebody who already said yes is owed an answer - see below
+    other_confirmed = match.a_confirmed_at if not i_am_a else match.b_confirmed_at
+
+    db.query(models.UserSwipes).filter(
+        models.UserSwipes.user_id == me.id,
+        models.UserSwipes.target_id == other_id,
+    ).update(
+        {models.UserSwipes.action: "pass",
+         models.UserSwipes.timestamp: datetime.datetime.now(datetime.timezone.utc)},
+        synchronize_session=False,
+    )
+    db.delete(match)
+    db.commit()
+
+    #WHOEVER WAS WAITING GETS TOLD, and nobody else. Declining as the person
+    #who completed the match tells the other side nothing at all: they were
+    #never informed a match existed, so "someone matched with you and then
+    #changed their mind" would be news of a rejection they could not have
+    #seen coming. Declining when the other has already said yes is different -
+    #they are waiting on an answer and deserve one.
+    if other_confirmed is not None:
+        other = db.query(models.User).filter(models.User.id == other_id).first()
+        if other:
+            try:
+                send_smart_notification(other.firebase_uid, 'match_declined', firestore_db)
+            except Exception as exc:
+                logger.warning("decline notification failed: %s: %s",
+                               type(exc).__name__, exc)
+
+    return {"declined": True}
+
 
 #get single user by id
 #this one legitimately looks up ANOTHER user, but still requires a valid token so

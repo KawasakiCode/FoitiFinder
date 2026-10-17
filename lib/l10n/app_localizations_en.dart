@@ -1706,4 +1706,62 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get instagram => 'Instagram';
+
+  @override
+  String get matchTitle => 'It\'s a match';
+
+  @override
+  String matchBothLiked(String name) {
+    return 'You and $name liked each other.';
+  }
+
+  @override
+  String matchHowItWorks(String name) {
+    return 'FoitiFinder has no chat, so this carries on in your DMs. Share your Instagram and, if $name says yes too, you will each get the other\'s username.';
+  }
+
+  @override
+  String get matchShare => 'Share my Instagram';
+
+  @override
+  String get matchDecline => 'Not interested';
+
+  @override
+  String get matchViewProfile => 'View full profile';
+
+  @override
+  String get matchConfirmTitle => 'Share your Instagram?';
+
+  @override
+  String matchConfirmBody(String name, String handle) {
+    return '$name will see @$handle if they say yes too. This cannot be taken back.';
+  }
+
+  @override
+  String get matchConfirmAction => 'Yes, share it';
+
+  @override
+  String matchWaitingTitle(String name) {
+    return 'Waiting for $name';
+  }
+
+  @override
+  String matchWaitingBody(String name) {
+    return 'You said yes. If $name does too, you will get their username and they will get yours.';
+  }
+
+  @override
+  String get matchDone => 'Done';
+
+  @override
+  String get matchRevealedTitle => 'You\'re connected';
+
+  @override
+  String get matchCopy => 'Copy';
+
+  @override
+  String get matchCopied => 'Copied';
+
+  @override
+  String get matchOpenInstagram => 'Open Instagram';
 }

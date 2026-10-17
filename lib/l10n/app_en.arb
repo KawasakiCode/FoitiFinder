@@ -575,5 +575,59 @@
   "instagramPasteOk": "You can paste a link to your profile, we will sort it out.",
   "instagramInvalid": "That does not look like an Instagram username. Letters, numbers, full stops and underscores only.",
   "instagramRequiredNote": "Required, because without it a match has no way to continue.",
-  "instagram": "Instagram"
+  "instagram": "Instagram",
+  "matchTitle": "It's a match",
+  "matchBothLiked": "You and {name} liked each other.",
+  "@matchBothLiked": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "matchHowItWorks": "FoitiFinder has no chat, so this carries on in your DMs. Share your Instagram and, if {name} says yes too, you will each get the other's username.",
+  "@matchHowItWorks": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "matchShare": "Share my Instagram",
+  "matchDecline": "Not interested",
+  "matchViewProfile": "View full profile",
+  "matchConfirmTitle": "Share your Instagram?",
+  "matchConfirmBody": "{name} will see @{handle} if they say yes too. This cannot be taken back.",
+  "@matchConfirmBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "handle": {
+        "type": "String"
+      }
+    }
+  },
+  "matchConfirmAction": "Yes, share it",
+  "matchWaitingTitle": "Waiting for {name}",
+  "@matchWaitingTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "matchWaitingBody": "You said yes. If {name} does too, you will get their username and they will get yours.",
+  "@matchWaitingBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "matchDone": "Done",
+  "matchRevealedTitle": "You're connected",
+  "matchCopy": "Copy",
+  "matchCopied": "Copied",
+  "matchOpenInstagram": "Open Instagram"
 }

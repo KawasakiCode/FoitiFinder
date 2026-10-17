@@ -558,5 +558,21 @@
   "instagramPasteOk": "Μπορείς να επικολλήσεις και τον σύνδεσμο του προφίλ σου, το αναλαμβάνουμε.",
   "instagramInvalid": "Αυτό δεν μοιάζει με username του Instagram. Μόνο γράμματα, αριθμοί, τελείες και κάτω παύλες.",
   "instagramRequiredNote": "Απαιτείται, γιατί χωρίς αυτό ένα ταίριασμα δεν έχει πώς να συνεχίσει.",
-  "instagram": "Instagram"
+  "instagram": "Instagram",
+  "matchTitle": "Ταίριασμα!",
+  "matchBothLiked": "Εσύ και ο/η {name} κάνατε like ο ένας στον άλλον.",
+  "matchHowItWorks": "Το FoitiFinder δεν έχει chat, οπότε η συζήτηση συνεχίζεται στα DM σας. Μοιράσου το Instagram σου και, αν το κάνει και ο/η {name}, θα πάρετε το username ο ένας του άλλου.",
+  "matchShare": "Μοιράσου το Instagram μου",
+  "matchDecline": "Δεν με ενδιαφέρει",
+  "matchViewProfile": "Δες όλο το προφίλ",
+  "matchConfirmTitle": "Να μοιραστεί το Instagram σου;",
+  "matchConfirmBody": "Ο/Η {name} θα δει το @{handle} αν πει κι εκείνος/η ναι. Αυτό δεν μπορεί να αναιρεθεί.",
+  "matchConfirmAction": "Ναι, μοιράσου το",
+  "matchWaitingTitle": "Αναμονή για {name}",
+  "matchWaitingBody": "Είπες ναι. Αν πει ναι και ο/η {name}, θα πάρεις το username του/της και θα πάρει το δικό σου.",
+  "matchDone": "Έτοιμο",
+  "matchRevealedTitle": "Συνδεθήκατε",
+  "matchCopy": "Αντιγραφή",
+  "matchCopied": "Αντιγράφηκε",
+  "matchOpenInstagram": "Άνοιγμα Instagram"
 }

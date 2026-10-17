@@ -1713,4 +1713,62 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get instagram => 'Instagram';
+
+  @override
+  String get matchTitle => 'Ταίριασμα!';
+
+  @override
+  String matchBothLiked(String name) {
+    return 'Εσύ και ο/η $name κάνατε like ο ένας στον άλλον.';
+  }
+
+  @override
+  String matchHowItWorks(String name) {
+    return 'Το FoitiFinder δεν έχει chat, οπότε η συζήτηση συνεχίζεται στα DM σας. Μοιράσου το Instagram σου και, αν το κάνει και ο/η $name, θα πάρετε το username ο ένας του άλλου.';
+  }
+
+  @override
+  String get matchShare => 'Μοιράσου το Instagram μου';
+
+  @override
+  String get matchDecline => 'Δεν με ενδιαφέρει';
+
+  @override
+  String get matchViewProfile => 'Δες όλο το προφίλ';
+
+  @override
+  String get matchConfirmTitle => 'Να μοιραστεί το Instagram σου;';
+
+  @override
+  String matchConfirmBody(String name, String handle) {
+    return 'Ο/Η $name θα δει το @$handle αν πει κι εκείνος/η ναι. Αυτό δεν μπορεί να αναιρεθεί.';
+  }
+
+  @override
+  String get matchConfirmAction => 'Ναι, μοιράσου το';
+
+  @override
+  String matchWaitingTitle(String name) {
+    return 'Αναμονή για $name';
+  }
+
+  @override
+  String matchWaitingBody(String name) {
+    return 'Είπες ναι. Αν πει ναι και ο/η $name, θα πάρεις το username του/της και θα πάρει το δικό σου.';
+  }
+
+  @override
+  String get matchDone => 'Έτοιμο';
+
+  @override
+  String get matchRevealedTitle => 'Συνδεθήκατε';
+
+  @override
+  String get matchCopy => 'Αντιγραφή';
+
+  @override
+  String get matchCopied => 'Αντιγράφηκε';
+
+  @override
+  String get matchOpenInstagram => 'Άνοιγμα Instagram';
 }

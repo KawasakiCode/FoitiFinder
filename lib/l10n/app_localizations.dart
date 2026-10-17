@@ -3415,6 +3415,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Instagram'**
   String get instagram;
+
+  /// No description provided for @matchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s a match'**
+  String get matchTitle;
+
+  /// No description provided for @matchBothLiked.
+  ///
+  /// In en, this message translates to:
+  /// **'You and {name} liked each other.'**
+  String matchBothLiked(String name);
+
+  /// No description provided for @matchHowItWorks.
+  ///
+  /// In en, this message translates to:
+  /// **'FoitiFinder has no chat, so this carries on in your DMs. Share your Instagram and, if {name} says yes too, you will each get the other\'s username.'**
+  String matchHowItWorks(String name);
+
+  /// No description provided for @matchShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share my Instagram'**
+  String get matchShare;
+
+  /// No description provided for @matchDecline.
+  ///
+  /// In en, this message translates to:
+  /// **'Not interested'**
+  String get matchDecline;
+
+  /// No description provided for @matchViewProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'View full profile'**
+  String get matchViewProfile;
+
+  /// No description provided for @matchConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your Instagram?'**
+  String get matchConfirmTitle;
+
+  /// No description provided for @matchConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} will see @{handle} if they say yes too. This cannot be taken back.'**
+  String matchConfirmBody(String name, String handle);
+
+  /// No description provided for @matchConfirmAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, share it'**
+  String get matchConfirmAction;
+
+  /// No description provided for @matchWaitingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for {name}'**
+  String matchWaitingTitle(String name);
+
+  /// No description provided for @matchWaitingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You said yes. If {name} does too, you will get their username and they will get yours.'**
+  String matchWaitingBody(String name);
+
+  /// No description provided for @matchDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get matchDone;
+
+  /// No description provided for @matchRevealedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re connected'**
+  String get matchRevealedTitle;
+
+  /// No description provided for @matchCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get matchCopy;
+
+  /// No description provided for @matchCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get matchCopied;
+
+  /// No description provided for @matchOpenInstagram.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Instagram'**
+  String get matchOpenInstagram;
 }
 
 class _AppLocalizationsDelegate
