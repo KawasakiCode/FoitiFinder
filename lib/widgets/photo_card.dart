@@ -166,10 +166,23 @@ HeroFlightShuttleBuilder photoHeroShuttle({
             //has to be a direct child of a Stack, so it cannot be wrapped
             //individually. The inner stack expands, so the furniture sits
             //against the rect being flown and is where the source had it.
+            //
+            //AND A Material, WHICH IS NOT DECORATION. A flight is built in the
+            //navigator's overlay, which is outside the route - so it inherits
+            //no Scaffold and no Material, and a Text in there falls back to
+            //the framework's "put your text in a Material" style: yellow
+            //double underline, which is exactly what the likes tile's name did
+            //for the whole flight. A Text style MERGES onto the ambient one,
+            //so a style that sets colour and size still picks up that
+            //decoration. MaterialType.transparency adds a text style and
+            //nothing visible.
             if (furniture.isNotEmpty)
               Opacity(
                 opacity: fade.value,
-                child: Stack(fit: StackFit.expand, children: furniture),
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: Stack(fit: StackFit.expand, children: furniture),
+                ),
               ),
           ],
         ),
