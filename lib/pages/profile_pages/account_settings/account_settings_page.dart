@@ -11,9 +11,15 @@
 //detailed version (school, degree name) rather than the one-word answer an
 //account row would hold. One home per fact.
 //
-//Name, birthday, height and place of residence open a dialog, gender pushes
-//its own page, and email is not a button at all - the account is keyed on it,
-//so it must not be editable here.
+//Name, birthday, height, place of residence and the Instagram handle open a
+//dialog, gender pushes its own page, and email is not a button at all - the
+//account is keyed on it, so it must not be editable here.
+//
+//THE INSTAGRAM ROW HAS NO CLEAR OPTION, unlike place of residence. With no
+//chat in the app the handle is the entire payoff of a match, so emptying it
+//would quietly put the account back in the state SetupWrapper refuses to let
+//anyone leave setup in - and the next match would have nowhere to go. It can
+//be changed, never removed.
 //
 //SHOW FIRST, THEN SAVE. Every edit changes the row the moment the dialog
 //closes and the PATCH runs behind it - waiting on the network first made the
@@ -33,6 +39,7 @@ import 'package:foitifinder/pages/profile_pages/shared/prefecture_dialog.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/utils/age.dart';
+import 'package:foitifinder/utils/instagram_handle.dart';
 import 'package:foitifinder/widgets/app_dialog.dart';
 import 'package:foitifinder/widgets/nav_row.dart';
 import 'package:provider/provider.dart';
@@ -123,6 +130,14 @@ class AccountSettingsPage extends StatelessWidget {
                       ? ''
                       : catalogueLabel(text, user!.city!),
                   onTap: () => _editCity(context),
+                ),
+                //shown with the @ people read it with, stored without one
+                NavRow(
+                  label: text.instagram,
+                  trailing: user?.instagramHandle == null
+                      ? ''
+                      : '@${user!.instagramHandle!}',
+                  onTap: () => _editInstagram(context),
                 ),
                 //NOT a button: the Firebase account is keyed on this address
                 //and the university domain behind it is what proves the user
@@ -224,6 +239,33 @@ Future<void> _editName(BuildContext context) async {
   );
 }
 
+//Edit the Instagram handle.
+//
+//Same normaliser as the setup page and the backend, so a pasted profile link
+//becomes a handle here too and the three places cannot disagree. There is no
+//Clear action: the dialog can only return a valid handle, because the
+//normaliser turns anything else - including an empty box - into an error.
+Future<void> _editInstagram(BuildContext context) async {
+  final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+  final current = profileProvider.currentUser?.instagramHandle ?? '';
+
+  final result = await showAppDialog<String>(
+    context: context,
+    builder: (_) => _InstagramDialog(initial: current),
+  );
+
+  //null means dismissed
+  if (result == null || result == current || !context.mounted) return;
+
+  await saveProfileField<String?>(
+    context,
+    read: (u) => u.instagramHandle,
+    write: (u, value) => u.copyWith(instagramHandle: () => value),
+    value: result,
+    send: (uid) => ApiService.patchUser({'instagram_handle': result}),
+  );
+}
+
 //Edit the birthday with the same date picker, and the same bounds, as the
 //setup page: 18 years ago is the latest pickable date, so an under-age
 //birthday cannot be chosen at all.
@@ -305,6 +347,101 @@ Future<void> _editCity(BuildContext context) async {
 }
 
 //Text box for the name. Pops the trimmed name, or null when dismissed.
+//The handle dialog: prefilled with the current one, and it cannot return
+//nothing. Cancel and Save only - see the note at the top of the file for why
+//there is no Clear.
+class _InstagramDialog extends StatefulWidget {
+  final String initial;
+
+  const _InstagramDialog({required this.initial});
+
+  @override
+  State<_InstagramDialog> createState() => _InstagramDialogState();
+}
+
+class _InstagramDialogState extends State<_InstagramDialog> {
+  late final TextEditingController _controller;
+  bool _showError = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initial);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final handle = normaliseInstagramHandle(_controller.text);
+    //null covers an empty box, a half-typed handle and a pasted URL that
+    //turned out not to contain one. All of them are the same answer here: not
+    //yet something we can hand to a match.
+    if (handle == null) {
+      setState(() => _showError = true);
+      return;
+    }
+    Navigator.pop(context, handle);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final text = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+
+    return AlertDialog(
+      title: Text(text.instagram),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          //worth repeating here: this dialog may be opened months after
+          //setup, by someone who no longer remembers who ever sees this
+          Text(
+            text.instagramPrivacy,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _controller,
+            autofocus: true,
+            autocorrect: false,
+            enableSuggestions: false,
+            textCapitalization: TextCapitalization.none,
+            textInputAction: TextInputAction.done,
+            //a handle has no spaces; a pasted link has none either, so this
+            //never blocks legitimate input
+            inputFormatters: [FilteringTextInputFormatter.deny(' ')],
+            decoration: InputDecoration(
+              prefixText: '@',
+              hintText: text.instagramHint,
+              errorText: _showError ? text.instagramInvalid : null,
+              errorMaxLines: 3,
+            ),
+            //the error goes away as soon as they start fixing it
+            onChanged: (_) {
+              if (_showError) setState(() => _showError = false);
+            },
+            onSubmitted: (_) => _submit(),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(text.cancel),
+        ),
+        TextButton(onPressed: _submit, child: Text(text.save)),
+      ],
+    );
+  }
+}
+
 class _NameDialog extends StatefulWidget {
   final String initial;
 

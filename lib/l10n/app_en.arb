@@ -574,5 +574,6 @@
   "instagramHint": "your.username",
   "instagramPasteOk": "You can paste a link to your profile, we will sort it out.",
   "instagramInvalid": "That does not look like an Instagram username. Letters, numbers, full stops and underscores only.",
-  "instagramRequiredNote": "Required, because without it a match has no way to continue."
+  "instagramRequiredNote": "Required, because without it a match has no way to continue.",
+  "instagram": "Instagram"
 }

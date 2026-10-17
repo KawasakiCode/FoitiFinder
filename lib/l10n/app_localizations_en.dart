@@ -1703,4 +1703,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get instagramRequiredNote =>
       'Required, because without it a match has no way to continue.';
+
+  @override
+  String get instagram => 'Instagram';
 }

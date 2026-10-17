@@ -3409,6 +3409,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Required, because without it a match has no way to continue.'**
   String get instagramRequiredNote;
+
+  /// No description provided for @instagram.
+  ///
+  /// In en, this message translates to:
+  /// **'Instagram'**
+  String get instagram;
 }
 
 class _AppLocalizationsDelegate

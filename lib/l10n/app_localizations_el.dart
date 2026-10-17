@@ -1710,4 +1710,7 @@ class AppLocalizationsEl extends AppLocalizations {
   @override
   String get instagramRequiredNote =>
       'Απαιτείται, γιατί χωρίς αυτό ένα ταίριασμα δεν έχει πώς να συνεχίσει.';
+
+  @override
+  String get instagram => 'Instagram';
 }
