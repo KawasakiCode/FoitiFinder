@@ -1764,4 +1764,61 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get matchOpenInstagram => 'Open Instagram';
+
+  @override
+  String get noNotifications =>
+      'Nothing here yet. Matches and answers show up on this page.';
+
+  @override
+  String notifMatchWaitingTitle(String name) {
+    return '$name matched with you';
+  }
+
+  @override
+  String get notifMatchWaitingBody =>
+      'They have already said yes. Tap to decide whether to share your Instagram.';
+
+  @override
+  String notifMatchRevealedTitle(String name) {
+    return 'You\'re connected with $name';
+  }
+
+  @override
+  String get notifMatchRevealedBody =>
+      'You both said yes. Tap to see their Instagram.';
+
+  @override
+  String notifMatchDeclinedTitle(String name) {
+    return '$name didn\'t go ahead';
+  }
+
+  @override
+  String get notifMatchDeclinedBody =>
+      'Nothing was shared. Plenty more out there.';
+
+  @override
+  String get notifSomeone => 'Someone';
+
+  @override
+  String get notifJustNow => 'Just now';
+
+  @override
+  String notifMinutesAgo(int count) {
+    return '${count}m ago';
+  }
+
+  @override
+  String notifHoursAgo(int count) {
+    return '${count}h ago';
+  }
+
+  @override
+  String notifDaysAgo(int count) {
+    return '${count}d ago';
+  }
+
+  @override
+  String matchTheirTurn(String name) {
+    return '$name said yes';
+  }
 }

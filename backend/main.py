@@ -135,6 +135,28 @@ class MatchResponse(BaseModel):
     class Config:
         from_attributes = True
 
+#One row of the bell.
+#
+#NO INSTAGRAM HANDLE, and no text. The handle is only ever handed over by
+#/matches/{id}/confirm, so a notification list that carried it would be a
+#second, unguarded route to the same thing. The wording lives in the app,
+#where it is already translated - the server sends what happened, not how to
+#say it.
+class NotificationItem(BaseModel):
+    id: int
+    kind: str
+    #null when the match it referred to is gone, which is a notification with
+    #nothing to open
+    match_id: Optional[int] = None
+    other_user_id: Optional[int] = None
+    other_name: Optional[str] = None
+    other_photo_url: Optional[str] = None
+    created_at: datetime.datetime
+    read: bool
+
+    class Config:
+        from_attributes = True
+
 #class that sends swipe record data
 #NOTE: no firebase_uid — the swiper is taken from the verified ID token; only
 #the target (someone else) may come from the client
@@ -803,6 +825,95 @@ def _match_for_participant(match_id: int, me: models.User, db: Session) -> model
     return match
 
 
+def _notify(db: Session, user: models.User, kind: str, *,
+            match_id: int | None = None, other_user_id: int | None = None) -> None:
+    """Record a notification AND try to push it, in that order.
+
+    THE ROW IS THE DELIVERY, the push is a nudge. Firebase can be down, the
+    device can have no token, the user can have swiped the banner away before
+    reading it - none of which may lose the fact that something happened. The
+    row is written on the caller's session and committed with whatever else
+    the caller is doing, so a notification cannot exist without the change
+    that caused it, or the other way round.
+    """
+    db.add(models.Notifications(
+        user_id=user.id,
+        kind=kind,
+        match_id=match_id,
+        other_user_id=other_user_id,
+    ))
+    try:
+        send_smart_notification(user.firebase_uid, kind, firestore_db)
+    except Exception as exc:
+        #already recorded, so the app will show it on next launch regardless
+        logger.warning("push failed (%s): %s: %s", kind, type(exc).__name__, exc)
+
+
+#The bell in the app bar. Mine, newest first - see models.Notifications for
+#why this is a table and not a query over matches.
+@app.get("/notifications", response_model = List[NotificationItem])
+def get_notifications(uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
+    me = db.query(models.User).filter(models.User.firebase_uid == uid).first()
+    if not me:
+        raise HTTPException(status_code=404, detail="Current User not found")
+
+    Other = aliased(models.User)
+    rows = db.query(
+        models.Notifications,
+        Other.name.label("other_name"),
+        models.Photos.photo_url.label("other_photo_url"),
+    ).outerjoin(
+        Other, Other.id == models.Notifications.other_user_id
+    ).outerjoin(
+        #their profile picture, which is photo 0 - one join rather than a
+        #query per row
+        models.Photos,
+        and_(models.Photos.user_id == models.Notifications.other_user_id,
+             models.Photos.display_order == 0),
+    ).filter(
+        models.Notifications.user_id == me.id
+    ).order_by(models.Notifications.created_at.desc()).limit(100).all()
+
+    return [
+        {
+            "id": note.id,
+            "kind": note.kind,
+            #null once the match it pointed at is gone (a decline), which is
+            #how the app knows there is nothing to open
+            "match_id": note.match_id,
+            "other_user_id": note.other_user_id,
+            "other_name": other_name,
+            "other_photo_url": other_photo_url,
+            "created_at": note.created_at,
+            "read": note.read_at is not None,
+        }
+        for note, other_name, other_photo_url in rows
+    ]
+
+
+@app.post("/notifications/{notification_id}/read")
+def mark_notification_read(notification_id: int, uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
+    me = db.query(models.User).filter(models.User.firebase_uid == uid).first()
+    if not me:
+        raise HTTPException(status_code=404, detail="Current User not found")
+
+    #user_id in the filter, not just the id: without it anyone could mark
+    #anyone's notifications read by guessing numbers
+    note = db.query(models.Notifications).filter(
+        models.Notifications.id == notification_id,
+        models.Notifications.user_id == me.id,
+    ).first()
+    if not note:
+        raise HTTPException(status_code=404, detail="Notification not found")
+
+    #idempotent: the first read is the one that counts, and a second tap must
+    #not move the timestamp
+    if note.read_at is None:
+        note.read_at = datetime.datetime.now(datetime.timezone.utc)
+        db.commit()
+    return {"read": True}
+
+
 @app.post("/matches/{match_id}/confirm")
 def confirm_match(match_id: int, uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
     """Say yes to a match, and get the other handle once both sides have.
@@ -849,18 +960,17 @@ def confirm_match(match_id: int, uid: str = Depends(verified_email_uid), db: Ses
     #The handle crosses between users HERE AND NOWHERE ELSE, and only when
     #both of them have asked for it. Everything else about another user comes
     #from /users/{id}/profile, which deliberately has no handle in it.
-    try:
-        send_smart_notification(
-            other.firebase_uid,
-            #they were waiting -> this completes it, and their copy of the
-            #handle arrives with the notification. Otherwise it is their turn.
-            'match_revealed' if revealed else 'match',
-            firestore_db,
-        )
-    except Exception as exc:
-        #a lost notification must not lose the confirmation that is already
-        #committed; the app asks the server for pending matches on launch
-        logger.warning("match notification failed: %s: %s", type(exc).__name__, exc)
+    #
+    #They were waiting -> this completes it and their own reveal is in the
+    #bell. Otherwise it is their turn, and the same row is what gets them
+    #there whether or not the push arrives.
+    _notify(
+        db, other,
+        'match_revealed' if revealed else 'match',
+        match_id=match.id,
+        other_user_id=me.id,
+    )
+    db.commit()
 
     return {
         "revealed": revealed,
@@ -909,11 +1019,11 @@ def decline_match(match_id: int, uid: str = Depends(verified_email_uid), db: Ses
     if other_confirmed is not None:
         other = db.query(models.User).filter(models.User.id == other_id).first()
         if other:
-            try:
-                send_smart_notification(other.firebase_uid, 'match_declined', firestore_db)
-            except Exception as exc:
-                logger.warning("decline notification failed: %s: %s",
-                               type(exc).__name__, exc)
+            #match_id is deliberately left out: the row above has just been
+            #deleted, and a notification pointing at a match that no longer
+            #exists is how a dead end gets tapped
+            _notify(db, other, 'match_declined', other_user_id=me.id)
+            db.commit()
 
     return {"declined": True}
 

@@ -4,6 +4,7 @@
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:foitifinder/widgets/main_app_bar.dart';
 import 'package:foitifinder/constants/legal.dart';
 import 'package:foitifinder/pages/profile_pages/account_settings/account_settings_page.dart';
 import 'package:foitifinder/pages/profile_pages/date_preferences/date_preferences_page.dart';
@@ -158,20 +159,7 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        titleSpacing: 2,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-
-            Padding(
-              padding: const EdgeInsets.only(left: 10),
-              child: Text('FoitiFinder'),
-            ),
-          ],
-        ),
-      ),
+      appBar: const MainAppBar(title: 'FoitiFinder'),
       body: Column(
         children: [
           //Main row (pfp, name, age)

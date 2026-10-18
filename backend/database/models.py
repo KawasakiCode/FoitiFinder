@@ -160,6 +160,47 @@ class Matches(Base):
     a_confirmed_at = Column(TIMESTAMP(timezone=True), nullable = True)
     b_confirmed_at = Column(TIMESTAMP(timezone=True), nullable = True)
 
+class Notifications(Base):
+    """What the bell in the app bar shows: things that happened TO this user.
+
+    A TABLE RATHER THAN A QUERY, and that is the whole reason it exists. Most
+    of this is derivable from `matches` - a row with one side confirmed is "your
+    turn", both sides confirmed is "you are connected". A DECLINE IS NOT: it
+    deletes the match, so the only record that it ever happened would be a push
+    notification, which may never arrive and can be swiped away. Stored, the
+    app can be told the truth on next launch whatever FCM did.
+
+    This is also the "is anything waiting for me?" check: push is a nudge, and
+    this is the delivery.
+
+    LIKES ARE NOT IN HERE. They have their own page and their own badge; a bell
+    that fills up with "someone liked you" is a bell nobody reads. Only things
+    that need an answer, or carry the answer to one.
+    """
+    __tablename__ = "notifications"
+
+    id = Column(Integer, primary_key = True, nullable = False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable = False, index = True)
+
+    #'match' (someone is waiting on your answer), 'match_revealed' (you both
+    #said yes), 'match_declined' (the person you were waiting on said no).
+    #The same strings the FCM payload uses, so one vocabulary covers both.
+    kind = Column(String, nullable = False)
+
+    #What to open. SET NULL, NOT CASCADE: a declined match is deleted and this
+    #row has to outlive it - there is simply nothing left to open, which is
+    #exactly what a null says.
+    match_id = Column(Integer, ForeignKey("matches.id", ondelete="SET NULL"), nullable = True)
+    #Who it is about, for the name and face in the list. SET NULL again: a
+    #deleted account leaves the notification readable rather than vanishing.
+    other_user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable = True)
+
+    created_at = Column(TIMESTAMP(timezone=True), nullable = False, server_default = text('now()'))
+    #NULL until opened. A timestamp rather than a flag, because "when did they
+    #see this" is the thing anyone ever asks afterwards.
+    read_at = Column(TIMESTAMP(timezone=True), nullable = True)
+
+
 class Photos(Base):
     __tablename__ = "photos"
 

@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/pages/auth_pages/login.dart';
+import 'package:foitifinder/providers/notifications_provider.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/theme/app_theme.dart';
 import 'package:foitifinder/wrappers/auth_wrapper.dart';
@@ -38,6 +39,9 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => SettingsProvider(prefs)),
         ChangeNotifierProvider(create: (_) => ProfileProvider(prefs)),
+        //the bell is in the app bar of every main page, so its list lives
+        //above all of them rather than being fetched three times
+        ChangeNotifierProvider(create: (_) => NotificationsProvider()),
       ],
       child: const FoitiFinder(),
     ),

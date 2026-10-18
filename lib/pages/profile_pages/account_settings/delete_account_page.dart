@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:foitifinder/providers/notifications_provider.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:foitifinder/services/api_services.dart';
@@ -48,6 +49,10 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
 
     final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
     final settings = Provider.of<SettingsProvider>(context, listen: false);
+    final notifications = Provider.of<NotificationsProvider>(
+      context,
+      listen: false,
+    );
 
     final user = FirebaseAuth.instance.currentUser!;
     final password = _passwordController.text.trim();
@@ -97,6 +102,7 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
       // Clear user from SharedPreferences and Provider
       await settings.clearData();
       await profileProvider.clearData();
+      notifications.clear();
       if (!mounted) return;
       Navigator.of(context).popUntil((route) => route.isFirst);
 

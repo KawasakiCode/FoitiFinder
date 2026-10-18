@@ -574,5 +574,18 @@
   "matchRevealedTitle": "Συνδεθήκατε",
   "matchCopy": "Αντιγραφή",
   "matchCopied": "Αντιγράφηκε",
-  "matchOpenInstagram": "Άνοιγμα Instagram"
+  "matchOpenInstagram": "Άνοιγμα Instagram",
+  "noNotifications": "Δεν υπάρχει κάτι ακόμα. Τα ταιριάσματα και οι απαντήσεις εμφανίζονται εδώ.",
+  "notifMatchWaitingTitle": "Ο/Η {name} ταίριαξε μαζί σου",
+  "notifMatchWaitingBody": "Έχει πει ήδη ναι. Πάτα για να αποφασίσεις αν θα μοιραστείς το Instagram σου.",
+  "notifMatchRevealedTitle": "Συνδεθήκατε με {name}",
+  "notifMatchRevealedBody": "Είπατε και οι δύο ναι. Πάτα για να δεις το Instagram.",
+  "notifMatchDeclinedTitle": "Ο/Η {name} δεν προχώρησε",
+  "notifMatchDeclinedBody": "Δεν μοιράστηκε τίποτα. Υπάρχουν πολλοί ακόμα.",
+  "notifSomeone": "Κάποιος",
+  "notifJustNow": "Μόλις τώρα",
+  "notifMinutesAgo": "{count} λ πριν",
+  "notifHoursAgo": "{count} ώ πριν",
+  "notifDaysAgo": "{count} μ πριν",
+  "matchTheirTurn": "Ο/Η {name} είπε ναι"
 }

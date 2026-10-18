@@ -54,6 +54,17 @@ class MatchPage extends StatefulWidget {
   final String otherName;
   final int? otherAge;
   final String? otherPhotoUrl;
+  //TRUE FOR THE OTHER SIDE OF THE MATCH. They did not just swipe - they liked
+  //this person a while ago, somebody else completed the match, and a
+  //notification brought them here. Two things change: they are allowed to
+  //leave without answering (nothing is committed either way, and the match
+  //expires on its own), and the page says who is waiting rather than
+  //announcing a match they already know about.
+  final bool fromNotification;
+  //The exchange is already done and this is the handle being collected. The
+  //page asks the server for it on open - confirm is idempotent, so a second
+  //yes from the same person changes nothing and answers with the handle.
+  final bool openRevealed;
 
   const MatchPage({
     super.key,
@@ -62,6 +73,8 @@ class MatchPage extends StatefulWidget {
     required this.otherName,
     this.otherAge,
     this.otherPhotoUrl,
+    this.fromNotification = false,
+    this.openRevealed = false,
   });
 
   @override
@@ -84,6 +97,30 @@ class _MatchPageState extends State<MatchPage> {
     Future.delayed(_kButtonsArmAfter, () {
       if (mounted) setState(() => _armed = true);
     });
+    if (widget.openRevealed) _collectRevealed();
+  }
+
+  //Opened from a "you're connected" notification: ask for the handle rather
+  //than asking the user to confirm something they already confirmed.
+  Future<void> _collectRevealed() async {
+    setState(() => _busy = true);
+    try {
+      final result = await ApiService.confirmMatch(widget.matchId);
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        //still not revealed means the other side has since declined, or one
+        //of the handles is missing - the waiting copy is the honest answer
+        _stage = result.revealed ? _Stage.revealed : _Stage.waiting;
+        _theirHandle = result.instagramHandle;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _busy = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(text.errorOccured)));
+    }
   }
 
   //The user's own handle, to name in the confirm dialog. Already required and
@@ -204,12 +241,17 @@ class _MatchPageState extends State<MatchPage> {
     final photoHeight =
         MediaQuery.sizeOf(context).height * _kMatchPhotoFraction;
 
-    //NO WAY OUT BUT AN ANSWER while the decision is open. The match row
-    //already exists - it was created by the swipe that opened this page - so a
-    //back gesture here would leave it unanswered and the other person waiting
-    //on somebody who has moved on. Once answered, back works normally.
+    //NO WAY OUT BUT AN ANSWER, for the side that just swiped. The match row
+    //was created by that swipe, so backing out would leave it unanswered and
+    //the other person waiting on somebody who has moved on.
+    //
+    //The side that arrives from a notification is the opposite case: the match
+    //has been sitting there anyway, they were interrupted to look at it, and
+    //trapping them in a page they did not choose to open is not the way to ask
+    //for an Instagram handle. Leaving means the match keeps waiting, and it
+    //expires on its own.
     return PopScope(
-      canPop: _stage != _Stage.decide,
+      canPop: widget.fromNotification || _stage != _Stage.decide,
       child: Scaffold(
         body: Column(
           children: [
@@ -241,7 +283,12 @@ class _MatchPageState extends State<MatchPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(text.matchTitle, style: theme.textTheme.headlineSmall),
+        Text(
+          //arriving from a notification, the news is that THEY said yes - the
+          //match itself is not news any more
+          widget.fromNotification ? text.matchTheirTurn(name) : text.matchTitle,
+          style: theme.textTheme.headlineSmall,
+        ),
         const SizedBox(height: 4),
         Text(who, style: theme.textTheme.titleMedium),
         const SizedBox(height: 16),

@@ -1771,4 +1771,61 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get matchOpenInstagram => 'Άνοιγμα Instagram';
+
+  @override
+  String get noNotifications =>
+      'Δεν υπάρχει κάτι ακόμα. Τα ταιριάσματα και οι απαντήσεις εμφανίζονται εδώ.';
+
+  @override
+  String notifMatchWaitingTitle(String name) {
+    return 'Ο/Η $name ταίριαξε μαζί σου';
+  }
+
+  @override
+  String get notifMatchWaitingBody =>
+      'Έχει πει ήδη ναι. Πάτα για να αποφασίσεις αν θα μοιραστείς το Instagram σου.';
+
+  @override
+  String notifMatchRevealedTitle(String name) {
+    return 'Συνδεθήκατε με $name';
+  }
+
+  @override
+  String get notifMatchRevealedBody =>
+      'Είπατε και οι δύο ναι. Πάτα για να δεις το Instagram.';
+
+  @override
+  String notifMatchDeclinedTitle(String name) {
+    return 'Ο/Η $name δεν προχώρησε';
+  }
+
+  @override
+  String get notifMatchDeclinedBody =>
+      'Δεν μοιράστηκε τίποτα. Υπάρχουν πολλοί ακόμα.';
+
+  @override
+  String get notifSomeone => 'Κάποιος';
+
+  @override
+  String get notifJustNow => 'Μόλις τώρα';
+
+  @override
+  String notifMinutesAgo(int count) {
+    return '$count λ πριν';
+  }
+
+  @override
+  String notifHoursAgo(int count) {
+    return '$count ώ πριν';
+  }
+
+  @override
+  String notifDaysAgo(int count) {
+    return '$count μ πριν';
+  }
+
+  @override
+  String matchTheirTurn(String name) {
+    return 'Ο/Η $name είπε ναι';
+  }
 }

@@ -27,6 +27,7 @@ import 'package:foitifinder/models/public_profile.dart';
 import 'package:foitifinder/pages/main_pages/match_page.dart';
 import 'package:foitifinder/pages/main_pages/profile_detail_page.dart';
 import 'package:foitifinder/services/api_services.dart';
+import 'package:foitifinder/widgets/main_app_bar.dart';
 import 'package:foitifinder/widgets/photo_card.dart';
 import 'package:foitifinder/widgets/profile_photo.dart';
 
@@ -169,10 +170,7 @@ class LikesPageState extends State<LikesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: true,
-        title: const Text("FoitiFinder"),
-      ),
+      appBar: const MainAppBar(title: "FoitiFinder"),
       body: RefreshIndicator(onRefresh: loadLikes, child: _buildBody()),
     );
   }

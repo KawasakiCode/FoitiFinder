@@ -629,5 +629,67 @@
   "matchRevealedTitle": "You're connected",
   "matchCopy": "Copy",
   "matchCopied": "Copied",
-  "matchOpenInstagram": "Open Instagram"
+  "matchOpenInstagram": "Open Instagram",
+  "noNotifications": "Nothing here yet. Matches and answers show up on this page.",
+  "notifMatchWaitingTitle": "{name} matched with you",
+  "@notifMatchWaitingTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifMatchWaitingBody": "They have already said yes. Tap to decide whether to share your Instagram.",
+  "notifMatchRevealedTitle": "You're connected with {name}",
+  "@notifMatchRevealedTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifMatchRevealedBody": "You both said yes. Tap to see their Instagram.",
+  "notifMatchDeclinedTitle": "{name} didn't go ahead",
+  "@notifMatchDeclinedTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifMatchDeclinedBody": "Nothing was shared. Plenty more out there.",
+  "notifSomeone": "Someone",
+  "notifJustNow": "Just now",
+  "notifMinutesAgo": "{count}m ago",
+  "@notifMinutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notifHoursAgo": "{count}h ago",
+  "@notifHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notifDaysAgo": "{count}d ago",
+  "@notifDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "matchTheirTurn": "{name} said yes",
+  "@matchTheirTurn": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -34,6 +34,7 @@ import 'package:foitifinder/l10n/catalogue_labels.dart';
 import 'package:foitifinder/pages/profile_pages/account_settings/delete_account_page.dart';
 import 'package:foitifinder/pages/profile_pages/account_settings/gender_page.dart';
 import 'package:foitifinder/pages/profile_pages/shared/save_profile_field.dart';
+import 'package:foitifinder/providers/notifications_provider.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/pages/profile_pages/shared/prefecture_dialog.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
@@ -169,6 +170,12 @@ class AccountSettingsPage extends StatelessWidget {
                       context,
                       listen: false,
                     ).clearData();
+                    if (!context.mounted) return;
+                    //the next account must not inherit this one's bell
+                    Provider.of<NotificationsProvider>(
+                      context,
+                      listen: false,
+                    ).clear();
                     if (!context.mounted) return;
                     Navigator.of(
                       context,

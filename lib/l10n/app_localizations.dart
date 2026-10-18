@@ -3511,6 +3511,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open Instagram'**
   String get matchOpenInstagram;
+
+  /// No description provided for @noNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here yet. Matches and answers show up on this page.'**
+  String get noNotifications;
+
+  /// No description provided for @notifMatchWaitingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} matched with you'**
+  String notifMatchWaitingTitle(String name);
+
+  /// No description provided for @notifMatchWaitingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'They have already said yes. Tap to decide whether to share your Instagram.'**
+  String get notifMatchWaitingBody;
+
+  /// No description provided for @notifMatchRevealedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re connected with {name}'**
+  String notifMatchRevealedTitle(String name);
+
+  /// No description provided for @notifMatchRevealedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You both said yes. Tap to see their Instagram.'**
+  String get notifMatchRevealedBody;
+
+  /// No description provided for @notifMatchDeclinedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} didn\'t go ahead'**
+  String notifMatchDeclinedTitle(String name);
+
+  /// No description provided for @notifMatchDeclinedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was shared. Plenty more out there.'**
+  String get notifMatchDeclinedBody;
+
+  /// No description provided for @notifSomeone.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone'**
+  String get notifSomeone;
+
+  /// No description provided for @notifJustNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Just now'**
+  String get notifJustNow;
+
+  /// No description provided for @notifMinutesAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}m ago'**
+  String notifMinutesAgo(int count);
+
+  /// No description provided for @notifHoursAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}h ago'**
+  String notifHoursAgo(int count);
+
+  /// No description provided for @notifDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}d ago'**
+  String notifDaysAgo(int count);
+
+  /// No description provided for @matchTheirTurn.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} said yes'**
+  String matchTheirTurn(String name);
 }
 
 class _AppLocalizationsDelegate

@@ -12,6 +12,7 @@ import 'package:foitifinder/pages/main_pages/match_page.dart';
 import 'package:foitifinder/pages/main_pages/profile_detail_page.dart';
 import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/theme/app_colors.dart';
+import 'package:foitifinder/widgets/main_app_bar.dart';
 import 'package:foitifinder/widgets/photo_card.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -382,18 +383,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        appBar: AppBar(
-          titleSpacing: 2,
-          automaticallyImplyLeading: widget.automaticallyImplyLeading,
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 10),
-                child: Text(widget.title),
-              ),
-            ],
-          ),
+        appBar: MainAppBar(
+          title: widget.title,
+          showBack: widget.automaticallyImplyLeading,
         ),
         body: Column(
           children: [

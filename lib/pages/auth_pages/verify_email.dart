@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/pages/sign_up_set_up/instagram_page.dart';
+import 'package:foitifinder/providers/notifications_provider.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:foitifinder/services/api_services.dart';
@@ -157,6 +158,10 @@ class _VerifyEmailState extends State<VerifyEmail> with WidgetsBindingObserver {
     final profileProvider =
         Provider.of<ProfileProvider>(context, listen: false);
     final settings = Provider.of<SettingsProvider>(context, listen: false);
+    final notifications = Provider.of<NotificationsProvider>(
+      context,
+      listen: false,
+    );
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
@@ -184,6 +189,7 @@ class _VerifyEmailState extends State<VerifyEmail> with WidgetsBindingObserver {
       //clear cached profile/settings so a later login can't read stale data
       await settings.clearData();
       await profileProvider.clearData();
+      notifications.clear();
       //authStateChanges -> AuthWrapper -> LoginPage (this page is its content)
     } catch (e) {
       if (!mounted) return;

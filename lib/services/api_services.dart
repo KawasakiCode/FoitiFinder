@@ -6,6 +6,7 @@ import 'package:foitifinder/models/card_data_model.dart';
 import 'package:foitifinder/models/liker_model.dart';
 import 'package:foitifinder/models/matches_model.dart';
 import 'package:foitifinder/models/match_models.dart';
+import 'package:foitifinder/models/notification_model.dart';
 import 'package:foitifinder/models/photos_model.dart';
 import 'package:foitifinder/models/public_profile.dart';
 import 'package:foitifinder/models/settings_model.dart';
@@ -448,6 +449,32 @@ class ApiService {
       otherName: data['name'] ?? '',
       instagramHandle: data['instagram_handle'],
     );
+  }
+
+  //The bell's list, newest first.
+  static Future<List<AppNotification>> getNotifications() async {
+    final response = await http.get(
+      Uri.parse("$baseUrl/notifications"),
+      headers: await _authHeaders(),
+    );
+    if (response.statusCode != 200) {
+      throw Exception("Failed to load notifications ${response.body}");
+    }
+    final List<dynamic> data = jsonDecode(response.body);
+    return data
+        .map((json) => AppNotification.fromJson(json as Map<String, dynamic>))
+        .toList();
+  }
+
+  //Mark one as read. Idempotent on the server, so a retry is free.
+  static Future<void> markNotificationRead(int id) async {
+    final response = await http.post(
+      Uri.parse("$baseUrl/notifications/$id/read"),
+      headers: await _authHeaders(),
+    );
+    if (response.statusCode != 200) {
+      throw Exception("Failed to mark notification read ${response.body}");
+    }
   }
 
   //Change your mind: the match is deleted and the like becomes a pass.

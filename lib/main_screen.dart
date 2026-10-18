@@ -8,6 +8,7 @@ import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/pages/main_pages/home_page.dart';
 import 'package:foitifinder/pages/main_pages/profile_page.dart';
 import 'package:foitifinder/pages/main_pages/likes_page.dart';
+import 'package:foitifinder/providers/notifications_provider.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:provider/provider.dart';
@@ -70,6 +71,14 @@ class _MainScreenState extends State<MainScreen> {
       if (message.data['type'] == 'new_like') {
         _likesPageKey.currentState?.loadLikes();
       }
+      //ANYTHING ABOUT A MATCH REFRESHES THE BELL, whatever the kind. The row
+      //is already on the server by the time this arrives (see _notify in
+      //main.py), so this only pulls it forward - the same call on launch is
+      //what makes the flow survive a push that never shows up.
+      final kind = message.data['type'] as String?;
+      if (kind != null && kind.startsWith('match')) {
+        _notificationsProvider.load();
+      }
     });
 
     //after build has finished cache the users pfp so it loads faster 
@@ -102,12 +111,20 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
+  NotificationsProvider get _notificationsProvider =>
+      Provider.of<NotificationsProvider>(context, listen: false);
+
   Future<void> _runBgTasks() async {
     final settingsProv = Provider.of<SettingsProvider>(context, listen: false);
     final profileProv = Provider.of<ProfileProvider>(context, listen: false);
 
     settingsProv.fetchSettingsFromApi(widget.uid);
     profileProv.fetchUserFromApi(widget.uid);
+    //THE LAUNCH CHECK. A match waiting on this user reaches them here even if
+    //the push was never delivered, dismissed, or killed by the OS - which is
+    //the whole reason notifications are a table on the server rather than a
+    //push and nothing else.
+    _notificationsProvider.load();
 
     if (mounted) {
       final user = profileProv.currentUser;
