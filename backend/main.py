@@ -341,6 +341,27 @@ def get_swipe_feed(uid: str = Depends(verified_email_uid), db: Session = Depends
 
     seen_ids_list.append(me.id)
 
+    #WHOEVER LIKED YOU IS NOT IN THE DECK. They are on the likes page, and
+    #that is the only place they should be decided about.
+    #
+    #This is not about keeping a surprise. A card in the deck can be passed
+    #with a flick, and a pass is written with a newer timestamp than their
+    #like - which is exactly what makes the likes query stop surfacing them.
+    #So the deck could silently consume a guaranteed match that the user was
+    #never told was on offer. Nobody can make an informed decision about
+    #someone whose interest is hidden from them at the moment they decide.
+    #
+    #A pass FROM them is deliberately not excluded: it costs a card in the
+    #deck, but hiding people who have already passed on you is a different
+    #decision (it would make an empty deck mean "everyone said no") and worth
+    #making on purpose rather than as a side effect of this.
+    liked_me_ids = [
+        x[0] for x in db.query(models.UserSwipes.user_id).filter(
+            models.UserSwipes.target_id == me.id,
+            models.UserSwipes.action.in_(["like", "super_like"]),
+        ).all()
+    ]
+
     #base filter: skip yourself and anyone already swiped.
     #
     #There USED to be a score band here - candidates had to sit within +-1.5 of
@@ -349,7 +370,7 @@ def get_swipe_feed(uid: str = Depends(verified_email_uid), db: Session = Depends
     #could have placed itself in anyone's band. Ranking belongs in the ORDER BY,
     #computed per viewer - see the note in the matching design.
     filters = [
-        models.User.id.notin_(seen_ids_list),
+        models.User.id.notin_(seen_ids_list + liked_me_ids),
     ]
 
     #Age range filter, always applied - the range the user picked is the range

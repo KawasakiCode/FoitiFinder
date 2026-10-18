@@ -14,6 +14,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 //cancelled = user backed out of the picker (no error to show).
 enum ProfilePictureUpdate { success, cancelled, failed }
 
+//which API the cached profile was fetched from - see loadUser
+const String _originKey = 'user_data_origin';
+
 class ProfileProvider extends ChangeNotifier {
   final SharedPreferences _prefs; 
   File? _tempprofileImage; //to preview updates and check for changes
@@ -41,6 +44,18 @@ class ProfileProvider extends ChangeNotifier {
     //already have the user in memory (e.g. just registered during signup) ->
     //nothing to load, and crucially nothing to 404 on
     if (_currentUser != null) return;
+
+    //THE CACHE BELONGS TO ONE BACKEND. SharedPreferences is per device, not
+    //per database, so pointing the app at a different API leaves the previous
+    //one's profile on disk and the app cannot tell: switching between a local
+    //backend and the deployed one showed the other world's account, and
+    //SetupWrapper routed off it - asking again for an Instagram handle that is
+    //saved in the database it is NOT currently talking to.
+    final cachedOrigin = _prefs.getString(_originKey);
+    if (cachedOrigin != null && cachedOrigin != ApiService.baseUrl) {
+      _prefs.remove('user_data');
+      _prefs.remove(_originKey);
+    }
 
     String? userJson = _prefs.getString('user_data');
 
@@ -78,6 +93,8 @@ class ProfileProvider extends ChangeNotifier {
       notifyListeners();
 
       await _prefs.setString('user_data', jsonEncode(user.toMap()));
+      //stamped with where it came from, so the check in loadUser can tell
+      await _prefs.setString(_originKey, ApiService.baseUrl);
     }
   }
 

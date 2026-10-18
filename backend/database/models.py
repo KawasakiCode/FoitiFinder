@@ -234,4 +234,19 @@ class UserSwipes(Base):
     target_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     action = Column(String) #like, pass or super like
     timestamp = Column(TIMESTAMP(timezone = True), nullable = False, server_default = text('now()'))
+
+    #THE TWO DIRECTIONS THIS TABLE IS READ IN, and until now neither had an
+    #index - only `id`, twice, which no query filters on.
+    #
+    #  (user_id, target_id)  "what have I done" - the feed's exclusion list,
+    #                        and the outgoing side of the likes query
+    #  (target_id, action)   "who liked ME" - the likes page, and the feed
+    #                        exclusion that keeps those people out of the deck
+    #
+    #Both are read on every feed request, which is the single hottest query in
+    #the app, and both grow with every swipe anyone ever makes.
+    __table_args__ = (
+        Index("ix_user_swipes_user_target", "user_id", "target_id"),
+        Index("ix_user_swipes_target_action", "target_id", "action"),
+    )
     
