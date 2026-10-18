@@ -35,22 +35,29 @@ class AppNotification {
   final String? otherPhotoUrl;
   final DateTime createdAt;
   final bool read;
+  //WHETHER THERE IS STILL SOMETHING TO DO, decided by the server from the
+  //match this points at - not guessed here from the kind. "Someone is waiting
+  //on your answer" stops being true the moment you answer, and this row does
+  //not change when you do; inferring it in the app reopened a decision that
+  //had already been made, with a decline button that then deleted a finished
+  //match.
+  final bool actionable;
 
   const AppNotification({
     required this.id,
     required this.kind,
     required this.createdAt,
     required this.read,
+    required this.actionable,
     this.matchId,
     this.otherUserId,
     this.otherName,
     this.otherPhotoUrl,
   });
 
-  //only a kind that points at something still alive can be tapped through
-  bool get isActionable => matchId != null && otherUserId != null &&
-      (kind == NotificationKind.matchWaiting ||
-          kind == NotificationKind.matchRevealed);
+  //the server says whether it leads anywhere; this only adds what the page
+  //needs to actually open it
+  bool get canOpen => actionable && matchId != null && otherUserId != null;
 
   AppNotification asRead() => AppNotification(
     id: id,
@@ -61,6 +68,7 @@ class AppNotification {
     otherPhotoUrl: otherPhotoUrl,
     createdAt: createdAt,
     read: true,
+    actionable: actionable,
   );
 
   factory AppNotification.fromJson(Map<String, dynamic> json) {
@@ -75,6 +83,9 @@ class AppNotification {
           DateTime.tryParse(json['created_at'] as String? ?? '')?.toLocal() ??
           DateTime.now(),
       read: json['read'] as bool? ?? false,
+      //absent from a backend older than this field: assume there is nothing
+      //to open rather than offering a tap that lands on a stale page
+      actionable: json['actionable'] as bool? ?? false,
     );
   }
 }

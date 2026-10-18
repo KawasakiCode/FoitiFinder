@@ -52,7 +52,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     //dims immediately, request behind it
     await provider.markRead(note);
 
-    if (!note.isActionable || !mounted) return;
+    if (!note.canOpen || !mounted) return;
 
     await Navigator.push(
       context,
@@ -188,9 +188,11 @@ class _NotificationRow extends StatelessWidget {
     return Opacity(
       opacity: note.read ? _kReadOpacity : 1,
       child: ListTile(
-        //a declined match has nothing left to open, so it does not pretend to
-        //be tappable - it is a statement
-        onTap: note.isActionable || !note.read ? onTap : null,
+        //SPENT NOTIFICATIONS ARE NOT TAPPABLE. A match already answered, a
+        //declined one, an account that is gone - all of them lead nowhere, so
+        //the row stops behaving like a link. An unread one still takes a tap,
+        //because that is how it gets marked read.
+        onTap: note.canOpen || !note.read ? onTap : null,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: SizedBox(
           width: 52,

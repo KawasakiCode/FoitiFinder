@@ -153,6 +153,12 @@ class NotificationItem(BaseModel):
     other_photo_url: Optional[str] = None
     created_at: datetime.datetime
     read: bool
+    #WHETHER THERE IS STILL SOMETHING TO DO. Computed from the match it points
+    #at, not from the kind: "someone is waiting on your answer" stops being
+    #true the moment you answer, and the notification saying it does not
+    #change. The app uses this to decide whether the row opens anything, so a
+    #spent notification cannot reopen a decision that has already been made.
+    actionable: bool
 
     class Config:
         from_attributes = True
@@ -895,6 +901,34 @@ def get_notifications(uid: str = Depends(verified_email_uid), db: Session = Depe
         models.Notifications.user_id == me.id
     ).order_by(models.Notifications.created_at.desc()).limit(100).all()
 
+    #the matches these point at, in one query rather than one per row
+    match_ids = {note.match_id for note, _, _ in rows if note.match_id}
+    matches = {
+        match.id: match
+        for match in db.query(models.Matches).filter(
+            models.Matches.id.in_(match_ids)
+        ).all()
+    } if match_ids else {}
+
+    def actionable(note: models.Notifications) -> bool:
+        """Is there still anything to do about this?"""
+        match = matches.get(note.match_id) if note.match_id else None
+        #the match is gone: declined, or one of the accounts was deleted. The
+        #notification stays as a record, but there is nothing behind it.
+        if match is None:
+            return False
+        if note.kind == 'match':
+            #"they are waiting on you" - true only until you answer. Answering
+            #does not change this row, so the row cannot be what decides.
+            mine = (match.a_confirmed_at if match.user_a_id == me.id
+                    else match.b_confirmed_at)
+            return mine is None
+        if note.kind == 'match_revealed':
+            #the way back to a handle you have already earned
+            return True
+        #a decline is a statement; there is nowhere to go
+        return False
+
     return [
         {
             "id": note.id,
@@ -907,6 +941,7 @@ def get_notifications(uid: str = Depends(verified_email_uid), db: Session = Depe
             "other_photo_url": other_photo_url,
             "created_at": note.created_at,
             "read": note.read_at is not None,
+            "actionable": actionable(note),
         }
         for note, other_name, other_photo_url in rows
     ]
@@ -1019,6 +1054,19 @@ def decline_match(match_id: int, uid: str = Depends(verified_email_uid), db: Ses
     other_id = match.user_b_id if i_am_a else match.user_a_id
     #only somebody who already said yes is owed an answer - see below
     other_confirmed = match.a_confirmed_at if not i_am_a else match.b_confirmed_at
+    mine_confirmed = match.a_confirmed_at if i_am_a else match.b_confirmed_at
+
+    #A REVEALED MATCH CANNOT BE DECLINED. Once both sides have said yes the
+    #handles have been handed over, and nothing can take back something
+    #somebody has already read - so deleting the row here would destroy the
+    #only record of a connection that genuinely happened, and turn the like
+    #that made it into a pass. It is also how an already-answered
+    #notification, tapped twice, used to delete a finished match.
+    if mine_confirmed is not None and other_confirmed is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This match has already been completed",
+        )
 
     db.query(models.UserSwipes).filter(
         models.UserSwipes.user_id == me.id,
