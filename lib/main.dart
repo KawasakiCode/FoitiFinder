@@ -4,6 +4,7 @@
 //Contains an internet wrapper and the auth wrapper
 
 import 'package:firebase_app_check/firebase_app_check.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
@@ -34,8 +35,20 @@ Future<void> main() async {
   //swipes that could not be delivered live on disk until they can be - see
   //swipe_queue.dart. Set up before any UI, because the deck uses it.
   SwipeQueue.init(prefs);
+  //APP CHECK PROVES THE CALLER IS THIS APP, not a script with a stolen key.
+  //
+  //AndroidProvider.debug sends a debug token that only works for devices
+  //registered by hand in the Firebase console - correct while developing,
+  //useless in anyone else's hands. Play Integrity is the real one, and it is
+  //what a release build has to use, so the provider follows the build rather
+  //than being a flag somebody has to remember to flip before shipping.
+  //
+  //kDebugMode is a compile-time constant, so the release binary contains only
+  //the playIntegrity branch.
   await FirebaseAppCheck.instance.activate(
-    androidProvider: AndroidProvider.debug,
+    androidProvider: kDebugMode
+        ? AndroidProvider.debug
+        : AndroidProvider.playIntegrity,
   );
 
   runApp(

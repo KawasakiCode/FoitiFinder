@@ -21,6 +21,8 @@
 //back into a pass, which is a loss but a private one - nobody is told, because
 //the other side was never told a match existed in the first place.
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
@@ -96,13 +98,25 @@ class _MatchPageState extends State<MatchPage> {
   //second, which this side is not, until the other half of the flow exists
   String? _theirHandle;
 
+  //A CANCELLABLE TIMER, not Future.delayed. A delayed future keeps running
+  //after the page is gone - harmless here because the callback checks
+  //mounted, but it is still work scheduled against a disposed widget, and it
+  //is what a test sees as a timer left pending after the tree is torn down.
+  Timer? _armTimer;
+
   @override
   void initState() {
     super.initState();
-    Future.delayed(_kButtonsArmAfter, () {
+    _armTimer = Timer(_kButtonsArmAfter, () {
       if (mounted) setState(() => _armed = true);
     });
     if (widget.openRevealed) _collectRevealed();
+  }
+
+  @override
+  void dispose() {
+    _armTimer?.cancel();
+    super.dispose();
   }
 
   //Opened from a "you're connected" notification: ask for the handle rather
