@@ -65,6 +65,10 @@ class MatchPage extends StatefulWidget {
   //page asks the server for it on open - confirm is idempotent, so a second
   //yes from the same person changes nothing and answers with the handle.
   final bool openRevealed;
+  //Whether the other side has already said yes. False when this is your own
+  //match waiting on you - the one you completed by swiping - so the page does
+  //not announce an answer nobody has given.
+  final bool theyConfirmed;
 
   const MatchPage({
     super.key,
@@ -75,6 +79,7 @@ class MatchPage extends StatefulWidget {
     this.otherPhotoUrl,
     this.fromNotification = false,
     this.openRevealed = false,
+    this.theyConfirmed = false,
   });
 
   @override
@@ -284,9 +289,11 @@ class _MatchPageState extends State<MatchPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          //arriving from a notification, the news is that THEY said yes - the
-          //match itself is not news any more
-          widget.fromNotification ? text.matchTheirTurn(name) : text.matchTitle,
+          //arriving from a notification about a match THEY have answered,
+          //the news is their yes; otherwise it is still the match itself
+          widget.fromNotification && widget.theyConfirmed
+              ? text.matchTheirTurn(name)
+              : text.matchTitle,
           style: theme.textTheme.headlineSmall,
         ),
         const SizedBox(height: 4),

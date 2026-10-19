@@ -1828,4 +1828,12 @@ class AppLocalizationsEl extends AppLocalizations {
   String matchTheirTurn(String name) {
     return 'Ο/Η $name είπε ναι';
   }
+
+  @override
+  String get swipeQueued =>
+      'Δεν ήταν δυνατή η σύνδεση. Το like αποθηκεύτηκε και θα σταλεί μόλις επανέλθει η σύνδεση.';
+
+  @override
+  String get notifMatchOwnBody =>
+      'Πάτα για να ολοκληρώσεις και να μοιραστείς το Instagram σου.';
 }

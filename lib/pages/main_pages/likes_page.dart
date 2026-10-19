@@ -22,11 +22,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/models/liker_model.dart';
-import 'package:foitifinder/models/match_models.dart';
 import 'package:foitifinder/models/public_profile.dart';
 import 'package:foitifinder/pages/main_pages/match_page.dart';
 import 'package:foitifinder/pages/main_pages/profile_detail_page.dart';
 import 'package:foitifinder/services/api_services.dart';
+import 'package:foitifinder/services/swipe_queue.dart';
 import 'package:foitifinder/widgets/main_app_bar.dart';
 import 'package:foitifinder/widgets/photo_card.dart';
 import 'package:foitifinder/widgets/profile_photo.dart';
@@ -133,22 +133,30 @@ class LikesPageState extends State<LikesPage> {
   Future<void> _decide(LikerModel liker, String action) async {
     setState(() => _likes.removeWhere((l) => l.id == liker.id));
 
-    SwipeResult result = SwipeResult.none;
-    try {
-      result = await ApiService.registerSwipe(
-        FirebaseAuth.instance.currentUser!.uid,
-        liker.id,
-        action,
-      );
-    } catch (_) {
-      //TODO: a dropped swipe is silently lost here, exactly as on the deck.
-      //Both want a retry queue rather than two separate patches.
-    }
+    final result = await SwipeQueue.instance.send(
+      uid: FirebaseAuth.instance.currentUser!.uid,
+      targetId: liker.id,
+      action: action,
+    );
 
     final matchId = result.matchId;
-    //no match id means there is nothing to answer for yet, so there is nothing
-    //worth announcing either - see match_page.dart
-    if (!result.isMatch || matchId == null || !mounted) return;
+    if (!mounted) return;
+
+    //THE ONE PLACE A FAILURE IS WORTH INTERRUPTING FOR. Everyone on this page
+    //has already liked you, so liking back always completes a match - a
+    //swipe that had to be queued here is a known match the user is now
+    //waiting on, and silence would look like nothing happened. Elsewhere the
+    //retry is invisible and should stay that way.
+    if (matchId == null) {
+      if (action != "pass") {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(text.swipeQueued)),
+        );
+        //it was removed optimistically, and it is not resolved after all
+        await loadLikes();
+      }
+      return;
+    }
 
     await Navigator.push(
       context,

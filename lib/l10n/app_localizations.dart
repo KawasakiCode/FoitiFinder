@@ -3589,6 +3589,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name} said yes'**
   String matchTheirTurn(String name);
+
+  /// No description provided for @swipeQueued.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not reach the server. Your like is saved and will be sent as soon as you are back online.'**
+  String get swipeQueued;
+
+  /// No description provided for @notifMatchOwnBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to finish sharing your Instagram.'**
+  String get notifMatchOwnBody;
 }
 
 class _AppLocalizationsDelegate

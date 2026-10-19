@@ -11,6 +11,7 @@ import 'package:foitifinder/models/match_models.dart';
 import 'package:foitifinder/pages/main_pages/match_page.dart';
 import 'package:foitifinder/pages/main_pages/profile_detail_page.dart';
 import 'package:foitifinder/services/api_services.dart';
+import 'package:foitifinder/services/swipe_queue.dart';
 import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/main_app_bar.dart';
 import 'package:foitifinder/widgets/photo_card.dart';
@@ -179,14 +180,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     final card = cards[currentIndex];
     //animate first, register after: the card must never wait on the network
     _animateCardOut(1.0, card.name, true, fromButton: fromButton);
-    SwipeResult result = SwipeResult.none;
-    try {
-      result = await ApiService.registerSwipe(
-        FirebaseAuth.instance.currentUser!.uid,
-        card.id,
-        "like",
-      );
-    } catch (_) {}
+    //THROUGH THE QUEUE, NEVER ApiService DIRECTLY. The card has already left
+    //the screen, so a failure here has nothing to put back - the swipe is
+    //retried and then parked on disk instead of being dropped on the floor.
+    final result = await SwipeQueue.instance.send(
+      uid: FirebaseAuth.instance.currentUser!.uid,
+      targetId: card.id,
+      action: "like",
+    );
 
     await _openMatch(card, result);
   }
@@ -198,8 +199,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   //(an older backend sending no match_id) is better left alone than announced
   //with no way to act on it.
   Future<void> _openMatch(CardData card, SwipeResult result) async {
+    //MATCH ID, NOT isMatch. `isMatch` is only true the first time the server
+    //sees the swipe; a retry re-finds the same match and reports false with
+    //the id still set. Keying off the id covers both, and a queued swipe that
+    //never got a reply leaves the bell as the way in.
     final matchId = result.matchId;
-    if (!result.isMatch || matchId == null || !mounted) return;
+    if (matchId == null || !mounted) return;
     await Navigator.push(
       context,
       MaterialPageRoute(
@@ -220,13 +225,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     //animate immediately so the X button / left swipe never gets stuck on a
     //slow or failing backend call, then register the pass in the background
     _animateCardOut(-1.0, card.name, false, fromButton: fromButton);
-    try {
-      await ApiService.registerSwipe(
-        FirebaseAuth.instance.currentUser!.uid,
-        card.id,
-        "pass",
-      );
-    } catch (_) {}
+    //a lost pass only costs the card coming back round, but it goes through
+    //the same path so the deck and the server cannot disagree about what has
+    //been seen
+    await SwipeQueue.instance.send(
+      uid: FirebaseAuth.instance.currentUser!.uid,
+      targetId: card.id,
+      action: "pass",
+    );
   }
 
   void _swipeUp({bool fromButton = false}) async {
@@ -238,14 +244,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       fromButton: fromButton,
       isSuperLike: true,
     );
-    SwipeResult result = SwipeResult.none;
-    try {
-      result = await ApiService.registerSwipe(
-        FirebaseAuth.instance.currentUser!.uid,
-        card.id,
-        "super_like",
-      );
-    } catch (_) {}
+    final result = await SwipeQueue.instance.send(
+      uid: FirebaseAuth.instance.currentUser!.uid,
+      targetId: card.id,
+      action: "super_like",
+    );
 
     await _openMatch(card, result);
   }
@@ -362,6 +365,19 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     try {
       String uid = FirebaseAuth.instance.currentUser!.uid;
       List<CardData> users = await ApiService.getMultipleUsers(uid);
+
+      //ANYONE WITH AN UNDELIVERED SWIPE IS DROPPED HERE. The server has not
+      //heard about those yet, so it keeps offering them - and a profile you
+      //passed coming back round looks exactly like a bug, while one you liked
+      //coming back invites a pass on somebody you wanted. The queue is the
+      //only record until it lands, so the deck has to ask it.
+      final undelivered = SwipeQueue.instance.pendingTargetIds;
+      if (undelivered.isNotEmpty) {
+        users = users
+            .where((card) => !undelivered.contains(card.id))
+            .toList();
+      }
+
       if (users.isEmpty) {
         _hasNoMoreProfiles = true;
         _isFetching = false;

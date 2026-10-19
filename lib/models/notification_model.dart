@@ -42,6 +42,10 @@ class AppNotification {
   //had already been made, with a decline button that then deleted a finished
   //match.
   final bool actionable;
+  //Whether the OTHER person has already said yes. The same kind reaches both
+  //sides of a match - the one being matched with, and the one who completed
+  //it - and only the first of those can be told "they already said yes".
+  final bool otherConfirmed;
 
   const AppNotification({
     required this.id,
@@ -49,6 +53,7 @@ class AppNotification {
     required this.createdAt,
     required this.read,
     required this.actionable,
+    required this.otherConfirmed,
     this.matchId,
     this.otherUserId,
     this.otherName,
@@ -69,6 +74,7 @@ class AppNotification {
     createdAt: createdAt,
     read: true,
     actionable: actionable,
+    otherConfirmed: otherConfirmed,
   );
 
   factory AppNotification.fromJson(Map<String, dynamic> json) {
@@ -86,6 +92,7 @@ class AppNotification {
       //absent from a backend older than this field: assume there is nothing
       //to open rather than offering a tap that lands on a stale page
       actionable: json['actionable'] as bool? ?? false,
+      otherConfirmed: json['other_confirmed'] as bool? ?? false,
     );
   }
 }

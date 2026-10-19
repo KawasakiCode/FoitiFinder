@@ -16,6 +16,22 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
+//WHAT WENT WRONG, not just that something did.
+//
+//A plain Exception("failed") cannot be acted on: a 422 means the server has
+//refused the request and will refuse it again, while a 503 means come back
+//later. SwipeQueue needs that difference to decide whether retrying is worth
+//anything - see _isRetryable there.
+class ApiException implements Exception {
+  final int statusCode;
+  final String body;
+
+  const ApiException(this.statusCode, this.body);
+
+  @override
+  String toString() => 'ApiException($statusCode): $body';
+}
+
 class ApiService {
   /// HTTP base for the FastAPI backend. Override at compile time, e.g.
   /// `flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000` (Android emulator).
@@ -403,6 +419,8 @@ class ApiService {
   }
 
   //Register swipe (pass, like, super like)
+  //CALL THIS THROUGH SwipeQueue, not directly: a swipe that throws here is a
+  //match that never happens, and the queue is what stops that being silent.
   static Future<SwipeResult> registerSwipe(String uid, int otherUserId, String action) async {
     final url = Uri.parse("$baseUrl/swipes");
 
@@ -412,7 +430,10 @@ class ApiService {
       body: jsonEncode({
         "target_id": otherUserId,
         "action": action,
-      }));
+      }),
+      //WITHOUT THIS A HUNG SOCKET NEVER FAILS, so the retry never runs and
+      //the swipe is lost to a request that is still politely waiting.
+      ).timeout(const Duration(seconds: 12));
       if(response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
         return SwipeResult(
@@ -423,7 +444,8 @@ class ApiService {
         );
       }
       else {
-        throw Exception("Failed to register swipe ${response.body}");
+        //typed, so the queue can tell "come back later" from "no"
+        throw ApiException(response.statusCode, response.body);
       }
     } catch (e) {
       rethrow;

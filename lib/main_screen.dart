@@ -10,6 +10,7 @@ import 'package:foitifinder/pages/main_pages/profile_page.dart';
 import 'package:foitifinder/pages/main_pages/likes_page.dart';
 import 'package:foitifinder/providers/notifications_provider.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
+import 'package:foitifinder/services/swipe_queue.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -59,12 +60,24 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void dispose() {
     _pageController.dispose();
+    _lifecycle.dispose();
     super.dispose();
   }
+
+  //RESUME IS THE OTHER MOMENT WORTH TRYING. Coming back to the app is the
+  //most likely time for a phone to have regained signal since the swipe that
+  //failed, and it costs nothing when the queue is empty.
+  late final AppLifecycleListener _lifecycle = AppLifecycleListener(
+    onResume: () {
+      SwipeQueue.instance.flush(uid: widget.uid);
+      _notificationsProvider.load();
+    },
+  );
 
   @override
   void initState() {
     super.initState();
+    _lifecycle;
     _updateFcmToken();
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -125,6 +138,9 @@ class _MainScreenState extends State<MainScreen> {
     //the whole reason notifications are a table on the server rather than a
     //push and nothing else.
     _notificationsProvider.load();
+    //and anything the deck could not deliver last time, now that there is
+    //probably a network again
+    SwipeQueue.instance.flush(uid: widget.uid);
 
     if (mounted) {
       final user = profileProv.currentUser;

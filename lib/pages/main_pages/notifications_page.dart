@@ -68,6 +68,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
           //handle instead of asking again.
           fromNotification: true,
           openRevealed: note.kind == NotificationKind.matchRevealed,
+          //only say "they said yes" when they actually have: this same kind
+          //also reaches the person who completed the match, whose turn it is
+          //while the other side has not answered at all
+          theyConfirmed: note.otherConfirmed,
         ),
       ),
     );
@@ -155,7 +159,11 @@ class _NotificationRow extends StatelessWidget {
     return switch (note.kind) {
       NotificationKind.matchWaiting => (
         text.notifMatchWaitingTitle(name),
-        text.notifMatchWaitingBody,
+        //the body claims they have already said yes, which is only true for
+        //one of the two people who get this kind
+        note.otherConfirmed
+            ? text.notifMatchWaitingBody
+            : text.notifMatchOwnBody,
       ),
       NotificationKind.matchRevealed => (
         text.notifMatchRevealedTitle(name),

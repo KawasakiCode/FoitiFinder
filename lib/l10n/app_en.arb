@@ -691,5 +691,7 @@
         "type": "String"
       }
     }
-  }
+  },
+  "swipeQueued": "Could not reach the server. Your like is saved and will be sent as soon as you are back online.",
+  "notifMatchOwnBody": "Tap to finish sharing your Instagram."
 }

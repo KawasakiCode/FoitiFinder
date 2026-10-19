@@ -1,6 +1,9 @@
 import datetime
-from typing import List, Optional
-from fastapi import FastAPI, Depends, HTTPException, status
+from typing import List, Literal, Optional
+from fastapi import FastAPI, Depends, HTTPException, Request, status
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
@@ -33,6 +36,21 @@ load_dotenv()
 logger = logging.getLogger("foitifinder")
 
 app = FastAPI()
+
+
+#A REJECTED REQUEST IS A BROKEN CLIENT, AND SILENCE IS THE WORST OUTCOME.
+#
+#FastAPI answers a malformed body with 422 before any endpoint runs, so there
+#is nowhere in the handlers to notice it. Nobody is doing this by hand - it
+#means a build is sending something the server does not accept, and the user
+#sees a swipe that never registers (the retry queue correctly refuses to
+#retry a 422, since the answer would not change). Logged with the path and the
+#reason so it shows up in the server log instead of only on one phone.
+@app.exception_handler(RequestValidationError)
+async def log_rejected_request(request: Request, exc: RequestValidationError):
+    logger.warning("422 %s %s: %s", request.method, request.url.path, exc.errors())
+    return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                        content={"detail": jsonable_encoder(exc.errors())})
 
 cred = credentials.Certificate("serviceAccountKey.json")
 
@@ -159,6 +177,12 @@ class NotificationItem(BaseModel):
     #change. The app uses this to decide whether the row opens anything, so a
     #spent notification cannot reopen a decision that has already been made.
     actionable: bool
+    #Whether the OTHER side has said yes. The same 'match' kind goes to both
+    #of them - the person being matched with, and the one who completed it -
+    #and only one of those can be told "they already said yes". Read live from
+    #the match rather than frozen at creation, so it is right whenever the
+    #list is opened.
+    other_confirmed: bool
 
     class Config:
         from_attributes = True
@@ -168,7 +192,13 @@ class NotificationItem(BaseModel):
 #the target (someone else) may come from the client
 class SwipeRequest(BaseModel):
     target_id: int
-    action: str
+    #LITERAL, NOT str. An unconstrained string meant a typo'd action ('lik')
+    #was stored happily and then behaved like nothing: not a like, so no match
+    #and no appearance on the likes page, but still a swipe, so the person was
+    #gone from the deck forever. FastAPI turns anything else into a 422 before
+    #the endpoint runs - which is also what makes a 422 here MEAN something,
+    #and therefore worth alerting on.
+    action: Literal["like", "pass", "super_like"]
 
 #create new user and initialize default settings table for the new user
 @app.post("/users/", response_model=schemas.User)
@@ -831,9 +861,29 @@ def record_swipe(swipe: SwipeRequest, uid: str = Depends(verified_email_uid), db
                 logger.warning("like notification failed: %s: %s",
                                type(exc).__name__, exc)
 
+    #THE SWIPER GETS A NOTIFICATION TOO, about their own match.
+    #
+    #Normally they are already looking at the match page, so this row is a
+    #duplicate of what is in front of them - and that is exactly why it
+    #exists. The match page is the ONLY entrance to a match you completed, so
+    #without it a swipe that lands LATE (a queued retry delivered minutes
+    #after the deck moved on) creates a match nobody can reach, and so does
+    #killing the app while the page is open.
+    #
+    #`once` because a retried swipe re-finds the same match and must not add a
+    #second row. `push` is off because a device notification about a page
+    #already on screen is noise - the bell is what matters here.
+    if match_id is not None:
+        _notify(db, me, 'match', match_id=match_id,
+                other_user_id=swipe.target_id, once=True, push=False)
+        db.commit()
+
     #match_id so the client can confirm or decline the match it just created.
-    #`data` keeps its name: older builds read it and only care whether it is
-    #a match at all.
+    #
+    #IT IS SET WHETHER OR NOT THIS SWIPE CREATED THE MATCH, while `data` is
+    #true only the first time. A retried swipe finds the match already there,
+    #so the client has to key off match_id - `data` alone makes a successful
+    #retry look like no match at all.
     return {"data": is_match, "match_id": match_id}
 
 #THE TWO HALVES OF A MATCH. Mutual likes make the row; these decide whether
@@ -853,7 +903,8 @@ def _match_for_participant(match_id: int, me: models.User, db: Session) -> model
 
 
 def _notify(db: Session, user: models.User, kind: str, *,
-            match_id: int | None = None, other_user_id: int | None = None) -> None:
+            match_id: int | None = None, other_user_id: int | None = None,
+            once: bool = False, push: bool = True) -> None:
     """Record a notification AND try to push it, in that order.
 
     THE ROW IS THE DELIVERY, the push is a nudge. Firebase can be down, the
@@ -862,13 +913,33 @@ def _notify(db: Session, user: models.User, kind: str, *,
     row is written on the caller's session and committed with whatever else
     the caller is doing, so a notification cannot exist without the change
     that caused it, or the other way round.
+
+    `once` makes it idempotent for a given (user, kind, match). The endpoints
+    around it are safe to call twice - that is the whole point of a retry -
+    but "safe" has to include not telling somebody the same thing twice. A
+    client whose connection dropped AFTER the server committed will send the
+    same request again, and must not produce a second notification.
+
+    `push` is False when the user is already looking at the thing it is about:
+    a device notification about the page in front of you is noise.
     """
+    if once and match_id is not None:
+        already = db.query(models.Notifications).filter(
+            models.Notifications.user_id == user.id,
+            models.Notifications.kind == kind,
+            models.Notifications.match_id == match_id,
+        ).first()
+        if already:
+            return
+
     db.add(models.Notifications(
         user_id=user.id,
         kind=kind,
         match_id=match_id,
         other_user_id=other_user_id,
     ))
+    if not push:
+        return
     try:
         send_smart_notification(user.firebase_uid, kind, firestore_db)
     except Exception as exc:
@@ -910,6 +981,14 @@ def get_notifications(uid: str = Depends(verified_email_uid), db: Session = Depe
         ).all()
     } if match_ids else {}
 
+    def other_has_confirmed(note: models.Notifications) -> bool:
+        match = matches.get(note.match_id) if note.match_id else None
+        if match is None:
+            return False
+        theirs = (match.b_confirmed_at if match.user_a_id == me.id
+                  else match.a_confirmed_at)
+        return theirs is not None
+
     def actionable(note: models.Notifications) -> bool:
         """Is there still anything to do about this?"""
         match = matches.get(note.match_id) if note.match_id else None
@@ -942,6 +1021,7 @@ def get_notifications(uid: str = Depends(verified_email_uid), db: Session = Depe
             "created_at": note.created_at,
             "read": note.read_at is not None,
             "actionable": actionable(note),
+            "other_confirmed": other_has_confirmed(note),
         }
         for note, other_name, other_photo_url in rows
     ]
@@ -1025,6 +1105,9 @@ def confirm_match(match_id: int, uid: str = Depends(verified_email_uid), db: Ses
         'match_revealed' if revealed else 'match',
         match_id=match.id,
         other_user_id=me.id,
+        #confirm is idempotent, so this has to be as well: a retried confirm
+        #must not notify the other person a second time
+        once=True,
     )
     db.commit()
 

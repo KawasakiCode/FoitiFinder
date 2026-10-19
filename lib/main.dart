@@ -10,6 +10,7 @@ import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/pages/auth_pages/login.dart';
 import 'package:foitifinder/providers/notifications_provider.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
+import 'package:foitifinder/services/swipe_queue.dart';
 import 'package:foitifinder/theme/app_theme.dart';
 import 'package:foitifinder/wrappers/auth_wrapper.dart';
 import 'package:foitifinder/wrappers/internet_wrapper.dart';
@@ -30,6 +31,9 @@ Future<void> main() async {
     SharedPreferences.getInstance(),
   ]);
   final prefs = results[1] as SharedPreferences;
+  //swipes that could not be delivered live on disk until they can be - see
+  //swipe_queue.dart. Set up before any UI, because the deck uses it.
+  SwipeQueue.init(prefs);
   await FirebaseAppCheck.instance.activate(
     androidProvider: AndroidProvider.debug,
   );

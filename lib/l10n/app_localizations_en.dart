@@ -1821,4 +1821,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String matchTheirTurn(String name) {
     return '$name said yes';
   }
+
+  @override
+  String get swipeQueued =>
+      'Could not reach the server. Your like is saved and will be sent as soon as you are back online.';
+
+  @override
+  String get notifMatchOwnBody => 'Tap to finish sharing your Instagram.';
 }
