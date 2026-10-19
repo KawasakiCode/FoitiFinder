@@ -44,7 +44,9 @@ from sqlalchemy import text  # noqa: E402
 
 from database.database import SessionLocal, SQLALCHEMY_DATABASE_URL  # noqa: E402
 from database import models  # noqa: E402
-import main  # noqa: E402
+#the endpoint functions, called directly: there is no token for a seeded
+#profile, so HTTP is not an option (see the docstring)
+from routers.matches import confirm_match  # noqa: E402
 
 #a handle the fake can hand over: the reveal only completes when BOTH sides
 #have one (see confirm_match), and seeded rows have none
@@ -155,10 +157,10 @@ def main_() -> None:
     #4. the confirmations, through the real endpoint so the notifications and
     #the reveal rules are the live ones
     if args.stage == "revealed":
-        print("  you confirm first:", main.confirm_match(match_id, me.firebase_uid, db))
-        print("  they confirm:     ", main.confirm_match(match_id, them.firebase_uid, db))
+        print("  you confirm first:", confirm_match(match_id, me.firebase_uid, db))
+        print("  they confirm:     ", confirm_match(match_id, them.firebase_uid, db))
     else:
-        print("  they confirm:     ", main.confirm_match(match_id, them.firebase_uid, db))
+        print("  they confirm:     ", confirm_match(match_id, them.firebase_uid, db))
 
     notes = db.query(models.Notifications).filter(
         models.Notifications.user_id == me.id

@@ -46,6 +46,11 @@ const int kPhotoDecodeWidth = 1080;
 //tiles on screen that is 40MB of cache for photos the size of a thumbnail.
 const int kThumbDecodeWidth = 540;
 
+//Drawn wherever a photo is missing. A LOCAL asset on purpose: the old
+//fallback was a picsum URL, which put a random stranger's face beside
+//somebody's name and needed the network to do it.
+const String kDefaultAvatarAsset = 'assets/images/default_avatar.png';
+
 /// The provider for [url], keyed exactly as [PersonPhoto] asks for it.
 ///
 /// Pass the same `decodeWidth` the widget will use, or the precache warms an
@@ -75,7 +80,15 @@ class PhotoLoadingBox extends StatelessWidget {
 }
 
 /// There is no photo, or it failed to load. THIS is the one that says so.
+///
+/// SHOULD BE UNREACHABLE: three photos are required at setup and /photos/sync
+/// refuses fewer. It is still drawn properly rather than left as a grey box,
+/// because the states that "cannot happen" are the ones nobody looks at - a
+/// row written before the rule existed, a Storage object deleted underneath
+/// us, or an offline load that fails. The one thing it must never do is show
+/// somebody else's face, which is what the old picsum fallback did.
 class PhotoMissingBox extends StatelessWidget {
+  //kept so a small tile and a full-bleed header can differ
   final double iconSize;
 
   const PhotoMissingBox({super.key, this.iconSize = 64});
@@ -85,11 +98,17 @@ class PhotoMissingBox extends StatelessWidget {
     final theme = Theme.of(context);
     return ColoredBox(
       color: theme.colorScheme.surfaceContainerHighest,
-      child: Center(
-        child: Icon(
-          Icons.person_outline,
-          size: iconSize,
-          color: theme.colorScheme.onSurfaceVariant,
+      child: Image.asset(
+        kDefaultAvatarAsset,
+        fit: BoxFit.cover,
+        //the asset is bundled, so a failure here means the bundle itself is
+        //wrong - fall back to something that cannot fail
+        errorBuilder: (_, _, _) => Center(
+          child: Icon(
+            Icons.person_outline,
+            size: iconSize,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
         ),
       ),
     );

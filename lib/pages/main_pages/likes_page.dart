@@ -105,7 +105,11 @@ class LikesPageState extends State<LikesPage> {
           id: liker.id,
           name: liker.name,
           age: liker.age,
-          photos: [ProfilePhoto(url: liker.imageUrl)],
+          //no photo, no entry: the page draws its own placeholder rather
+          //than being handed a URL that is not there
+          photos: [
+            if (liker.imageUrl != null) ProfilePhoto(url: liker.imageUrl!),
+          ],
         ),
       ),
     );

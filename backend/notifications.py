@@ -91,3 +91,119 @@ def send_smart_notification(target_uid: str, notification_type: str, db_firestor
             response = messaging.send(message)
         except Exception:
             return
+
+
+#What the bell is written with. Lives beside the push sender because the two
+#are one decision - see the docstring.
+#
+#NOTE ON THE NAME: this module is the notification SERVICE (sending and
+#recording); routers/notifications.py is the two endpoints that read the rows
+#back. Absolute imports keep them apart.
+from sqlalchemy.orm import Session
+
+from app_logging import logger
+from database import models
+from firebase_app import firestore_db
+
+
+def notify(db: Session, user: models.User, kind: str, *,
+            match_id: int | None = None, other_user_id: int | None = None,
+            once: bool = False, push: bool = True) -> None:
+    """Record a notification AND try to push it, in that order.
+
+    THE ROW IS THE DELIVERY, the push is a nudge. Firebase can be down, the
+    device can have no token, the user can have swiped the banner away before
+    reading it - none of which may lose the fact that something happened. The
+    row is written on the caller's session and committed with whatever else
+    the caller is doing, so a notification cannot exist without the change
+    that caused it, or the other way round.
+
+    `once` makes it idempotent for a given (user, kind, match). The endpoints
+    around it are safe to call twice - that is the whole point of a retry -
+    but "safe" has to include not telling somebody the same thing twice. A
+    client whose connection dropped AFTER the server committed will send the
+    same request again, and must not produce a second notification.
+
+    `push` is False when the user is already looking at the thing it is about:
+    a device notification about the page in front of you is noise.
+    """
+    if once and match_id is not None:
+        already = db.query(models.Notifications).filter(
+            models.Notifications.user_id == user.id,
+            models.Notifications.kind == kind,
+            models.Notifications.match_id == match_id,
+        ).first()
+        if already:
+            return
+
+    db.add(models.Notifications(
+        user_id=user.id,
+        kind=kind,
+        match_id=match_id,
+        other_user_id=other_user_id,
+    ))
+    if not push:
+        return
+    try:
+        send_smart_notification(user.firebase_uid, kind, firestore_db)
+    except Exception as exc:
+        #already recorded, so the app will show it on next launch regardless
+        logger.warning("push failed (%s): %s: %s", kind, type(exc).__name__, exc)
+
+
+#What the bell is written with. Lives beside the push sender because the two
+#are one decision - see the docstring.
+#
+#NOTE ON THE NAME: this module is the notification SERVICE (sending and
+#recording); routers/notifications.py is the two endpoints that read the rows
+#back. Absolute imports keep them apart.
+from sqlalchemy.orm import Session
+
+from app_logging import logger
+from database import models
+from firebase_app import firestore_db
+
+
+def notify(db: Session, user: models.User, kind: str, *,
+            match_id: int | None = None, other_user_id: int | None = None,
+            once: bool = False, push: bool = True) -> None:
+    """Record a notification AND try to push it, in that order.
+
+    THE ROW IS THE DELIVERY, the push is a nudge. Firebase can be down, the
+    device can have no token, the user can have swiped the banner away before
+    reading it - none of which may lose the fact that something happened. The
+    row is written on the caller's session and committed with whatever else
+    the caller is doing, so a notification cannot exist without the change
+    that caused it, or the other way round.
+
+    `once` makes it idempotent for a given (user, kind, match). The endpoints
+    around it are safe to call twice - that is the whole point of a retry -
+    but "safe" has to include not telling somebody the same thing twice. A
+    client whose connection dropped AFTER the server committed will send the
+    same request again, and must not produce a second notification.
+
+    `push` is False when the user is already looking at the thing it is about:
+    a device notification about the page in front of you is noise.
+    """
+    if once and match_id is not None:
+        already = db.query(models.Notifications).filter(
+            models.Notifications.user_id == user.id,
+            models.Notifications.kind == kind,
+            models.Notifications.match_id == match_id,
+        ).first()
+        if already:
+            return
+
+    db.add(models.Notifications(
+        user_id=user.id,
+        kind=kind,
+        match_id=match_id,
+        other_user_id=other_user_id,
+    ))
+    if not push:
+        return
+    try:
+        send_smart_notification(user.firebase_uid, kind, firestore_db)
+    except Exception as exc:
+        #already recorded, so the app will show it on next launch regardless
+        logger.warning("push failed (%s): %s: %s", kind, type(exc).__name__, exc)
