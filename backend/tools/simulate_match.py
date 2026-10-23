@@ -44,6 +44,7 @@ from sqlalchemy import text  # noqa: E402
 
 from database.database import SessionLocal, SQLALCHEMY_DATABASE_URL  # noqa: E402
 from database import models  # noqa: E402
+from instagram import normalise_instagram_handle  # noqa: E402
 #the endpoint functions, called directly: there is no token for a seeded
 #profile, so HTTP is not an option (see the docstring)
 from routers.matches import confirm_match  # noqa: E402
@@ -53,15 +54,39 @@ from routers.matches import confirm_match  # noqa: E402
 FAKE_HANDLE = "seeded_profile"
 
 
-def guard_localhost() -> None:
+def guard_target(allow_production: bool) -> None:
     url = SQLALCHEMY_DATABASE_URL or ""
-    if not any(host in url for host in ("localhost", "127.0.0.1")):
+
+    #WHICH DATABASE, ON EVERY RUN - see the same note in seed_local.py. This
+    #script reports success either way, so without this line a confirm that
+    #landed in the dev database is indistinguishable from one that landed in
+    #the database the phone is actually talking to.
+    print(f"database: {url.split('@')[-1] if url else 'NOT SET'}")
+
+    if any(host in url for host in ("localhost", "127.0.0.1")):
+        return
+
+    if not allow_production:
         sys.exit(
             "REFUSING TO RUN.\n"
             "DATABASE_URL does not point at localhost. This writes swipes,\n"
             "matches and notifications as though another person had acted -\n"
-            "against production that is a fake match sent to a real user."
+            "against production that is a fake match sent to a real user.\n"
+            "\n"
+            "If the person on the other side is a profile seeded by\n"
+            "seed_local.py --production, pass --production here too."
         )
+
+    #THE ONLY REAL PERSON IN THIS IS YOU. The other side is a seeded row, so
+    #the notification and the push both land on your own device - nobody
+    #else's. That is the whole reason this is survivable against a live
+    #database, and it stops being true the moment --target names an account
+    #that belongs to a person.
+    print("=" * 66)
+    print("ACTING AS ANOTHER USER ON A DATABASE THAT IS NOT LOCAL")
+    print(f"  {url.split('@')[-1]}")
+    print("Only run this against a profile YOU seeded.")
+    print("=" * 66)
 
 
 def pick_target(db, me: models.User, target: str | None) -> models.User:
@@ -106,9 +131,17 @@ def main_() -> None:
                         default="waiting",
                         help="waiting: they answer first, you decide. "
                              "revealed: you answer first, they answer second.")
+    parser.add_argument("--handle",
+                        help="the handle they hand over. FOR A DEMO VIDEO use "
+                             "a real account: the reveal screen offers 'Open "
+                             "in Instagram' and a made-up handle lands on "
+                             "'this page isn't available'.")
+    parser.add_argument("--production", action="store_true",
+                        help="allow a non-local DATABASE_URL (only ever "
+                             "against a profile you seeded yourself)")
     args = parser.parse_args()
 
-    guard_localhost()
+    guard_target(args.production)
     db = SessionLocal()
 
     me = db.query(models.User).filter(models.User.firebase_uid == args.uid).first()
@@ -121,10 +154,20 @@ def main_() -> None:
     them = pick_target(db, me, args.target)
     print(f"you: id={me.id} {me.name}   them: id={them.id} {them.name}")
 
-    #1. the handle they will hand over
-    if not them.instagram_handle:
+    #1. the handle they will hand over. --handle wins, so a demo can reveal an
+    #Instagram account that actually exists; otherwise keep whatever the
+    #seeder gave them and only fall back for rows that predate it.
+    if args.handle:
+        handle = normalise_instagram_handle(args.handle)
+        if not handle:
+            sys.exit(f"{args.handle!r} is not a usable Instagram handle.")
+        them.instagram_handle = handle
+        print(f"  their handle is now @{handle}")
+    elif not them.instagram_handle:
         them.instagram_handle = FAKE_HANDLE
         print(f"  gave them a handle: @{FAKE_HANDLE}")
+    else:
+        print(f"  their handle: @{them.instagram_handle}")
 
     #2. their like, which is what completes the match
     swipe = db.query(models.UserSwipes).filter(

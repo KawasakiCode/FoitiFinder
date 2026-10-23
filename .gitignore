@@ -81,4 +81,5 @@ backend/.env
 .idea/
 backend/serviceAccountKey.json
 backend/.pytest_cache
-backend/tools/seed_local.py
+/tmp_photos
+backend/tools/demo_photos.json

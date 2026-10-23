@@ -35,6 +35,20 @@ import 'package:foitifinder/widgets/profile_photo.dart';
 //how round the card is; the deck and the photo clip share it
 const double kCardRadius = 24;
 
+//THE SIX STAT PILLS ARE OFF.
+//
+//They are placeholders - six empty frosted boxes where compatibility stats
+//are meant to go - and an empty box reads as an unfinished screen to anybody
+//who does not already know that. Nothing can fill them yet: /users/feed sends
+//name, age, job, bio and photos and none of the tags, so the content is a
+//change across four files (see _StatSlots for what it involves).
+//
+//HIDDEN RATHER THAN DELETED. The pills are positioned by kStatsBottomInset
+//and redrawn mid-flight by deckPhotoHeroFlightShuttle from this same widget;
+//that pairing is the part that was hard to get right, and deleting the pills
+//would throw it away to save nothing. One word turns them back on.
+const bool kShowStatPills = false;
+
 //How far into the flight the card's own furniture - the pills and the bottom
 //darkening - has finished fading. Early, because they belong to a card and the
 //thing flying stops looking like a card almost immediately.
@@ -405,6 +419,11 @@ class _StatSlots extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    //OFF FOR NOW - see kShowStatPills. Drawing nothing rather than being
+    //removed from the tree, so the card and the shuttle's copy of it stay the
+    //same shape as each other.
+    if (!kShowStatPills) return const SizedBox.shrink();
+
     return Wrap(
       spacing: 6,
       runSpacing: 6,
