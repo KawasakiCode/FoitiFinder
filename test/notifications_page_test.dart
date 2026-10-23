@@ -151,6 +151,19 @@ void main() {
       expect(find.textContaining('finish sharing'), findsOneWidget);
     });
 
+    testWidgets('your OWN pending match says YOU matched with THEM',
+        (tester) async {
+      //THE TITLE HAS TO TURN AROUND TOO, and for a while it did not: this
+      //side completed the match by liking back, so "Maria matched with you"
+      //describes the opposite of what happened. Checking only the body let
+      //that through, because the body was already branching correctly.
+      await pumpPage(tester, [
+        note(kind: NotificationKind.matchWaiting, otherConfirmed: false),
+      ]);
+      expect(find.text('You matched with Maria'), findsOneWidget);
+      expect(find.text('Maria matched with you'), findsNothing);
+    });
+
     testWidgets('a reveal points at the handle', (tester) async {
       await pumpPage(tester, [note(kind: NotificationKind.matchRevealed)]);
       expect(find.text("You're connected with Maria"), findsOneWidget);

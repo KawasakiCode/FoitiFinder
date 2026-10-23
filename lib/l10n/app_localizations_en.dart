@@ -1828,4 +1828,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notifMatchOwnBody => 'Tap to finish sharing your Instagram.';
+
+  @override
+  String notifMatchOwnTitle(String name) {
+    return 'You matched with $name';
+  }
 }

@@ -3601,6 +3601,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap to finish sharing your Instagram.'**
   String get notifMatchOwnBody;
+
+  /// Title for YOUR OWN pending match - the one you completed by liking back. notifMatchWaitingTitle reads 'X matched with you', which is backwards for this side.
+  ///
+  /// In en, this message translates to:
+  /// **'You matched with {name}'**
+  String notifMatchOwnTitle(String name);
 }
 
 class _AppLocalizationsDelegate

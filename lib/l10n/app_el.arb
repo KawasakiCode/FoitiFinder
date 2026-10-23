@@ -589,5 +589,6 @@
   "notifDaysAgo": "{count} μ πριν",
   "matchTheirTurn": "Ο/Η {name} είπε ναι",
   "swipeQueued": "Δεν ήταν δυνατή η σύνδεση. Το like αποθηκεύτηκε και θα σταλεί μόλις επανέλθει η σύνδεση.",
-  "notifMatchOwnBody": "Πάτα για να ολοκληρώσεις και να μοιραστείς το Instagram σου."
+  "notifMatchOwnBody": "Πάτα για να ολοκληρώσεις και να μοιραστείς το Instagram σου.",
+  "notifMatchOwnTitle": "Ταίριαξες με {name}"
 }

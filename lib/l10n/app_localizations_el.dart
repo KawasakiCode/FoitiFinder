@@ -1836,4 +1836,9 @@ class AppLocalizationsEl extends AppLocalizations {
   @override
   String get notifMatchOwnBody =>
       'Πάτα για να ολοκληρώσεις και να μοιραστείς το Instagram σου.';
+
+  @override
+  String notifMatchOwnTitle(String name) {
+    return 'Ταίριαξες με $name';
+  }
 }

@@ -157,10 +157,17 @@ class _NotificationRow extends StatelessWidget {
   (String, String) _lines(AppLocalizations text) {
     final name = note.otherName ?? text.notifSomeone;
     return switch (note.kind) {
+      //BOTH SIDES OF A MATCH GET THIS KIND, and the two of them did opposite
+      //things. One was liked and is being told about it; the other did the
+      //liking and completed the match themselves, and is only here because
+      //the bell is the way back to a match page they may have left. So the
+      //title has to turn around too - "Maria matched with you" is backwards
+      //for the person who tapped like, and otherConfirmed is what tells them
+      //apart.
       NotificationKind.matchWaiting => (
-        text.notifMatchWaitingTitle(name),
-        //the body claims they have already said yes, which is only true for
-        //one of the two people who get this kind
+        note.otherConfirmed
+            ? text.notifMatchWaitingTitle(name)
+            : text.notifMatchOwnTitle(name),
         note.otherConfirmed
             ? text.notifMatchWaitingBody
             : text.notifMatchOwnBody,
