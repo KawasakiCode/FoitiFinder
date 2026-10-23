@@ -53,6 +53,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   final int batchSize = 20; // how many cards to load at a time
   bool _isFetching = false;
   bool _hasNoMoreProfiles = false;
+  //How many fetches in a row came back with nobody the deck did not already
+  //hold. See _fetchMoreCards: one such answer proves nothing, a run of them
+  //means the pool really is exhausted. Reset as soon as anyone new arrives.
+  int _fetchesWithNothingNew = 0;
+  static const int _kGiveUpAfterEmptyFetches = 3;
   late AnimationController _animationController;
   double _tapPositionY = 0;
   final ValueNotifier<Offset> _swipeNotifier = ValueNotifier(Offset.zero);
@@ -378,14 +383,41 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             .toList();
       }
 
-      if (users.isEmpty) {
-        _hasNoMoreProfiles = true;
+      //NOBODY WHO IS ALREADY IN THE DECK. /users/feed has no pagination: it
+      //answers with a random sample of everyone you have not swiped, so a
+      //second request returns the SAME people, and appending them shows one
+      //profile twice.
+      //
+      //It bites hardest on a small deck, which is the opposite of what you
+      //would guess. A refetch is triggered whenever fewer than fetchThreshold
+      //cards remain, so with four candidates the deck is permanently below
+      //that line and every single swipe refetches the three people still in
+      //front of you. With fifty candidates the random sample differs each
+      //time and the collisions look like coincidence.
+      final inDeck = cards.map((card) => card.id).toSet();
+      final fresh =
+          users.where((card) => !inDeck.contains(card.id)).toList();
+
+      if (fresh.isEmpty) {
+        //AN EMPTY SAMPLE AND A DUPLICATE SAMPLE ARE NOT THE SAME THING. The
+        //server returning nothing means there is nobody left. A sample that
+        //happens to land entirely inside the deck does not prove that - the
+        //cap is applied server side and the order is random - so treating it
+        //as the end would show "no more profiles" with people still to see.
+        //Several in a row is a different matter.
+        _fetchesWithNothingNew++;
+        if (users.isEmpty ||
+            _fetchesWithNothingNew >= _kGiveUpAfterEmptyFetches) {
+          _hasNoMoreProfiles = true;
+        }
         _isFetching = false;
         return;
       }
+
+      _fetchesWithNothingNew = 0;
       if (mounted) {
         setState(() {
-          cards.addAll(users);
+          cards.addAll(fresh);
         });
       }
     } catch (e) {
