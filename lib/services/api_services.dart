@@ -40,6 +40,20 @@ class ApiService {
     defaultValue: 'http://127.0.0.1:8000',
   );
 
+  /// HOW LONG ANY REQUEST MAY HANG BEFORE IT COUNTS AS FAILED.
+  ///
+  /// Without one, a socket that is open but silent never returns - and that
+  /// is not a hypothetical: the deck, the likes page and the notification
+  /// list all show a spinner while they wait, with no error and no retry
+  /// button, so a backend that stops answering mid-session leaves a screen
+  /// that spins forever. A thrown TimeoutException at least reaches a catch.
+  ///
+  /// 30s rather than something snappier because the backend sleeps when idle
+  /// and a cold start costs most of a minute; anything shorter turns the
+  /// first request after a quiet hour into a guaranteed failure. The swipe
+  /// deliberately uses a much shorter one - see recordSwipe.
+  static const Duration kRequestTimeout = Duration(seconds: 30);
+
   /// Auth headers for every backend call.
   ///
   /// The backend derives WHO is calling from this Firebase ID token — a JWT
@@ -95,7 +109,7 @@ class ApiService {
           "preferred_gender": preferredGender,
           "has_photos": hasPhotos,
         }),
-      );
+      ).timeout(kRequestTimeout);
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         //include the server's reply: a 422 body names the exact field that
@@ -157,7 +171,7 @@ class ApiService {
       Uri.parse('$baseUrl/users/me'),
       headers: await _authHeaders(),
       body: jsonEncode(fields),
-    );
+    ).timeout(kRequestTimeout);
     if (response.statusCode != 200) {
       throw Exception("Failed to update user: ${response.body}");
     }
@@ -168,7 +182,7 @@ class ApiService {
   static Future<void> deleteUserData() async {
     final url = Uri.parse('$baseUrl/users/me');
     try {
-      final response = await http.delete(url, headers: await _authHeaders());
+      final response = await http.delete(url, headers: await _authHeaders()).timeout(kRequestTimeout);
       if (response.statusCode == 200 || response.statusCode == 404) {
         return;
       }
@@ -184,7 +198,7 @@ class ApiService {
   static Future<UserModel?> getUserData(String uid) async {
     final url = Uri.parse('$baseUrl/users/me');
     try {
-      final response = await http.get(url, headers: await _authHeaders());
+      final response = await http.get(url, headers: await _authHeaders()).timeout(kRequestTimeout);
 
       if(response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
@@ -222,7 +236,7 @@ class ApiService {
         url,
         headers: await _authHeaders(),
         body: jsonEncode(data),
-      );
+      ).timeout(kRequestTimeout);
       if(response.statusCode != 200) {
         throw Exception("Failed to update settings in db ${response.body}");
       }
@@ -235,7 +249,7 @@ class ApiService {
   static Future<SettingsModel> getUsersSettings(String uid) async {
     final url = Uri.parse("$baseUrl/users/settings");
     try {
-      final response = await http.get(url, headers: await _authHeaders());
+      final response = await http.get(url, headers: await _authHeaders()).timeout(kRequestTimeout);
 
       if(response.statusCode == 200) {
         final Map<String, dynamic> settings = jsonDecode(response.body);
@@ -253,7 +267,7 @@ class ApiService {
   static Future<List<CardData>> getMultipleUsers(String uid) async {
     final url = Uri.parse("$baseUrl/users/feed");
     try {
-      final response = await http.get(url, headers: await _authHeaders());
+      final response = await http.get(url, headers: await _authHeaders()).timeout(kRequestTimeout);
 
       if(response.statusCode == 200) {
         final List<dynamic> body = jsonDecode(response.body);
@@ -275,7 +289,7 @@ class ApiService {
     final url = Uri.parse("$baseUrl/matches");
 
     try {
-      final response = await http.get(url, headers: await _authHeaders());
+      final response = await http.get(url, headers: await _authHeaders()).timeout(kRequestTimeout);
 
       if(response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
@@ -294,7 +308,7 @@ class ApiService {
     final url = Uri.parse("$baseUrl/likes");
 
     try {
-      final response = await http.get(url, headers: await _authHeaders());
+      final response = await http.get(url, headers: await _authHeaders()).timeout(kRequestTimeout);
 
       if(response.statusCode == 200) {
         List<dynamic> data = jsonDecode(response.body);
@@ -313,7 +327,7 @@ class ApiService {
     final url = Uri.parse("$baseUrl/photos");
 
     try {
-      final response = await http.get(url, headers: await _authHeaders());
+      final response = await http.get(url, headers: await _authHeaders()).timeout(kRequestTimeout);
 
       if(response.statusCode == 200) {
         List<dynamic> data = jsonDecode(response.body);
@@ -342,7 +356,7 @@ class ApiService {
         "photo_url": photoUrl,
         "display_order": displayOrder,
       })
-      );
+      ).timeout(kRequestTimeout);
 
       if(response.statusCode != 200) {
         return false;
@@ -369,7 +383,7 @@ class ApiService {
         body: jsonEncode({
           "photo_urls": photoUrls,
         }),
-      );
+      ).timeout(kRequestTimeout);
       return response.statusCode == 200;
     } catch (e) {
       return false;
@@ -394,7 +408,7 @@ class ApiService {
           "photo_url": photoUrl,
           "story": story,
         }),
-      );
+      ).timeout(kRequestTimeout);
       return response.statusCode == 200;
     } catch (e) {
       return false;
@@ -461,7 +475,7 @@ class ApiService {
     final response = await http.post(
       Uri.parse("$baseUrl/matches/$matchId/confirm"),
       headers: await _authHeaders(),
-    );
+    ).timeout(kRequestTimeout);
     if (response.statusCode != 200) {
       throw Exception("Failed to confirm match ${response.body}");
     }
@@ -478,7 +492,7 @@ class ApiService {
     final response = await http.get(
       Uri.parse("$baseUrl/notifications"),
       headers: await _authHeaders(),
-    );
+    ).timeout(kRequestTimeout);
     if (response.statusCode != 200) {
       throw Exception("Failed to load notifications ${response.body}");
     }
@@ -493,7 +507,7 @@ class ApiService {
     final response = await http.post(
       Uri.parse("$baseUrl/notifications/$id/read"),
       headers: await _authHeaders(),
-    );
+    ).timeout(kRequestTimeout);
     if (response.statusCode != 200) {
       throw Exception("Failed to mark notification read ${response.body}");
     }
@@ -504,7 +518,7 @@ class ApiService {
     final response = await http.post(
       Uri.parse("$baseUrl/matches/$matchId/decline"),
       headers: await _authHeaders(),
-    );
+    ).timeout(kRequestTimeout);
     if (response.statusCode != 200) {
       throw Exception("Failed to decline match ${response.body}");
     }
@@ -518,7 +532,7 @@ class ApiService {
     final response = await http.get(
       Uri.parse('$baseUrl/users/$userId/profile'),
       headers: await _authHeaders(),
-    );
+    ).timeout(kRequestTimeout);
     if (response.statusCode != 200) {
       throw Exception('Failed to load profile: ${response.body}');
     }
@@ -529,7 +543,7 @@ class ApiService {
     final url = Uri.parse("$baseUrl/single/user/$userId");
 
     try {
-      final response = await http.get(url, headers: await _authHeaders());
+      final response = await http.get(url, headers: await _authHeaders()).timeout(kRequestTimeout);
 
       if(response.statusCode == 200) {
         Map<String, dynamic> data = jsonDecode(response.body);
