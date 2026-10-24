@@ -160,6 +160,25 @@ class Matches(Base):
     a_confirmed_at = Column(TIMESTAMP(timezone=True), nullable = True)
     b_confirmed_at = Column(TIMESTAMP(timezone=True), nullable = True)
 
+    #WITHDRAWN BY ONE SIDE, AND GONE FOR BOTH.
+    #
+    #A revealed match cannot be declined - a handle that has been read cannot
+    #be taken back - but it still sits in the other person's list, handing
+    #your Instagram back to them every time they open it. That is the one part
+    #of the exchange the app is still responsible for, so either side can end
+    #it, and the other is told nothing.
+    #
+    #HIDDEN, NOT DELETED. Deleting would destroy the only record that two
+    #people connected: who confirmed, when, and in which order. The app simply
+    #stops returning the row (see get_matches); everything stays for anyone
+    #reading the database directly. It is also why this is a timestamp and not
+    #a flag - "when did they withdraw" is the question anyone asks afterwards.
+    #
+    #ONE PAIR, NOT ONE PER SIDE: this is severance, not an archive box. There
+    #is no state where one of you can still see it.
+    hidden_at = Column(TIMESTAMP(timezone=True), nullable = True)
+    hidden_by_user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable = True)
+
 class Notifications(Base):
     """What the bell in the app bar shows: things that happened TO this user.
 

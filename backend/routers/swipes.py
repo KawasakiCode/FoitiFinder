@@ -37,6 +37,18 @@ def record_swipe(swipe: SwipeRequest, uid: str = Depends(verified_email_uid), db
     match_id = None
 
     if existing:
+        #A REPORT IS FINAL, AND THE QUEUE IS WHY THIS MATTERS. Swipes that
+        #could not be delivered are retried later from disk, so a like sent
+        #before the report can land after it - and overwriting 'reported' with
+        #that like would put the person back in play and, if they had liked
+        #back, build a match with somebody the user reported.
+        #
+        #Answered as success rather than an error: the client is not doing
+        #anything wrong, and a 4xx here would make SwipeQueue drop a swipe it
+        #was right to send.
+        if existing.action == "reported":
+            return {"data": False, "match_id": None}
+
         #only write when the action actually changed (re-swiping the same way
         #is a no-op). datetime is imported as a module, hence datetime.datetime.
         if existing.action != swipe.action:

@@ -42,7 +42,11 @@ def get_matches(uid: str = Depends(verified_email_uid), db: Session = Depends(ge
     #
     #NEWEST FIRST: this is the page people open to find the match they just
     #made, not to browse history.
+    #WITHDRAWN BY EITHER SIDE MEANS GONE FOR BOTH. The row survives so the
+    #connection is still on record; it just stops being served - which is the
+    #only thing the app can actually take back once a handle has been read.
     matches = db.query(models.Matches).filter(
+        models.Matches.hidden_at.is_(None),
         or_(
             models.Matches.user_a_id == me.id,
             and_(models.Matches.user_b_id == me.id,

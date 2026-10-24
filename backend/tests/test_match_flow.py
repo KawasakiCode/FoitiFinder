@@ -238,3 +238,118 @@ class TestTheBell:
 
         assert as_user(bob).post(f"/notifications/{row.id}/read").status_code == 404
         assert as_user(alice).post(f"/notifications/{row.id}/read").status_code == 200
+
+
+class TestWithdrawingFromAMatch:
+    """hidden_at: the one thing the app can still take back.
+
+    A revealed match cannot be declined - decline answers 409, because a handle
+    that has been read cannot be unread. But the row goes on handing that
+    handle back every time the other person opens their list, and THAT is the
+    app's doing rather than the other person's. Hiding ends it.
+
+    NOTHING WRITES THIS YET. The column and the filter are in place; the button
+    that sets it is a separate decision. These tests pin the behaviour now so
+    the endpoint has something to be correct against when it arrives.
+    """
+
+    def hidden_match(self, db, as_user, swipe, alice, bob, by):
+        import datetime
+        from database import models
+
+        match_id = complete_match(as_user, swipe, alice, bob)
+        match = db.query(models.Matches).filter_by(id=match_id).first()
+        match.hidden_at = datetime.datetime.now(datetime.timezone.utc)
+        match.hidden_by_user_id = by.id
+        db.commit()
+        return match_id
+
+    def test_it_disappears_for_the_one_who_withdrew(
+        self, db, as_user, make_user, swipe
+    ):
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        self.hidden_match(db, as_user, swipe, alice, bob, by=bob)
+        assert as_user(bob).get("/matches").json() == []
+
+    def test_it_disappears_for_the_other_one_too(
+        self, db, as_user, make_user, swipe
+    ):
+        #SEVERANCE, NOT AN ARCHIVE BOX. The whole purpose is that your handle
+        #stops being served to somebody you walked away from, so there is no
+        #state where one of you can still open it.
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = self.hidden_match(db, as_user, swipe, alice, bob, by=bob)
+        as_user(alice).post(f"/matches/{match_id}/confirm")
+
+        assert as_user(alice).get("/matches").json() == []
+
+    def test_the_row_survives_for_the_record(self, db, as_user, make_user, swipe):
+        #hidden, NOT deleted: who confirmed, when, and in which order is the
+        #only evidence that two people ever connected
+        from database import models
+
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = self.hidden_match(db, as_user, swipe, alice, bob, by=bob)
+
+        row = db.query(models.Matches).filter_by(id=match_id).first()
+        assert row is not None
+        assert row.hidden_by_user_id == bob.id
+        assert row.hidden_at is not None
+
+
+class TestReportingSomebody:
+    """'reported' is a pass that cannot be undone."""
+
+    def test_it_is_accepted_as_a_swipe(self, as_user, make_user):
+        me, them = make_user(name="Me"), make_user(name="Them")
+        response = as_user(me).post(
+            "/swipes", json={"target_id": them.id, "action": "reported"}
+        )
+        assert response.status_code == 200
+        assert response.json() == {"data": False, "match_id": None}
+
+    def test_they_leave_the_deck(self, as_user, make_user):
+        me = make_user(name="Me", preferred_gender="Everyone")
+        them = make_user(name="Them")
+        as_user(me).post("/swipes", json={"target_id": them.id, "action": "reported"})
+
+        ids = [card["id"] for card in as_user(me).get("/users/feed").json()]
+        assert them.id not in ids
+
+    def test_a_later_like_cannot_undo_it(self, as_user, make_user, db):
+        #THE QUEUE IS WHY. A like that failed to send is retried from disk
+        #later, so it can arrive AFTER the report - and overwriting would put
+        #somebody the user reported back in play.
+        from database import models
+
+        me, them = make_user(name="Me"), make_user(name="Them")
+        as_user(me).post("/swipes", json={"target_id": them.id, "action": "reported"})
+        as_user(me).post("/swipes", json={"target_id": them.id, "action": "like"})
+
+        row = db.query(models.UserSwipes).filter_by(
+            user_id=me.id, target_id=them.id
+        ).first()
+        assert row.action == "reported"
+
+    def test_a_reported_person_cannot_become_a_match(
+        self, as_user, make_user, swipe
+    ):
+        #they liked first, so a like from this side would normally complete a
+        #match on the spot
+        me, them = make_user(name="Me"), make_user(name="Them")
+        swipe(them, me, "like")
+
+        as_user(me).post("/swipes", json={"target_id": them.id, "action": "reported"})
+        answer = as_user(me).post(
+            "/swipes", json={"target_id": them.id, "action": "like"}
+        ).json()
+
+        assert answer["match_id"] is None
+        assert as_user(me).get("/matches").json() == []
+
+    def test_a_typo_is_still_refused(self, as_user, make_user):
+        #the Literal is what makes a 422 here mean something
+        me, them = make_user(name="Me"), make_user(name="Them")
+        assert as_user(me).post(
+            "/swipes", json={"target_id": them.id, "action": "report"}
+        ).status_code == 422

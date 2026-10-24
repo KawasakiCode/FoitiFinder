@@ -124,7 +124,11 @@ class SwipeRequest(BaseModel):
     #gone from the deck forever. FastAPI turns anything else into a 422 before
     #the endpoint runs - which is also what makes a 422 here MEAN something,
     #and therefore worth alerting on.
-    action: Literal["like", "pass", "super_like"]
+    #'reported' is a pass that can never be undone. It is kept distinct from
+    #'pass' on purpose: the two are identical to the deck, but a feature that
+    #ever offers a second look at profiles you skipped must not hand back
+    #somebody you reported, and by then the two would be indistinguishable.
+    action: Literal["like", "pass", "super_like", "reported"]
 
 #body for replacing a user's whole photo set in order
 #NOTE: no firebase_uid — the owner is taken from the verified ID token
