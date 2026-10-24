@@ -1837,6 +1837,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchYourTurn => 'Your turn';
 
   @override
+  String superLikedYouTitle(String name) {
+    return '$name super liked you';
+  }
+
+  @override
+  String get superLikedYouBody =>
+      'They get two of these a week, and they spent one on you.';
+
+  @override
+  String get superLikesNoneLeft =>
+      'No super likes left this week. You get two, and they come back as the week rolls on.';
+
+  @override
   String notifMatchOwnTitle(String name) {
     return 'You matched with $name';
   }

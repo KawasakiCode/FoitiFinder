@@ -28,12 +28,18 @@
 //of blinking off at lift-off.
 
 import 'package:flutter/material.dart';
+import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/models/card_data_model.dart';
 import 'package:foitifinder/theme/app_colors.dart';
+import 'package:foitifinder/widgets/app_dialog.dart';
 import 'package:foitifinder/widgets/profile_photo.dart';
 
 //how round the card is; the deck and the photo clip share it
 const double kCardRadius = 24;
+
+//Identifies the "they super liked you" star, which is NOT the super like
+//button's star sitting a few hundred pixels below it on the same card.
+const String kSuperLikeBadgeKey = 'super-like-badge';
 
 //THE SIX STAT PILLS ARE OFF.
 //
@@ -230,6 +236,9 @@ class PhotoCard extends StatefulWidget {
   //slide down into it instead of the page's bar appearing from nowhere. Null
   //on the cards behind, for the same reason photoHeroTag is.
   final Object? actionsHeroTag;
+  //false once the week's two are spent, which greys the star rather than
+  //removing it - see AppColors.spentGradient
+  final bool superLikeAvailable;
   //null on the cards stacked behind: only the top card acts
   final VoidCallback? onOpen;
   final VoidCallback? onPass;
@@ -245,6 +254,7 @@ class PhotoCard extends StatefulWidget {
     this.onPass,
     this.onSuperLike,
     this.onLike,
+    this.superLikeAvailable = true,
   });
 
   @override
@@ -353,6 +363,28 @@ class _PhotoCardState extends State<PhotoCard> {
             child: const SizedBox.expand(),
           ),
 
+          //THE ONE PIECE OF INTEREST THE DECK DISCLOSES, and it sits OUTSIDE
+          //the photo Hero on purpose. The badge belongs to the card, not to
+          //the profile the photo flies to - that page says it properly in
+          //words, and carrying this along would leave a star hanging over it.
+          //
+          //AFTER the tap-anywhere layer, not before. A Stack hit-tests its
+          //children back to front, and that layer is translucent - so a badge
+          //placed above it in the list is painted underneath, and tapping the
+          //star opened the profile AND explained itself at the same time.
+          //Last child, opaque gesture: the tap stops here.
+          if (widget.card.superLikedYou)
+            Positioned(
+              top: kCardSideInset,
+              right: kCardSideInset,
+              //keyed: the card already has a star on the super like BUTTON,
+              //so an icon finder cannot tell the two apart
+              child: _SuperLikeBadge(
+                key: const ValueKey(kSuperLikeBadgeKey),
+                name: widget.card.name,
+              ),
+            ),
+
           //fourth layer: who this is, at the top
           Positioned(
             top: 28,
@@ -399,6 +431,7 @@ class _PhotoCardState extends State<PhotoCard> {
                 onPass: widget.onPass,
                 onSuperLike: widget.onSuperLike,
                 onLike: widget.onLike,
+                superLikeAvailable: widget.superLikeAvailable,
               ),
             ),
           ),
@@ -445,14 +478,67 @@ class _StatSlots extends StatelessWidget {
   }
 }
 
+//A star on somebody's card: they super liked you, and tapping it says so.
+//
+//A BADGE NOBODY CAN DECODE IS NOISE. A blue star means nothing to a first-time
+//user, and the one moment they will try to find out is when they see it - so
+//the explanation is on the badge itself rather than in a settings page nobody
+//opens.
+class _SuperLikeBadge extends StatelessWidget {
+  final String name;
+
+  const _SuperLikeBadge({super.key, required this.name});
+
+  @override
+  Widget build(BuildContext context) {
+    final text = AppLocalizations.of(context)!;
+    return GestureDetector(
+      //opaque, so the tap-anywhere layer underneath does not also fire
+      behavior: HitTestBehavior.opaque,
+      onTap: () => showAppDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(text.superLikedYouTitle(name)),
+          content: Text(text.superLikedYouBody),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(text.close),
+            ),
+          ],
+        ),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          //the same gradient the button uses, so the badge and the thing that
+          //sends it are visibly one idea
+          gradient: AppColors.superLikeGradient,
+          shape: BoxShape.circle,
+          boxShadow: const [
+            BoxShadow(blurRadius: 8, color: Color(0x66000000)),
+          ],
+        ),
+        child: const Icon(Icons.star, color: Colors.white, size: 20),
+      ),
+    );
+  }
+}
+
 //Pass, super like, like - in that order, on the card itself rather than under
 //it, so the deck owns the whole screen.
 class _CardActions extends StatelessWidget {
   final VoidCallback? onPass;
   final VoidCallback? onSuperLike;
   final VoidCallback? onLike;
+  final bool superLikeAvailable;
 
-  const _CardActions({this.onPass, this.onSuperLike, this.onLike});
+  const _CardActions({
+    this.onPass,
+    this.onSuperLike,
+    this.onLike,
+    this.superLikeAvailable = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -467,7 +553,11 @@ class _CardActions extends StatelessWidget {
         ),
         SwipeActionButton(
           icon: Icons.star,
-          gradient: AppColors.superLikeGradient,
+          //GREY WHEN THERE ARE NONE LEFT, but still pressable: the tap is how
+          //the user is told why, and a dead button explains nothing.
+          gradient: superLikeAvailable
+              ? AppColors.superLikeGradient
+              : AppColors.spentGradient,
           size: 48,
           onPressed: onSuperLike,
         ),

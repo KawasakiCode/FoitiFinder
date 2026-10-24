@@ -41,6 +41,15 @@ class AppColors {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
+  //THE SAME BUTTON, OUT OF STOCK. Grey rather than hidden or removed: a
+  //button that disappears when you run out leaves people wondering what used
+  //to be there, while a grey one says "this exists and you have none left" -
+  //which is also what makes it worth tapping to find out when it comes back.
+  static const LinearGradient spentGradient = LinearGradient(
+    colors: [Color(0xFF9CA3AF), Color(0xFF6B7280)], // grey 400 / grey 500
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
   static const LinearGradient likeGradient = LinearGradient(
     colors: [Color(0xFF34D399), Color(0xFF059669)], // green (the "yes")
     begin: Alignment.topLeft,

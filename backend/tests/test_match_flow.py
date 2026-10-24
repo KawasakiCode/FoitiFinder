@@ -353,3 +353,72 @@ class TestReportingSomebody:
         assert as_user(me).post(
             "/swipes", json={"target_id": them.id, "action": "report"}
         ).status_code == 422
+
+
+class TestSuperLikesAreScarce:
+    """Two a week, and the limit is what makes the badge mean anything."""
+
+    def test_the_first_two_go_through(self, as_user, make_user):
+        me = make_user(name="Me")
+        for name in ("One", "Two"):
+            them = make_user(name=name)
+            assert as_user(me).post(
+                "/swipes", json={"target_id": them.id, "action": "super_like"}
+            ).status_code == 200
+
+    def test_the_third_is_refused(self, as_user, make_user):
+        me = make_user(name="Me")
+        for name in ("One", "Two"):
+            as_user(me).post("/swipes", json={
+                "target_id": make_user(name=name).id, "action": "super_like"})
+
+        third = make_user(name="Three")
+        response = as_user(me).post(
+            "/swipes", json={"target_id": third.id, "action": "super_like"}
+        )
+        #409 AND NOT 429: a 429 is retryable, and SwipeQueue would bring this
+        #back off disk days later to land on somebody long since swiped past
+        assert response.status_code == 409
+
+    def test_a_plain_like_is_never_limited(self, as_user, make_user):
+        me = make_user(name="Me")
+        for name in ("One", "Two"):
+            as_user(me).post("/swipes", json={
+                "target_id": make_user(name=name).id, "action": "super_like"})
+
+        them = make_user(name="Three")
+        assert as_user(me).post(
+            "/swipes", json={"target_id": them.id, "action": "like"}
+        ).status_code == 200
+
+    def test_resending_the_same_one_does_not_spend_a_second(
+        self, as_user, make_user
+    ):
+        #the queue flushing something the server already has, or a double tap
+        me = make_user(name="Me")
+        them = make_user(name="Them")
+        body = {"target_id": them.id, "action": "super_like"}
+        assert as_user(me).post("/swipes", json=body).status_code == 200
+        assert as_user(me).post("/swipes", json=body).status_code == 200
+
+        left = as_user(me).get("/swipes/super-likes").json()
+        assert left["left"] == 1
+
+    def test_one_older_than_the_window_does_not_count(
+        self, as_user, make_user, swipe
+    ):
+        import datetime
+
+        long_ago = (datetime.datetime.now(datetime.timezone.utc)
+                    - datetime.timedelta(days=8))
+        me = make_user(name="Me")
+        swipe(me, make_user(name="Old"), "super_like", at=long_ago)
+        assert as_user(me).get("/swipes/super-likes").json()["left"] == 2
+
+    def test_the_count_is_what_the_app_asks_before_spending_one(
+        self, as_user, make_user
+    ):
+        me = make_user(name="Me")
+        assert as_user(me).get("/swipes/super-likes").json() == {
+            "left": 2, "per_window": 2, "window_days": 7,
+        }

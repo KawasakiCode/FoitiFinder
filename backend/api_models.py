@@ -50,6 +50,13 @@ class UserCards(BaseModel):
     job: Optional[str] = None
     bio: Optional[str] = None
     photos: List[str] = []
+    #THE ONE THING THE DECK IS ALLOWED TO SAY ABOUT SOMEBODY'S INTEREST.
+    #
+    #A plain like is invisible: you only learn about it if you like them back
+    #on your own. A super like is the sender spending a scarce thing to waive
+    #that for themselves, so it is disclosure they chose, not a hole in the
+    #rule - and telling you BEFORE you decide is the whole of what it does.
+    super_liked_you: bool = False
 
     class Config:
         from_attributes = True

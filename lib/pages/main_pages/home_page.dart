@@ -58,6 +58,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   //means the pool really is exhausted. Reset as soon as anyone new arrives.
   int _fetchesWithNothingNew = 0;
   static const int _kGiveUpAfterEmptyFetches = 3;
+  //SUPER LIKES ARE SCARCE, AND THE DECK HAS TO KNOW BEFORE THE GESTURE. A
+  //card animates away first and registers after, so a refusal from the server
+  //lands when the card is already gone. Starts at zero rather than at two:
+  //until the server has answered, the honest state is "not sure", and
+  //refusing is recoverable while spending one the user does not have is not.
+  int _superLikesLeft = 0;
   late AnimationController _animationController;
   double _tapPositionY = 0;
   final ValueNotifier<Offset> _swipeNotifier = ValueNotifier(Offset.zero);
@@ -72,6 +78,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
     // Initialize sample data
     _fetchMoreCards();
+    _loadSuperLikesLeft();
     currentIndex = 0;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -240,7 +247,25 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
   }
 
+  Future<void> _loadSuperLikesLeft() async {
+    try {
+      final left = await ApiService.getSuperLikesLeft();
+      if (mounted) setState(() => _superLikesLeft = left);
+    } catch (_) {
+      //leaves it at zero, so the star is refused rather than spent blind
+    }
+  }
+
   void _swipeUp({bool fromButton = false}) async {
+    //REFUSED HERE, BEFORE THE CARD MOVES. Letting the animation run and then
+    //failing would show a super like leaving and silently not happen.
+    if (_superLikesLeft <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(text.superLikesNoneLeft)),
+      );
+      return;
+    }
+
     final card = cards[currentIndex];
     _animateCardOut(
       0.0,
@@ -254,6 +279,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       targetId: card.id,
       action: "super_like",
     );
+    //spent, whatever the match turned out to be
+    if (mounted) setState(() => _superLikesLeft -= 1);
 
     await _openMatch(card, result);
   }
@@ -569,6 +596,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               onPass: isTop ? () => _swipeLeft(fromButton: true) : null,
               onSuperLike: isTop ? () => _swipeUp(fromButton: true) : null,
               onLike: isTop ? () => _swipeRight(fromButton: true) : null,
+              superLikeAvailable: _superLikesLeft > 0,
             ),
 
             // Swipe indicators (only on top card)
@@ -691,6 +719,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         userId: card.id,
         photoHeroTag: _cardPhotoHeroTag(card),
         actionsHeroTag: _cardActionsHeroTag(card),
+        //the buttons fly down from the card, so the star must already be the
+        //same colour there - otherwise it changes shade mid-flight
+        superLikeAvailable: _superLikesLeft > 0,
         //what the deck already knows, so the page opens with a face and a
         //name instead of a spinner
         preview: PublicProfile(

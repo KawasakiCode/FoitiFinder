@@ -13,10 +13,50 @@ from database.database import get_db
 
 router = APIRouter()
 
+#Two a week, free. Small enough that spending one is a decision.
+SUPER_LIKES_PER_WINDOW = 2
+SUPER_LIKE_WINDOW_DAYS = 7
+
+
+def since_days_ago(days: int) -> datetime.datetime:
+    """The moment `days` ago, timezone aware: the near edge of the window."""
+    return datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=days)
+
 from api_models import SwipeRequest
 from app_logging import logger
 from firebase_app import firestore_db
 from notifications import send_smart_notification
+
+def super_likes_used(db: Session, me: models.User) -> int:
+    return db.query(models.UserSwipes).filter(
+        models.UserSwipes.user_id == me.id,
+        models.UserSwipes.action == "super_like",
+        models.UserSwipes.timestamp > since_days_ago(SUPER_LIKE_WINDOW_DAYS),
+    ).count()
+
+
+@router.get("/swipes/super-likes")
+def super_likes_left(uid: str = Depends(verified_email_uid),
+                     db: Session = Depends(get_db)):
+    """How many are left, so the app can stop one being spent it cannot send.
+
+    WITHOUT THIS THE LIMIT ARRIVES TOO LATE. The deck animates a card away and
+    registers the swipe afterwards, so a refusal comes back when the card is
+    already gone - the user watches a super like leave and is then told it did
+    not happen. The count lets the button say no before the gesture starts,
+    and the check in record_swipe stays as the backstop for a patched client.
+    """
+    me = db.query(models.User).filter(models.User.firebase_uid == uid).first()
+    if not me:
+        raise HTTPException(status_code=404, detail="Current User not found")
+
+    used = super_likes_used(db, me)
+    return {
+        "left": max(0, SUPER_LIKES_PER_WINDOW - used),
+        "per_window": SUPER_LIKES_PER_WINDOW,
+        "window_days": SUPER_LIKE_WINDOW_DAYS,
+    }
+
 
 #register a swipe
 @router.post("/swipes")
@@ -24,6 +64,34 @@ def record_swipe(swipe: SwipeRequest, uid: str = Depends(verified_email_uid), db
     me = db.query(models.User).filter(models.User.firebase_uid == uid).first()
     if not me:
        raise HTTPException(status_code=404, detail="Current User not found")
+
+    #TWO A WEEK, AND THE LIMIT IS WHAT MAKES IT MEAN ANYTHING. A super like
+    #tells somebody you liked them before they decide; if everybody could send
+    #unlimited ones the badge would say nothing and be worth nothing to spend.
+    #
+    #409, NOT 429. A 429 is retryable, and SwipeQueue correctly retries those
+    #from disk for up to a week - so a refused super like would come back days
+    #later and land on somebody the user swiped past long ago. This refusal
+    #will not change for days, which is exactly what a non-retryable 4xx means.
+    #
+    #COUNTED OFF THE CURRENT ROWS, so re-swiping somebody to a pass gives the
+    #super like back. Nothing in the app can re-swipe (the deck drops anyone
+    #you have decided about), so only a patched client could farm it, and the
+    #fix if that ever matters is an immutable log rather than a bigger query.
+    if swipe.action == "super_like":
+        #this target excluded, so re-sending a super like the client already
+        #spent - a queue flush, a double tap - is not counted a second time
+        used = db.query(models.UserSwipes).filter(
+            models.UserSwipes.user_id == me.id,
+            models.UserSwipes.action == "super_like",
+            models.UserSwipes.timestamp > since_days_ago(SUPER_LIKE_WINDOW_DAYS),
+            models.UserSwipes.target_id != swipe.target_id,
+        ).count()
+        if used >= SUPER_LIKES_PER_WINDOW:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="No super likes left this week",
+            )
 
     query = db.query(models.UserSwipes).filter(  
         models.UserSwipes.user_id == me.id,

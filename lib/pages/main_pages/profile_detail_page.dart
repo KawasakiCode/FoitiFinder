@@ -58,6 +58,9 @@ Route<ProfileDecision> profileDetailRoute({
   required Object photoHeroTag,
   Object? actionsHeroTag,
   bool showSuperLike = true,
+  //false once the week's two are spent: the star greys rather than vanishing,
+  //and the tap still explains why (see AppColors.spentGradient)
+  bool superLikeAvailable = true,
   bool decisions = true,
   Widget? footer,
 }) {
@@ -73,6 +76,7 @@ Route<ProfileDecision> profileDetailRoute({
       photoHeroTag: photoHeroTag,
       actionsHeroTag: actionsHeroTag,
       showSuperLike: showSuperLike,
+      superLikeAvailable: superLikeAvailable,
       decisions: decisions,
       footer: footer,
     ),
@@ -126,6 +130,9 @@ class ProfileDetailPage extends StatefulWidget {
   //matches on its own and the star would buy nothing. Offering a button that
   //changes nothing is worse than not offering it.
   final bool showSuperLike;
+  //false once the week's two super likes are spent: the star greys instead of
+  //vanishing, and the tap still explains why
+  final bool superLikeAvailable;
   //FALSE WHEN THE DECISION IS SOMEBODY ELSE'S PAGE. The match page asks one
   //question and asks it there; a second set of like/pass buttons under the
   //profile would be a different answer to the same thing. The page is then
@@ -146,6 +153,7 @@ class ProfileDetailPage extends StatefulWidget {
     this.photoHeroTag,
     this.actionsHeroTag,
     this.showSuperLike = true,
+    this.superLikeAvailable = true,
     this.decisions = true,
     this.footer,
   });
@@ -328,6 +336,7 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
                       child: _DecisionBar(
                         onDecide: _decide,
                         showSuperLike: widget.showSuperLike,
+                        superLikeAvailable: widget.superLikeAvailable,
                         heroTag: widget.actionsHeroTag,
                       ),
                     )
@@ -340,6 +349,7 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
                         child: _DecisionBar(
                           onDecide: _decide,
                           showSuperLike: widget.showSuperLike,
+                          superLikeAvailable: widget.superLikeAvailable,
                         ),
                       ),
                     ),
@@ -429,12 +439,14 @@ class _HeaderPhoto extends StatelessWidget {
 class _DecisionBar extends StatelessWidget {
   final ValueChanged<ProfileDecision> onDecide;
   final bool showSuperLike;
+  final bool superLikeAvailable;
   //set when these buttons are the card's buttons, arriving from above
   final Object? heroTag;
 
   const _DecisionBar({
     required this.onDecide,
     required this.showSuperLike,
+    required this.superLikeAvailable,
     this.heroTag,
   });
 
@@ -476,7 +488,11 @@ class _DecisionBar extends StatelessWidget {
             if (showSuperLike)
               SwipeActionButton(
                 icon: Icons.star,
-                gradient: AppColors.superLikeGradient,
+                //grey once the week's two are gone; still pressable, since
+                //the tap is what explains why
+                gradient: superLikeAvailable
+                    ? AppColors.superLikeGradient
+                    : AppColors.spentGradient,
                 size: 48,
                 onPressed: () => onDecide(ProfileDecision.superLike),
               ),

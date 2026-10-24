@@ -283,6 +283,25 @@ class ApiService {
   }
 
   //Get matches aka dms
+  /// How many super likes are left this week.
+  ///
+  /// ASKED BEFORE ONE CAN BE SPENT. The deck animates a card away and
+  /// registers the swipe afterwards, so a refusal from the server arrives
+  /// when the card is already gone - the user watches a super like leave and
+  /// is then told it never happened. Knowing the count lets the gesture say
+  /// no first; the server check stays as the backstop.
+  static Future<int> getSuperLikesLeft() async {
+    final response = await http.get(
+      Uri.parse("$baseUrl/swipes/super-likes"),
+      headers: await _authHeaders(),
+    ).timeout(kRequestTimeout);
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body)['left'] as int;
+    }
+    throw ApiException(response.statusCode, response.body);
+  }
+
   static Future<List<MatchModel>> getMatches({
     required String uid,
   }) async {

@@ -9,6 +9,10 @@ class CardData {
   //shown under the name on the card, beside the age
   String? job;
   List<String> photos;
+  //THE ONLY INTEREST THE DECK DISCLOSES. A plain like stays invisible; a
+  //super like is the sender spending one of two a week to tell you before you
+  //decide. See UserCards.super_liked_you.
+  final bool superLikedYou;
 
   CardData({
     required this.id,
@@ -17,6 +21,7 @@ class CardData {
     required this.age,
     this.job,
     this.photos = const [],
+    this.superLikedYou = false,
   });
 
   factory CardData.fromPostgresRow(Map<String, dynamic> row) {
@@ -28,6 +33,9 @@ class CardData {
       job: row['job'],
       photos: (row['photos'] as List?) 
       ?.map((item) => item.toString()).toList() ?? [],
+      //absent from an older backend: treated as "no", which says nothing
+      //rather than claiming something that is not true
+      superLikedYou: row['super_liked_you'] ?? false,
     );
   }
 }

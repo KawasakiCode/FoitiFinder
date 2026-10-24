@@ -1845,6 +1845,19 @@ class AppLocalizationsEl extends AppLocalizations {
   String get matchYourTurn => 'Σειρά σου';
 
   @override
+  String superLikedYouTitle(String name) {
+    return 'Ο/Η $name σου έκανε super like';
+  }
+
+  @override
+  String get superLikedYouBody =>
+      'Έχει μόνο δύο την εβδομάδα και ξόδεψε ένα σε σένα.';
+
+  @override
+  String get superLikesNoneLeft =>
+      'Δεν έχεις άλλα super likes αυτή την εβδομάδα. Παίρνεις δύο και ανανεώνονται σταδιακά.';
+
+  @override
   String notifMatchOwnTitle(String name) {
     return 'Ταίριαξες με $name';
   }

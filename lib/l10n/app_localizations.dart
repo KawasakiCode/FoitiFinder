@@ -3614,6 +3614,24 @@ abstract class AppLocalizations {
   /// **'Your turn'**
   String get matchYourTurn;
 
+  /// No description provided for @superLikedYouTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} super liked you'**
+  String superLikedYouTitle(String name);
+
+  /// No description provided for @superLikedYouBody.
+  ///
+  /// In en, this message translates to:
+  /// **'They get two of these a week, and they spent one on you.'**
+  String get superLikedYouBody;
+
+  /// No description provided for @superLikesNoneLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'No super likes left this week. You get two, and they come back as the week rolls on.'**
+  String get superLikesNoneLeft;
+
   /// Title for YOUR OWN pending match - the one you completed by liking back. notifMatchWaitingTitle reads 'X matched with you', which is backwards for this side.
   ///
   /// In en, this message translates to:

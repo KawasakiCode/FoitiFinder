@@ -47,7 +47,7 @@ class TestWhoIsInTheDeck:
         swipe(admirer, viewer, "like")
         assert admirer.id in feed_ids(as_user, viewer)
 
-    def test_the_deck_never_reveals_that_they_liked_you(
+    def test_the_deck_never_reveals_a_plain_like(
         self, as_user, make_user, swipe
     ):
         #THE HIDING IS THE PRODUCT. A card that announced "they like you" would
@@ -56,13 +56,38 @@ class TestWhoIsInTheDeck:
         #must not say.
         viewer = make_user(name="Viewer", preferred_gender="Everyone")
         admirer = make_user(name="Admirer")
+        swipe(admirer, viewer, "like")
+
+        card = next(c for c in as_user(viewer).get("/users/feed").json()
+                    if c["id"] == admirer.id)
+        assert card["super_liked_you"] is False
+
+    def test_a_super_like_is_the_one_thing_the_deck_does_say(
+        self, as_user, make_user, swipe
+    ):
+        #THE EXCEPTION IS OPT-IN BY THE SENDER. Telling you before you decide
+        #is the whole of what a super like does; they spent one of two a week
+        #to waive their own privacy, which is not the same as the deck leaking
+        #somebody's interest.
+        viewer = make_user(name="Viewer", preferred_gender="Everyone")
+        admirer = make_user(name="Admirer")
         swipe(admirer, viewer, "super_like")
 
-        client = as_user(viewer)
-        card = next(c for c in client.get("/users/feed").json()
+        card = next(c for c in as_user(viewer).get("/users/feed").json()
                     if c["id"] == admirer.id)
-        assert "liked" not in " ".join(str(k) for k in card).lower()
-        assert set(card) == {"id", "name", "age", "job", "bio", "photos"}
+        assert card["super_liked_you"] is True
+
+    def test_it_says_nothing_about_people_who_did_not(
+        self, as_user, make_user, swipe
+    ):
+        viewer = make_user(name="Viewer", preferred_gender="Everyone")
+        stranger = make_user(name="Stranger")
+        passer = make_user(name="Passer")
+        swipe(passer, viewer, "pass")
+
+        cards = {c["id"]: c for c in as_user(viewer).get("/users/feed").json()}
+        assert cards[stranger.id]["super_liked_you"] is False
+        assert cards[passer.id]["super_liked_you"] is False
 
     def test_someone_who_passed_on_you_is_still_offered(
         self, as_user, make_user, swipe

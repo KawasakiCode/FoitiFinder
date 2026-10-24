@@ -696,6 +696,12 @@
   "notifMatchOwnBody": "Tap to finish sharing your Instagram.",
   "noMatches": "No matches yet. Keep swiping — when someone likes you back they will show up here.",
   "matchYourTurn": "Your turn",
+  "superLikedYouTitle": "{name} super liked you",
+  "@superLikedYouTitle": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "superLikedYouBody": "They get two of these a week, and they spent one on you.",
+  "superLikesNoneLeft": "No super likes left this week. You get two, and they come back as the week rolls on.",
   "notifMatchOwnTitle": "You matched with {name}",
   "@notifMatchOwnTitle": {
     "description": "Title for YOUR OWN pending match - the one you completed by liking back. notifMatchWaitingTitle reads 'X matched with you', which is backwards for this side.",

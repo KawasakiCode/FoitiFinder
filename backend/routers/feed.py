@@ -53,6 +53,16 @@ def get_swipe_feed(uid: str = Depends(verified_email_uid), db: Session = Depends
     #swipe honest, and it is the shape a "see who liked you" tier is sold on
     #later. /likes still works and still has its tests.
 
+    #WHO SUPER LIKED ME, which is the only interest the deck discloses. Reads
+    #straight off ix_user_swipes_target_action - (target_id, action) is exactly
+    #this question, and it was added for the opposite one.
+    super_liked_me = {
+        row[0] for row in db.query(models.UserSwipes.user_id).filter(
+            models.UserSwipes.target_id == me.id,
+            models.UserSwipes.action == "super_like",
+        ).all()
+    }
+
     #base filter: skip yourself and anyone already swiped.
     #
     #There USED to be a score band here - candidates had to sit within +-1.5 of
@@ -107,5 +117,9 @@ def get_swipe_feed(uid: str = Depends(verified_email_uid), db: Session = Depends
             "job": user.job,
             "bio": user.bio,
             "photos": photo_urls,
+            #NOT ORDERED BY IT YET. Surfacing these first belongs with the
+            #ranking work, where "what comes next" is decided once for every
+            #reason at once rather than bolted on here.
+            "super_liked_you": user.id in super_liked_me,
         })
     return results
