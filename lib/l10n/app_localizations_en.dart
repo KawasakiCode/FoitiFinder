@@ -1830,6 +1830,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notifMatchOwnBody => 'Tap to finish sharing your Instagram.';
 
   @override
+  String get noMatches =>
+      'No matches yet. Keep swiping — when someone likes you back they will show up here.';
+
+  @override
+  String get matchYourTurn => 'Your turn';
+
+  @override
   String notifMatchOwnTitle(String name) {
     return 'You matched with $name';
   }

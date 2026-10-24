@@ -1,5 +1,18 @@
 //The bell's list: things that happened, newest first.
 //
+//NOTHING WRITES A MATCH NOTIFICATION ANY MORE. Matches moved to their own
+//page, which is always reachable and always current, so a stored row about
+//one could only ever be a staler copy of a screen the user can just open -
+//and it was that row which made 'match' mean two different things at once,
+//gave the wrong title to whoever completed the match, and sat dead in the
+//bell the moment they answered. A match is a push and a list entry now.
+//
+//THE PAGE AND ITS KINDS ARE KEPT ON PURPOSE, for the report flow: telling
+//somebody what came of a report they filed, or that one was filed about them,
+//is exactly the kind of thing with nowhere else to live. The match kinds
+//below still render correctly if anything ever writes one again. Today
+//nothing does, so the bell is empty until reports land.
+//
 //A TAP GOES STRAIGHT THERE. There is no notification detail screen, because
 //there is nothing a detail screen could add - the two lines here already say
 //what happened and what it wants, and a match page one tap away is the whole

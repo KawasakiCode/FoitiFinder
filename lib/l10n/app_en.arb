@@ -694,6 +694,8 @@
   },
   "swipeQueued": "Could not reach the server. Your like is saved and will be sent as soon as you are back online.",
   "notifMatchOwnBody": "Tap to finish sharing your Instagram.",
+  "noMatches": "No matches yet. Keep swiping — when someone likes you back they will show up here.",
+  "matchYourTurn": "Your turn",
   "notifMatchOwnTitle": "You matched with {name}",
   "@notifMatchOwnTitle": {
     "description": "Title for YOUR OWN pending match - the one you completed by liking back. notifMatchWaitingTitle reads 'X matched with you', which is backwards for this side.",

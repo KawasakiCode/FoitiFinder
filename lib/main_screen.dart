@@ -1,4 +1,4 @@
-//the 3 main pages (home, likes and profile) get build on top of mainScreen
+//the 3 main pages (home, matches and profile) get build on top of mainScreen
 //mainscreen makes it easier to handle the bottom nav bar by making it custom
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/pages/main_pages/home_page.dart';
 import 'package:foitifinder/pages/main_pages/profile_page.dart';
-import 'package:foitifinder/pages/main_pages/likes_page.dart';
+import 'package:foitifinder/pages/main_pages/matches_page.dart';
 import 'package:foitifinder/providers/notifications_provider.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/services/swipe_queue.dart';
@@ -25,7 +25,8 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
-  final GlobalKey<LikesPageState> _likesPageKey = GlobalKey<LikesPageState>();
+  final GlobalKey<MatchesPageState> _matchesPageKey =
+      GlobalKey<MatchesPageState>();
 
   //drives the swipeable PageView; kept in sync with the bottom nav bar
   final PageController _pageController = PageController();
@@ -81,16 +82,16 @@ class _MainScreenState extends State<MainScreen> {
     _updateFcmToken();
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      if (message.data['type'] == 'new_like') {
-        _likesPageKey.currentState?.loadLikes();
-      }
-      //ANYTHING ABOUT A MATCH REFRESHES THE BELL, whatever the kind. The row
-      //is already on the server by the time this arrives (see _notify in
-      //main.py), so this only pulls it forward - the same call on launch is
-      //what makes the flow survive a push that never shows up.
+      //ANYTHING ABOUT A MATCH REFRESHES THE MATCHES PAGE, whatever the kind.
+      //The push is only a nudge now: nothing about a match is stored in the
+      //bell any more, so this list IS the delivery, and it is reloaded here so
+      //the page is already right if the user opens it from the banner.
+      //
+      //A 'like' push is deliberately not handled. Who liked you is not shown
+      //anywhere any more, so there is nothing for it to refresh.
       final kind = message.data['type'] as String?;
       if (kind != null && kind.startsWith('match')) {
-        _notificationsProvider.load();
+        _matchesPageKey.currentState?.loadMatches();
       }
     });
 
@@ -221,7 +222,7 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     final List<Widget> pages = [
       MyHomePage(cardAreaKey: _homeCardAreaKey),
-      LikesPage(key: _likesPageKey),
+      MatchesPage(key: _matchesPageKey),
       const ProfilePage(),
     ];
 
@@ -273,7 +274,7 @@ class _MainScreenState extends State<MainScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   Expanded(child: _buildNavItem(0, 'assets/icons/home_page.png', 'Home')),
-                  Expanded(child: _buildNavItem(1, 'assets/icons/like.png', 'Likes')),
+                  Expanded(child: _buildNavItem(1, 'assets/icons/like.png', 'Matches')),
                   Expanded(child: _buildNavItem(2, 'assets/icons/user.png', 'Profile')),
                 ],
               ),

@@ -13,9 +13,14 @@ from database.database import get_db
 
 router = APIRouter()
 
+from ages import age_from_birthday
 from api_models import MatchResponse
 from app_logging import logger
-from notifications import notify
+#PUSH ONLY, no stored row. The matches page is the record now - it lists every
+#live match and says whose turn each one is - so a notification row about a
+#match would be a second, staler copy of a screen the user can just open. The
+#push is still worth sending: it is what brings somebody back to the app.
+from notifications import push
 from typing import List
 
 #get every match the user currently has
@@ -25,9 +30,25 @@ def get_matches(uid: str = Depends(verified_email_uid), db: Session = Depends(ge
     if not me:
         raise HTTPException(status_code=404, detail="Current User not found")
     
+    #A MATCH THE OTHER SIDE HAS NOT ANSWERED IS NOT YOURS TO SEE YET, and this
+    #is the rule the whole flow is built on: the person who was liked hears
+    #nothing until the one who completed the match has confirmed. Otherwise
+    #this page would announce matches that are declined seconds later, to
+    #somebody who was never given the chance to want one.
+    #
+    #user_a is always the one who completed the match (record_swipe writes it
+    #that way), so: it is mine if I completed it, or if the completer has said
+    #yes. A match they abandon is deleted and the other side never knew.
+    #
+    #NEWEST FIRST: this is the page people open to find the match they just
+    #made, not to browse history.
     matches = db.query(models.Matches).filter(
-        (models.Matches.user_a_id == me.id) | (models.Matches.user_b_id == me.id),
-    ).all()
+        or_(
+            models.Matches.user_a_id == me.id,
+            and_(models.Matches.user_b_id == me.id,
+                 models.Matches.a_confirmed_at.isnot(None)),
+        ),
+    ).order_by(models.Matches.id.desc()).all()
 
     if not matches:
         return []
@@ -54,18 +75,31 @@ def get_matches(uid: str = Depends(verified_email_uid), db: Session = Depends(ge
 
     results = []
     for match in matches:
-        other_user_id = match.user_b_id if match.user_a_id == me.id else match.user_a_id
+        i_am_a = match.user_a_id == me.id
+        other_user_id = match.user_b_id if i_am_a else match.user_a_id
         other_user = users_by_id.get(other_user_id)
 
         #a match with a deleted user is skipped rather than failing the whole call
         if not other_user:
             continue
 
+        mine = match.a_confirmed_at if i_am_a else match.b_confirmed_at
+        theirs = match.b_confirmed_at if i_am_a else match.a_confirmed_at
+
         results.append({
             "match_id": match.id,
             "other_user_id": other_user.id,
             "other_user_name": other_user.name,
+            "other_user_age": age_from_birthday(other_user.birthday),
             "image_url": picture_by_user.get(other_user.id),
+            "i_confirmed": mine is not None,
+            "they_confirmed": theirs is not None,
+            #THE SAME CONDITION confirm_match REVEALS ON, handles included: a
+            #row claiming to be revealed when one side has no handle would send
+            #the page to ask for something that is not there.
+            "revealed": (mine is not None and theirs is not None
+                         and bool(me.instagram_handle)
+                         and bool(other_user.instagram_handle)),
         })
 
     return results
@@ -105,6 +139,10 @@ def confirm_match(match_id: int, uid: str = Depends(verified_email_uid), db: Ses
     #is read BEFORE this confirmation is written
     other_confirmed = match.a_confirmed_at if not i_am_a else match.b_confirmed_at
 
+    #read BEFORE the write, so a retry can be told apart from a first answer
+    already_confirmed = (match.a_confirmed_at if i_am_a
+                         else match.b_confirmed_at) is not None
+
     now = datetime.datetime.now(datetime.timezone.utc)
     if i_am_a and match.a_confirmed_at is None:
         match.a_confirmed_at = now
@@ -135,16 +173,21 @@ def confirm_match(match_id: int, uid: str = Depends(verified_email_uid), db: Ses
     #They were waiting -> this completes it and their own reveal is in the
     #bell. Otherwise it is their turn, and the same row is what gets them
     #there whether or not the push arrives.
-    notify(
-        db, other,
-        'match_revealed' if revealed else 'match',
-        match_id=match.id,
-        other_user_id=me.id,
-        #confirm is idempotent, so this has to be as well: a retried confirm
-        #must not notify the other person a second time
-        once=True,
-    )
-    db.commit()
+    #NOTHING HERE MAY FAIL THE CONFIRM. The confirmation is already committed,
+    #and a push that cannot be sent - no token, Firebase down - must not turn a
+    #successful exchange into an error for the person who just agreed to it.
+    #
+    #A retried confirm sends a second push, where the old notification row was
+    #deduplicated. That is the honest trade for dropping the row: a duplicate
+    #banner is a smaller harm than a stale list, and the matches page is where
+    #the truth is either way.
+    #ONLY WHEN THIS CALL CHANGED SOMETHING. confirm is idempotent, so the
+    #client is free to retry one whose answer it never saw - and that must not
+    #reach the other person as a second banner saying the same thing. The
+    #stored notification used to carry that guarantee with `once`; without a
+    #row it has to come from here.
+    if not already_confirmed:
+        push(other, 'match_revealed' if revealed else 'match')
 
     return {
         "revealed": revealed,
@@ -205,10 +248,11 @@ def decline_match(match_id: int, uid: str = Depends(verified_email_uid), db: Ses
     if other_confirmed is not None:
         other = db.query(models.User).filter(models.User.id == other_id).first()
         if other:
-            #match_id is deliberately left out: the row above has just been
-            #deleted, and a notification pointing at a match that no longer
-            #exists is how a dead end gets tapped
-            notify(db, other, 'match_declined', other_user_id=me.id)
-            db.commit()
+            #PUSH ONLY, AND NOTHING LEFT BEHIND. The match row is gone, so the
+            #entry simply disappears from their matches page - which is the
+            #honest representation of what happened. A stored notification
+            #would be the one record of a match that no longer exists, and
+            #tapping it could only ever lead nowhere.
+            push(other, 'match_declined')
 
     return {"declined": True}

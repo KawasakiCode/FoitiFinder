@@ -1,33 +1,33 @@
-//Who liked you, and the decision to like them back.
+//Your matches: everyone you and somebody else both said yes to.
 //
-//A TAP OPENS THE SAME PAGE THE DECK OPENS. It used to be a dialog: the swipe
-//card shrunk into a floating box with two buttons under it, which showed a
-//photo and a name and nothing else - no bio, no answers, no other photos. You
-//cannot decide about a person from that. Now the tile's photo grows into the
-//full, scrollable profile (profileDetailRoute), exactly as the deck does, so
-//there is one profile layout in the app and one way to reach it.
+//THIS WAS THE LIKES PAGE. Hiding who liked you put every match on a page of
+//its own and left the deck unable to produce one at all - every payoff in the
+//app arrived somewhere other than the screen people actually use. Now likers
+//go back into the deck unannounced, a match can happen on any swipe, and this
+//page is where they live afterwards.
 //
-//THE DECISION COMES BACK FROM THE PAGE, as it does on home: the page pops a
-//ProfileDecision and this page owns the backend call, the match dialog and
-//removing the tile. Nothing here is a second copy of the profile UI.
+//IT IS ALSO WHY THE BELL NO LONGER CARRIES MATCHES. A stored notification
+//existed because the match page was the only entrance to a match: a swipe
+//delivered late by the retry queue, or an app killed at the wrong moment,
+//stranded it. This list is always reachable and always current, so the
+//notification had nothing left to rescue - and it was the row that made
+//'match' mean two different things at once.
 //
-//SOMEONE WHO LIKED YOU IS ALREADY HALF A MATCH, so liking back matches
-//immediately - registerSwipe returns true and the dialog fires. A pass is
-//remembered too: the /likes query only re-surfaces them if they like you again
-//afterwards. That is also why the profile opens here with NO super like
-//button: the star exists to get you noticed by someone who has not seen you,
-//and this person already has.
+//A TAP OPENS THE SAME PROFILE THE DECK OPENS, with the match's own action
+//pinned under it: share, waiting, or their handle. One profile layout in the
+//app, one way to reach it, and you can read somebody properly before handing
+//over an Instagram handle.
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
-import 'package:foitifinder/models/liker_model.dart';
+import 'package:foitifinder/models/matches_model.dart';
 import 'package:foitifinder/models/public_profile.dart';
-import 'package:foitifinder/pages/main_pages/match_page.dart';
 import 'package:foitifinder/pages/main_pages/profile_detail_page.dart';
 import 'package:foitifinder/services/api_services.dart';
-import 'package:foitifinder/services/swipe_queue.dart';
+import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/main_app_bar.dart';
+import 'package:foitifinder/widgets/match_actions.dart';
 import 'package:foitifinder/widgets/photo_card.dart';
 import 'package:foitifinder/widgets/profile_photo.dart';
 
@@ -42,20 +42,20 @@ const double _kGridGap = 8;
 const double _kTileLabelInset = 10;
 const double _kTileLabelBottom = 8;
 
-class LikesPage extends StatefulWidget {
-  const LikesPage({super.key});
+class MatchesPage extends StatefulWidget {
+  const MatchesPage({super.key});
 
   @override
-  State<LikesPage> createState() => LikesPageState();
+  State<MatchesPage> createState() => MatchesPageState();
 }
 
 //PUBLIC on purpose: main_screen.dart holds a GlobalKey to it and calls
-//loadLikes() when an FCM 'new_like' arrives, so the page refreshes without
-//being visited.
-class LikesPageState extends State<LikesPage> {
-  List<LikerModel> _likes = [];
-  //true until the first load finishes, so the page does not flash "no likes"
-  //at someone who has them
+//loadMatches() when a match FCM arrives, so the page is current without
+//having been visited.
+class MatchesPageState extends State<MatchesPage> {
+  List<MatchModel> _matches = [];
+  //true until the first load finishes, so the page does not flash "no
+  //matches" at someone who has them
   bool _loading = true;
 
   AppLocalizations get text => AppLocalizations.of(context)!;
@@ -63,136 +63,79 @@ class LikesPageState extends State<LikesPage> {
   @override
   void initState() {
     super.initState();
-    loadLikes();
+    loadMatches();
   }
 
-  Future<void> loadLikes() async {
+  Future<void> loadMatches() async {
     try {
-      final likes = await ApiService.getLikes(
-        FirebaseAuth.instance.currentUser!.uid,
+      final matches = await ApiService.getMatches(
+        uid: FirebaseAuth.instance.currentUser!.uid,
       );
       if (!mounted) return;
       setState(() {
-        _likes = likes;
+        _matches = matches;
         _loading = false;
       });
     } catch (_) {
       //a failed refresh keeps whatever is already on screen; the empty state
-      //is reached by having no likes, not by the network being down
+      //is reached by having no matches, not by the network being down
       if (mounted) setState(() => _loading = false);
     }
   }
 
   //ties a grid tile's photo to the header photo of the profile page.
   //
-  //The 'liker-' prefix matters: the home deck is built at the same time as
+  //The 'match-' prefix matters: the home deck is built at the same time as
   //this page inside main_screen's PageView, and two Heroes sharing a tag in
   //one route is a crash - the deck uses 'card-photo-<id>' for the same person.
-  Object _photoHeroTag(LikerModel liker) => 'liker-photo-${liker.id}';
+  Object _photoHeroTag(MatchModel match) => 'match-photo-${match.otherUserId}';
 
-  //Open the whole profile, then act on the decision it pops.
-  Future<void> _openProfile(LikerModel liker) async {
-    final decision = await Navigator.push<ProfileDecision>(
+  //Open the whole profile, with this match's action pinned under it.
+  //
+  //NO ProfileDecision COMES BACK. There is nothing to decide about a person
+  //you have already matched with - the decision left is whether to hand over
+  //an Instagram handle, and that lives in the bar so it can show the three
+  //states the server reports rather than two buttons that mean one thing.
+  Future<void> _openProfile(MatchModel match) async {
+    await Navigator.push<void>(
       context,
       profileDetailRoute(
-        userId: liker.id,
-        photoHeroTag: _photoHeroTag(liker),
-        //pass or like back, nothing in between
-        showSuperLike: false,
+        userId: match.otherUserId,
+        photoHeroTag: _photoHeroTag(match),
+        decisions: false,
+        footer: MatchActionBar(match: match, onChanged: loadMatches),
         //the tile already has a face and a name, so the page opens with them
         //rather than a spinner; the rest arrives a moment later
         preview: PublicProfile(
-          id: liker.id,
-          name: liker.name,
-          age: liker.age,
+          id: match.otherUserId,
+          name: match.otherUserName,
+          age: match.otherUserAge,
           //no photo, no entry: the page draws its own placeholder rather
           //than being handed a URL that is not there
           photos: [
-            if (liker.imageUrl != null) ProfilePhoto(url: liker.imageUrl!),
+            if (match.imageUrl != null) ProfilePhoto(url: match.imageUrl!),
           ],
         ),
       ),
     );
-    if (!mounted || decision == null) return;
-
-    switch (decision) {
-      case ProfileDecision.pass:
-        await _decide(liker, "pass");
-      //the page has no star, so this cannot arrive; treated as a like rather
-      //than dropped, because losing a decision silently is the worse failure
-      case ProfileDecision.superLike:
-      case ProfileDecision.like:
-        await _decide(liker, "like");
-    }
-  }
-
-  //Register the swipe, drop the tile, and open the match.
-  //
-  //THE TILE GOES FIRST. A decision has been made either way, so leaving the
-  //person on screen while the request is in flight invites a second tap on
-  //someone already decided about.
-  //
-  //LIKING BACK FROM HERE ALWAYS COMPLETES A MATCH - everyone on this page has
-  //already liked you - so this is the main way the match page is reached.
-  Future<void> _decide(LikerModel liker, String action) async {
-    setState(() => _likes.removeWhere((l) => l.id == liker.id));
-
-    final result = await SwipeQueue.instance.send(
-      uid: FirebaseAuth.instance.currentUser!.uid,
-      targetId: liker.id,
-      action: action,
-    );
-
-    final matchId = result.matchId;
-    if (!mounted) return;
-
-    //THE ONE PLACE A FAILURE IS WORTH INTERRUPTING FOR. Everyone on this page
-    //has already liked you, so liking back always completes a match - a
-    //swipe that had to be queued here is a known match the user is now
-    //waiting on, and silence would look like nothing happened. Elsewhere the
-    //retry is invisible and should stay that way.
-    if (matchId == null) {
-      if (action != "pass") {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(text.swipeQueued)),
-        );
-        //it was removed optimistically, and it is not resolved after all
-        await loadLikes();
-      }
-      return;
-    }
-
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => MatchPage(
-          matchId: matchId,
-          otherUserId: liker.id,
-          otherName: liker.name,
-          otherAge: liker.age,
-          otherPhotoUrl: liker.imageUrl,
-        ),
-      ),
-    );
-    //a decline deleted the match and withdrew the like, and an accept
-    //consumed it: either way this page's list is out of date
-    if (mounted) await loadLikes();
+    //sharing or declining while in there changes what this list should say
+    if (mounted) await loadMatches();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const MainAppBar(title: "FoitiFinder"),
-      body: RefreshIndicator(onRefresh: loadLikes, child: _buildBody()),
+      body: RefreshIndicator(onRefresh: loadMatches, child: _buildBody()),
     );
   }
 
   Widget _buildBody() {
-    if (_loading && _likes.isEmpty) {
+    if (_loading && _matches.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (_likes.isEmpty) {
+    if (_matches.isEmpty) {
       //still a scroll view, or RefreshIndicator has nothing to pull on - which
       //is exactly the state you most want to refresh
       return ListView(
@@ -202,7 +145,7 @@ class LikesPageState extends State<LikesPage> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
-                text.noLikes,
+                text.noMatches,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 18,
@@ -219,7 +162,7 @@ class LikesPageState extends State<LikesPage> {
     //SingleChildScrollView with shrinkWrap, which builds every tile at once
     return GridView.builder(
       padding: const EdgeInsets.fromLTRB(_kGridGap, _kGridGap, _kGridGap, 24),
-      itemCount: _likes.length,
+      itemCount: _matches.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: _kGridColumns,
         crossAxisSpacing: _kGridGap,
@@ -227,11 +170,11 @@ class LikesPageState extends State<LikesPage> {
         childAspectRatio: _kTileAspect,
       ),
       itemBuilder: (_, index) {
-        final liker = _likes[index];
-        return _LikerTile(
-          liker: liker,
-          heroTag: _photoHeroTag(liker),
-          onTap: () => _openProfile(liker),
+        final match = _matches[index];
+        return _MatchTile(
+          match: match,
+          heroTag: _photoHeroTag(match),
+          onTap: () => _openProfile(match),
         );
       },
     );
@@ -244,13 +187,13 @@ class LikesPageState extends State<LikesPage> {
 //card's pills do - it is inside the Hero, and photoHeroShuttle redraws it on
 //top of the flying photo. The profile page writes the name in its own place,
 //so carrying this one all the way there would mean two of them.
-class _LikerTile extends StatelessWidget {
-  final LikerModel liker;
+class _MatchTile extends StatelessWidget {
+  final MatchModel match;
   final Object heroTag;
   final VoidCallback onTap;
 
-  const _LikerTile({
-    required this.liker,
+  const _MatchTile({
+    required this.match,
     required this.heroTag,
     required this.onTap,
   });
@@ -265,7 +208,9 @@ class _LikerTile extends StatelessWidget {
       right: _kTileLabelInset,
       bottom: _kTileLabelBottom,
       child: Text(
-        "${liker.name}, ${liker.age}",
+        match.otherUserAge == null
+            ? match.otherUserName
+            : "${match.otherUserName}, ${match.otherUserAge}",
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: const TextStyle(
@@ -300,7 +245,7 @@ class _LikerTile extends StatelessWidget {
               //thumbnail width; the profile header it flies to uses this copy
               //as its stand-in while the full-size one decodes
               PersonPhoto(
-                url: liker.imageUrl,
+                url: match.imageUrl,
                 decodeWidth: kThumbDecodeWidth,
                 missingIconSize: 40,
               ),
@@ -308,6 +253,38 @@ class _LikerTile extends StatelessWidget {
                 decoration: BoxDecoration(gradient: kPhotoTopScrim),
               ),
               label,
+              //WHOSE TURN IT IS, on the tile rather than only inside. A grid
+              //where every face looks the same gives no reason to open any
+              //particular one, and the matches that need an answer are the
+              //whole point of the page.
+              //
+              //Outside the Hero deliberately: it belongs to this list, not to
+              //the profile the photo flies to, and carrying it along would
+              //leave it hanging over a page that says the same thing properly
+              //at the bottom.
+              if (match.waitingOnMe)
+                Positioned(
+                  top: _kTileLabelInset,
+                  left: _kTileLabelInset,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(AppRadius.lg),
+                    ),
+                    child: Text(
+                      AppLocalizations.of(context)!.matchYourTurn,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),

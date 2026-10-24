@@ -35,26 +35,23 @@ def get_swipe_feed(uid: str = Depends(verified_email_uid), db: Session = Depends
 
     seen_ids_list.append(me.id)
 
-    #WHOEVER LIKED YOU IS NOT IN THE DECK. They are on the likes page, and
-    #that is the only place they should be decided about.
+    #WHOEVER LIKED YOU IS IN THE DECK, AND IS NOT TOLD SO.
     #
-    #This is not about keeping a surprise. A card in the deck can be passed
-    #with a flick, and a pass is written with a newer timestamp than their
-    #like - which is exactly what makes the likes query stop surfacing them.
-    #So the deck could silently consume a guaranteed match that the user was
-    #never told was on offer. Nobody can make an informed decision about
-    #someone whose interest is hidden from them at the moment they decide.
+    #This reverses an earlier decision, deliberately. They used to be held
+    #back for a likes page, on the grounds that a flick could pass on a
+    #guaranteed match the user was never told was on offer. That argument
+    #assumed the user would otherwise have been told - and the likes page is
+    #gone, so they never were. A pass on somebody whose interest you did not
+    #know about is simply a pass.
     #
-    #A pass FROM them is deliberately not excluded: it costs a card in the
-    #deck, but hiding people who have already passed on you is a different
-    #decision (it would make an empty deck mean "everyone said no") and worth
-    #making on purpose rather than as a side effect of this.
-    liked_me_ids = [
-        x[0] for x in db.query(models.UserSwipes.user_id).filter(
-            models.UserSwipes.target_id == me.id,
-            models.UserSwipes.action.in_(["like", "super_like"]),
-        ).all()
-    ]
+    #WHAT IT BUYS is the only moment the app is really about: a match can now
+    #happen from the main deck, on any swipe. Under the old arrangement the
+    #deck could not produce a match at all - every one of them arrived on a
+    #separate page - so the primary screen never paid out.
+    #
+    #Their interest stays hidden, which is the point: it is what keeps a right
+    #swipe honest, and it is the shape a "see who liked you" tier is sold on
+    #later. /likes still works and still has its tests.
 
     #base filter: skip yourself and anyone already swiped.
     #
@@ -64,7 +61,7 @@ def get_swipe_feed(uid: str = Depends(verified_email_uid), db: Session = Depends
     #could have placed itself in anyone's band. Ranking belongs in the ORDER BY,
     #computed per viewer - see the note in the matching design.
     filters = [
-        models.User.id.notin_(seen_ids_list + liked_me_ids),
+        models.User.id.notin_(seen_ids_list),
     ]
 
     #Age range filter, always applied - the range the user picked is the range

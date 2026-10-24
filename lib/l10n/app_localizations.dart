@@ -3602,6 +3602,18 @@ abstract class AppLocalizations {
   /// **'Tap to finish sharing your Instagram.'**
   String get notifMatchOwnBody;
 
+  /// No description provided for @noMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No matches yet. Keep swiping — when someone likes you back they will show up here.'**
+  String get noMatches;
+
+  /// No description provided for @matchYourTurn.
+  ///
+  /// In en, this message translates to:
+  /// **'Your turn'**
+  String get matchYourTurn;
+
   /// Title for YOUR OWN pending match - the one you completed by liking back. notifMatchWaitingTitle reads 'X matched with you', which is backwards for this side.
   ///
   /// In en, this message translates to:

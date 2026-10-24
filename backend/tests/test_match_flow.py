@@ -138,20 +138,22 @@ class TestWhoGetsTold:
         assert (bob.firebase_uid, "match") in pushes
 
     def test_a_retried_confirm_does_not_tell_them_twice(
-        self, as_user, make_user, swipe, pushes, db
+        self, as_user, make_user, swipe, pushes
     ):
-        from database import models
-
+        #A STORED ROW USED TO CARRY THIS, deduplicated on (user, kind, match).
+        #With nothing stored, the guarantee has to come from the endpoint: it
+        #pushes only when the confirmation actually changed something. A client
+        #retrying a confirm whose answer it never saw is the normal case, not
+        #a rare one.
         alice, bob = make_user(name="Alice"), make_user(name="Bob")
         match_id = complete_match(as_user, swipe, alice, bob)
 
         as_user(alice).post(f"/matches/{match_id}/confirm")
         as_user(alice).post(f"/matches/{match_id}/confirm")
 
-        rows = db.query(models.Notifications).filter_by(
-            user_id=bob.id, kind="match", match_id=match_id
-        ).all()
-        assert len(rows) == 1
+        told = [p for p in pushes
+                if p[0] == bob.firebase_uid and p[1] == "match"]
+        assert len(told) == 1
 
     def test_declining_first_tells_nobody(
         self, as_user, make_user, swipe, pushes
@@ -180,77 +182,59 @@ class TestWhoGetsTold:
 
 
 class TestTheBell:
-    def test_your_own_match_has_an_entrance(
+    """What the notifications table is for now that matches are not in it.
+
+    MATCHES LEFT THE BELL. Every live match is on the matches page, which is
+    always reachable and always current, so a stored notification about one
+    could only ever be a staler copy of a screen the user can open. The rows
+    that used to live here are what made 'match' mean two different things,
+    gave the wrong title to whoever completed the match, and sat dead in the
+    bell as soon as they had answered.
+
+    THE TABLE AND ITS ENDPOINTS STAY, for the report flow: telling somebody
+    what came of a report they filed, or that one was filed about them, is
+    exactly a thing with no other home in the app. These tests keep the
+    plumbing honest in the meantime.
+    """
+
+    def test_a_match_no_longer_writes_anything_to_the_bell(
         self, as_user, make_user, swipe, db
     ):
-        #without this row the match page is the only way in, so a swipe
-        #delivered late by the retry queue - or an app killed while the page
-        #is open - leaves a match nobody can reach
         from database import models
 
         alice, bob = make_user(name="Alice"), make_user(name="Bob")
         match_id = complete_match(as_user, swipe, alice, bob)
-
-        own = db.query(models.Notifications).filter_by(
-            user_id=alice.id, match_id=match_id
-        ).all()
-        assert len(own) == 1
-        assert own[0].kind == "match"
-
-    def test_a_retried_swipe_does_not_add_a_second_row(
-        self, as_user, make_user, swipe, db
-    ):
-        from database import models
-
-        alice, bob = make_user(name="Alice"), make_user(name="Bob")
-        complete_match(as_user, swipe, alice, bob)
-        #the queue flushing something the server already received
-        again = as_user(alice).post(
-            "/swipes", json={"target_id": bob.id, "action": "like"}
-        ).json()
-
-        #is_match is only true the first time, but the id must still be there
-        assert again["data"] is False
-        assert again["match_id"] is not None
-        assert db.query(models.Notifications).filter_by(user_id=alice.id).count() == 1
-
-    def test_answering_makes_the_notification_unactionable(
-        self, as_user, make_user, swipe
-    ):
-        alice, bob = make_user(name="Alice"), make_user(name="Bob")
-        match_id = complete_match(as_user, swipe, alice, bob)
-
-        before = as_user(alice).get("/notifications").json()
-        assert before[0]["actionable"] is True
-        assert before[0]["other_confirmed"] is False
-
         as_user(alice).post(f"/matches/{match_id}/confirm")
+        as_user(bob).post(f"/matches/{match_id}/confirm")
 
-        after = as_user(alice).get("/notifications").json()
-        #the row did not change; the thing it points at did
-        assert after[0]["actionable"] is False
+        assert db.query(models.Notifications).count() == 0
+        assert as_user(alice).get("/notifications").json() == []
+        assert as_user(bob).get("/notifications").json() == []
 
-    def test_a_declined_match_leaves_its_notification_behind(
+    def test_a_decline_leaves_nothing_behind_either(
         self, as_user, make_user, swipe
     ):
+        #she is still told, by push - but the match row is deleted and the
+        #entry simply disappears from her matches page, which is the honest
+        #representation of what happened
         alice, bob = make_user(name="Alice"), make_user(name="Bob")
         match_id = complete_match(as_user, swipe, alice, bob)
         as_user(alice).post(f"/matches/{match_id}/confirm")
         as_user(bob).post(f"/matches/{match_id}/decline")
 
-        rows = as_user(alice).get("/notifications").json()
-        declined = [r for r in rows if r["kind"] == "match_declined"]
-        assert len(declined) == 1
-        #SET NULL, not CASCADE: the match is gone but being told about it is
-        #exactly what she needs, and there is nothing left to open
-        assert declined[0]["match_id"] is None
-        assert declined[0]["actionable"] is False
+        assert as_user(alice).get("/notifications").json() == []
 
     def test_nobody_can_mark_someone_elses_notification_read(
-        self, as_user, make_user, swipe
+        self, as_user, make_user, db
     ):
-        alice, bob = make_user(name="Alice"), make_user(name="Bob")
-        complete_match(as_user, swipe, alice, bob)
-        hers = as_user(alice).get("/notifications").json()[0]["id"]
+        #the endpoint outlives the match notifications, so its authorisation
+        #has to be tested on a row written directly rather than by a match
+        from database import models
 
-        assert as_user(bob).post(f"/notifications/{hers}/read").status_code == 404
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        row = models.Notifications(user_id=alice.id, kind="report_update")
+        db.add(row)
+        db.commit()
+
+        assert as_user(bob).post(f"/notifications/{row.id}/read").status_code == 404
+        assert as_user(alice).post(f"/notifications/{row.id}/read").status_code == 200

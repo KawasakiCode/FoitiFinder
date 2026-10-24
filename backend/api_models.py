@@ -56,10 +56,25 @@ class UserCards(BaseModel):
 
 #class that sends the match data
 class MatchResponse(BaseModel):
+    """One row of the matches page.
+
+    CARRIES THE STATE, NOT THE HANDLE. The list has to show whether a match is
+    waiting on you, waiting on them, or finished - but the Instagram handle
+    still crosses between two users in confirm_match and nowhere else, so the
+    page asks for it there (the call is idempotent) rather than having a second
+    endpoint that can hand it over. A list endpoint is exactly the kind of
+    place a handle leaks from by accident.
+    """
     match_id: int
     other_user_id: int
     other_user_name: str
+    other_user_age: Optional[int] = None
     image_url: Optional[str] = None
+    #whether each side has said yes. Both true AND both handles present is
+    #`revealed`, which is the same condition confirm_match reveals on.
+    i_confirmed: bool = False
+    they_confirmed: bool = False
+    revealed: bool = False
 
     class Config:
         from_attributes = True

@@ -59,6 +59,7 @@ Route<ProfileDecision> profileDetailRoute({
   Object? actionsHeroTag,
   bool showSuperLike = true,
   bool decisions = true,
+  Widget? footer,
 }) {
   return PageRouteBuilder<ProfileDecision>(
     //THIS IS THE FLIGHT'S DURATION TOO. A hero flight runs on the route's
@@ -73,6 +74,7 @@ Route<ProfileDecision> profileDetailRoute({
       actionsHeroTag: actionsHeroTag,
       showSuperLike: showSuperLike,
       decisions: decisions,
+      footer: footer,
     ),
     //no transform on the page: the Hero needs its destination to sit still.
     //The background fades so the deck does not simply vanish under it.
@@ -130,6 +132,12 @@ class ProfileDetailPage extends StatefulWidget {
   //purely something to read - which is the point of opening it from a match
   //you swiped on weeks ago and have forgotten.
   final bool decisions;
+  //PINNED WHERE THE LIKE/PASS BUTTONS WOULD BE, for a profile opened from
+  //somewhere that is not a decision. The matches page passes the match's own
+  //action here - share, waiting, or the handle - so a match is read the same
+  //way every other person in the app is read, instead of on a screen of its
+  //own. Nothing flies into this one, so it is drawn plainly.
+  final Widget? footer;
 
   const ProfileDetailPage({
     super.key,
@@ -139,6 +147,7 @@ class ProfileDetailPage extends StatefulWidget {
     this.actionsHeroTag,
     this.showSuperLike = true,
     this.decisions = true,
+    this.footer,
   });
 
   @override
@@ -273,6 +282,15 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
                 backgroundColor: Colors.transparent,
                 color: theme.colorScheme.primary.withValues(alpha: 0.5),
               ),
+            ),
+
+          if (widget.footer != null)
+            Positioned(
+              key: const ValueKey('profile-footer'),
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: widget.footer!,
             ),
 
           //the decision, pinned to the screen rather than to the scroll

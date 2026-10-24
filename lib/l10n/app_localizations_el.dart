@@ -1838,6 +1838,13 @@ class AppLocalizationsEl extends AppLocalizations {
       'Πάτα για να ολοκληρώσεις και να μοιραστείς το Instagram σου.';
 
   @override
+  String get noMatches =>
+      'Δεν έχεις ταιριάξει ακόμα. Συνέχισε να κάνεις swipe — όποιος σε κάνει like πίσω θα εμφανιστεί εδώ.';
+
+  @override
+  String get matchYourTurn => 'Σειρά σου';
+
+  @override
   String notifMatchOwnTitle(String name) {
     return 'Ταίριαξες με $name';
   }

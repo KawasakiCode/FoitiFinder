@@ -105,6 +105,29 @@ from database import models
 from firebase_app import firestore_db
 
 
+def push(user: models.User, kind: str) -> None:
+    """Send a push and nothing else - no row, no record.
+
+    FOR THE THINGS THE MATCHES PAGE ALREADY KNOWS. A match that is waiting on
+    somebody is visible the moment they open that page, so a stored
+    notification would only be a staler second copy of it. The push still
+    earns its place: it is what brings them back to the app at all.
+
+    NOTHING HERE MAY FAIL THE CALLER. The thing being announced is already
+    committed, and a missing FCM token or a Firebase outage must not turn a
+    confirmed match into an error for the person who just confirmed it.
+
+    Called instead of reaching for send_smart_notification directly, so there
+    is one place this is done - and so a test that replaces the sender in this
+    module actually replaces it for every caller. An endpoint that imported
+    the name itself would hold its own reference and quietly keep the real one.
+    """
+    try:
+        send_smart_notification(user.firebase_uid, kind, firestore_db)
+    except Exception as exc:
+        logger.warning("push failed (%s): %s: %s", kind, type(exc).__name__, exc)
+
+
 def notify(db: Session, user: models.User, kind: str, *,
             match_id: int | None = None, other_user_id: int | None = None,
             once: bool = False, push: bool = True) -> None:

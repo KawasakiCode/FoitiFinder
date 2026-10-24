@@ -15,7 +15,6 @@ router = APIRouter()
 
 from api_models import SwipeRequest
 from app_logging import logger
-from notifications import notify
 from firebase_app import firestore_db
 from notifications import send_smart_notification
 
@@ -120,22 +119,16 @@ def record_swipe(swipe: SwipeRequest, uid: str = Depends(verified_email_uid), db
                 logger.warning("like notification failed: %s: %s",
                                type(exc).__name__, exc)
 
-    #THE SWIPER GETS A NOTIFICATION TOO, about their own match.
+    #THE SWIPER USED TO GET A NOTIFICATION about their own match, because the
+    #match page was the ONLY entrance to it: a swipe delivered late by the
+    #retry queue, or the app being killed while the page was open, left a
+    #match nobody could reach.
     #
-    #Normally they are already looking at the match page, so this row is a
-    #duplicate of what is in front of them - and that is exactly why it
-    #exists. The match page is the ONLY entrance to a match you completed, so
-    #without it a swipe that lands LATE (a queued retry delivered minutes
-    #after the deck moved on) creates a match nobody can reach, and so does
-    #killing the app while the page is open.
-    #
-    #`once` because a retried swipe re-finds the same match and must not add a
-    #second row. `push` is off because a device notification about a page
-    #already on screen is noise - the bell is what matters here.
-    if match_id is not None:
-        notify(db, me, 'match', match_id=match_id,
-                other_user_id=swipe.target_id, once=True, push=False)
-        db.commit()
+    #THE MATCHES PAGE IS THAT ENTRANCE NOW. Every live match is listed there
+    #whatever happened to the swipe or the app, so the row has nothing left to
+    #rescue - and it was the row that made 'match' mean two different things
+    #(see the notify dedupe), gave the wrong title to whoever completed the
+    #match, and sat dead in the bell once they had answered.
 
     #match_id so the client can confirm or decline the match it just created.
     #

@@ -88,21 +88,40 @@ class TestTheMatchesList:
             "/swipes", json={"target_id": first_liker.id, "action": "like"}
         ).json()["match_id"]
 
+    def test_only_the_completer_sees_it_until_they_answer(
+        self, as_user, make_user, swipe
+    ):
+        #THE RULE THE WHOLE FLOW RESTS ON. Alice liked Bob a day ago and has
+        #heard nothing since; Bob has just liked back, which made the match.
+        #Until Bob says yes there is nothing to tell her - a match he declines
+        #thirty seconds later would otherwise reach her as news of a rejection
+        #she could not have seen coming.
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = self.complete(as_user, swipe, alice, bob)
+
+        assert [m["match_id"] for m in as_user(bob).get("/matches").json()] == [match_id]
+        assert as_user(alice).get("/matches").json() == []
+
     def test_both_sides_see_the_same_match(self, as_user, make_user, swipe):
         alice, bob = make_user(name="Alice"), make_user(name="Bob")
         match_id = self.complete(as_user, swipe, alice, bob)
+        as_user(bob).post(f"/matches/{match_id}/confirm")
 
         hers = as_user(alice).get("/matches").json()
         his = as_user(bob).get("/matches").json()
 
         assert [m["match_id"] for m in hers] == [match_id]
         assert [m["match_id"] for m in his] == [match_id]
+        #and each is told where it stands from their own side
+        assert hers[0]["they_confirmed"] is True and hers[0]["i_confirmed"] is False
+        assert his[0]["i_confirmed"] is True and his[0]["they_confirmed"] is False
 
     def test_each_side_sees_the_OTHER_person(self, as_user, make_user, swipe):
         #the row stores user_a and user_b; "the other one" is worked out per
         #caller, and getting it backwards would show someone themselves
         alice, bob = make_user(name="Alice"), make_user(name="Bob")
-        self.complete(as_user, swipe, alice, bob)
+        match_id = self.complete(as_user, swipe, alice, bob)
+        as_user(bob).post(f"/matches/{match_id}/confirm")
 
         assert as_user(alice).get("/matches").json()[0]["other_user_name"] == "Bob"
         assert as_user(bob).get("/matches").json()[0]["other_user_name"] == "Alice"
@@ -186,9 +205,14 @@ class TestTheFullStory:
         as_user(b).post("/swipes", json={"target_id": a.id, "action": "like"})
 
         #B completed it, so B answers now - and A is told NOTHING, because a
-        #match B is about to decline is not news
-        assert len(as_user(b).get("/notifications").json()) == 1
-        assert as_user(a).get("/notifications").json() == []
+        #match B is about to decline is not news. THE MATCHES PAGE KEEPS THAT
+        #RULE: the row exists, but it is not B's answer to give away.
+        mine = as_user(b).get("/matches").json()
+        assert len(mine) == 1
+        assert mine[0]["i_confirmed"] is False
+        assert mine[0]["they_confirmed"] is False
+
+        assert as_user(a).get("/matches").json() == []
         assert not [p for p in pushes if p[0] == a.firebase_uid]
 
     def test_b_rejects_and_a_never_learns(
@@ -220,12 +244,13 @@ class TestTheFullStory:
         answer = as_user(b).post(f"/matches/{match_id}/confirm").json()
         assert answer["revealed"] is False  # nothing shared yet
 
-        #A is told, and it is actionable with the other side already confirmed
-        rows = as_user(a).get("/notifications").json()
+        #NOW it appears for A, with B's answer already on it
+        rows = as_user(a).get("/matches").json()
         assert len(rows) == 1
-        assert rows[0]["kind"] == "match"
-        assert rows[0]["actionable"] is True
-        assert rows[0]["other_confirmed"] is True
+        assert rows[0]["match_id"] == match_id
+        assert rows[0]["they_confirmed"] is True
+        assert rows[0]["i_confirmed"] is False
+        assert rows[0]["revealed"] is False
         assert (a.firebase_uid, "match") in pushes
 
     def test_a_rejects_later_and_b_is_told(
@@ -241,14 +266,13 @@ class TestTheFullStory:
 
         as_user(a).post(f"/matches/{match_id}/decline")
 
-        #B said yes and was waiting, so B is owed an answer
+        #B said yes and was waiting, so B is owed an answer - by push, since
+        #there is nothing left to store it against
         assert (b.firebase_uid, "match_declined") in pushes
-        rows = as_user(b).get("/notifications").json()
-        declined = [row for row in rows if row["kind"] == "match_declined"]
-        assert len(declined) == 1
-        assert declined[0]["match_id"] is None      # nothing left to open
-        assert declined[0]["actionable"] is False
         assert db.query(models.Matches).count() == 0
+        #and it simply leaves B's list, which is what actually happened
+        assert as_user(b).get("/matches").json() == []
+        assert as_user(b).get("/notifications").json() == []
 
     def test_a_accepts_and_both_get_a_handle(
         self, as_user, make_user, swipe, pushes
@@ -266,10 +290,13 @@ class TestTheFullStory:
 
         #and B, who was waiting, is told it completed
         assert (b.firebase_uid, "match_revealed") in pushes
-        rows = as_user(b).get("/notifications").json()
-        revealed = [row for row in rows if row["kind"] == "match_revealed"]
-        assert len(revealed) == 1
-        assert revealed[0]["actionable"] is True    # the way back to the handle
+        #B's list says so too, whatever the push did
+        rows = as_user(b).get("/matches").json()
+        assert len(rows) == 1
+        assert rows[0]["revealed"] is True
+        #THE LIST DOES NOT CARRY THE HANDLE. It crosses in confirm_match and
+        #nowhere else, so the page asks for it there.
+        assert "instagram_handle" not in rows[0]
 
         #B collects it by confirming again - idempotent, so this is a read
         collected = as_user(b).post(f"/matches/{match_id}/confirm").json()

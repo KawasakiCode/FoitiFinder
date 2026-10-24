@@ -32,21 +32,37 @@ class TestWhoIsInTheDeck:
         swipe(viewer, passed, "pass")
         assert passed.id not in feed_ids(as_user, viewer)
 
-    def test_anyone_who_liked_you_is_gone(self, as_user, make_user, swipe):
-        #THE REASON IS NOT SUSPENSE. A card can be flicked away, and the pass
-        #is written with a newer timestamp than their like - which is what
-        #makes the likes page stop surfacing them. The deck could silently
-        #consume a guaranteed match the user was never told about.
+    def test_someone_who_liked_you_is_offered_without_saying_so(
+        self, as_user, make_user, swipe
+    ):
+        #THEY USED TO BE HELD BACK for a likes page, so that a flick could not
+        #pass on a guaranteed match. That page is gone, and with it the premise:
+        #nobody was ever going to be told, so a pass here is just a pass.
+        #
+        #It is also the only way the deck can pay out at all. Every match used
+        #to arrive on a separate page, which left the app's main screen unable
+        #to produce the thing the app is for.
         viewer = make_user(name="Viewer", preferred_gender="Everyone")
         admirer = make_user(name="Admirer")
         swipe(admirer, viewer, "like")
-        assert admirer.id not in feed_ids(as_user, viewer)
+        assert admirer.id in feed_ids(as_user, viewer)
 
-    def test_a_super_like_counts_the_same(self, as_user, make_user, swipe):
+    def test_the_deck_never_reveals_that_they_liked_you(
+        self, as_user, make_user, swipe
+    ):
+        #THE HIDING IS THE PRODUCT. A card that announced "they like you" would
+        #turn every such swipe into a formality, and it is the thing a "see who
+        #liked you" tier would be sold on later. /likes still knows; the deck
+        #must not say.
         viewer = make_user(name="Viewer", preferred_gender="Everyone")
         admirer = make_user(name="Admirer")
         swipe(admirer, viewer, "super_like")
-        assert admirer.id not in feed_ids(as_user, viewer)
+
+        client = as_user(viewer)
+        card = next(c for c in client.get("/users/feed").json()
+                    if c["id"] == admirer.id)
+        assert "liked" not in " ".join(str(k) for k in card).lower()
+        assert set(card) == {"id", "name", "age", "job", "bio", "photos"}
 
     def test_someone_who_passed_on_you_is_still_offered(
         self, as_user, make_user, swipe
