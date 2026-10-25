@@ -93,3 +93,74 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/foitifinder_test
         run: python -m alembic check
+
+  # --------------------------------------------------------------------------
+  # Everything below is the deploy half, and it runs ONLY after the tests pass.
+  #
+  # RENDER'S AUTO-DEPLOY MUST BE OFF for this to mean anything. Deploying on
+  # push puts the new code live before the migration has run, which is the one
+  # ordering that breaks: code referencing a column the database does not have
+  # yet. Doing it here reverses that - the schema moves first, and old code
+  # simply ignores a column it has never heard of.
+  #
+  # That tolerance only holds for ADDITIVE migrations. A drop or a rename still
+  # needs two deploys: ship code that stops using the column, then remove it.
+  # --------------------------------------------------------------------------
+
+  migrate:
+    needs: tests
+    # PUSHES TO main ONLY. Never on a pull request: this job holds the
+    # production database URL, and the repository is public.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - run: pip install -r requirements.txt
+
+      - name: migrate neon
+        env:
+          DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::notice::NEON_DATABASE_URL is not set, so nothing was migrated."
+            echo "::notice::Add it as a repository secret to turn this on."
+            exit 0
+          fi
+          python -m alembic upgrade head
+          # proves the schema now matches models.py, rather than assuming the
+          # upgrade did what the revision claimed
+          python -m alembic check
+
+  deploy:
+    needs: migrate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: tell render to deploy
+        env:
+          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "::notice::RENDER_DEPLOY_HOOK is not set, so nothing was deployed."
+            echo "::notice::Add it as a repository secret and turn Render's"
+            echo "::notice::auto-deploy OFF to turn this on."
+            exit 0
+          fi
+          # THE HOOK ONLY QUEUES THE DEPLOY. A 200 here means Render accepted
+          # the request, not that the deploy succeeded - watch the Render
+          # dashboard for that.
+          curl -fsS -X POST "$HOOK" > /dev/null
+          echo "deploy requested"
