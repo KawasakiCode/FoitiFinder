@@ -14,6 +14,11 @@
 name: backend
 
 on:
+  # ON DEMAND, from the Actions tab. The path filters mean a workflow can go
+  # a long time without running - useful, but it also leaves no way to check
+  # one still works without inventing a commit that touches it.
+  workflow_dispatch:
+
   push:
     paths:
       - 'backend/**'
