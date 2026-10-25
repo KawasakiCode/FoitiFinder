@@ -85,9 +85,15 @@ app.include_router(notifications.router, tags=["notifications"])
 #LAST, because /users/{user_id}/profile would otherwise swallow /users/me
 app.include_router(profiles.router, tags=["profiles"])
 
-#Keep-alive target for an external pinger (UptimeRobot / cron-job.org), hit
-#every ~10 minutes so Render never reaches its 15-minute spin-down and users
-#stop paying the ~60s cold start.
+#RENDER'S HEALTH CHECK PATH, set in the service's settings - so this is
+#polled every few seconds, forever, by the platform itself. It decides
+#whether a deploy goes live and whether the running service is considered
+#alive. The access log lines it produces are filtered out in
+#app_logging.py; a non-200 from here still gets logged.
+#
+#Also the keep-alive target for an external pinger (UptimeRobot /
+#cron-job.org) if one is needed, hit every ~10 minutes so Render never
+#reaches its 15-minute spin-down and users stop paying the ~60s cold start.
 #
 #IT MUST NOT TOUCH THE DATABASE. No Depends(get_db), no query, nothing. Neon's
 #free plan allows ~400 compute hours a month and suspends after 5 minutes of
@@ -98,6 +104,11 @@ app.include_router(profiles.router, tags=["profiles"])
 #
 #So: Render stays warm, Neon sleeps normally and wakes only for real traffic
 #(transparently - see pool_pre_ping in database/database.py).
+#
+#DO NOT ADD A DATABASE CHECK HERE, however tempting. It would make this a
+#readiness check rather than a liveness one, which sounds better and costs
+#the entire Neon allowance: the platform polls this constantly, and every
+#poll would hold the compute awake.
 @app.get("/health")
 def health():
     return {"status": "ok"}
