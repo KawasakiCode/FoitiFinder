@@ -137,6 +137,19 @@ def guard_target(allow_production: bool) -> None:
     #Host and name only, never the password.
     print(f"database: {url.split('@')[-1] if url else 'NOT SET'}")
 
+    #NOT THE TEST DATABASE, EITHER. Its name ends in _test and conftest drops
+    #every table in it at the start of each pytest run, so anything seeded
+    #here vanishes the next time the suite runs - silently, and after you have
+    #spent a while wondering where the profiles went. conftest makes the
+    #opposite check for the same reason.
+    if url.rsplit("/", 1)[-1].split("?")[0].endswith("_test"):
+        sys.exit(
+            "REFUSING TO RUN.\n"
+            "DATABASE_URL points at the test database. pytest drops every\n"
+            "table in it on each run, so seeding it achieves nothing.\n"
+            "Point DATABASE_URL at the development database instead."
+        )
+
     if any(host in url for host in ("localhost", "127.0.0.1")):
         return
 
