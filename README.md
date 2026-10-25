@@ -89,7 +89,13 @@ These are the ones where the obvious implementation was wrong, and the code says
 
 ## The data model
 
-Six tables, 19 Alembic migrations.
+Six tables. The migration history was squashed into a single baseline: the
+first twenty could not build a database from nothing, because the chain's base
+altered a `photos` table no migration ever created — the original schema came
+from `create_all` and Alembic was adopted afterwards with no baseline. The
+replaced revisions are in git history. The test suite now builds its database
+with `alembic upgrade head`, so every run proves the chain still produces the
+schema the tests rely on.
 
 | table | holds |
 | --- | --- |
@@ -233,12 +239,8 @@ pip install -r requirements.txt
 ```bash
 createdb foitifinder             # or: psql -c "CREATE DATABASE foitifinder;"
 copy .env.example .env           # then edit DATABASE_URL inside backend/.env
-
-python -c "import database.models; from database.database import Base, engine; Base.metadata.create_all(engine)"
-alembic stamp head               # so later migrations apply on top
+alembic upgrade head
 ```
-
-> **Known limitation, and `alembic upgrade head` will not do this for you.** The chain's base revision *alters* a `photos` table that no migration ever creates: the original schema was made with `create_all` and Alembic was adopted afterwards without a baseline revision, so `upgrade head` against an empty database dies on its first statement. Hence the two commands above. Every migration since applies cleanly to an existing database — the gap is only at zero, and a squashed baseline is the fix.
 
 **Add the Firebase Admin key.** [Firebase Console](https://console.firebase.google.com/) → **Project settings → Service accounts → Generate new private key** → save as `backend/serviceAccountKey.json` (exact name).
 

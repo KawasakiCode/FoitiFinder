@@ -37,6 +37,8 @@ BACKEND = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BACKEND)
 
 import pytest  # noqa: E402
+from alembic import command  # noqa: E402
+from alembic.config import Config  # noqa: E402
 from sqlalchemy import create_engine, text  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
@@ -90,30 +92,34 @@ def engine():
     """One engine for the run, with the schema built by the real migrations."""
     eng = create_engine(TEST_DATABASE_URL)
 
-    #BUILT FROM THE MODELS, and that is not the first choice.
+    #BUILT BY THE REAL MIGRATIONS, not from the models.
     #
-    #Building it with `alembic upgrade head` would be better: every test run
-    #would then also prove the migration chain still produces the schema, and
+    #This used to be create_all, because the chain could not run from an empty
+    #database: its base revision ALTERED a photos table no migration ever
+    #created, since the original schema was made with create_all and alembic
+    #was adopted afterwards with no baseline. Squashing the chain fixed that,
+    #and this is the payoff - every test run now also proves that `upgrade
+    #head` produces the schema the tests then rely on, which matters because
     #migrations are the only thing that ever touches production.
     #
-    #IT CANNOT, TODAY. The chain's base revision is 4c90a2ec3657 "add photo
-    #story column", which ALTERS a photos table that no migration ever
-    #creates - the original schema was made with create_all and alembic was
-    #adopted afterwards without a baseline. So `upgrade head` against an empty
-    #database dies on the first statement.
-    #
-    #That is worth fixing for its own sake: it also means a new environment
-    #cannot be stood up from the repo, and a lost database could not be
-    #rebuilt from the migrations alone (it would need create_all followed by
-    #`alembic stamp head`). Until then, models.py is the source of truth here,
-    #which is at least the same source autogenerate compares against.
     #DROPPED FIRST, NOT LAST. Dropping at the end left the database with no
     #tables at all between runs, which looks broken in pgAdmin and makes the
     #schema impossible to inspect. Dropping at the START gives the same
     #guarantee - no run ever tests against last week's columns - and leaves
     #the schema sitting there afterwards to look at.
+    #
+    #alembic_version goes too: left behind, it still names the old head and
+    #`upgrade head` would decide there was nothing to do and hand the tests an
+    #empty database.
     Base.metadata.drop_all(bind=eng)
-    Base.metadata.create_all(bind=eng)
+    with eng.begin() as connection:
+        connection.execute(text("DROP TABLE IF EXISTS alembic_version"))
+
+    alembic_config = Config(os.path.join(BACKEND, "alembic.ini"))
+    alembic_config.set_main_option("script_location",
+                                   os.path.join(BACKEND, "alembic"))
+    alembic_config.set_main_option("sqlalchemy.url", TEST_DATABASE_URL)
+    command.upgrade(alembic_config, "head")
 
     yield eng
     eng.dispose()
