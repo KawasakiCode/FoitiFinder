@@ -1,0 +1,86 @@
+# The backend suite, on every push that touches it.
+#
+# IT NEEDS NO SECRETS, which is a consequence of two decisions rather than
+# luck. Identity comes from one FastAPI dependency, and conftest replaces it -
+# so there is no token to verify and no Firebase to reach. And firebase_app
+# treats a missing serviceAccountKey.json as a warning rather than a fatal
+# error, precisely so a machine with no credentials can still import the app.
+#
+# IT ALSO PROVES THE MIGRATIONS. The service container starts empty and
+# conftest builds the schema with `alembic upgrade head`, so every run is the
+# from-zero case that the chain could not do at all until it was squashed into
+# a baseline. A broken migration fails CI before it reaches Neon.
+
+name: backend
+
+on:
+  push:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        # NOT SQLite. The models use Postgres arrays and the feed compares
+        # dates the way Postgres does; a suite that passed against another
+        # engine would be worse than no suite.
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: foitifinder_test
+        ports:
+          - 5432:5432
+        # the runner must not start the tests before the database answers
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      # conftest refuses anything that is not local and not named like a test
+      # database. A service container is reachable on localhost, so both of
+      # its guards are satisfied honestly rather than bypassed.
+      TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/foitifinder_test
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          # the version the suite is known to pass on locally
+          python-version: '3.10'
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: install
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: tests
+        run: python -m pytest -q
+
+      - name: models and migrations agree
+        # CATCHES THE COMMIT THAT EDITS models.py AND FORGETS THE MIGRATION.
+        # The tests would still pass - they build the schema from the same
+        # migrations - and the mismatch would only surface on deploy, as a
+        # column the code expects and the database does not have.
+        #
+        # Runs after the tests, against the database they just built.
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/foitifinder_test
+        run: python -m alembic check
