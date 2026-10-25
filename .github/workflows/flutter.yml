@@ -1,0 +1,80 @@
+# The app's analyzer and test suite, on every push that touches it.
+#
+# WHY firebase_options.dart IS WRITTEN HERE RATHER THAN COMMITTED. main.dart
+# imports it, so a clone cannot be analysed or tested without it - but it
+# carries the project id, app ids and the Firebase API key, and this repo is
+# public. None of that is a credential (every value ships inside the APK and
+# comes out with `strings`), yet public GitHub is crawled for keys in a way an
+# APK is not, and "it was extractable anyway" is a poor answer to a bot that
+# found it in an hour.
+#
+# So it lives in a repository secret and is written out for the length of the
+# run. A stranger cloning the repo still cannot build against this Firebase
+# project, which is the point; the Android API key is additionally restricted
+# to the app's package name and signing certificates, so a build signed with
+# somebody else's key is refused even with these values in hand.
+
+name: flutter
+
+on:
+  push:
+    paths:
+      - 'lib/**'
+      - 'test/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - 'l10n.yaml'
+      - 'analysis_options.yaml'
+      - '.github/workflows/flutter.yml'
+  pull_request:
+    paths:
+      - 'lib/**'
+      - 'test/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - 'l10n.yaml'
+      - 'analysis_options.yaml'
+      - '.github/workflows/flutter.yml'
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          # pinned to the version the suite is known to pass on. A floating
+          # 'stable' turns somebody else's release into a failure on a commit
+          # that changed nothing.
+          flutter-version: '3.41.3'
+          channel: stable
+          cache: true
+
+      - name: firebase options
+        # PASSED AS AN ENVIRONMENT VARIABLE, not interpolated into the script.
+        # A secret substituted straight into a shell command is read by the
+        # shell first, so a backtick or a $ in it would be executed rather
+        # than written.
+        env:
+          FIREBASE_OPTIONS: ${{ secrets.FIREBASE_OPTIONS_DART }}
+        run: |
+          if [ -z "$FIREBASE_OPTIONS" ]; then
+            echo "::error::FIREBASE_OPTIONS_DART is not set. Add the contents"
+            echo "::error::of lib/firebase_options.dart as a repository secret."
+            echo "::error::Forks do not receive secrets, so this job cannot run there."
+            exit 1
+          fi
+          printf '%s' "$FIREBASE_OPTIONS" > lib/firebase_options.dart
+
+      - run: flutter pub get
+
+      # NOT gen-l10n: the generated app_localizations files are committed, so
+      # regenerating here would only hide a commit that edited an .arb and
+      # forgot to run it - which is exactly the mistake worth catching.
+      - name: analyze
+        run: flutter analyze
+
+      - name: tests
+        run: flutter test
