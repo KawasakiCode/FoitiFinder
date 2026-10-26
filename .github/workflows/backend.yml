@@ -107,11 +107,76 @@ jobs:
   # needs two deploys: ship code that stops using the column, then remove it.
   # --------------------------------------------------------------------------
 
-  migrate:
+  # IS THERE ANYTHING TO DEPLOY?
+  #
+  # The suite runs for every change under backend/, which is right: editing a
+  # test should run that test, and the seeding tools import the app's own
+  # models so they break when the schema moves. But none of that reaches the
+  # server. A commit touching only tools/ used to migrate Neon and restart
+  # Render over a file neither of them has ever read.
+  #
+  # EXCLUSIONS, NOT A LIST OF WHAT COUNTS. Both spell the same set today, and
+  # they fail in opposite directions. A new module missing from an allowlist is
+  # silently never deployed - the code is on main, the workflow is green, and
+  # production is running something else. A new tools/ subdirectory missing
+  # from the exclusions costs one redundant restart. Only one of those is
+  # worth debugging at midnight.
+  changes:
     needs: tests
-    # PUSHES TO main ONLY. Never on a pull request: this job holds the
-    # production database URL, and the repository is public.
+    # PUSHES TO main ONLY, the same guard the two jobs below carry: those hold
+    # production credentials and this repository is public.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    outputs:
+      deployable: ${{ steps.check.outputs.deployable }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # the diff needs the commit this push started FROM, which the
+          # default shallow clone does not contain
+          fetch-depth: 0
+
+      - id: check
+        # passed as environment variables rather than interpolated into the
+        # script, so nothing from the event payload is read by the shell
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: |
+          # A FIRST PUSH OR A FORCE PUSH has no usable starting point - the
+          # value is all zeros, or a commit that no longer exists. Deploy
+          # rather than guess: a redundant restart costs a cold start, and a
+          # migration that was skipped by accident costs an outage.
+          if ! git cat-file -e "${BEFORE}^{commit}" 2>/dev/null; then
+            echo "::notice::Cannot resolve the previous commit, so this deploys unconditionally."
+            echo "deployable=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # :(exclude) is a git pathspec, so git does the matching rather than
+          # a hand-rolled glob. A bare directory name covers everything under
+          # it; no wildcards, no shell expansion.
+          changed=$(git diff --name-only "$BEFORE" "$AFTER" -- \
+            backend \
+            ':(exclude)backend/tools' \
+            ':(exclude)backend/tests' \
+            ':(exclude)backend/requirements-dev.txt')
+
+          if [ -z "$changed" ]; then
+            echo "deployable=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Nothing the server runs changed. Neon and Render were left alone."
+          else
+            echo "deployable=true" >> "$GITHUB_OUTPUT"
+            printf 'deploying because these changed:\n%s\n' "$changed"
+          fi
+
+  migrate:
+    needs: [tests, changes]
+    # A SKIPPED DEPENDENCY SKIPS THIS TOO, so the push/branch guard above
+    # covers this job as well; the output check is what adds the path filter.
+    if: needs.changes.outputs.deployable == 'true'
     runs-on: ubuntu-latest
 
     defaults:
@@ -144,8 +209,11 @@ jobs:
           python -m alembic check
 
   deploy:
-    needs: migrate
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [changes, migrate]
+    # SKIPPED WITH migrate, which a skipped `needs` would do on its own - said
+    # out loud because "the schema moved but the code did not ship" is the one
+    # state this ordering exists to prevent.
+    if: needs.changes.outputs.deployable == 'true'
     runs-on: ubuntu-latest
 
     steps:
