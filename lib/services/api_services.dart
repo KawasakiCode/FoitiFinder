@@ -543,6 +543,35 @@ class ApiService {
     }
   }
 
+  //The oldest build the backend will still talk to, or null if it would not
+  //say.
+  //
+  //NULL ON EVERY FAILURE, AND THAT IS THE WHOLE CONTRACT. The caller blocks
+  //the app with this answer, so the one thing it must never do is guess high:
+  //a timeout, a 500, a cold start or a response from some future backend that
+  //does not look like a number all mean "carry on". Locking people out of a
+  //working app because a request failed is strictly worse than letting an old
+  //build run a while longer.
+  //
+  //NO AUTH HEADER. The endpoint wants none, and a build old enough to be
+  //refused may be old enough to get signing in wrong - the wall has to work
+  //before anybody logs in.
+  static Future<int?> minimumBuild() async {
+    try {
+      final response = await http
+          .get(Uri.parse("$baseUrl/app/minimum-build"))
+          .timeout(kRequestTimeout);
+      if (response.statusCode != 200) return null;
+      final data = jsonDecode(response.body);
+      //Android only for now, and an unknown platform answers null rather than
+      //falling back to somebody else's number
+      final value = data is Map ? data['android'] : null;
+      return value is int ? value : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   //Take a finished match off your own list, and only yours.
   //
   //THE OTHER PERSON KEEPS THEIRS and is told nothing - see the endpoint. 409

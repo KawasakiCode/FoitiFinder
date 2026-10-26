@@ -15,6 +15,7 @@ import 'package:foitifinder/services/swipe_queue.dart';
 import 'package:foitifinder/theme/app_theme.dart';
 import 'package:foitifinder/wrappers/auth_wrapper.dart';
 import 'package:foitifinder/wrappers/internet_wrapper.dart';
+import 'package:foitifinder/wrappers/version_gate.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
@@ -96,31 +97,36 @@ class FoitiFinder extends StatelessWidget {
       //app launch flow is main -> authwrapper -> mainscreen (load from disk) -> load from db if different
       //or main -> authwrapper -> login if no user in firebase cache
       builder: (context, child) {
-        return InternetWrapper(
-          //The curtain sits ABOVE the whole app and below nothing, so it hides
-          //the locale rebuild wherever the user happens to be. IgnorePointer
-          //because an Opacity of 0 still hit-tests - without it an invisible
-          //sheet would swallow every tap in the app.
-          child: Stack(
-            children: [
-              child!,
-              IgnorePointer(
-                child: AnimatedOpacity(
-                  opacity: settings.localeSwitching ? 1 : 0,
-                  duration: SettingsProvider.localeFadeDuration,
-                  curve: Curves.easeOut,
-                  child: ColoredBox(
-                    //the app's own background, so it reads as the screen
-                    //settling rather than a black flash
-                    color: (settings.themeMode == ThemeMode.dark
-                            ? AppTheme.dark
-                            : AppTheme.light)
-                        .scaffoldBackgroundColor,
-                    child: const SizedBox.expand(),
+        //OUTSIDE InternetWrapper, so the wall REPLACES the app rather
+        //than sitting inside something that is still listening for
+        //connectivity and showing snackbars over the top of it.
+        return VersionGate(
+          child: InternetWrapper(
+            //The curtain sits ABOVE the whole app and below nothing, so it hides
+            //the locale rebuild wherever the user happens to be. IgnorePointer
+            //because an Opacity of 0 still hit-tests - without it an invisible
+            //sheet would swallow every tap in the app.
+            child: Stack(
+              children: [
+                child!,
+                IgnorePointer(
+                  child: AnimatedOpacity(
+                    opacity: settings.localeSwitching ? 1 : 0,
+                    duration: SettingsProvider.localeFadeDuration,
+                    curve: Curves.easeOut,
+                    child: ColoredBox(
+                      //the app's own background, so it reads as the screen
+                      //settling rather than a black flash
+                      color: (settings.themeMode == ThemeMode.dark
+                              ? AppTheme.dark
+                              : AppTheme.light)
+                          .scaffoldBackgroundColor,
+                      child: const SizedBox.expand(),
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },

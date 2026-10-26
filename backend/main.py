@@ -27,6 +27,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
+import app_version
 from app_logging import logger
 from routers import (
     feed,
@@ -112,3 +113,18 @@ app.include_router(profiles.router, tags=["profiles"])
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+#THE OLDEST BUILD THIS API WILL STILL TALK TO - see app_version.py for what
+#the number is for and when it is raised.
+#
+#NO AUTHENTICATION, deliberately. A build old enough to be refused may also be
+#old enough to get signing in wrong, and an update wall that only appears once
+#you have logged in is a wall with a door next to it. It discloses nothing: the
+#answer is the same integer for everybody and is already inside every APK.
+#
+#NO DATABASE EITHER, for the same reason /health does not touch it: this is
+#called on every launch, and a constant does not need Neon awake to be read.
+@app.get("/app/minimum-build")
+def minimum_build():
+    return app_version.MINIMUM_BUILD

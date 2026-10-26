@@ -761,5 +761,8 @@
       }
     }
   },
-  "removeMatchAction": "Remove"
+  "removeMatchAction": "Remove",
+  "updateRequiredTitle": "Time to update",
+  "updateRequiredBody": "This version of FoitiFinder is no longer supported. Update to the latest one to carry on.",
+  "updateRequiredAction": "Update"
 }

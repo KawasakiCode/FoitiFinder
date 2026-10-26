@@ -611,5 +611,8 @@
   "removeMatch": "Αφαίρεση ματς",
   "removeMatchTitle": "Να αφαιρεθεί το ματς;",
   "removeMatchBody": "Η ενέργεια δεν αναιρείται. Το {name} δεν ενημερώνεται και κρατάει το ματς στη δική του λίστα — αφαιρείται μόνο από τη δική σου. Αν δεν έχεις αποθηκεύσει το Instagram του, θα το χάσεις.",
-  "removeMatchAction": "Αφαίρεση"
+  "removeMatchAction": "Αφαίρεση",
+  "updateRequiredTitle": "Ώρα για ενημέρωση",
+  "updateRequiredBody": "Αυτή η έκδοση του FoitiFinder δεν υποστηρίζεται πια. Κάνε ενημέρωση στη νεότερη για να συνεχίσεις.",
+  "updateRequiredAction": "Ενημέρωση"
 }

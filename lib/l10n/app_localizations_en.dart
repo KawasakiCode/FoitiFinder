@@ -1910,4 +1910,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get removeMatchAction => 'Remove';
+
+  @override
+  String get updateRequiredTitle => 'Time to update';
+
+  @override
+  String get updateRequiredBody =>
+      'This version of FoitiFinder is no longer supported. Update to the latest one to carry on.';
+
+  @override
+  String get updateRequiredAction => 'Update';
 }

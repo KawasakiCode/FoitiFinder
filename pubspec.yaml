@@ -32,6 +32,9 @@ dependencies:
   flutter:
     sdk: flutter
   url_launcher: ^6.2.5
+  #reads the running build number, so the app can compare itself against
+  #the oldest one the backend still supports (see version_gate.dart)
+  package_info_plus: ^8.1.0
   firebase_core: ^3.15.2
   firebase_auth: ^5.5.1
   flutter_localizations:
