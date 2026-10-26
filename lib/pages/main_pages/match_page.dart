@@ -254,30 +254,108 @@ class _MatchPageState extends State<MatchPage> {
     );
   }
 
+  //LEAVE WITHOUT ANSWERING. Tells the user where the match went and how long
+  //it keeps, then goes back to the deck.
+  //
+  //THE OTHER PERSON IS TOLD NOTHING, which is what makes this safe: they have
+  //never been shown this match, so there is no state of theirs to change and
+  //nothing for them to be disappointed by. If it runs out they are no worse
+  //off than if the swipe had never happened.
+  Future<void> _leaveForNow() async {
+    //THE OTHER SIDE NEEDS NO EXPLANATION. They arrived from a notification
+    //about a match that was already on their matches page, so leaving puts
+    //them back where they can already see it - there is no surprise to
+    //prevent, and PopScope lets their system back through for the same
+    //reason.
+    if (widget.fromNotification) {
+      Navigator.pop(context);
+      return;
+    }
+
+    final stay = await showAppDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(text.matchLaterTitle),
+        content: Text(text.matchLaterBody(widget.otherName)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(text.matchLaterStay),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(text.matchLaterLeave),
+          ),
+        ],
+      ),
+    );
+    //DISMISSED COUNTS AS STAYING. A tap outside the dialog is not a decision
+    //to leave, and the page they are on is the one they were already looking
+    //at - so doing nothing keeps them there.
+    if (stay != false || !mounted) return;
+    Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final photoHeight =
         MediaQuery.sizeOf(context).height * _kMatchPhotoFraction;
 
-    //NO WAY OUT BUT AN ANSWER, for the side that just swiped. The match row
-    //was created by that swipe, so backing out would leave it unanswered and
-    //the other person waiting on somebody who has moved on.
+    //ANSWERING IS NOT THE ONLY WAY OUT ANY MORE.
     //
-    //The side that arrives from a notification is the opposite case: the match
-    //has been sitting there anyway, they were interrupted to look at it, and
-    //trapping them in a page they did not choose to open is not the way to ask
-    //for an Instagram handle. Leaving means the match keeps waiting, and it
-    //expires on its own.
+    //IT USED TO BE, and the reason given was that backing out would leave the
+    //other person waiting on somebody who had moved on. That stopped being
+    //true: get_matches does not show user_b the match until user_a has
+    //confirmed, so a match nobody has answered is one the other side has
+    //never heard of. Nobody was waiting.
+    //
+    //What the forced choice actually did was put the only non-committal
+    //option - 'not interested' - next to a destructive one, so a moment of
+    //doubt about a swipe cost the match. Now doubt costs nothing: the match
+    //moves to the matches page, under 'Your turn', and waits three days.
+    //
+    //THE DIALOG IS NOT A CONFIRMATION, it is the promise. Leaving is
+    //harmless, so there is nothing to confirm - but the three days are a
+    //deadline the user has not agreed to anywhere else, and this is the one
+    //moment they are looking at the match it applies to.
     return PopScope(
       canPop: widget.fromNotification || _stage != _Stage.decide,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _leaveForNow();
+      },
       child: Scaffold(
         body: Column(
           children: [
             SizedBox(
               width: double.infinity,
               height: photoHeight,
-              child: _MatchPhoto(url: widget.otherPhotoUrl),
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: _MatchPhoto(url: widget.otherPhotoUrl),
+                  ),
+                  //ONLY WHERE THERE IS SOMETHING TO COME BACK TO. In the
+                  //waiting and revealed stages the page already ends in a
+                  //button that closes it, and the system back works, so a
+                  //second exit would just be two ways to do one thing.
+                  if (_stage == _Stage.decide)
+                    SafeArea(
+                      child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8),
+                          //NOT ARM-GATED, unlike share and decline. The timer
+                          //exists because those are reached with a thumb
+                          //already travelling toward the bottom of the
+                          //screen; this is in the opposite corner and costs
+                          //nothing if pressed by accident.
+                          child: _CircleBackButton(onPressed: _leaveForNow),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
             Expanded(
               child: Padding(
@@ -427,6 +505,30 @@ class _MatchPhoto extends StatelessWidget {
         PersonPhoto(url: url),
         const DecoratedBox(decoration: BoxDecoration(gradient: kPhotoTopScrim)),
       ],
+    );
+  }
+}
+
+//The way out of the decide stage, over the photo.
+//
+//A CIRCLE BEHIND IT because it sits on a photograph: a bare white arrow
+//vanishes against a bright one, and this page has no app bar to put it in.
+class _CircleBackButton extends StatelessWidget {
+  final VoidCallback onPressed;
+
+  const _CircleBackButton({required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: const Color(0x66000000),
+      shape: const CircleBorder(),
+      clipBehavior: Clip.antiAlias,
+      child: IconButton(
+        onPressed: onPressed,
+        icon: const Icon(Icons.arrow_back, color: Colors.white),
+        tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+      ),
     );
   }
 }

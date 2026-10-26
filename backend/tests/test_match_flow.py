@@ -422,3 +422,313 @@ class TestSuperLikesAreScarce:
         assert as_user(me).get("/swipes/super-likes").json() == {
             "left": 2, "per_window": 2, "window_days": 7,
         }
+
+
+class TestAnUnansweredMatchRunsOut:
+    """match_expiry: three days from whenever it became somebody's turn.
+
+    WHY THIS EXISTS AT ALL. The match page lets the person who completed a
+    match back out of answering it, which leaves a match only they can see -
+    get_matches hides it from the other side until the completer confirms. So
+    without a deadline, a mutual like becomes a row nobody is told about and
+    nothing ever clears.
+
+    NOTHING IS WRITTEN TO EXPIRE A MATCH. The state is derived from created_at
+    and a_confirmed_at, so these tests move those timestamps rather than
+    calling an endpoint - there is no endpoint, and that is the design.
+    """
+
+    def age(self, db, match_id, *, created=None, confirmed=None):
+        """Backdate a match, as though it had been sitting there."""
+        import datetime
+
+        from database import models
+
+        now = datetime.datetime.now(datetime.timezone.utc)
+        match = db.query(models.Matches).filter_by(id=match_id).first()
+        if created is not None:
+            match.created_at = now - created
+        if confirmed is not None:
+            match.a_confirmed_at = now - confirmed
+        db.commit()
+        return match
+
+    def only_match(self, response):
+        body = response.json()
+        assert len(body) == 1, body
+        return body[0]
+
+    def test_a_fresh_unanswered_match_is_not_expired(
+        self, as_user, make_user, swipe
+    ):
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        complete_match(as_user, swipe, alice, bob)
+
+        row = self.only_match(as_user(alice).get("/matches"))
+        assert row["expired"] is False
+        assert row["expires_at"] is not None
+
+    def test_nobody_answered_for_three_days(
+        self, db, as_user, make_user, swipe
+    ):
+        import datetime
+
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = complete_match(as_user, swipe, alice, bob)
+        self.age(db, match_id, created=datetime.timedelta(days=3, hours=1))
+
+        #STILL THERE, SAYING SO. Alice backed out of answering and this is how
+        #she learns it lapsed, rather than finding it missing.
+        row = self.only_match(as_user(alice).get("/matches"))
+        assert row["expired"] is True
+
+    def test_past_the_grace_window_it_is_gone(
+        self, db, as_user, make_user, swipe
+    ):
+        import datetime
+
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = complete_match(as_user, swipe, alice, bob)
+        self.age(db, match_id, created=datetime.timedelta(days=6))
+
+        assert as_user(alice).get("/matches").json() == []
+
+    def test_the_clock_restarts_when_somebody_commits(
+        self, db, as_user, make_user, swipe
+    ):
+        """THE DISTINCTION THE WHOLE RULE TURNS ON.
+
+        A match can sit unanswered for days before somebody confirms, and that
+        wait belongs to the person who had not answered yet - not to the one
+        now waiting on a reply. So the clock runs from a_confirmed_at, and an
+        old match that was confirmed a minute ago has three fresh days.
+        """
+        import datetime
+
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = complete_match(as_user, swipe, alice, bob)
+        self.age(db, match_id, created=datetime.timedelta(days=2, hours=20))
+
+        as_user(alice).post(f"/matches/{match_id}/confirm")
+
+        row = self.only_match(as_user(alice).get("/matches"))
+        assert row["expired"] is False
+
+    def test_waiting_on_them_expires_three_days_after_the_commit(
+        self, db, as_user, make_user, swipe
+    ):
+        import datetime
+
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = complete_match(as_user, swipe, alice, bob)
+        as_user(alice).post(f"/matches/{match_id}/confirm")
+        self.age(db, match_id, confirmed=datetime.timedelta(days=3, hours=1))
+
+        row = self.only_match(as_user(alice).get("/matches"))
+        assert row["expired"] is True
+
+    def test_a_finished_exchange_never_expires(
+        self, db, as_user, make_user, swipe
+    ):
+        #BOTH HANDLES ARE OUT, so there is nothing a deadline could take back -
+        #it would only destroy the record of a connection that did happen.
+        import datetime
+
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = complete_match(as_user, swipe, alice, bob)
+        as_user(alice).post(f"/matches/{match_id}/confirm")
+        as_user(bob).post(f"/matches/{match_id}/confirm")
+        self.age(db, match_id, created=datetime.timedelta(days=400),
+                 confirmed=datetime.timedelta(days=400))
+
+        row = self.only_match(as_user(alice).get("/matches"))
+        assert row["expired"] is False
+        assert row["revealed"] is True
+        #nothing to count down to
+        assert row["expires_at"] is None
+
+
+class TestAnExpiredMatchCannotBeActedOn:
+    """The list and the two endpoints have to agree about what is over.
+
+    A CLIENT HOLDING A STALE PAGE is the way around any rule the list enforces
+    on its own. Confirming hands over an Instagram handle and declining tells
+    the other side something - neither belongs to a match that already lapsed.
+    """
+
+    def expired_match(self, db, as_user, swipe, alice, bob):
+        import datetime
+
+        from database import models
+
+        match_id = complete_match(as_user, swipe, alice, bob)
+        match = db.query(models.Matches).filter_by(id=match_id).first()
+        match.created_at = (datetime.datetime.now(datetime.timezone.utc)
+                            - datetime.timedelta(days=3, hours=1))
+        db.commit()
+        return match_id
+
+    def test_confirming_is_refused(self, db, as_user, make_user, swipe):
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = self.expired_match(db, as_user, swipe, alice, bob)
+
+        response = as_user(alice).post(f"/matches/{match_id}/confirm")
+        assert response.status_code == 409
+
+    def test_no_handle_escapes_through_it(self, db, as_user, make_user, swipe):
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = self.expired_match(db, as_user, swipe, alice, bob)
+
+        response = as_user(alice).post(f"/matches/{match_id}/confirm")
+        assert "instagram" not in response.text.lower()
+
+    def test_declining_is_refused(self, db, as_user, make_user, swipe):
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = self.expired_match(db, as_user, swipe, alice, bob)
+
+        response = as_user(alice).post(f"/matches/{match_id}/decline")
+        assert response.status_code == 409
+
+    def test_a_withdrawn_match_cannot_be_confirmed_either(
+        self, db, as_user, make_user, swipe
+    ):
+        """The same rule, for the other reason a match stops being served.
+
+        Withdrawing exists so somebody's handle stops being handed back to a
+        person they walked away from. The withdrawing side has already said
+        yes, so a confirm arriving afterwards would hand it over regardless -
+        which is the one thing hidden_at is there to prevent.
+        """
+        import datetime
+
+        from database import models
+
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = complete_match(as_user, swipe, alice, bob)
+        as_user(bob).post(f"/matches/{match_id}/confirm")
+
+        match = db.query(models.Matches).filter_by(id=match_id).first()
+        match.hidden_at = datetime.datetime.now(datetime.timezone.utc)
+        match.hidden_by_user_id = bob.id
+        db.commit()
+
+        response = as_user(alice).post(f"/matches/{match_id}/confirm")
+        assert response.status_code == 409
+        assert "instagram" not in response.text.lower()
+
+
+class TestAnUnansweredMatchBelongsToOnePerson:
+    """Who can SEE an undecided match, and who can therefore act on it.
+
+    THE RULE: until the person who completed the match answers it, it is
+    theirs alone. The other side has never been told it exists, which is what
+    makes backing out of the match page harmless - there is nobody to
+    disappoint, and nothing of theirs changes if it quietly runs out.
+
+    IT HAS TO BE ENFORCED TWICE. get_matches hides the row, and
+    _match_for_participant refuses to act on it - because match ids are
+    sequential integers, so a list that merely omits a match is not a rule,
+    it is a suggestion. Each of these is the second half of that.
+    """
+
+    def undecided(self, as_user, swipe, alice, bob):
+        """bob liked alice first, alice swiped back -> alice is user_a."""
+        swipe(bob, alice, "like")
+        response = as_user(alice).post(
+            "/swipes", json={"target_id": bob.id, "action": "like"}
+        )
+        return response.json()["match_id"]
+
+    def test_the_one_who_made_it_sees_it(self, as_user, make_user, swipe):
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        self.undecided(as_user, swipe, alice, bob)
+
+        body = as_user(alice).get("/matches").json()
+        assert len(body) == 1
+        assert body[0]["other_user_name"] == "Bob"
+        assert body[0]["i_confirmed"] is False
+
+    def test_the_other_one_does_not(self, as_user, make_user, swipe):
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        self.undecided(as_user, swipe, alice, bob)
+
+        assert as_user(bob).get("/matches").json() == []
+
+    def test_nor_can_they_confirm_it_by_guessing_the_id(
+        self, as_user, make_user, swipe
+    ):
+        #THE SAME 404 A STRANGER GETS. Anything else would confirm that a
+        #match they were never shown exists.
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = self.undecided(as_user, swipe, alice, bob)
+
+        response = as_user(bob).post(f"/matches/{match_id}/confirm")
+        assert response.status_code == 404
+
+    def test_nor_decline_it(self, as_user, make_user, swipe):
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = self.undecided(as_user, swipe, alice, bob)
+
+        response = as_user(bob).post(f"/matches/{match_id}/decline")
+        assert response.status_code == 404
+
+    def test_a_refused_confirm_writes_nothing(
+        self, db, as_user, make_user, swipe
+    ):
+        #b_confirmed_at IS WHAT MAKES A MATCH IMMORTAL - a finished exchange
+        #must never expire - so a confirm that slipped through here would also
+        #have produced a match that outlived its own deadline forever.
+        from database import models
+
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = self.undecided(as_user, swipe, alice, bob)
+        as_user(bob).post(f"/matches/{match_id}/confirm")
+
+        row = db.query(models.Matches).filter_by(id=match_id).first()
+        assert row.b_confirmed_at is None
+
+    def test_and_tells_the_other_side_nothing(
+        self, as_user, make_user, swipe, pushes
+    ):
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = self.undecided(as_user, swipe, alice, bob)
+
+        pushes.clear()
+        as_user(bob).post(f"/matches/{match_id}/confirm")
+        assert pushes == []
+
+    def test_it_becomes_theirs_the_moment_the_maker_answers(
+        self, as_user, make_user, swipe
+    ):
+        #and this is the whole flow working: alice answers, and only then does
+        #bob have a match to see and something to answer
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = self.undecided(as_user, swipe, alice, bob)
+        as_user(alice).post(f"/matches/{match_id}/confirm")
+
+        body = as_user(bob).get("/matches").json()
+        assert len(body) == 1
+        assert body[0]["they_confirmed"] is True
+        assert as_user(bob).post(
+            f"/matches/{match_id}/confirm"
+        ).status_code == 200
+
+    def test_the_maker_can_still_answer_their_own(
+        self, as_user, make_user, swipe
+    ):
+        #the rule is about user_b only; it must not lock the owner out of the
+        #one match they are supposed to be deciding on
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = self.undecided(as_user, swipe, alice, bob)
+
+        assert as_user(alice).post(
+            f"/matches/{match_id}/confirm"
+        ).status_code == 200
+
+    def test_or_decline_it(self, as_user, make_user, swipe):
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = self.undecided(as_user, swipe, alice, bob)
+
+        assert as_user(alice).post(
+            f"/matches/{match_id}/decline"
+        ).status_code == 200

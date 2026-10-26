@@ -14,6 +14,7 @@ from database.database import get_db
 router = APIRouter()
 
 from ages import age_from_birthday
+import match_expiry
 from api_models import MatchResponse
 from app_logging import logger
 #PUSH ONLY, no stored row. The matches page is the record now - it lists every
@@ -45,8 +46,16 @@ def get_matches(uid: str = Depends(verified_email_uid), db: Session = Depends(ge
     #WITHDRAWN BY EITHER SIDE MEANS GONE FOR BOTH. The row survives so the
     #connection is still on record; it just stops being served - which is the
     #only thing the app can actually take back once a handle has been read.
+    #
+    #AND AN UNANSWERED MATCH RUNS OUT. The match page lets the person who
+    #completed one back out of answering, which leaves a match only they can
+    #see - so without a deadline, a match the other side never heard about
+    #would sit there forever. See match_expiry: three days from whenever it
+    #became somebody's turn, derived rather than stored.
+    now = datetime.datetime.now(datetime.timezone.utc)
     matches = db.query(models.Matches).filter(
         models.Matches.hidden_at.is_(None),
+        match_expiry.not_past_grace(now),
         or_(
             models.Matches.user_a_id == me.id,
             and_(models.Matches.user_b_id == me.id,
@@ -104,6 +113,17 @@ def get_matches(uid: str = Depends(verified_email_uid), db: Session = Depends(ge
             "revealed": (mine is not None and theirs is not None
                          and bool(me.instagram_handle)
                          and bool(other_user.instagram_handle)),
+            #RAN OUT, AND STILL SHOWN SAYING SO. Inside the grace window the
+            #row is still served with this set, so whoever was owed an answer
+            #reads that it lapsed rather than finding a match missing. Past
+            #the window the query above has already dropped it.
+            "expired": match_expiry.is_expired(match, now),
+            #THE DEADLINE, so the page can name a date instead of a policy.
+            #'Matches expire after three days' in a help screen is read by
+            #nobody; 'if Maria does not answer by Thursday' is read by
+            #everybody. Null once the exchange is done and nothing expires.
+            "expires_at": (None if match.b_confirmed_at is not None
+                           else match_expiry.expires_at(match)),
         })
 
     return results
@@ -121,6 +141,45 @@ def _match_for_participant(match_id: int, me: models.User, db: Session) -> model
     #different answer for each would let anyone count other people's matches
     if not match or me.id not in (match.user_a_id, match.user_b_id):
         raise HTTPException(status_code=404, detail="Match not found")
+
+    #A MATCH YOU HAVE NOT BEEN SHOWN CANNOT BE ANSWERED, which is the SAME
+    #rule get_matches applies and the reason it has to be repeated here.
+    #
+    #Until user_a answers, the match is theirs alone - user_b has never been
+    #told it exists. But match ids are sequential integers, so without this
+    #check user_b could confirm one by guessing its id, and three things
+    #followed from that: user_a got a push saying somebody answered a match
+    #user_a had not answered yet, b_confirmed_at was set so the match could
+    #never expire (a finished exchange must not), and user_a's own confirm
+    #then revealed immediately, skipping the state where they are told
+    #somebody is waiting on them.
+    #
+    #404, NOT 409: the point is that user_b does not know this match exists,
+    #and any other answer confirms that it does. It is the same reply a
+    #stranger gets, for the same reason.
+    if match.user_b_id == me.id and match.a_confirmed_at is None:
+        raise HTTPException(status_code=404, detail="Match not found")
+
+    #A MATCH THE LIST NO LONGER SERVES CANNOT BE ACTED ON EITHER, and both of
+    #the callers below are things you should not be able to do to it: confirm
+    #hands over an Instagram handle, decline deletes the row and tells the
+    #other side. The two reads have to agree, or a client holding a stale page
+    #is the way around the rule.
+    #
+    #EXPIRED: it ran out unanswered. The other side was shown that it lapsed,
+    #so letting a confirm land afterwards would hand them a handle for a match
+    #they were told was over.
+    #
+    #HIDDEN: somebody withdrew. The whole point is that their handle stops
+    #being served - and confirm would have handed it over anyway, because the
+    #withdrawing side had already said yes. 409 rather than 404: it existed,
+    #and saying so tells the caller nothing it did not already know.
+    now = datetime.datetime.now(datetime.timezone.utc)
+    if match.hidden_at is not None or match_expiry.is_expired(match, now):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This match is no longer available",
+        )
     return match
 
 @router.post("/matches/{match_id}/confirm")

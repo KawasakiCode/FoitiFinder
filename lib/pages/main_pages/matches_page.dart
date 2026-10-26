@@ -185,6 +185,10 @@ class MatchesPageState extends State<MatchesPage> {
         ..._section(text.matchYourTurn, sections.yourTurn),
         ..._section(text.matchesSectionWaiting, sections.waitingOnThem),
         ..._section(text.matchesSectionConnected, sections.connected),
+        //LAST, because it is the only section nobody can act on. It is here
+        //so a match that ran out is read rather than discovered missing, and
+        //it leaves on its own a couple of days later.
+        ..._section(text.matchesSectionExpired, sections.expired),
         const SliverToBoxAdapter(child: SizedBox(height: 24)),
       ],
     );
@@ -299,67 +303,72 @@ class _MatchTile extends StatelessWidget {
     //kCardRadius, not a radius of its own: the flight shuttle interpolates
     //from that exact value down to 0, so any other number makes the corners
     //jump the instant the photo lifts off
-    return GestureDetector(
-      onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(kCardRadius),
-        //the photo, its scrim AND the name are all inside the Hero, so the
-        //three of them leave the tile together at lift-off
-        child: Hero(
-          tag: heroTag,
-          flightShuttleBuilder: photoHeroShuttle(furniture: [label]),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              //a tile is half the screen wide, so it decodes at the
-              //thumbnail width; the profile header it flies to uses this copy
-              //as its stand-in while the full-size one decodes
-              PersonPhoto(
-                url: match.imageUrl,
-                decodeWidth: kThumbDecodeWidth,
-                missingIconSize: 40,
-              ),
-              const DecoratedBox(
-                decoration: BoxDecoration(gradient: kPhotoTopScrim),
-              ),
-              label,
-              //THEY HAVE ALREADY SAID YES, so this one is somebody waiting on
-              //an answer rather than a match they do not know they have. It
-              //is the only thing the section heading above cannot say: both
-              //kinds sit under 'Your turn', because both need the same press.
-              //
-              //THIS USED TO READ 'Your turn' on every untouched tile, which
-              //the heading now says once for the whole group instead of
-              //repeating on every face under it.
-              //
-              //Outside the Hero deliberately: it belongs to this list, not to
-              //the profile the photo flies to, and carrying it along would
-              //leave it hanging over a page that says the same thing properly
-              //at the bottom.
-              if (match.theyAreWaitingOnMe)
-                Positioned(
-                  top: _kTileLabelInset,
-                  left: _kTileLabelInset,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(AppRadius.lg),
-                    ),
-                    child: Text(
-                      AppLocalizations.of(context)!.matchTheySaidYes,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
+    //A LAPSED MATCH READS AS PAST, not as something to press. Dimmed rather
+    //than removed, because this tile is the notice that it ran out.
+    return Opacity(
+      opacity: match.expired ? 0.45 : 1,
+      child: GestureDetector(
+        onTap: onTap,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(kCardRadius),
+          //the photo, its scrim AND the name are all inside the Hero, so the
+          //three of them leave the tile together at lift-off
+          child: Hero(
+            tag: heroTag,
+            flightShuttleBuilder: photoHeroShuttle(furniture: [label]),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                //a tile is half the screen wide, so it decodes at the
+                //thumbnail width; the profile header it flies to uses this copy
+                //as its stand-in while the full-size one decodes
+                PersonPhoto(
+                  url: match.imageUrl,
+                  decodeWidth: kThumbDecodeWidth,
+                  missingIconSize: 40,
+                ),
+                const DecoratedBox(
+                  decoration: BoxDecoration(gradient: kPhotoTopScrim),
+                ),
+                label,
+                //THEY HAVE ALREADY SAID YES, so this one is somebody waiting on
+                //an answer rather than a match they do not know they have. It
+                //is the only thing the section heading above cannot say: both
+                //kinds sit under 'Your turn', because both need the same press.
+                //
+                //THIS USED TO READ 'Your turn' on every untouched tile, which
+                //the heading now says once for the whole group instead of
+                //repeating on every face under it.
+                //
+                //Outside the Hero deliberately: it belongs to this list, not to
+                //the profile the photo flies to, and carrying it along would
+                //leave it hanging over a page that says the same thing properly
+                //at the bottom.
+                if (match.theyAreWaitingOnMe)
+                  Positioned(
+                    top: _kTileLabelInset,
+                    left: _kTileLabelInset,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(AppRadius.lg),
+                      ),
+                      child: Text(
+                        AppLocalizations.of(context)!.matchTheySaidYes,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

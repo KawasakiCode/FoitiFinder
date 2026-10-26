@@ -24,6 +24,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:intl/intl.dart';
 import 'package:foitifinder/models/matches_model.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/services/api_services.dart';
@@ -199,8 +200,41 @@ class _MatchActionBarState extends State<MatchActionBar> {
 
   Widget _content(ThemeData theme) {
     if (_revealed) return _revealedContent(theme);
+    //BEFORE THE TURN CHECKS. An expired match is still somebody's turn by the
+    //flags, and offering the share button would be offering a press the
+    //server now answers 409 to.
+    if (widget.match.expired) return _expiredContent(theme);
     if (_iConfirmed) return _waitingContent(theme);
     return _decideContent();
+  }
+
+  //IT RAN OUT. The only state here with nothing to press and nothing coming:
+  //this is the notice, and the match leaves the list on its own in a day or
+  //two. Says WHO did not answer, because "expired" on its own reads like the
+  //app lost something.
+  Widget _expiredContent(ThemeData theme) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          text.matchExpiredTitle,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          //whoever owed the answer is who it names: if I had confirmed, they
+          //went quiet; if I had not, it lapsed on me
+          _iConfirmed
+              ? text.matchExpiredTheirs(widget.match.otherUserName)
+              : text.matchExpiredMine,
+          style: theme.textTheme.bodySmall,
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
   }
 
   //BOTH SAID YES. The handle, and the two things anyone does with one.
@@ -277,8 +311,33 @@ class _MatchActionBarState extends State<MatchActionBar> {
           style: theme.textTheme.bodySmall,
           textAlign: TextAlign.center,
         ),
+        //THE DEADLINE, NAMED. 'Matches expire after three days' belongs in a
+        //help screen nobody opens; the day it actually runs out is the only
+        //version of this anybody reads. Absent rather than guessed if the
+        //server did not send one.
+        if (_deadline != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            text.matchExpiresOn(widget.match.otherUserName, _deadline!),
+            style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ],
     );
+  }
+
+  //The deadline as a weekday, or null when there is nothing to count down to.
+  //
+  //A WEEKDAY, NOT A DATE. Three days out is always inside the next week, so
+  //'Thursday' is both shorter and easier to place than a numeric date - and
+  //it needs no format that differs per locale beyond the name itself.
+  String? get _deadline {
+    final expiresAt = widget.match.expiresAt;
+    if (expiresAt == null) return null;
+    return DateFormat.EEEE(
+      Localizations.localeOf(context).toLanguageTag(),
+    ).format(expiresAt);
   }
 
   Widget _decideContent() {

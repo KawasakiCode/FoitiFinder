@@ -3655,6 +3655,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You matched with {name}'**
   String notifMatchOwnTitle(String name);
+
+  /// No description provided for @matchesSectionExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get matchesSectionExpired;
+
+  /// No description provided for @matchLaterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Decide later'**
+  String get matchLaterTitle;
+
+  /// No description provided for @matchLaterBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This match moves to your matches page. You have 3 days to share your Instagram with {name} — after that it expires. {name} is not told anything either way.'**
+  String matchLaterBody(String name);
+
+  /// No description provided for @matchLaterStay.
+  ///
+  /// In en, this message translates to:
+  /// **'Stay here'**
+  String get matchLaterStay;
+
+  /// No description provided for @matchLaterLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Decide later'**
+  String get matchLaterLeave;
+
+  /// No description provided for @matchExpiresOn.
+  ///
+  /// In en, this message translates to:
+  /// **'If {name} does not answer by {day}, this match will expire.'**
+  String matchExpiresOn(String name, String day);
+
+  /// No description provided for @matchExpiredTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This match expired'**
+  String get matchExpiredTitle;
+
+  /// No description provided for @matchExpiredTheirs.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} did not answer in time. Nothing was shared.'**
+  String matchExpiredTheirs(String name);
+
+  /// No description provided for @matchExpiredMine.
+  ///
+  /// In en, this message translates to:
+  /// **'You did not answer in time, so it has run out. Nothing was shared.'**
+  String get matchExpiredMine;
 }
 
 class _AppLocalizationsDelegate

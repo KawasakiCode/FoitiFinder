@@ -701,7 +701,11 @@
   "matchTheySaidYes": "They said yes",
   "superLikedYouTitle": "{name} super liked you",
   "@superLikedYouTitle": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "superLikedYouBody": "They get two of these a week, and they spent one on you.",
   "superLikesNoneLeft": "No super likes left this week. You get two, and they come back as the week rolls on.",
@@ -713,5 +717,38 @@
         "type": "String"
       }
     }
-  }
+  },
+  "matchesSectionExpired": "Expired",
+  "matchLaterTitle": "Decide later",
+  "matchLaterBody": "This match moves to your matches page. You have 3 days to share your Instagram with {name} — after that it expires. {name} is not told anything either way.",
+  "@matchLaterBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "matchLaterStay": "Stay here",
+  "matchLaterLeave": "Decide later",
+  "matchExpiresOn": "If {name} does not answer by {day}, this match will expire.",
+  "@matchExpiresOn": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "matchExpiredTitle": "This match expired",
+  "matchExpiredTheirs": "{name} did not answer in time. Nothing was shared.",
+  "@matchExpiredTheirs": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "matchExpiredMine": "You did not answer in time, so it has run out. Nothing was shared."
 }

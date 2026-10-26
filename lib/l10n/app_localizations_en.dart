@@ -1862,4 +1862,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String notifMatchOwnTitle(String name) {
     return 'You matched with $name';
   }
+
+  @override
+  String get matchesSectionExpired => 'Expired';
+
+  @override
+  String get matchLaterTitle => 'Decide later';
+
+  @override
+  String matchLaterBody(String name) {
+    return 'This match moves to your matches page. You have 3 days to share your Instagram with $name — after that it expires. $name is not told anything either way.';
+  }
+
+  @override
+  String get matchLaterStay => 'Stay here';
+
+  @override
+  String get matchLaterLeave => 'Decide later';
+
+  @override
+  String matchExpiresOn(String name, String day) {
+    return 'If $name does not answer by $day, this match will expire.';
+  }
+
+  @override
+  String get matchExpiredTitle => 'This match expired';
+
+  @override
+  String matchExpiredTheirs(String name) {
+    return '$name did not answer in time. Nothing was shared.';
+  }
+
+  @override
+  String get matchExpiredMine =>
+      'You did not answer in time, so it has run out. Nothing was shared.';
 }

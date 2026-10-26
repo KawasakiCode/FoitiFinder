@@ -181,20 +181,60 @@ void main() {
   });
 
   group('leaving', () {
-    testWidgets('the side that just swiped cannot back out silently',
+    testWidgets('there is a way out that is not a decision', (tester) async {
+      //THE BUG THIS FIXES. The only non-committal option used to be 'Not
+      //interested', which DELETES the match - so a moment of doubt about a
+      //swipe cost the match outright. Doubt now costs nothing.
+      await pumpMatch(tester);
+      expect(find.byIcon(Icons.arrow_back), findsOneWidget);
+    });
+
+    testWidgets('leaving explains where the match went, and for how long',
         (tester) async {
-      //the match row already exists; backing out would leave it unanswered
-      //and the other person waiting on somebody who has moved on
+      //NOT A CONFIRMATION - leaving is harmless. It is the only place the
+      //three-day deadline is stated to somebody who has not agreed to it
+      //anywhere else, at the moment they are looking at the match.
+      await pumpMatch(tester);
+      await tester.tap(find.byIcon(Icons.arrow_back));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('3 days'), findsOneWidget);
+      expect(find.textContaining('matches page'), findsOneWidget);
+      //and that the other side learns nothing, which is what makes it safe
+      expect(find.textContaining('not told'), findsOneWidget);
+    });
+
+    testWidgets('dismissing that dialog keeps you on the match',
+        (tester) async {
+      //a tap outside is not a decision to leave
+      await pumpMatch(tester);
+      await tester.tap(find.byIcon(Icons.arrow_back));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Stay here'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Share my Instagram'), findsOneWidget);
+    });
+
+    testWidgets('the system back is still intercepted, not blocked',
+        (tester) async {
+      //canPop stays false so the gesture reaches onPopInvokedWithResult and
+      //gets the same dialog. False here means 'ask first', not 'trapped'.
       await pumpMatch(tester);
       expect(canLeave(tester), isFalse);
     });
 
-    testWidgets('the side that arrived from a notification can leave',
+    testWidgets('the side that arrived from a notification leaves at once',
         (tester) async {
-      //they did not choose to open this page, and trapping them in it is not
-      //how you ask for an Instagram handle. The match waits, and expires.
+      //NO DIALOG FOR THEM. They came from a notification about a match that
+      //was already on their matches page, so leaving puts them back where
+      //they can already see it - there is nothing to explain.
       await pumpMatch(tester, fromNotification: true, theyConfirmed: true);
       expect(canLeave(tester), isTrue);
+
+      await tester.tap(find.byIcon(Icons.arrow_back));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('3 days'), findsNothing);
     });
   });
 }

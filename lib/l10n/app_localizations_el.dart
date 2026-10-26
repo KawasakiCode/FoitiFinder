@@ -1870,4 +1870,38 @@ class AppLocalizationsEl extends AppLocalizations {
   String notifMatchOwnTitle(String name) {
     return 'Ταίριαξες με $name';
   }
+
+  @override
+  String get matchesSectionExpired => 'Έληξαν';
+
+  @override
+  String get matchLaterTitle => 'Αποφάσισε αργότερα';
+
+  @override
+  String matchLaterBody(String name) {
+    return 'Το ματσ πάει στη σελίδα με τα ματσ σου. Έχεις 3 μέρες να μοιραστείς το Instagram σου με $name — μετά λήγει. Το $name δεν μαθαίνει τίποτα.';
+  }
+
+  @override
+  String get matchLaterStay => 'Μείνε εδώ';
+
+  @override
+  String get matchLaterLeave => 'Αργότερα';
+
+  @override
+  String matchExpiresOn(String name, String day) {
+    return 'Αν το $name δεν απαντήσει μέχρι $day, το ματς θα λήξει.';
+  }
+
+  @override
+  String get matchExpiredTitle => 'Αυτό το ματς έληξε';
+
+  @override
+  String matchExpiredTheirs(String name) {
+    return 'Το $name δεν απάντησε έγκαιρα. Δεν μοιράστηκε τίποτα.';
+  }
+
+  @override
+  String get matchExpiredMine =>
+      'Δεν απάντησες έγκαιρα, οπότε έληξε. Δεν μοιράστηκε τίποτα.';
 }

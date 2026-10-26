@@ -82,6 +82,14 @@ class MatchResponse(BaseModel):
     i_confirmed: bool = False
     they_confirmed: bool = False
     revealed: bool = False
+    #RAN OUT UNANSWERED. Three days after it became somebody's turn, an
+    #unconfirmed match stops being served - see match_expiry. For a short
+    #window before that it is still sent with this set, so the page can say
+    #it lapsed instead of letting it disappear between two refreshes.
+    expired: bool = False
+    #when it will run out, so the page can name the day rather than quote a
+    #rule. Null once both sides have confirmed, because nothing expires then.
+    expires_at: Optional[datetime.datetime] = None
 
     class Config:
         from_attributes = True
