@@ -41,6 +41,16 @@ class SettingsProvider extends ChangeNotifier {
   //over the rebuild instead of letting every string snap over at once
   bool get localeSwitching => _localeSwitching;
   bool get osPermission => _osPermission;
+  //WHETHER SETUP HAS ASKED ABOUT NOTIFICATIONS YET. Read straight off disk
+  //rather than mirrored into a field: SetupWrapper needs the answer while
+  //deciding what to build, and _prefs is already loaded by then.
+  //
+  //ON DISK, NOT IN POSTGRES, deliberately. It records that a question was
+  //put to somebody on this device, not a preference about them - reinstalling
+  //is a fair reason to be asked once more, and asking is cheap while a
+  //permanently denied OS prompt is not.
+  bool get hasBeenAskedAboutNotifications =>
+      _prefs.getBool('notifications_asked') ?? false;
   String get gender => _gender;
 
   void _loadDefaults() {
@@ -201,7 +211,23 @@ class SettingsProvider extends ChangeNotifier {
   //and 'they said yes back'. It used to be a LIKE toggle that gated the
   //match pushes as well, so silencing the useless pings silenced the one
   //push that matters. There are no like pushes any more.
-  Future<void> toggleMatchNotifications(bool value) async {
+  //Setup has put the question; do not put it again.
+  Future<void> markNotificationsAsked() async {
+    await _prefs.setBool('notifications_asked', true);
+    //SetupWrapper watches this provider and moves on once it is set
+    notifyListeners();
+  }
+
+  //RETURNS WHETHER IT WORKED, because it can fail for a reason only the user
+  //can fix. Turning this on needs the OS permission, and the OS may simply
+  //say no - after two refusals Android stops asking at all and the only way
+  //back is the system settings screen.
+  //
+  //This used to swallow that: the switch flipped itself back and said
+  //nothing, so the user tapped, watched it bounce, and had no idea why or
+  //what to do. The provider still shows no UI of its own - it reports, and
+  //the settings page explains.
+  Future<bool> toggleMatchNotifications(bool value) async {
     // If turning ON, we must check OS permission first
     if (value == true) {
       bool hasPermission = await _ensureOsPermission();
@@ -209,7 +235,7 @@ class SettingsProvider extends ChangeNotifier {
         // If OS says no, we force the switch back to off
         _matchNotificationsEnabled = false;
         notifyListeners();
-        return; 
+        return false;
       }
     }
 
@@ -226,6 +252,7 @@ class SettingsProvider extends ChangeNotifier {
 
     // Sync with Database
     await ApiService.updateUsersSettings(uid: FirebaseAuth.instance.currentUser!.uid, isMatchNotificationsOn: _matchNotificationsEnabled);
+    return true;
   }
 
   //Add or remove a gender from the preference

@@ -3751,6 +3751,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Update'**
   String get updateRequiredAction;
+
+  /// No description provided for @askNotificationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Know when you match'**
+  String get askNotificationsTitle;
+
+  /// No description provided for @askNotificationsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'FoitiFinder sends two things: when someone matches with you and is waiting on your answer, and when they share their Instagram back. Nothing else.'**
+  String get askNotificationsBody;
+
+  /// No description provided for @askNotificationsAllow.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on notifications'**
+  String get askNotificationsAllow;
+
+  /// No description provided for @askNotificationsLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get askNotificationsLater;
+
+  /// No description provided for @notificationsBlockedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are off'**
+  String get notificationsBlockedTitle;
+
+  /// No description provided for @notificationsBlockedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your phone is blocking notifications for FoitiFinder, so this cannot be turned on from here. You can allow them in your device settings.'**
+  String get notificationsBlockedBody;
+
+  /// No description provided for @notificationsBlockedAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get notificationsBlockedAction;
 }
 
 class _AppLocalizationsDelegate

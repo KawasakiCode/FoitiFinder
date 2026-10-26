@@ -14,7 +14,9 @@ import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:provider/provider.dart';
 import 'package:foitifinder/widgets/app_switch.dart';
+import 'package:foitifinder/widgets/app_dialog.dart';
 import 'package:foitifinder/widgets/pressable.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -24,6 +26,32 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+  //THE SWITCH SAID NO AND THE USER NEEDS TO KNOW WHY. Android stops asking
+  //after two refusals, so at this point the OS prompt will not appear again
+  //however many times the switch is tapped - the only route back is the
+  //system settings screen, which openAppSettings opens directly.
+  Future<void> _explainMissingPermission(BuildContext context) async {
+    final text = AppLocalizations.of(context)!;
+    final open = await showAppDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(text.notificationsBlockedTitle),
+        content: Text(text.notificationsBlockedBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(text.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(text.notificationsBlockedAction),
+          ),
+        ],
+      ),
+    );
+    if (open == true) await openAppSettings();
+  }
+
   AppLocalizations get text => AppLocalizations.of(context)!;
 
   @override
@@ -131,7 +159,17 @@ class _SettingsPageState extends State<SettingsPage> {
                           AppSwitch(
                             value: settings.matchNotificationsEnabled,
                             onChanged: (bool enabled) async {
-                              await settings.toggleMatchNotifications(enabled);
+                              final ok = await settings
+                                  .toggleMatchNotifications(enabled);
+                              //IT CAN ONLY FAIL ONE WAY: the OS refused, and
+                              //after two refusals Android stops asking, so
+                              //the switch alone can never turn it back on.
+                              //Saying so - and offering the one screen that
+                              //can - is the difference between a setting and
+                              //a switch that bounces.
+                              if (!ok && context.mounted) {
+                                await _explainMissingPermission(context);
+                              }
                             },
                           ),
                         ],

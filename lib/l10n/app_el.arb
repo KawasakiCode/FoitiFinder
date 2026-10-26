@@ -614,5 +614,12 @@
   "removeMatchAction": "Αφαίρεση",
   "updateRequiredTitle": "Ώρα για ενημέρωση",
   "updateRequiredBody": "Αυτή η έκδοση του FoitiFinder δεν υποστηρίζεται πια. Κάνε ενημέρωση στη νεότερη για να συνεχίσεις.",
-  "updateRequiredAction": "Ενημέρωση"
+  "updateRequiredAction": "Ενημέρωση",
+  "askNotificationsTitle": "Μάθε όταν κάνεις ματς",
+  "askNotificationsBody": "Το FoitiFinder στέλνει δύο πράγματα: όταν κάποιος κάνει ματς μαζί σου και περιμένει απάντηση, και όταν μοιραστεί το Instagram του. Τίποτα άλλο.",
+  "askNotificationsAllow": "Ενεργοποίηση ειδοποιήσεων",
+  "askNotificationsLater": "Όχι τώρα",
+  "notificationsBlockedTitle": "Οι ειδοποιήσεις είναι απενεργοποιημένες",
+  "notificationsBlockedBody": "Το τηλέφωνό σου μπλοκάρει τις ειδοποιήσεις για το FoitiFinder, οπότε δεν μπορεί να ενεργοποιηθεί από εδώ. Μπορείς να τις επιτρέψεις από τις ρυθμίσεις της συσκευής.",
+  "notificationsBlockedAction": "Άνοιγμα ρυθμίσεων"
 }

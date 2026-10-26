@@ -1920,4 +1920,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get updateRequiredAction => 'Update';
+
+  @override
+  String get askNotificationsTitle => 'Know when you match';
+
+  @override
+  String get askNotificationsBody =>
+      'FoitiFinder sends two things: when someone matches with you and is waiting on your answer, and when they share their Instagram back. Nothing else.';
+
+  @override
+  String get askNotificationsAllow => 'Turn on notifications';
+
+  @override
+  String get askNotificationsLater => 'Not now';
+
+  @override
+  String get notificationsBlockedTitle => 'Notifications are off';
+
+  @override
+  String get notificationsBlockedBody =>
+      'Your phone is blocking notifications for FoitiFinder, so this cannot be turned on from here. You can allow them in your device settings.';
+
+  @override
+  String get notificationsBlockedAction => 'Open settings';
 }

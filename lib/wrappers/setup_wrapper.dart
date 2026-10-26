@@ -10,6 +10,7 @@ import 'package:foitifinder/pages/auth_pages/login.dart';
 import 'package:foitifinder/pages/auth_pages/verify_email.dart';
 import 'package:foitifinder/pages/sign_up_set_up/add_photos.dart';
 import 'package:foitifinder/pages/sign_up_set_up/instagram_page.dart';
+import 'package:foitifinder/pages/sign_up_set_up/notifications_page.dart';
 import 'package:foitifinder/pages/sign_up_set_up/set_up_page.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
@@ -176,6 +177,22 @@ class _SetupWrapperState extends State<SetupWrapper> {
 
     bool hasFinishedSetUp = currentUser!.hasFinishedSetUp;
     if (hasFinishedSetUp) {
+      //ONE LAST STEP, ONCE. Permission to send the two match pushes is asked
+      //here rather than earlier because this is the end of setup on every
+      //path through this wrapper - including the ones that skip the photo or
+      //profile steps for an account that already has them.
+      //
+      //It cannot be asked usefully any later. One of those pushes is how a
+      //user finds out they have a match at all, so waiting for a match to
+      //make the request feel relevant means the first one goes unheard.
+      //See notifications_page.dart for why it is a screen and not the bare
+      //OS prompt.
+      //
+      //LISTENED TO, not read: answering the question writes the flag and
+      //notifies, which is what rebuilds this into MainScreen.
+      if (!context.watch<SettingsProvider>().hasBeenAskedAboutNotifications) {
+        return const NotificationsPage();
+      }
       return MainScreen(uid: fbUser!.uid);
     }
     //no photos yet -> the photo step

@@ -764,5 +764,12 @@
   "removeMatchAction": "Remove",
   "updateRequiredTitle": "Time to update",
   "updateRequiredBody": "This version of FoitiFinder is no longer supported. Update to the latest one to carry on.",
-  "updateRequiredAction": "Update"
+  "updateRequiredAction": "Update",
+  "askNotificationsTitle": "Know when you match",
+  "askNotificationsBody": "FoitiFinder sends two things: when someone matches with you and is waiting on your answer, and when they share their Instagram back. Nothing else.",
+  "askNotificationsAllow": "Turn on notifications",
+  "askNotificationsLater": "Not now",
+  "notificationsBlockedTitle": "Notifications are off",
+  "notificationsBlockedBody": "Your phone is blocking notifications for FoitiFinder, so this cannot be turned on from here. You can allow them in your device settings.",
+  "notificationsBlockedAction": "Open settings"
 }

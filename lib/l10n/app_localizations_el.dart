@@ -1928,4 +1928,28 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get updateRequiredAction => 'Ενημέρωση';
+
+  @override
+  String get askNotificationsTitle => 'Μάθε όταν κάνεις ματς';
+
+  @override
+  String get askNotificationsBody =>
+      'Το FoitiFinder στέλνει δύο πράγματα: όταν κάποιος κάνει ματς μαζί σου και περιμένει απάντηση, και όταν μοιραστεί το Instagram του. Τίποτα άλλο.';
+
+  @override
+  String get askNotificationsAllow => 'Ενεργοποίηση ειδοποιήσεων';
+
+  @override
+  String get askNotificationsLater => 'Όχι τώρα';
+
+  @override
+  String get notificationsBlockedTitle =>
+      'Οι ειδοποιήσεις είναι απενεργοποιημένες';
+
+  @override
+  String get notificationsBlockedBody =>
+      'Το τηλέφωνό σου μπλοκάρει τις ειδοποιήσεις για το FoitiFinder, οπότε δεν μπορεί να ενεργοποιηθεί από εδώ. Μπορείς να τις επιτρέψεις από τις ρυθμίσεις της συσκευής.';
+
+  @override
+  String get notificationsBlockedAction => 'Άνοιγμα ρυθμίσεων';
 }
