@@ -101,14 +101,20 @@ def main() -> None:
     for them in seeded:
         photos = db.query(models.Photos).filter(models.Photos.user_id == them.id).count()
         verdict = feed_verdict(me, them)
-        if them.id in liked_me:
-            where_ = "LIKES PAGE (they liked you, so the deck must not offer them)"
-        elif them.id in swiped:
+        #MY OWN SWIPE IS CHECKED FIRST, and theirs is no longer checked at all.
+        #Somebody who liked me used to be held out of the deck for a likes
+        #page; the page is gone and so is the exclusion, so the only thing
+        #their like changes now is whether the card carries a badge.
+        if them.id in swiped:
             where_ = f"GONE: you already swiped {swiped[them.id]!r}"
         elif verdict != "shown":
             where_ = verdict
         else:
             where_ = "FEED"
+            if liked_me.get(them.id) == "super_like":
+                where_ += " + SUPER LIKE BADGE (they super liked you)"
+            elif them.id in liked_me:
+                where_ += " (they liked you - swiping right matches at once)"
             in_feed += 1
         print(f"  id={them.id:<4} {them.name:<10} age={age_from_birthday(them.birthday):<3} "
               f"{photos} photos  @{them.instagram_handle or '-':<18} {where_}")

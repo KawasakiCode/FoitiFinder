@@ -21,6 +21,9 @@ Options:
     --count N          how many fake profiles to make (default 12)
     --gender G         the gender the fakes get (default Women)
     --likes N          fakes that like you first, so swiping right is a MATCH
+    --super-likes N    fakes that SUPER liked you, so the deck shows the badge
+    --matches N        fakes you have already matched with, one per state of
+                       the match page: your turn (x2), waiting, revealed
     --photos FILE      a tools/demo_photos.json manifest, so the fakes have
                        real faces instead of picsum scenery (for a demo video)
     --wipe             delete every fake this script made, and start over
@@ -58,14 +61,20 @@ SEED_PREFIX = "seed_"
 #Names are picked to MATCH the gender being generated. A card reading "Kostas,
 #Women" is noise while testing: you end up wondering whether the bug is in the
 #filter or in the seed.
+#
+#ENOUGH OF THEM THAT --count NEVER HAS TO REPEAT ONE: the by-name flags look
+#people up in a dict, so a second Maria would silently replace the first and
+#the run would arrange a match for the wrong person.
 NAMES_BY_GENDER = {
     "Female": [
         "Maria", "Eleni", "Katerina", "Sofia", "Dimitra", "Anna", "Ioanna",
         "Christina", "Vasiliki", "Georgia", "Despina", "Marianna",
+        "Danai", "Nefeli", "Angeliki", "Stella", "Fotini", "Zoi",
     ],
     "Male": [
         "Nikos", "Giorgos", "Kostas", "Panagiotis", "Alexandros", "Stelios",
         "Thanasis", "Petros", "Vangelis", "Michalis", "Dimitris", "Andreas",
+        "Thodoris", "Lefteris", "Haris", "Spyros", "Manos", "Ilias",
     ],
 }
 #anything else (a custom gender string) falls back to both lists
@@ -218,6 +227,63 @@ def reset_me(db, me: models.User) -> None:
           f"{notes.rowcount} notifications - the deck is full again")
 
 
+#THE FOUR SHAPES A MATCH COMES IN, and the reason this script writes them
+#straight into the table instead of letting the app produce them. The match
+#page groups by exactly this and the action bar is a different screen in each
+#one, and the only way to reach the later ones by hand is two accounts
+#confirming in the right order - a second phone and a second login. Seeding
+#one of each means a single run shows every version of the page.
+#
+#THE FIRST TWO ARE BOTH 'YOUR TURN' AND THEY ARE NOT THE SAME SITUATION,
+#which is why both are here. One is a match you made and they have not been
+#told about; the other is somebody who has already committed and is waiting
+#on you. Only the second carries the badge on the tile.
+MATCH_STATES = (
+    "your turn, nobody has answered",
+    "your turn, they already said yes",
+    "waiting on them",
+    "revealed",
+)
+
+
+def arrange_match(db, me: models.User, them: models.User, state: str) -> None:
+    """Put `them` on my match page in the given state.
+
+    WHO IS user_a IS NOT COSMETIC. record_swipe makes the one who COMPLETED
+    the match user_a, and get_matches hides a row from user_b until user_a has
+    confirmed - so user_b cannot possibly answer first. A state where they
+    have said yes and I have not is therefore only reachable with THEM as
+    user_a, and seeding it the other way round would produce a row the app is
+    right to refuse to show.
+    """
+    now = datetime.datetime.now(datetime.timezone.utc)
+
+    #THE SWIPES THAT WOULD HAVE MADE IT. A matches row on its own leaves the
+    #two of us in each other's decks, so the match page would be listing
+    #somebody the deck is still offering - and swiping them again would hit
+    #the duplicate-match guard rather than doing nothing.
+    db.add(models.UserSwipes(user_id=them.id, target_id=me.id, action="like"))
+    db.add(models.UserSwipes(user_id=me.id, target_id=them.id, action="like"))
+
+    if state == "your turn, they already said yes":
+        #THEY completed it and answered; I am user_b and have not.
+        db.add(models.Matches(user_a_id=them.id, user_b_id=me.id,
+                              a_confirmed_at=now))
+        return
+
+    #STAGGERED, not identical: the timestamps are what say who answered first,
+    #and that is the whole reason they are timestamps and not booleans.
+    mine = theirs = None
+    if state == "waiting on them":
+        mine = now
+    elif state == "revealed":
+        mine = now - datetime.timedelta(hours=2)
+        theirs = now
+
+    db.add(models.Matches(user_a_id=me.id, user_b_id=them.id,
+                          a_confirmed_at=mine, b_confirmed_at=theirs))
+
+
 def newest_real_user(db) -> models.User:
     """The most recently created account that this script did not create.
 
@@ -360,14 +426,32 @@ def ensure_me(db, uid: str, email: str | None = None) -> models.User:
     return me
 
 
+def deal_names(gender: str, count: int) -> list[str]:
+    """`count` names with no repeats, because the flags address people by name.
+
+    Dealt rather than drawn: random.choice picks WITH replacement, so a dozen
+    profiles would usually contain a duplicate, and --matched-with Maria would
+    then be a coin flip over which Maria it meant. A numbered name is ugly but
+    unambiguous, and only appears once --count outruns the list above.
+    """
+    pool = list(NAMES_BY_GENDER.get(gender, ALL_NAMES))
+    random.shuffle(pool)
+    base, round_number = list(pool), 2
+    while len(pool) < count:
+        pool.extend(f"{name}{round_number}" for name in base)
+        round_number += 1
+    return pool[:count]
+
+
 def make_profile(db, index: int, gender: str,
-                 person: tuple[str, list[str]] | None = None) -> models.User:
+                 person: tuple[str, list[str]] | None = None,
+                 name: str | None = None) -> models.User:
     """One fake profile. `person` is (name, photo urls) from a demo manifest."""
     age = random.randint(19, 28)
     born = datetime.date.today() - datetime.timedelta(days=age * 365 + random.randint(0, 300))
     photo_count = random.randint(3, 5)
-    name = person[0] if person else random.choice(
-        NAMES_BY_GENDER.get(gender, ALL_NAMES))
+    name = person[0] if person else (name or random.choice(
+        NAMES_BY_GENDER.get(gender, ALL_NAMES)))
 
     user = models.User(
         firebase_uid=f"{SEED_PREFIX}{index}_{random.randint(1000, 9999)}",
@@ -443,6 +527,19 @@ def main() -> None:
                              "Non-conforming ('Men'/'Women' are accepted too)")
     parser.add_argument("--likes", type=int, default=3,
                         help="how many fakes like you first (swipe right on them = match)")
+    parser.add_argument("--super-likes", type=int, default=0,
+                        help="how many fakes SUPER liked you - they stay in "
+                             "the deck and carry the badge, which is the only "
+                             "interest the feed discloses")
+    parser.add_argument("--super-liked-by",
+                        help="WHICH fakes super liked you, by name")
+    parser.add_argument("--matches", type=int, default=0,
+                        help="how many fakes you have ALREADY matched with. "
+                             "Up to four get one state each, which is one of "
+                             "every section the match page has")
+    parser.add_argument("--matched-with",
+                        help="WHICH fakes you have already matched with, by "
+                             "name, in that same state order")
     parser.add_argument("--handles",
                         help="pin a handle instead of a generated one: "
                              "--handles Katerina=katpap_. FOR A DEMO this "
@@ -450,9 +547,9 @@ def main() -> None:
                              "the reveal screen links straight to it.")
     parser.add_argument("--liked-by",
                         help="WHICH fakes like you, by name: --liked-by "
-                             "Maria,Katerina. They go on the likes page and "
-                             "are kept out of the deck, so this decides where "
-                             "each person shows up")
+                             "Maria,Katerina. They stay in the deck and are "
+                             "not marked, so swiping right on one matches "
+                             "immediately")
     parser.add_argument("--wipe", action="store_true",
                         help="remove previously seeded profiles first")
     parser.add_argument("--photos",
@@ -503,9 +600,11 @@ def main() -> None:
         args.count = len(photo_sets)
 
     gender = normalise_gender(args.gender)
+    names = deal_names(gender, args.count)
     created = [
         make_profile(db, i, gender,
-                     photo_sets[i] if i < len(photo_sets) else None)
+                     photo_sets[i] if i < len(photo_sets) else None,
+                     names[i])
         for i in range(args.count)
     ]
     #PINNED HANDLES, applied after creation so they override whatever
@@ -534,36 +633,89 @@ def main() -> None:
     else:
         print(f"created {len(created)} profiles ({gender}), 3-5 photos each")
 
-    if me and (args.likes or args.liked_by):
+    wants_relationships = (args.likes or args.liked_by or args.super_likes
+                           or args.super_liked_by or args.matches
+                           or args.matched_with)
+    if me and wants_relationships:
         #with --count 0 nothing was created this run, so borrow from the
         #profiles already seeded - otherwise --likes would silently do nothing
-        likers = created or db.query(models.User).filter(
+        pool = created or db.query(models.User).filter(
             models.User.firebase_uid.like(f"{SEED_PREFIX}%")
         ).all()
+        by_name = {user.name.lower(): user for user in pool}
 
-        #BY NAME WHEN IT MATTERS WHICH ONES. --likes takes the first N, which
-        #is fine for development and useless when you are arranging a
-        #particular screen: whoever likes you is kept OUT of the deck (see
-        #get_swipe_feed), so this flag is really choosing who appears on the
-        #likes page instead of in the feed.
-        if args.liked_by:
-            wanted = [name.strip().lower()
-                      for name in args.liked_by.split(",") if name.strip()]
-            by_name = {user.name.lower(): user for user in likers}
-            missing = [name for name in wanted if name not in by_name]
-            if missing:
-                sys.exit(f"--liked-by names nobody seeded: {', '.join(missing)}\n"
-                         f"seeded: {', '.join(sorted(by_name))}")
-            chosen = [by_name[name] for name in wanted]
-        else:
-            chosen = likers[: args.likes]
+        #ONE PERSON, ONE RELATIONSHIP. Each pool below writes to user_swipes,
+        #and somebody in two of them would get two rows for the same pair -
+        #which nothing in the schema forbids, and which every query that reads
+        #this table would then count twice.
+        spoken_for: set[int] = set()
 
-        for user in chosen:
-            db.add(models.UserSwipes(user_id=user.id, target_id=me.id, action="like"))
+        def take(flag: str, names: str | None, count: int) -> list[models.User]:
+            """Named people if named, otherwise the first `count` still free.
+
+            BY NAME WHEN IT MATTERS WHICH ONES. The counts are fine for
+            development and useless when you are arranging a particular
+            screen - who super liked you decides which card carries the badge,
+            and who you matched with decides what the match page looks like.
+            """
+            if names:
+                wanted = [n.strip().lower() for n in names.split(",") if n.strip()]
+                missing = [n for n in wanted if n not in by_name]
+                if missing:
+                    sys.exit(f"--{flag} names nobody seeded: "
+                             f"{', '.join(missing)}\n"
+                             f"seeded: {', '.join(sorted(by_name))}")
+                chosen = [by_name[n] for n in wanted]
+                clash = [u.name for u in chosen if u.id in spoken_for]
+                if clash:
+                    sys.exit(f"--{flag} names somebody another flag already "
+                             f"took: {', '.join(clash)}")
+            else:
+                chosen = [u for u in pool if u.id not in spoken_for][:count]
+            spoken_for.update(user.id for user in chosen)
+            return chosen
+
+        #MATCHES ARE CARVED FIRST, because --likes defaults to 3 and would
+        #otherwise have claimed the people a later flag was asking for by name.
+        matched = take("matched-with", args.matched_with, args.matches)
+        if len(matched) > len(MATCH_STATES):
+            print(f"only {len(MATCH_STATES)} match states exist, so the rest "
+                  f"repeat from the start")
+        for index, user in enumerate(matched):
+            arrange_match(db, me, user, MATCH_STATES[index % len(MATCH_STATES)])
+
+        super_likers = take("super-liked-by", args.super_liked_by,
+                            args.super_likes)
+        for user in super_likers:
+            db.add(models.UserSwipes(user_id=user.id, target_id=me.id,
+                                     action="super_like"))
+
+        likers = take("liked-by", args.liked_by, args.likes)
+        for user in likers:
+            db.add(models.UserSwipes(user_id=user.id, target_id=me.id,
+                                     action="like"))
+
         db.commit()
-        print(f"{len(chosen)} of them already liked you - swipe right to match:")
-        for user in chosen:
-            print(f"  {user.name} (id {user.id})  @{user.instagram_handle}")
+
+        if matched:
+            print(f"\n{len(matched)} matches on your match page:")
+            for index, user in enumerate(matched):
+                state = MATCH_STATES[index % len(MATCH_STATES)]
+                print(f"  {user.name} (id {user.id})  @{user.instagram_handle}"
+                      f"  - {state}")
+            if not me.instagram_handle:
+                print("  WARNING: your row has no instagram_handle, so the "
+                      "revealed one will still read as waiting - the reveal "
+                      "needs a handle on BOTH sides.")
+        if super_likers:
+            print(f"\n{len(super_likers)} super liked you - their card in the "
+                  f"deck carries the badge:")
+            for user in super_likers:
+                print(f"  {user.name} (id {user.id})")
+        if likers:
+            print(f"\n{len(likers)} already liked you - swipe right to match:")
+            for user in likers:
+                print(f"  {user.name} (id {user.id})  @{user.instagram_handle}")
 
     total = db.query(models.User).count()
     print(f"\nlocal database now holds {total} users")
