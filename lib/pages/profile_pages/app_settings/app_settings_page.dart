@@ -122,16 +122,16 @@ class _SettingsPageState extends State<SettingsPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            text.likeNotifications,
+                            text.matchNotifications,
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                           AppSwitch(
-                            value: settings.likeNotificationsEnabled,
+                            value: settings.matchNotificationsEnabled,
                             onChanged: (bool enabled) async {
-                              await settings.toggleLikeNotifications(enabled);
+                              await settings.toggleMatchNotifications(enabled);
                             },
                           ),
                         ],

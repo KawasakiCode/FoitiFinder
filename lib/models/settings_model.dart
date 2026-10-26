@@ -4,13 +4,13 @@
 class SettingsModel{
   final int userId;
   final bool? isDark;
-  final bool? isLikeNotificationsOn;
+  final bool? isMatchNotificationsOn;
   final String? language;
 
   SettingsModel({
     required this.userId,
     this.isDark,
-    this.isLikeNotificationsOn,
+    this.isMatchNotificationsOn,
     this.language,
   });
 
@@ -18,7 +18,7 @@ class SettingsModel{
     return SettingsModel (
       userId: json['user_id'] ?? (throw Exception("Critical: user_id missing")),
       isDark: json['is_dark_mode'],
-      isLikeNotificationsOn: json['is_like_notifications_on'],
+      isMatchNotificationsOn: json['is_match_notifications_on'],
       language: json['language'],
     );
   }
@@ -27,7 +27,10 @@ class SettingsModel{
     return {
       'user_id': userId,
       'is_dark_mode': isDark,
-      'is_like_notification_on': isLikeNotificationsOn,
+      //MATCHES fromJson ABOVE, which it did not: this said
+      //is_like_notification_on - singular, and nothing has ever read
+      //that key. Harmless only because toMap has no callers yet.
+      'is_match_notifications_on': isMatchNotificationsOn,
       'language': language,
     };
   }

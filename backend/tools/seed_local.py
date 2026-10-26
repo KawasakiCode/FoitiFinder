@@ -414,7 +414,7 @@ def ensure_me(db, uid: str, email: str | None = None) -> models.User:
     db.flush()
     db.add(models.Settings(
         user_id=me.id, is_dark_mode=True,
-        is_like_notifications_on=False, language="el",
+        is_match_notifications_on=False, language="el",
     ))
     db.add(models.Photos(
         user_id=me.id,
@@ -484,7 +484,7 @@ def make_profile(db, index: int, gender: str,
 
     db.add(models.Settings(
         user_id=user.id, is_dark_mode=True,
-        is_like_notifications_on=False, language="el",
+        is_match_notifications_on=False, language="el",
     ))
     #CURATED PHOTOS WHEN THERE ARE ANY, in the order the manifest lists them,
     #so photo 0 is whichever portrait sorted first. Topped up to three with

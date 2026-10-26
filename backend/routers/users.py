@@ -73,7 +73,7 @@ def create_user(
         new_settings = models.Settings(  
             user_id=new_user.id,
             is_dark_mode=True,
-            is_like_notifications_on=False,
+            is_match_notifications_on=False,
             language='el'
         )
 

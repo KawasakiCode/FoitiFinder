@@ -92,8 +92,9 @@ class _MainScreenState extends State<MainScreen> {
       //bell any more, so this list IS the delivery, and it is reloaded here so
       //the page is already right if the user opens it from the banner.
       //
-      //A 'like' push is deliberately not handled. Who liked you is not shown
-      //anywhere any more, so there is nothing for it to refresh.
+      //NOTHING ELSE ARRIVES. 'match' and 'match_revealed' are the only two
+      //pushes the backend sends - a like push existed while there was a
+      //likes page to open it, and there is nothing left for one to refresh.
       final kind = message.data['type'] as String?;
       if (kind != null && kind.startsWith('match')) {
         _matchesPageKey.currentState?.loadMatches();
@@ -124,7 +125,7 @@ class _MainScreenState extends State<MainScreen> {
           .set({  
             'fcm_token': token,
             'last_active': FieldValue.serverTimestamp(),
-            'like_notifications': settings.likeNotificationsEnabled
+            'match_notifications': settings.matchNotificationsEnabled
           }, SetOptions(merge: true));
       }
     }

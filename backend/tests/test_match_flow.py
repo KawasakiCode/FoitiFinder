@@ -168,17 +168,26 @@ class TestWhoGetsTold:
         assert not [p for p in pushes if p[0] == bob.firebase_uid
                     and p[1] == "match_declined"]
 
-    def test_declining_on_someone_who_was_waiting_tells_them(
+    def test_declining_on_someone_who_was_waiting_tells_them_nothing_either(
         self, as_user, make_user, swipe, pushes
     ):
+        """THIS USED TO ASSERT THE OPPOSITE, and the reversal is deliberate.
+
+        The case for a push was that somebody who shared their handle and is
+        waiting deserves to hear. The case against is what the push actually
+        says: that a person said no, with nothing to do about it. The match
+        leaves their list instead, which is how an expired one goes too.
+        """
         alice, bob = make_user(name="Alice"), make_user(name="Bob")
         match_id = complete_match(as_user, swipe, alice, bob)
 
         as_user(alice).post(f"/matches/{match_id}/confirm")  # alice says yes
+        pushes.clear()
         as_user(bob).post(f"/matches/{match_id}/decline")    # bob says no
 
-        #she is owed an answer: she said yes and was waiting for one
-        assert (alice.firebase_uid, "match_declined") in pushes
+        assert pushes == []
+        #what she gets instead: it is simply not there any more
+        assert as_user(alice).get("/matches").json() == []
 
 
 class TestTheBell:

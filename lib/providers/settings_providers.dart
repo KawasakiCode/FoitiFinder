@@ -23,7 +23,7 @@ class SettingsProvider extends ChangeNotifier {
 
   //State variables (private)
   ThemeMode _themeMode = ThemeMode.light;
-  bool _likeNotificationsEnabled = false;
+  bool _matchNotificationsEnabled = false;
   Set<String> _preferredGender = {};
   RangeValues _ageRange = RangeValues(0, 0);
   Locale _locale = const Locale('el');
@@ -33,7 +33,7 @@ class SettingsProvider extends ChangeNotifier {
 
   //Getters
   ThemeMode get themeMode => _themeMode;
-  bool get likeNotificationsEnabled => _likeNotificationsEnabled;
+  bool get matchNotificationsEnabled => _matchNotificationsEnabled;
   Set<String> get preferredGender => _preferredGender;
   RangeValues get ageRange => _ageRange;
   Locale get locale => _locale;
@@ -48,7 +48,7 @@ class SettingsProvider extends ChangeNotifier {
     //default (no saved pref) is dark. This was previously inverted, which made
     //the app flash/stick in light mode for users who actually had dark on.
     _themeMode = (_prefs.getBool('isDark') ?? true) ? ThemeMode.dark : ThemeMode.light;
-    _likeNotificationsEnabled = (_prefs.getBool('like_notifications_enabled') ?? false) ? true : false;
+    _matchNotificationsEnabled = (_prefs.getBool('match_notifications_enabled') ?? false) ? true : false;
     //KEY NAME MATTERS: changeLanguage() and fetchSettingsFromApi() both write
     //'language_code'. Reading 'language' here meant this lookup ALWAYS missed,
     //so every launch started in Greek and then visibly flipped to the real
@@ -126,28 +126,28 @@ class SettingsProvider extends ChangeNotifier {
     }
 
     //Notifications
-    bool likePushNotifications;
-    if(_prefs.getBool('like_notifications_enabled') == null) {
+    bool matchPushNotifications;
+    if(_prefs.getBool('match_notifications_enabled') == null) {
       //Does the os give permission?
       bool osPermission = await checkNotificationPermission();
       _osPermission = osPermission;
       //If os and db return true then enable notifications else keep false
-      if(osPermission && data.isLikeNotificationsOn!) {
-        likePushNotifications = true;
-        _prefs.setBool('like_notifications_enabled', true);
+      if(osPermission && data.isMatchNotificationsOn!) {
+        matchPushNotifications = true;
+        _prefs.setBool('match_notifications_enabled', true);
       }
       else {
-        likePushNotifications = false;
-        _prefs.setBool('like_notifications_enabled', false);
+        matchPushNotifications = false;
+        _prefs.setBool('match_notifications_enabled', false);
       }
     }
     else {
       _osPermission = await checkNotificationPermission();
       if(_osPermission) {
-        likePushNotifications = _prefs.getBool('like_notifications_enabled') ?? false;
+        matchPushNotifications = _prefs.getBool('match_notifications_enabled') ?? false;
       }
       else {
-        likePushNotifications = false;
+        matchPushNotifications = false;
       }
     }
     //Firebase code to give permission for push notifications
@@ -155,14 +155,14 @@ class SettingsProvider extends ChangeNotifier {
       FirebaseMessaging messaging = FirebaseMessaging.instance;
       NotificationSettings settings = await messaging.getNotificationSettings();
 
-      if(settings.authorizationStatus == AuthorizationStatus.authorized && likePushNotifications) {
-        _likeNotificationsEnabled = true;
+      if(settings.authorizationStatus == AuthorizationStatus.authorized && matchPushNotifications) {
+        _matchNotificationsEnabled = true;
       }
       else {
-        _likeNotificationsEnabled = false;
+        _matchNotificationsEnabled = false;
       }
     } catch (e) {
-      _likeNotificationsEnabled = false;
+      _matchNotificationsEnabled = false;
     }
 
     notifyListeners();
@@ -197,32 +197,35 @@ class SettingsProvider extends ChangeNotifier {
     }
   }
 
-  //Toggle likes notifications
-  Future<void> toggleLikeNotifications(bool value) async {
+  //Turn the match pushes on or off - 'somebody is waiting on your answer'
+  //and 'they said yes back'. It used to be a LIKE toggle that gated the
+  //match pushes as well, so silencing the useless pings silenced the one
+  //push that matters. There are no like pushes any more.
+  Future<void> toggleMatchNotifications(bool value) async {
     // If turning ON, we must check OS permission first
     if (value == true) {
       bool hasPermission = await _ensureOsPermission();
       if (!hasPermission) {
         // If OS says no, we force the switch back to off
-        _likeNotificationsEnabled = false;
+        _matchNotificationsEnabled = false;
         notifyListeners();
         return; 
       }
     }
 
     // Update the specific variable
-    _likeNotificationsEnabled = value;
+    _matchNotificationsEnabled = value;
     notifyListeners();
     final uid = FirebaseAuth.instance.currentUser!.uid;
     await FirebaseFirestore.instance.collection('users').doc(uid).update({
-      'like_notifications': _likeNotificationsEnabled,
+      'match_notifications': _matchNotificationsEnabled,
     });
     
     // Save to local prefs (optional, good for startup)
-    await _prefs.setBool('like_notifications_enabled', value);
+    await _prefs.setBool('match_notifications_enabled', value);
 
     // Sync with Database
-    await ApiService.updateUsersSettings(uid: FirebaseAuth.instance.currentUser!.uid, isLikeNotificationsOn: _likeNotificationsEnabled);
+    await ApiService.updateUsersSettings(uid: FirebaseAuth.instance.currentUser!.uid, isMatchNotificationsOn: _matchNotificationsEnabled);
   }
 
   //Add or remove a gender from the preference

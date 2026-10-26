@@ -294,7 +294,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get verifyYourEmail => 'Verify Your Email';
 
   @override
-  String get likeNotifications => 'Like and Match Notifications';
+  String get matchNotifications => 'Match Notifications';
 
   @override
   String get emptyEmail => 'Please enter an email';

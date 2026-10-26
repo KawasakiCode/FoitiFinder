@@ -300,7 +300,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get verifyYourEmail => 'Επαλήθευσε το Email σου';
 
   @override
-  String get likeNotifications => 'Ειδοποιήσεις για Like & Match';
+  String get matchNotifications => 'Ειδοποιήσεις για Match';
 
   @override
   String get emptyEmail => 'Παρακαλώ εισαγάγετε ένα email';

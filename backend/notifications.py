@@ -1,16 +1,31 @@
-#File that handles sending notifications about likes and matches
+#Push notifications, and the two moments worth sending one.
+#
+#A MATCH IS THE ONLY THING ANNOUNCED. There used to be a 'like' push, which
+#made sense while a likes page existed to open: the notification led
+#somewhere. That page is gone and likers go back into the deck unannounced,
+#so "someone liked you" became a ping with nothing on the other end of the
+#tap - you cannot find them, you can only swipe and hope. It was also the
+#most frequent push in the app by a wide margin, and on Android the
+#notification permission is one switch for everything: unactionable pings are
+#what make somebody turn the lot off, taking the match push down with them.
+#
+#NOR IS A DECLINE, AN EXPIRY, A REMOVAL OR A REPORT. None of them give the
+#recipient anything to do, and the matches page already says what happened -
+#an expired match is shown saying so for two days, and a declined one simply
+#is not there. A notification about a non-event is worse than silence.
 
 from firebase_admin import messaging, firestore
 
 def send_smart_notification(target_uid: str, notification_type: str, db_firestore):
     """
-    Sends a notification ONLY if the user has enabled that specific category.
-    
+    Sends a notification ONLY if the user has it switched on.
+
     Args:
         target_uid: The Firebase UID of the recipient.
-        notification_type: 'like', 'match' (someone is waiting on your
-            answer), 'match_revealed' (both of you said yes), 'match_declined'
-            (the person you were waiting on said no), or 'message'.
+        notification_type: 'match' (somebody matched with you, said yes, and
+            is waiting on your answer) or 'match_revealed' (they said yes
+            back, so the handles are out). Anything else is ignored rather
+            than sent under a generic title.
         db_firestore: The firestore client instance.
     """
 
@@ -29,18 +44,25 @@ def send_smart_notification(target_uid: str, notification_type: str, db_firestor
         return
     
 
-    like_notifications = user_data.get('like_notifications', True)
+    #ONE TOGGLE, AND IT COVERS BOTH. It used to be a like toggle that happened
+    #to gate matches too, which meant turning off the useless pings also
+    #turned off "somebody is waiting on your answer" - the one push that
+    #carries the whole point of the app. The pings are gone, so the switch now
+    #means what its name says.
+    #
+    #IT CAN BE TURNED OFF, deliberately. The OS switch can do it anyway, so
+    #refusing to here would not keep anybody reachable; it would only make the
+    #app the thing you have to silence wholesale rather than in part.
+    #
+    #DEFAULTS TO ON for a document that has no such field yet - a user who has
+    #never touched the setting is a user who has not asked for silence.
+    match_notifications = user_data.get('match_notifications', True)
 
-    #Likes and matches are gated by the like toggle.
-    if notification_type in ('like', 'match'):
-        should_send = like_notifications
-    #THE OUTCOME OF A MATCH IS NOT PROMOTIONAL, so it ignores the toggle. The
-    #user asked for this exchange by confirming the match; the answer to it -
-    #a handle, or the fact that it is off - is the thing they are waiting for,
-    #and there is no in-app chat to find it in later. The toggle exists to
-    #stop "someone liked you" pings, which nobody asked for.
-    elif notification_type in ('match_revealed', 'match_declined'):
-        should_send = True
+    if notification_type in ('match', 'match_revealed'):
+        should_send = match_notifications
+    #ANYTHING ELSE IS DROPPED rather than sent under a generic title. A kind
+    #this function does not know about is a bug at the call site, and
+    #"New activity" is how that bug reaches a user's phone instead of a log.
     else:
         should_send = False
 
@@ -49,10 +71,6 @@ def send_smart_notification(target_uid: str, notification_type: str, db_firestor
         return
 
     notification_content = {
-        'like': {
-            'title': 'New Like!',
-            'body': 'Someone just liked your profile. Open the app to see who!'
-        },
         #Their turn: somebody matched with them and has already said yes.
         #Deliberately vague about who - the match page is where that is shown.
         'match': {
@@ -62,10 +80,6 @@ def send_smart_notification(target_uid: str, notification_type: str, db_firestor
         'match_revealed': {
             'title': "You're connected",
             'body': 'You both said yes. Open the app to see their Instagram.'
-        },
-        'match_declined': {
-            'title': 'Match closed',
-            'body': "This one didn't go through. Plenty more out there."
         },
     }
 

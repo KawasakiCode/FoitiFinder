@@ -219,14 +219,14 @@ class ApiService {
   static Future<void> updateUsersSettings({
     required String uid,
     bool? isDarkMode,
-    bool? isLikeNotificationsOn,
+    bool? isMatchNotificationsOn,
     String? language,
   }) async {
     final url =  Uri.parse('$baseUrl/users/settings');
 
     final Map<String, dynamic> data = {};
       if (isDarkMode  != null) data['is_dark_mode'] = isDarkMode;
-      if (isLikeNotificationsOn != null) data['is_like_notifications_on'] = isLikeNotificationsOn;
+      if (isMatchNotificationsOn != null) data['is_match_notifications_on'] = isMatchNotificationsOn;
       if (language != null) data['language'] = language;
 
     if(data.isEmpty)return;

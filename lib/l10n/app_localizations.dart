@@ -632,11 +632,11 @@ abstract class AppLocalizations {
   /// **'Verify Your Email'**
   String get verifyYourEmail;
 
-  /// No description provided for @likeNotifications.
+  /// No description provided for @matchNotifications.
   ///
   /// In en, this message translates to:
-  /// **'Like and Match Notifications'**
-  String get likeNotifications;
+  /// **'Match Notifications'**
+  String get matchNotifications;
 
   /// No description provided for @emptyEmail.
   ///

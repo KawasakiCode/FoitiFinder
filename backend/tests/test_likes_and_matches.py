@@ -253,7 +253,7 @@ class TestTheFullStory:
         assert rows[0]["revealed"] is False
         assert (a.firebase_uid, "match") in pushes
 
-    def test_a_rejects_later_and_b_is_told(
+    def test_a_rejects_later_and_b_is_told_nothing(
         self, as_user, make_user, swipe, pushes, db
     ):
         from database import models
@@ -264,11 +264,15 @@ class TestTheFullStory:
         ).json()["match_id"]
         as_user(b).post(f"/matches/{match_id}/confirm")
 
+        #B's confirm legitimately pushed A, so only what the DECLINE sends is
+        #what this test is about
+        pushes.clear()
         as_user(a).post(f"/matches/{match_id}/decline")
 
-        #B said yes and was waiting, so B is owed an answer - by push, since
-        #there is nothing left to store it against
-        assert (b.firebase_uid, "match_declined") in pushes
+        #NOTHING IS PUSHED. B said yes and was waiting, and still hears
+        #nothing - a notification saying only "they said no" gives B nothing
+        #to do with it. The match leaving the list is the answer.
+        assert pushes == []
         assert db.query(models.Matches).count() == 0
         #and it simply leaves B's list, which is what actually happened
         assert as_user(b).get("/matches").json() == []

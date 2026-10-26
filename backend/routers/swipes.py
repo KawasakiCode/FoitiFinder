@@ -171,33 +171,19 @@ def record_swipe(swipe: SwipeRequest, uid: str = Depends(verified_email_uid), db
                 #made; the client still needs its id to open the match page
                 match_id = existing_match.id
 
-        #The following code is used to grab the target user's fcm token to be able to send 
-        #a notification to them
-        #Remember firebase uid is NOT the same as the FCM token
-        target_user = db.query(models.User).filter(models.User.id == swipe.target_id).first()
-        if not target_user:
-            raise HTTPException(status_code=404, detail="Target User not found")
-
-        #A MATCH IS NOT ANNOUNCED HERE ANY MORE. The person being liked only
-        #hears about it once the one who completed the match has confirmed on
-        #the match page (POST /matches/{id}/confirm) - until then there is
-        #nothing to tell them about, and telling them early would mean
-        #announcing matches that get declined seconds later.
+        #NOTHING IS PUSHED FROM HERE, for either outcome.
         #
-        #A like is still announced, and it is deliberately the same message
-        #whether or not it completed a match: "someone liked you" leaks
-        #nothing, while "it's a match" would say who.
+        #A MATCH IS NOT ANNOUNCED YET. The person being liked only hears about
+        #it once the one who completed the match has confirmed on the match
+        #page (POST /matches/{id}/confirm) - until then get_matches does not
+        #even show it to them, so there is nothing to tell them about. Backing
+        #out of that page leaves the match on hold, and on hold means silent:
+        #they are told when somebody decides, not when somebody matches.
         #
-        #NOTHING HERE MAY FAIL THE SWIPE. The swipe is already committed, and
-        #this used to raise 404 when the target had no FCM token - so the
-        #caller was told the swipe failed, and never learned it was a match,
-        #for a reason that has nothing to do with the swipe.
-        if not is_match:
-            try:
-                send_smart_notification(target_user.firebase_uid, 'like', firestore_db)
-            except Exception as exc:
-                logger.warning("like notification failed: %s: %s",
-                               type(exc).__name__, exc)
+        #AND A LIKE IS NOT ANNOUNCED AT ALL ANY MORE. It used to be, back when
+        #a likes page existed for the notification to open. Without one,
+        #"someone liked you" points at a deck where they cannot be found - see
+        #notifications.py for why that push was worse than nothing.
 
     #THE SWIPER USED TO GET A NOTIFICATION about their own match, because the
     #match page was the ONLY entrance to it: a swipe delivered late by the

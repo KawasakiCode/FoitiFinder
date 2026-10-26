@@ -287,7 +287,7 @@ def decline_match(match_id: int, uid: str = Depends(verified_email_uid), db: Ses
     match = _match_for_participant(match_id, me, db)
     i_am_a = match.user_a_id == me.id
     other_id = match.user_b_id if i_am_a else match.user_a_id
-    #only somebody who already said yes is owed an answer - see below
+    #read only to decide whether this match is already finished, below
     other_confirmed = match.a_confirmed_at if not i_am_a else match.b_confirmed_at
     mine_confirmed = match.a_confirmed_at if i_am_a else match.b_confirmed_at
 
@@ -314,22 +314,20 @@ def decline_match(match_id: int, uid: str = Depends(verified_email_uid), db: Ses
     db.delete(match)
     db.commit()
 
-    #WHOEVER WAS WAITING GETS TOLD, and nobody else. Declining as the person
-    #who completed the match tells the other side nothing at all: they were
-    #never informed a match existed, so "someone matched with you and then
-    #changed their mind" would be news of a rejection they could not have
-    #seen coming. Declining when the other has already said yes is different -
-    #they are waiting on an answer and deserve one.
-    if other_confirmed is not None:
-        other = db.query(models.User).filter(models.User.id == other_id).first()
-        if other:
-            #PUSH ONLY, AND NOTHING LEFT BEHIND. The match row is gone, so the
-            #entry simply disappears from their matches page - which is the
-            #honest representation of what happened. A stored notification
-            #would be the one record of a match that no longer exists, and
-            #tapping it could only ever lead nowhere.
-            push(other, 'match_declined')
-
+    #NOBODY IS TOLD, not even somebody who was waiting on the answer.
+    #
+    #THERE USED TO BE A PUSH HERE, and the argument for it was that a person
+    #who has shared their handle and is waiting deserves to hear. The argument
+    #against is what it actually says: a notification whose only content is
+    #that somebody said no, with nothing to do about it. The match leaves
+    #their list, which is the honest representation and the same way an
+    #expired one goes - that one is shown saying so for a couple of days and
+    #sends nothing either.
+    #
+    #Declining as the person who COMPLETED the match was always silent, for a
+    #stronger reason: they were never shown the match, so "someone matched
+    #with you and then changed their mind" would be news of a rejection they
+    #could not have seen coming.
     return {"declined": True}
 
 

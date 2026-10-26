@@ -143,7 +143,7 @@ class Settings(BaseModel):
     id: int
     user_id: int
     is_dark_mode: bool
-    is_like_notifications_on: bool
+    is_match_notifications_on: bool
     language: str
 
     class Config:
@@ -152,7 +152,7 @@ class Settings(BaseModel):
 #schema to change one or more settings in a single patch endpoint
 class SettingsUpdate(BaseModel):
     is_dark_mode: bool | None = None
-    is_like_notifications_on: bool | None = None
+    is_match_notifications_on: bool | None = None
     language: str | None = None
 
 #schema for swipe records
