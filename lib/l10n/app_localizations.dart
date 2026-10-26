@@ -3614,6 +3614,24 @@ abstract class AppLocalizations {
   /// **'Your turn'**
   String get matchYourTurn;
 
+  /// No description provided for @matchesSectionWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting on them'**
+  String get matchesSectionWaiting;
+
+  /// No description provided for @matchesSectionConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected'**
+  String get matchesSectionConnected;
+
+  /// No description provided for @matchTheySaidYes.
+  ///
+  /// In en, this message translates to:
+  /// **'They said yes'**
+  String get matchTheySaidYes;
+
   /// No description provided for @superLikedYouTitle.
   ///
   /// In en, this message translates to:

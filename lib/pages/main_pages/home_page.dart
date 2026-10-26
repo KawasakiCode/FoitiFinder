@@ -10,11 +10,13 @@ import 'package:foitifinder/models/public_profile.dart';
 import 'package:foitifinder/models/match_models.dart';
 import 'package:foitifinder/pages/main_pages/match_page.dart';
 import 'package:foitifinder/pages/main_pages/profile_detail_page.dart';
+import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/services/swipe_queue.dart';
 import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/main_app_bar.dart';
 import 'package:foitifinder/widgets/photo_card.dart';
+import 'package:provider/provider.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({
@@ -58,6 +60,19 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   //means the pool really is exhausted. Reset as soon as anyone new arrives.
   int _fetchesWithNothingNew = 0;
   static const int _kGiveUpAfterEmptyFetches = 3;
+  //WHICH DECK A REPLY BELONGS TO. Changing a filter throws the deck away and
+  //asks again, but a request already in flight answers with people chosen
+  //under the OLD criteria - and appending those to the cleared deck would put
+  //19-year-olds back in front of somebody who just asked for 25-30. A reply
+  //whose generation no longer matches is dropped on arrival.
+  int _deckGeneration = 0;
+  //The filters as they were when this deck was built. The feed applies
+  //preferred_gender and the age range as HARD filters, so changing either one
+  //means the cards on screen are answers to a question nobody is asking any
+  //more. Height and the rest are stored but not yet used by the query, so
+  //they are deliberately not in here - rebuilding the deck for them would
+  //throw away cards for nothing.
+  String? _filterSignature;
   //SUPER LIKES ARE SCARCE, AND THE DECK HAS TO KNOW BEFORE THE GESTURE. A
   //card animates away first and registers after, so a refusal from the server
   //lands when the card is already gone. Starts at zero rather than at two:
@@ -71,12 +86,21 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   //guards against a second tap pushing the profile page twice
   bool _openingProfile = false;
 
+  //SUBSCRIBED TO DIRECTLY rather than watched in build, because a filter
+  //change is an EVENT here, not a different way to draw the same deck - it
+  //has to discard cards and re-ask the server, which is not something build
+  //is allowed to do. read() in initState is the supported way to reach a
+  //provider without creating a dependency.
+  late final SettingsProvider _settings = context.read<SettingsProvider>();
+
   //card creation
   @override
   void initState() {
     super.initState();
 
     // Initialize sample data
+    _filterSignature = _signatureOf(_settings);
+    _settings.addListener(_onSettingsChanged);
     _fetchMoreCards();
     _loadSuperLikesLeft();
     currentIndex = 0;
@@ -112,8 +136,55 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   //dispose function
   @override
   void dispose() {
+    _settings.removeListener(_onSettingsChanged);
     _animationController.dispose();
     super.dispose();
+  }
+
+  //The two filters the feed query actually applies, as one comparable string.
+  //Sorted, because a Set has no order and 'Men,Women' must not read as a
+  //change from 'Women,Men'.
+  String _signatureOf(SettingsProvider settings) {
+    final genders = settings.preferredGender.toList()..sort();
+    return '${genders.join(",")}'
+        '|${settings.ageRange.start.round()}'
+        '|${settings.ageRange.end.round()}';
+  }
+
+  //SettingsProvider notifies for everything it holds - theme, locale, push
+  //toggles - so this fires far more often than the deck cares about. The
+  //signature is what makes it cheap: anything that is not a feed filter
+  //compares equal and stops here.
+  void _onSettingsChanged() {
+    final signature = _signatureOf(_settings);
+    if (signature == _filterSignature) return;
+    _filterSignature = signature;
+    _resetDeck();
+  }
+
+  //START THE DECK OVER, because the people in it no longer answer the
+  //question that was asked.
+  //
+  //_hasNoMoreProfiles IS THE WHOLE REASON THIS EXISTS. It was a one-way
+  //latch: a feed that came back empty set it for the lifetime of this State,
+  //and nothing ever cleared it. Open the app with an 18-19 range, get an
+  //empty deck, widen it to 20-28, and the latch was already closed - so the
+  //only way back was to kill the app. Worse, with an empty deck there is no
+  //card left to swipe, and a swipe is what used to trigger the only refetch.
+  void _resetDeck() {
+    //a reply from the old deck is now meaningless, and _fetchMoreCards below
+    //cannot start while the flag it sets is still raised
+    _deckGeneration++;
+    _isFetching = false;
+
+    setState(() {
+      cards = [];
+      currentIndex = 0;
+      _hasNoMoreProfiles = false;
+      _fetchesWithNothingNew = 0;
+      _swipeNotifier.value = Offset.zero;
+    });
+    _fetchMoreCards();
   }
 
   //gesture detector functions
@@ -394,9 +465,18 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     if (_isFetching || _hasNoMoreProfiles) return;
     _isFetching = true;
 
+    //which deck this reply will belong to; see _deckGeneration
+    final generation = _deckGeneration;
+
     try {
       String uid = FirebaseAuth.instance.currentUser!.uid;
       List<CardData> users = await ApiService.getMultipleUsers(uid);
+
+      //THE FILTERS CHANGED WHILE THIS WAS IN THE AIR. These people were
+      //chosen under the old ones, and _resetDeck has already started a fetch
+      //of its own - so this reply is dropped, and _isFetching is left alone
+      //because it now belongs to that newer fetch.
+      if (generation != _deckGeneration) return;
 
       //ANYONE WITH AN UNDELIVERED SWIPE IS DROPPED HERE. The server has not
       //heard about those yet, so it keeps offering them - and a profile you
@@ -448,7 +528,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         });
       }
     } catch (e) {
-      setState(() => _isFetching = false);
+      //NO setState HERE. _isFetching is not read by build, so rebuilding for
+      //it achieves nothing - and this used to call setState with no mounted
+      //check, which throws if the request fails after the page is disposed.
+      //The generation check is the same one as above: a failed fetch from a
+      //discarded deck must not lower the flag a live one has raised.
+      if (generation != _deckGeneration) return;
     }
     _isFetching = false;
   }
@@ -674,21 +759,34 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   //When cards run out show this function
+  //
+  //WITH A WAY OUT OF IT. This screen is shown behind a latch that nothing
+  //else clears, so without a button the only recovery is killing the app -
+  //and the two reasons to be here are "you have seen everyone" and "somebody
+  //joined a minute after you ran out", which look identical from the sofa.
   Widget _buildNoMoreCards() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.favorite_border, size: 100, color: Colors.grey),
-          SizedBox(height: 20),
+          const Icon(Icons.favorite_border, size: 100, color: Colors.grey),
+          const SizedBox(height: 20),
           Text(
             text.noMoreProfiles,
-            style: TextStyle(fontSize: 24, color: Colors.grey),
+            style: const TextStyle(fontSize: 24, color: Colors.grey),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Text(
             text.checkLater,
-            style: TextStyle(fontSize: 16, color: Colors.grey),
+            style: const TextStyle(fontSize: 16, color: Colors.grey),
+          ),
+          const SizedBox(height: 24),
+          //_resetDeck, not _fetchMoreCards: the latch has to come down first,
+          //or this button would call a function that returns immediately.
+          TextButton.icon(
+            onPressed: _resetDeck,
+            icon: const Icon(Icons.refresh),
+            label: Text(text.retry),
           ),
         ],
       ),

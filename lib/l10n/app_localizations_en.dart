@@ -1837,6 +1837,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchYourTurn => 'Your turn';
 
   @override
+  String get matchesSectionWaiting => 'Waiting on them';
+
+  @override
+  String get matchesSectionConnected => 'Connected';
+
+  @override
+  String get matchTheySaidYes => 'They said yes';
+
+  @override
   String superLikedYouTitle(String name) {
     return '$name super liked you';
   }

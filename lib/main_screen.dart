@@ -28,6 +28,11 @@ class _MainScreenState extends State<MainScreen> {
   final GlobalKey<MatchesPageState> _matchesPageKey =
       GlobalKey<MatchesPageState>();
 
+  //position of MatchesPage in the PageView built below. A named constant
+  //because _onPageChanged compares against it, and a bare 1 there is the kind
+  //of thing that quietly starts refreshing the wrong page when a tab is added.
+  static const int _kMatchesTab = 1;
+
   //drives the swipeable PageView; kept in sync with the bottom nav bar
   final PageController _pageController = PageController();
 
@@ -176,6 +181,22 @@ class _MainScreenState extends State<MainScreen> {
   void _onPageChanged(int index) {
     if (_selectedIndex == index) return;
     setState(() => _selectedIndex = index);
+
+    //OPENING THE TAB IS WHAT REFRESHES IT, and the FCM hook in initState is
+    //not enough on its own: the push for a new match goes to the OTHER
+    //person. Whoever completed the match by swiping gets nothing - which is
+    //why a match made in the deck used to sit invisible here until the list
+    //was pulled down by hand.
+    //
+    //It also covers the paths no push exists for at all: a swipe the retry
+    //queue delivered long after the fact, and a match the other side
+    //withdrew while this page was built but not looked at.
+    //
+    //The page keeps its State across tabs (see _KeepAlivePage), so initState
+    //runs once per login and cannot be the refresh.
+    if (index == _kMatchesTab) {
+      _matchesPageKey.currentState?.loadMatches();
+    }
   }
 
   Widget _buildNavItem(int index, String iconPath, String label) {

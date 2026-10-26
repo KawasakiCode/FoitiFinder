@@ -1845,6 +1845,15 @@ class AppLocalizationsEl extends AppLocalizations {
   String get matchYourTurn => 'Σειρά σου';
 
   @override
+  String get matchesSectionWaiting => 'Περιμένεις αυτούς';
+
+  @override
+  String get matchesSectionConnected => 'Συνδεδεμένοι';
+
+  @override
+  String get matchTheySaidYes => 'Είπε ναι';
+
+  @override
   String superLikedYouTitle(String name) {
     return 'Ο/Η $name σου έκανε super like';
   }

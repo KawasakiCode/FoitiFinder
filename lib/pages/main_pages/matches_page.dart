@@ -66,7 +66,17 @@ class MatchesPageState extends State<MatchesPage> {
     loadMatches();
   }
 
-  Future<void> loadMatches() async {
+  //COALESCED, NOT GUARDED. Opening this tab reloads it, so swiping across the
+  //three tabs and back fires this several times in a second - and the callers
+  //that matter are awaited: RefreshIndicator holds its spinner until the
+  //future completes, so returning early would end the animation on a load
+  //that is still running. Everybody gets the SAME future instead.
+  Future<void>? _inFlight;
+
+  Future<void> loadMatches() =>
+      _inFlight ??= _load().whenComplete(() => _inFlight = null);
+
+  Future<void> _load() async {
     try {
       final matches = await ApiService.getMatches(
         uid: FirebaseAuth.instance.currentUser!.uid,
@@ -158,26 +168,86 @@ class MatchesPageState extends State<MatchesPage> {
       );
     }
 
-    //the grid IS the page's scroll view now: it was wrapped in a
-    //SingleChildScrollView with shrinkWrap, which builds every tile at once
-    return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(_kGridGap, _kGridGap, _kGridGap, 24),
-      itemCount: _matches.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: _kGridColumns,
-        crossAxisSpacing: _kGridGap,
-        mainAxisSpacing: _kGridGap,
-        childAspectRatio: _kTileAspect,
-      ),
-      itemBuilder: (_, index) {
-        final match = _matches[index];
-        return _MatchTile(
-          match: match,
-          heroTag: _photoHeroTag(match),
-          onTap: () => _openProfile(match),
-        );
-      },
+    //THREE SECTIONS, IN THE ORDER THE EXCHANGE HAPPENS. One flat grid of
+    //faces said nothing about what any of them needed: a match waiting on you
+    //and one you have already opened on Instagram looked identical, and the
+    //only difference was a small badge on a corner. The step you are at is
+    //the thing this page is actually about, so it is the thing it sorts by.
+    //
+    //THE GROUPING ITSELF IS IN MatchSections, not here: it is a pure function
+    //of the list and this page cannot be pumped in a test, so keeping it in
+    //the model is the difference between the partition being checked and
+    //being hoped for. 'Your turn' arrives already ordered.
+    final sections = MatchSections.of(_matches);
+
+    return CustomScrollView(
+      slivers: [
+        ..._section(text.matchYourTurn, sections.yourTurn),
+        ..._section(text.matchesSectionWaiting, sections.waitingOnThem),
+        ..._section(text.matchesSectionConnected, sections.connected),
+        const SliverToBoxAdapter(child: SizedBox(height: 24)),
+      ],
     );
+  }
+
+  //A heading and its grid, or nothing at all for an empty section - an
+  //explained empty state per section would be three paragraphs of furniture
+  //on a page whose job is to show faces.
+  List<Widget> _section(String title, List<MatchModel> matches) {
+    if (matches.isEmpty) return const [];
+    return [
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(_kGridGap + 4, 20, _kGridGap, 10),
+          child: Row(
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(width: 8),
+              //THE COUNT, because the sections push each other down the page
+              //and a heading with nothing visible under it reads as a bug
+              Text(
+                '${matches.length}',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: _kGridGap),
+        //SliverGrid, not GridView: a GridView inside a scroll view needs
+        //shrinkWrap, which builds every tile in every section up front
+        sliver: SliverGrid(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: _kGridColumns,
+            crossAxisSpacing: _kGridGap,
+            mainAxisSpacing: _kGridGap,
+            childAspectRatio: _kTileAspect,
+          ),
+          delegate: SliverChildBuilderDelegate(
+            childCount: matches.length,
+            (_, index) {
+              final match = matches[index];
+              return _MatchTile(
+                match: match,
+                heroTag: _photoHeroTag(match),
+                onTap: () => _openProfile(match),
+              );
+            },
+          ),
+        ),
+      ),
+    ];
   }
 }
 
@@ -253,16 +323,20 @@ class _MatchTile extends StatelessWidget {
                 decoration: BoxDecoration(gradient: kPhotoTopScrim),
               ),
               label,
-              //WHOSE TURN IT IS, on the tile rather than only inside. A grid
-              //where every face looks the same gives no reason to open any
-              //particular one, and the matches that need an answer are the
-              //whole point of the page.
+              //THEY HAVE ALREADY SAID YES, so this one is somebody waiting on
+              //an answer rather than a match they do not know they have. It
+              //is the only thing the section heading above cannot say: both
+              //kinds sit under 'Your turn', because both need the same press.
+              //
+              //THIS USED TO READ 'Your turn' on every untouched tile, which
+              //the heading now says once for the whole group instead of
+              //repeating on every face under it.
               //
               //Outside the Hero deliberately: it belongs to this list, not to
               //the profile the photo flies to, and carrying it along would
               //leave it hanging over a page that says the same thing properly
               //at the bottom.
-              if (match.waitingOnMe)
+              if (match.theyAreWaitingOnMe)
                 Positioned(
                   top: _kTileLabelInset,
                   left: _kTileLabelInset,
@@ -276,7 +350,7 @@ class _MatchTile extends StatelessWidget {
                       borderRadius: BorderRadius.circular(AppRadius.lg),
                     ),
                     child: Text(
-                      AppLocalizations.of(context)!.matchYourTurn,
+                      AppLocalizations.of(context)!.matchTheySaidYes,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 12,

@@ -696,6 +696,9 @@
   "notifMatchOwnBody": "Tap to finish sharing your Instagram.",
   "noMatches": "No matches yet. Keep swiping — when someone likes you back they will show up here.",
   "matchYourTurn": "Your turn",
+  "matchesSectionWaiting": "Waiting on them",
+  "matchesSectionConnected": "Connected",
+  "matchTheySaidYes": "They said yes",
   "superLikedYouTitle": "{name} super liked you",
   "@superLikedYouTitle": {
     "placeholders": { "name": { "type": "String" } }

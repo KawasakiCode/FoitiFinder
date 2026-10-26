@@ -115,8 +115,13 @@ class SwipeQueue {
   /// Send a swipe, retrying what is worth retrying and parking the rest.
   ///
   /// Returns what the server said, or [SwipeResult.none] when the swipe has
-  /// been queued - the caller cannot know yet whether it was a match, which is
-  /// why record_swipe also leaves the swiper a notification.
+  /// been queued - the caller cannot know yet whether it was a match, so a
+  /// match made by a queued swipe is never celebrated. It is found later, on
+  /// the matches page, which reloads whenever that tab is opened.
+  ///
+  /// record_swipe USED TO leave the swiper a notification for exactly this
+  /// case; that row is gone along with the rest of the in-app match
+  /// notifications, and the matches page replaced it.
   Future<SwipeResult> send({
     required String uid,
     required int targetId,

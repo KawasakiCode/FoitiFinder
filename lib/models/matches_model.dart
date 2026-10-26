@@ -37,6 +37,12 @@ class MatchModel {
   bool get waitingOnMe => !iConfirmed;
   bool get waitingOnThem => iConfirmed && !revealed;
 
+  //THEY HAVE COMMITTED AND YOU HAVE NOT, which is the one case where somebody
+  //is actually sitting there waiting on you. The other half of waitingOnMe is
+  //a match YOU completed: the server shows them nothing until you answer, so
+  //they do not know it exists and nobody is waiting on anything.
+  bool get theyAreWaitingOnMe => waitingOnMe && theyConfirmed;
+
   factory MatchModel.fromJson(Map<String, dynamic> json) {
     return MatchModel(
       matchId: json['match_id'],
@@ -51,4 +57,60 @@ class MatchModel {
       revealed: json['revealed'] ?? false,
     );
   }
+}
+
+//HOW THE MATCHES PAGE IS GROUPED.
+//
+//Here rather than in the page because the page cannot be pumped in a test -
+//it reaches for FirebaseAuth and ApiService the moment it is built - while
+//this is a pure function of a list and is checked in matches_sections_test.
+//
+//THE PARTITION MUST BE TOTAL. Three booleans arrive from the server and a
+//grouped list has one failure a flat list cannot have: a combination that
+//matches no section, which drops a real match off the page silently. So the
+//tests are ordered, the last branch takes everything left, and `total` exists
+//to be compared against the input length.
+class MatchSections {
+  //you have not answered. Ordered so the ones where they already said yes
+  //come first: same button, but somebody is waiting behind one of them.
+  final List<MatchModel> yourTurn;
+  //you have answered, they have not. Nothing to press.
+  final List<MatchModel> waitingOnThem;
+  //both of you, and both handles are out.
+  final List<MatchModel> connected;
+
+  const MatchSections({
+    required this.yourTurn,
+    required this.waitingOnThem,
+    required this.connected,
+  });
+
+  factory MatchSections.of(List<MatchModel> matches) {
+    final mine = <MatchModel>[];
+    final theirs = <MatchModel>[];
+    final open = <MatchModel>[];
+
+    for (final match in matches) {
+      //`revealed` FIRST: it is the server's own verdict, including the
+      //handles, so it outranks anything the two booleans under it imply.
+      if (match.revealed) {
+        open.add(match);
+      } else if (match.waitingOnMe) {
+        mine.add(match);
+      } else {
+        theirs.add(match);
+      }
+    }
+
+    return MatchSections(
+      yourTurn: [
+        ...mine.where((match) => match.theyConfirmed),
+        ...mine.where((match) => !match.theyConfirmed),
+      ],
+      waitingOnThem: theirs,
+      connected: open,
+    );
+  }
+
+  int get total => yourTurn.length + waitingOnThem.length + connected.length;
 }
