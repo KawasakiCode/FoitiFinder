@@ -543,6 +543,21 @@ class ApiService {
     }
   }
 
+  //Take a finished match off your own list, and only yours.
+  //
+  //THE OTHER PERSON KEEPS THEIRS and is told nothing - see the endpoint. 409
+  //means the match is not finished, which is decline's job instead; the UI
+  //only offers this in the revealed section, so a 409 here is a stale page.
+  static Future<void> removeMatch(int matchId) async {
+    final response = await http.delete(
+      Uri.parse("$baseUrl/matches/$matchId"),
+      headers: await _authHeaders(),
+    ).timeout(kRequestTimeout);
+    if (response.statusCode != 200) {
+      throw Exception("Failed to remove match ${response.body}");
+    }
+  }
+
   //Get a single user by id
   //The full profile of another user, for the page behind a swipe card.
   //Everything a stranger may see and nothing else - the endpoint decides that,

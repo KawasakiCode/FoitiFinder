@@ -40,6 +40,7 @@ import 'package:foitifinder/models/public_profile.dart';
 import 'package:foitifinder/pages/profile_pages/view_profile/profile_details_body.dart';
 import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/theme/app_colors.dart';
+import 'package:foitifinder/widgets/app_dialog.dart';
 import 'package:foitifinder/widgets/photo_card.dart';
 import 'package:foitifinder/widgets/profile_photo.dart';
 
@@ -63,6 +64,12 @@ Route<ProfileDecision> profileDetailRoute({
   bool superLikeAvailable = true,
   bool decisions = true,
   Widget? footer,
+  //ONLY SET FOR A FINISHED MATCH, which is the only state that can be
+  //removed. Passed in rather than decided here: this page shows whoever it is
+  //given and knows nothing about matches, and that is worth keeping - the
+  //alternative is a profile page that has to ask what kind of thing it is
+  //looking at before it can draw its own menu.
+  VoidCallback? onRemoveMatch,
 }) {
   return PageRouteBuilder<ProfileDecision>(
     //THIS IS THE FLIGHT'S DURATION TOO. A hero flight runs on the route's
@@ -79,6 +86,7 @@ Route<ProfileDecision> profileDetailRoute({
       superLikeAvailable: superLikeAvailable,
       decisions: decisions,
       footer: footer,
+      onRemoveMatch: onRemoveMatch,
     ),
     //no transform on the page: the Hero needs its destination to sit still.
     //The background fades so the deck does not simply vanish under it.
@@ -145,6 +153,9 @@ class ProfileDetailPage extends StatefulWidget {
   //way every other person in the app is read, instead of on a screen of its
   //own. Nothing flies into this one, so it is drawn plainly.
   final Widget? footer;
+  //Adds 'Remove match' to the menu, and is what performs it. Null everywhere
+  //else, which is how the menu knows not to offer it.
+  final VoidCallback? onRemoveMatch;
 
   const ProfileDetailPage({
     super.key,
@@ -156,6 +167,7 @@ class ProfileDetailPage extends StatefulWidget {
     this.superLikeAvailable = true,
     this.decisions = true,
     this.footer,
+    this.onRemoveMatch,
   });
 
   @override
@@ -367,6 +379,20 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            //ONLY FOR A FINISHED MATCH. decline is the way out of every other
+            //state and it tells whoever was waiting; this one tells nobody,
+            //so offering it earlier would be a silent way to abandon somebody
+            //mid-exchange. The server refuses it too (409) - this just does
+            //not put it in front of anyone.
+            if (widget.onRemoveMatch != null)
+              ListTile(
+                leading: const Icon(Icons.heart_broken_outlined),
+                title: Text(text.removeMatch),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _confirmRemoveMatch();
+                },
+              ),
             ListTile(
               leading: const Icon(Icons.flag_outlined),
               title: Text(text.reportUser),
@@ -383,6 +409,43 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
         ),
       ),
     );
+  }
+
+  //TWO TAPS, because this one cannot be undone: the match is the only route
+  //back to somebody whose handle you did not save, and there is no list of
+  //removed matches to restore it from.
+  //
+  //THE DIALOG SAYS THE TWO THINGS PEOPLE ACTUALLY WONDER - that it cannot be
+  //undone, and that the other person is not told and keeps their own copy.
+  //The second half matters more than it looks: without it, removing a match
+  //reads like doing something TO them rather than tidying your own list.
+  Future<void> _confirmRemoveMatch() async {
+    final text = AppLocalizations.of(context)!;
+    final confirmed = await showAppDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(text.removeMatchTitle),
+        content: Text(text.removeMatchBody(_profile.name)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(text.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(
+              text.removeMatchAction,
+              style: const TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    //THE CALLER OWNS THE REQUEST AND THE LIST BEHIND IT, so this page only
+    //closes itself - it has nothing left to show once the match is gone.
+    widget.onRemoveMatch?.call();
+    if (mounted) Navigator.pop(context);
   }
 }
 

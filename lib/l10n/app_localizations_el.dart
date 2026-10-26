@@ -1904,4 +1904,18 @@ class AppLocalizationsEl extends AppLocalizations {
   @override
   String get matchExpiredMine =>
       'Δεν απάντησες έγκαιρα, οπότε έληξε. Δεν μοιράστηκε τίποτα.';
+
+  @override
+  String get removeMatch => 'Αφαίρεση ματς';
+
+  @override
+  String get removeMatchTitle => 'Να αφαιρεθεί το ματς;';
+
+  @override
+  String removeMatchBody(String name) {
+    return 'Η ενέργεια δεν αναιρείται. Το $name δεν ενημερώνεται και κρατάει το ματς στη δική του λίστα — αφαιρείται μόνο από τη δική σου. Αν δεν έχεις αποθηκεύσει το Instagram του, θα το χάσεις.';
+  }
+
+  @override
+  String get removeMatchAction => 'Αφαίρεση';
 }

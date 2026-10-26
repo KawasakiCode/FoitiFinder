@@ -240,61 +240,162 @@ class TestTheBell:
         assert as_user(alice).post(f"/notifications/{row.id}/read").status_code == 200
 
 
-class TestWithdrawingFromAMatch:
-    """hidden_at: the one thing the app can still take back.
+class TestRemovingAMatchFromYourOwnList:
+    """DELETE /matches/{id}: the only exit a finished match has.
 
-    A revealed match cannot be declined - decline answers 409, because a handle
-    that has been read cannot be unread. But the row goes on handing that
-    handle back every time the other person opens their list, and THAT is the
-    app's doing rather than the other person's. Hiding ends it.
+    decline refuses once both sides have confirmed - a handle that has been
+    read cannot be unread - which left the finished state permanent for as
+    long as the account existed. These two endpoints now divide every match
+    between them: anything unanswered is declined, anything completed is
+    removed.
 
-    NOTHING WRITES THIS YET. The column and the filter are in place; the button
-    that sets it is a separate decision. These tests pin the behaviour now so
-    the endpoint has something to be correct against when it arrives.
+    ONE SIDE AT A TIME, which is the whole point and used to be the opposite.
+    Removal was a single hidden_at meaning "gone for both". Per side, because
+    a mutual removal is something the other person can NOTICE - and once
+    reporting somebody also removes the match, noticing it is how a person
+    holding your Instagram handle learns that you reported them.
     """
 
-    def hidden_match(self, db, as_user, swipe, alice, bob, by):
-        import datetime
-        from database import models
-
+    def revealed_match(self, as_user, swipe, alice, bob):
         match_id = complete_match(as_user, swipe, alice, bob)
-        match = db.query(models.Matches).filter_by(id=match_id).first()
-        match.hidden_at = datetime.datetime.now(datetime.timezone.utc)
-        match.hidden_by_user_id = by.id
-        db.commit()
+        as_user(alice).post(f"/matches/{match_id}/confirm")
+        as_user(bob).post(f"/matches/{match_id}/confirm")
         return match_id
 
-    def test_it_disappears_for_the_one_who_withdrew(
-        self, db, as_user, make_user, swipe
+    def test_it_goes_from_the_list_of_whoever_removed_it(
+        self, as_user, make_user, swipe
     ):
         alice, bob = make_user(name="Alice"), make_user(name="Bob")
-        self.hidden_match(db, as_user, swipe, alice, bob, by=bob)
+        match_id = self.revealed_match(as_user, swipe, alice, bob)
+
+        assert as_user(bob).delete(f"/matches/{match_id}").status_code == 200
         assert as_user(bob).get("/matches").json() == []
 
-    def test_it_disappears_for_the_other_one_too(
+    def test_and_stays_on_the_other_one_s(self, as_user, make_user, swipe):
+        #THE REVERSAL. This used to assert the opposite, on the grounds that a
+        #row in their list keeps handing them your Instagram - which takes
+        #nothing back, because they have already read it.
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = self.revealed_match(as_user, swipe, alice, bob)
+        as_user(bob).delete(f"/matches/{match_id}")
+
+        body = as_user(alice).get("/matches").json()
+        assert len(body) == 1
+        assert body[0]["revealed"] is True
+
+    def test_the_other_side_cannot_tell(self, as_user, make_user, swipe):
+        #NOT DETECTABLE, which is the property the whole shape exists for. A
+        #409 on confirm here would be exactly the detector - and it gives
+        #nothing away anyway, since confirm on a revealed match only re-reads
+        #a handle they already hold.
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = self.revealed_match(as_user, swipe, alice, bob)
+        as_user(bob).delete(f"/matches/{match_id}")
+
+        response = as_user(alice).post(f"/matches/{match_id}/confirm")
+        assert response.status_code == 200
+        assert response.json()["revealed"] is True
+
+    def test_nobody_is_told(self, as_user, make_user, swipe, pushes):
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = self.revealed_match(as_user, swipe, alice, bob)
+
+        pushes.clear()
+        as_user(bob).delete(f"/matches/{match_id}")
+        assert pushes == []
+
+    def test_both_can_remove_it_independently(
         self, db, as_user, make_user, swipe
     ):
-        #SEVERANCE, NOT AN ARCHIVE BOX. The whole purpose is that your handle
-        #stops being served to somebody you walked away from, so there is no
-        #state where one of you can still open it.
-        alice, bob = make_user(name="Alice"), make_user(name="Bob")
-        match_id = self.hidden_match(db, as_user, swipe, alice, bob, by=bob)
-        as_user(alice).post(f"/matches/{match_id}/confirm")
-
-        assert as_user(alice).get("/matches").json() == []
-
-    def test_the_row_survives_for_the_record(self, db, as_user, make_user, swipe):
-        #hidden, NOT deleted: who confirmed, when, and in which order is the
-        #only evidence that two people ever connected
+        #THE BUG A SHARED COLUMN HAD. With one hidden_by_user_id the second
+        #removal overwrote the first, handing the match back to whoever
+        #removed it first. Each side writing only its own column cannot.
         from database import models
 
         alice, bob = make_user(name="Alice"), make_user(name="Bob")
-        match_id = self.hidden_match(db, as_user, swipe, alice, bob, by=bob)
+        match_id = self.revealed_match(as_user, swipe, alice, bob)
+
+        as_user(bob).delete(f"/matches/{match_id}")
+        as_user(alice).delete(f"/matches/{match_id}")
+
+        assert as_user(bob).get("/matches").json() == []
+        assert as_user(alice).get("/matches").json() == []
+
+        row = db.query(models.Matches).filter_by(id=match_id).first()
+        assert row.hidden_by_a_at is not None
+        assert row.hidden_by_b_at is not None
+
+    def test_the_row_survives_for_the_record(
+        self, db, as_user, make_user, swipe
+    ):
+        #hidden, NOT deleted: who confirmed, when, and in which order is the
+        #only evidence that two people ever connected - and now who walked
+        #away, and when, for each of them separately
+        from database import models
+
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = self.revealed_match(as_user, swipe, alice, bob)
+        as_user(bob).delete(f"/matches/{match_id}")
 
         row = db.query(models.Matches).filter_by(id=match_id).first()
         assert row is not None
-        assert row.hidden_by_user_id == bob.id
-        assert row.hidden_at is not None
+        assert row.a_confirmed_at is not None
+        assert row.b_confirmed_at is not None
+        #alice completed the match, so bob is user_b
+        assert row.hidden_by_b_at is not None
+        assert row.hidden_by_a_at is None
+
+    def test_removing_twice_is_not_an_error(self, as_user, make_user, swipe):
+        #a retry after a dropped connection is not a different decision, and
+        #the row is gone from their list either way
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = self.revealed_match(as_user, swipe, alice, bob)
+
+        assert as_user(bob).delete(f"/matches/{match_id}").status_code == 200
+        assert as_user(bob).delete(f"/matches/{match_id}").status_code == 200
+
+    def test_an_unanswered_match_cannot_be_removed(
+        self, as_user, make_user, swipe
+    ):
+        #DECLINE IS THAT ONE'S EXIT, and it tells whoever was waiting. Letting
+        #this through instead would be a silent way to leave somebody waiting
+        #on an answer that never comes.
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = complete_match(as_user, swipe, alice, bob)
+
+        assert as_user(alice).delete(f"/matches/{match_id}").status_code == 409
+
+    def test_nor_one_that_is_only_half_answered(
+        self, as_user, make_user, swipe
+    ):
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = complete_match(as_user, swipe, alice, bob)
+        as_user(alice).post(f"/matches/{match_id}/confirm")
+
+        assert as_user(alice).delete(f"/matches/{match_id}").status_code == 409
+
+    def test_a_stranger_cannot_remove_somebody_else_s_match(
+        self, as_user, make_user, swipe
+    ):
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        carol = make_user(name="Carol")
+        match_id = self.revealed_match(as_user, swipe, alice, bob)
+
+        assert as_user(carol).delete(f"/matches/{match_id}").status_code == 404
+
+    def test_a_match_you_removed_cannot_be_answered_again(
+        self, as_user, make_user, swipe
+    ):
+        #YOUR OWN removal does stop you, unlike theirs: there is nothing of
+        #yours left to answer, and only a stale page could still ask.
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = self.revealed_match(as_user, swipe, alice, bob)
+        as_user(bob).delete(f"/matches/{match_id}")
+
+        assert as_user(bob).post(
+            f"/matches/{match_id}/confirm"
+        ).status_code == 409
+
 
 
 class TestReportingSomebody:
@@ -589,33 +690,12 @@ class TestAnExpiredMatchCannotBeActedOn:
         response = as_user(alice).post(f"/matches/{match_id}/decline")
         assert response.status_code == 409
 
-    def test_a_withdrawn_match_cannot_be_confirmed_either(
-        self, db, as_user, make_user, swipe
-    ):
-        """The same rule, for the other reason a match stops being served.
-
-        Withdrawing exists so somebody's handle stops being handed back to a
-        person they walked away from. The withdrawing side has already said
-        yes, so a confirm arriving afterwards would hand it over regardless -
-        which is the one thing hidden_at is there to prevent.
-        """
-        import datetime
-
-        from database import models
-
-        alice, bob = make_user(name="Alice"), make_user(name="Bob")
-        match_id = complete_match(as_user, swipe, alice, bob)
-        as_user(bob).post(f"/matches/{match_id}/confirm")
-
-        match = db.query(models.Matches).filter_by(id=match_id).first()
-        match.hidden_at = datetime.datetime.now(datetime.timezone.utc)
-        match.hidden_by_user_id = bob.id
-        db.commit()
-
-        response = as_user(alice).post(f"/matches/{match_id}/confirm")
-        assert response.status_code == 409
-        assert "instagram" not in response.text.lower()
-
+    #A MATCH THE OTHER SIDE REMOVED IS DELIBERATELY NOT REFUSED. There was a
+    #test here asserting the opposite, written when removal still meant "gone
+    #for both" - a 409 then protected a handle the withdrawing side had
+    #already said yes to. Per-side removal reverses it: refusing would tell me
+    #they walked away, and confirm on a revealed match only re-reads a handle
+    #I already hold. See TestRemovingAMatchFromYourOwnList.
 
 class TestAnUnansweredMatchBelongsToOnePerson:
     """Who can SEE an undecided match, and who can therefore act on it.

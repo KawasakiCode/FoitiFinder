@@ -54,11 +54,21 @@ def get_matches(uid: str = Depends(verified_email_uid), db: Session = Depends(ge
     #became somebody's turn, derived rather than stored.
     now = datetime.datetime.now(datetime.timezone.utc)
     matches = db.query(models.Matches).filter(
-        models.Matches.hidden_at.is_(None),
         match_expiry.not_past_grace(now),
+        #WHICH SIDE I AM ON DECIDES BOTH QUESTIONS, so they are answered
+        #together rather than as two filters that have to agree:
+        #
+        #  as user_a   mine always, unless I removed my own copy
+        #  as user_b   only once user_a has answered, and unless I removed
+        #              my own copy
+        #
+        #The other side's removal is deliberately not consulted. They cannot
+        #take a handle back and I should not be able to tell they walked away.
         or_(
-            models.Matches.user_a_id == me.id,
+            and_(models.Matches.user_a_id == me.id,
+                 models.Matches.hidden_by_a_at.is_(None)),
             and_(models.Matches.user_b_id == me.id,
+                 models.Matches.hidden_by_b_at.is_(None),
                  models.Matches.a_confirmed_at.isnot(None)),
         ),
     ).order_by(models.Matches.id.desc()).all()
@@ -170,12 +180,14 @@ def _match_for_participant(match_id: int, me: models.User, db: Session) -> model
     #so letting a confirm land afterwards would hand them a handle for a match
     #they were told was over.
     #
-    #HIDDEN: somebody withdrew. The whole point is that their handle stops
-    #being served - and confirm would have handed it over anyway, because the
-    #withdrawing side had already said yes. 409 rather than 404: it existed,
-    #and saying so tells the caller nothing it did not already know.
+    #REMOVED BY ME: my own copy is gone, so there is nothing of mine left to
+    #answer. THEIR removal is not checked, deliberately - the whole point of
+    #it being per side is that neither of us can detect the other's, and a 409
+    #here would be exactly that detector.
     now = datetime.datetime.now(datetime.timezone.utc)
-    if match.hidden_at is not None or match_expiry.is_expired(match, now):
+    removed_by_me = (match.hidden_by_a_at if match.user_a_id == me.id
+                     else match.hidden_by_b_at)
+    if removed_by_me is not None or match_expiry.is_expired(match, now):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="This match is no longer available",
@@ -319,3 +331,67 @@ def decline_match(match_id: int, uid: str = Depends(verified_email_uid), db: Ses
             push(other, 'match_declined')
 
     return {"declined": True}
+
+
+@router.delete("/matches/{match_id}")
+def remove_match(match_id: int, uid: str = Depends(verified_email_uid),
+                 db: Session = Depends(get_db)):
+    """Take a finished match off your own list, and only yours.
+
+    THE OTHER HALF OF decline, AND THEY DIVIDE EVERY MATCH BETWEEN THEM.
+    decline refuses once both sides have confirmed, because a handle that has
+    been read cannot be unread - and that left the finished state with no exit
+    at all, permanent for as long as the account exists. This covers exactly
+    that state and nothing else, so every match can be left by precisely one
+    of the two endpoints.
+
+    ONLY WHEN BOTH HAVE CONFIRMED, which is decline's refusal condition
+    inverted rather than `revealed`. A match where both said yes but somebody
+    has no handle yet is not revealed, and it still needs the way out: the
+    alternative is a row that waits forever on a handle that may never be
+    filled in. Anything still unanswered belongs to decline, which tells
+    whoever was waiting - letting this one through instead would be a silent
+    way to leave somebody waiting on an answer that never comes.
+
+    THE OTHER SIDE IS TOLD NOTHING AND LOSES NOTHING. Their copy stays. See
+    the model: removing it from them would take back nothing they do not
+    already have, while making the removal something they can notice - and
+    once reporting removes a match too, noticing it is how somebody learns
+    they were reported by a person whose Instagram handle they hold.
+
+    IDEMPOTENT. The first call writes the timestamp and later ones answer the
+    same thing, so a retry after a dropped connection is not a different
+    decision - and the row the caller is retrying for is already gone from
+    their list either way.
+    """
+    me = db.query(models.User).filter(models.User.firebase_uid == uid).first()
+    if not me:
+        raise HTTPException(status_code=404, detail="Current User not found")
+
+    #NOT _match_for_participant: that refuses a match already removed by the
+    #caller, which is right for answering one and wrong for removing it - a
+    #retried removal would answer 409 for having worked. The participation
+    #check is the part that matters here, so it is made directly.
+    match = db.query(models.Matches).filter(
+        models.Matches.id == match_id).first()
+    if not match or me.id not in (match.user_a_id, match.user_b_id):
+        raise HTTPException(status_code=404, detail="Match not found")
+
+    i_am_a = match.user_a_id == me.id
+
+    if match.a_confirmed_at is None or match.b_confirmed_at is None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Only a completed match can be removed",
+        )
+
+    now = datetime.datetime.now(datetime.timezone.utc)
+    if i_am_a and match.hidden_by_a_at is None:
+        match.hidden_by_a_at = now
+    elif not i_am_a and match.hidden_by_b_at is None:
+        match.hidden_by_b_at = now
+    db.commit()
+
+    #NO PUSH, to anybody. Nothing of theirs changed, and "somebody removed
+    #your match" is a rejection notice about a decision they cannot act on.
+    return {"removed": True}

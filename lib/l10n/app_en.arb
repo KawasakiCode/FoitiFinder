@@ -750,5 +750,16 @@
       }
     }
   },
-  "matchExpiredMine": "You did not answer in time, so it has run out. Nothing was shared."
+  "matchExpiredMine": "You did not answer in time, so it has run out. Nothing was shared.",
+  "removeMatch": "Remove match",
+  "removeMatchTitle": "Remove this match?",
+  "removeMatchBody": "This cannot be undone. {name} is not told, and keeps the match on their own list — this only removes it from yours. If you have not saved their Instagram, you will lose it.",
+  "@removeMatchBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "removeMatchAction": "Remove"
 }

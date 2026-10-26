@@ -3709,6 +3709,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You did not answer in time, so it has run out. Nothing was shared.'**
   String get matchExpiredMine;
+
+  /// No description provided for @removeMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove match'**
+  String get removeMatch;
+
+  /// No description provided for @removeMatchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this match?'**
+  String get removeMatchTitle;
+
+  /// No description provided for @removeMatchBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This cannot be undone. {name} is not told, and keeps the match on their own list — this only removes it from yours. If you have not saved their Instagram, you will lose it.'**
+  String removeMatchBody(String name);
+
+  /// No description provided for @removeMatchAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get removeMatchAction;
 }
 
 class _AppLocalizationsDelegate

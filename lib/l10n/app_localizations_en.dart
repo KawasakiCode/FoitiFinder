@@ -1896,4 +1896,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get matchExpiredMine =>
       'You did not answer in time, so it has run out. Nothing was shared.';
+
+  @override
+  String get removeMatch => 'Remove match';
+
+  @override
+  String get removeMatchTitle => 'Remove this match?';
+
+  @override
+  String removeMatchBody(String name) {
+    return 'This cannot be undone. $name is not told, and keeps the match on their own list — this only removes it from yours. If you have not saved their Instagram, you will lose it.';
+  }
+
+  @override
+  String get removeMatchAction => 'Remove';
 }

@@ -114,6 +114,11 @@ class MatchesPageState extends State<MatchesPage> {
         photoHeroTag: _photoHeroTag(match),
         decisions: false,
         footer: MatchActionBar(match: match, onChanged: loadMatches),
+        //ONLY ON A FINISHED MATCH, which is the only state with no other way
+        //out: decline covers the unanswered ones and the clock covers the
+        //expired ones. Passing null for the rest is what keeps the option out
+        //of the menu, so the page never has to know what a match is.
+        onRemoveMatch: match.revealed ? () => _removeMatch(match) : null,
         //the tile already has a face and a name, so the page opens with them
         //rather than a spinner; the rest arrives a moment later
         preview: PublicProfile(
@@ -130,6 +135,29 @@ class MatchesPageState extends State<MatchesPage> {
     );
     //sharing or declining while in there changes what this list should say
     if (mounted) await loadMatches();
+  }
+
+  //OPTIMISTIC, because the profile page has already closed itself and the
+  //grid it closed onto must not still show the match for the length of a
+  //request. The reload afterwards is what makes it true rather than merely
+  //drawn - and on failure it puts the match back, which is the honest
+  //outcome: nothing was removed.
+  Future<void> _removeMatch(MatchModel match) async {
+    setState(() {
+      _matches = _matches
+          .where((other) => other.matchId != match.matchId)
+          .toList();
+    });
+    try {
+      await ApiService.removeMatch(match.matchId);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(text.errorOccured)));
+      }
+    }
+    await loadMatches();
   }
 
   @override

@@ -160,24 +160,38 @@ class Matches(Base):
     a_confirmed_at = Column(TIMESTAMP(timezone=True), nullable = True)
     b_confirmed_at = Column(TIMESTAMP(timezone=True), nullable = True)
 
-    #WITHDRAWN BY ONE SIDE, AND GONE FOR BOTH.
+    #REMOVED FROM ONE LIST, AND ONLY THAT ONE.
     #
     #A revealed match cannot be declined - a handle that has been read cannot
-    #be taken back - but it still sits in the other person's list, handing
-    #your Instagram back to them every time they open it. That is the one part
-    #of the exchange the app is still responsible for, so either side can end
-    #it, and the other is told nothing.
+    #be taken back - so without this it is the one state in the app with no
+    #exit at all, permanent for as long as the account exists.
+    #
+    #ONE PER SIDE, which is a reversal of what this was. It started as a
+    #single hidden_at/hidden_by_user_id pair meaning "withdrawn by one, gone
+    #for both", on the grounds that a row in their list keeps handing them
+    #your Instagram. That reads stronger than it is: the handle has already
+    #been read, saved, or followed, so hiding it from them takes nothing back.
+    #
+    #What it WOULD do is make the removal visible to them - and if reporting
+    #somebody also removed the match, a match disappearing would tell the
+    #person who has your Instagram handle that you reported them. The one
+    #action meant to get someone away from a harasser would announce itself
+    #to the harasser, off-platform, where this app can do nothing. So each
+    #side only ever hides its own copy, and neither can tell.
+    #
+    #AND IT MAKES THE WRITE CONFLICT-FREE. With one shared column, the second
+    #person to remove a match had to read whether the first already had, and
+    #two removals landing together would leave the match standing for whoever
+    #lost the race. Each side writing only its own column cannot conflict.
     #
     #HIDDEN, NOT DELETED. Deleting would destroy the only record that two
     #people connected: who confirmed, when, and in which order. The app simply
     #stops returning the row (see get_matches); everything stays for anyone
-    #reading the database directly. It is also why this is a timestamp and not
-    #a flag - "when did they withdraw" is the question anyone asks afterwards.
-    #
-    #ONE PAIR, NOT ONE PER SIDE: this is severance, not an archive box. There
-    #is no state where one of you can still see it.
-    hidden_at = Column(TIMESTAMP(timezone=True), nullable = True)
-    hidden_by_user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable = True)
+    #reading the database directly. Timestamps rather than flags for the same
+    #reason as the pair above - "when did they walk away" is the question
+    #anyone asks afterwards, and per side it answers it for both of them.
+    hidden_by_a_at = Column(TIMESTAMP(timezone=True), nullable = True)
+    hidden_by_b_at = Column(TIMESTAMP(timezone=True), nullable = True)
 
 class Notifications(Base):
     """What the bell in the app bar shows: things that happened TO this user.
