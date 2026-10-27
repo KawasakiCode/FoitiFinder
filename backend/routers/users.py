@@ -11,6 +11,7 @@ from database.database import get_db
 
 router = APIRouter()
 
+from ages import MINIMUM_AGE, is_old_enough
 from app_logging import logger
 from instagram import normalise_instagram_handle
 from university_domains import is_university_email, university_name_for_email
@@ -45,6 +46,17 @@ def create_user(
     db_user = db.query(models.User).filter(models.User.firebase_uid == uid).first()
     if db_user:
         raise HTTPException(status_code = 400, detail="User already exists")
+
+    #OLD ENOUGH, OR NOTHING IS CREATED. The app's date picker will not offer
+    #an under-age date, so this only ever refuses a request that did not come
+    #from it - which is the point: a client-side cap is one line in one
+    #widget, and the column has to mean something regardless of what sent it.
+    #See ages.is_old_enough for what this does and does not catch.
+    if not is_old_enough(user.birthday):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=f"You must be at least {MINIMUM_AGE} to use FoitiFinder",
+        )
 
     new_user = models.User(
         name = user.name,
@@ -120,6 +132,17 @@ def update_user(user_update: schemas.UserUpdate, uid: str = Depends(verified_ema
     #exclude_unset = True doesnt override data that are null 
     #if updated_data name is null then it wont override the database value because of exclude_unset
     updated_data = user_update.model_dump(exclude_unset=True)
+
+    #THE OTHER DOOR. Account settings lets somebody change their birthday
+    #after signup, so a check only at creation would be a check somebody can
+    #walk around by editing afterwards. Only validated when a birthday is
+    #actually being sent: exclude_unset means an absent key is "leave it
+    #alone", and the stored value has already passed this once.
+    if "birthday" in updated_data and not is_old_enough(updated_data["birthday"]):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=f"You must be at least {MINIMUM_AGE} to use FoitiFinder",
+        )
 
     #The app clears a free-text field by sending "", because a null would be
     #dropped by exclude_unset and read as "leave it alone". Store NULL for

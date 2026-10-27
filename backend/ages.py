@@ -40,3 +40,33 @@ def age_from_birthday(
     #subtract one more year when this year's birthday has not happened yet
     had_birthday_this_year = (today.month, today.day) >= (birthday.month, birthday.day)
     return today.year - birthday.year - (0 if had_birthday_this_year else 1)
+
+
+#THE AGE THIS APP IS FOR, and the one number that is not a preference.
+MINIMUM_AGE = 18
+
+
+def is_old_enough(
+    birthday: Optional[datetime.date],
+    today: Optional[datetime.date] = None,
+) -> bool:
+    """Whether a birthday is old enough to hold an account.
+
+    NONE PASSES, because a row is created at registration and the birthday is
+    asked for later, on the setup page - so an absent one is an unfinished
+    profile rather than a young user. SetupWrapper is what makes it arrive.
+
+    WHAT THIS CATCHES, HONESTLY: not much. The app's date picker will not let
+    anybody select an under-age date, so an honest user cannot send one and a
+    dishonest one sends a date they made up - which this accepts, because
+    nothing here verifies a birthday against anything. It refuses a truthful
+    claim, which is the only kind it can see.
+    
+    WHAT IT IS FOR, THEN. It makes the column mean something: "no account was
+    created or edited into being under 18" becomes a fact rather than a hope,
+    which is what you want to lean on when an underage report arrives and you
+    look at the stored date. And it survives the picker regressing - that cap
+    is one line in one widget, and there will be other ways in eventually.
+    """
+    age = age_from_birthday(birthday, today)
+    return age is None or age >= MINIMUM_AGE

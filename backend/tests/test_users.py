@@ -213,3 +213,120 @@ class TestHealth:
     def test_it_needs_no_token(self, client):
         #the only unauthenticated endpoint, for Render's health check
         assert client.get("/health").status_code == 200
+
+
+class TestYouHaveToBeOldEnough:
+    """18, checked on the way in and on the way through.
+
+    WHAT THIS CATCHES IS NARROW, and worth being clear about: the app's date
+    picker will not offer an under-age date, so an honest user cannot send one
+    and a dishonest one sends a date they invented - which passes, because
+    nothing verifies a birthday against anything. It refuses a truthful claim,
+    which is the only kind it can see.
+
+    IT IS STILL WORTH HAVING for two reasons that are not about catching
+    anybody. The column comes to mean something - "no account was created or
+    edited into being under 18" is then a fact rather than a hope, which is
+    what you lean on when an underage report arrives and you read the stored
+    date. And the picker's cap is one line in one widget with nothing testing
+    it; this is what survives that being refactored away.
+
+    A UNIVERSITY EMAIL DOES NOT COVER IT. Greek students sit Panhellenic exams
+    at the end of Lyceum and enrol in September, so anybody born late in the
+    year starts at 17 and turns 18 during the first semester. A valid
+    university address is entirely consistent with being under age.
+    """
+
+    def days_old(self, years, days=0):
+        import datetime
+
+        today = datetime.date.today()
+        try:
+            birthday = today.replace(year=today.year - years)
+        except ValueError:
+            birthday = today.replace(year=today.year - years, day=28)
+        return birthday + datetime.timedelta(days=days)
+
+    def test_signing_up_under_age_is_refused(self, as_signup):
+        response = as_signup("uid-fresh", "fresh@uoa.gr").post("/users", json={
+            "name": "Young",
+            "birthday": self.days_old(17).isoformat(),
+        })
+        assert response.status_code == 422
+
+    def test_and_no_row_is_left_behind(self, db, as_signup):
+        from database import models
+
+        before = db.query(models.User).count()
+        as_signup("uid-fresh", "fresh@uoa.gr").post("/users", json={
+            "name": "Young",
+            "birthday": self.days_old(17).isoformat(),
+        })
+        assert db.query(models.User).count() == before
+
+    def test_exactly_eighteen_today_is_allowed(self, as_signup):
+        #AN OFF-BY-ONE HERE LOCKS OUT SOMEBODY ON THEIR BIRTHDAY, which is
+        #the one day they are most likely to be signing up.
+        response = as_signup("uid-fresh", "fresh@uoa.gr").post("/users", json={
+            "name": "JustOldEnough",
+            "birthday": self.days_old(18).isoformat(),
+        })
+        assert response.status_code == 200
+
+    def test_a_day_short_of_eighteen_is_not(self, as_signup):
+        response = as_signup("uid-fresh", "fresh@uoa.gr").post("/users", json={
+            "name": "NearlyThere",
+            "birthday": self.days_old(18, days=1).isoformat(),
+        })
+        assert response.status_code == 422
+
+    def test_no_birthday_at_all_is_allowed(self, as_signup):
+        #the row is created at registration and the birthday is asked for on
+        #the setup page afterwards, so an absent one is an unfinished profile
+        #rather than a young user - SetupWrapper is what makes it arrive
+        response = as_signup("uid-fresh", "fresh@uoa.gr").post("/users", json={
+            "name": "NotFinishedYet",
+        })
+        assert response.status_code == 200
+
+    def test_it_cannot_be_edited_down_afterwards(self, as_user, make_user):
+        """THE SECOND DOOR, and the reason a check at signup is not enough.
+
+        Account settings lets somebody change their birthday after signing
+        up, so a guard only on creation is one somebody walks around by
+        editing.
+        """
+        alice = make_user(name="Alice")
+        response = as_user(alice).patch("/users/me", json={
+            "birthday": self.days_old(16).isoformat(),
+        })
+        assert response.status_code == 422
+
+    def test_and_the_stored_one_is_untouched(self, db, as_user, make_user):
+        from database import models
+
+        alice = make_user(name="Alice")
+        before = db.query(models.User).filter_by(id=alice.id).one().birthday
+        as_user(alice).patch("/users/me", json={
+            "birthday": self.days_old(16).isoformat(),
+        })
+        db.expire_all()
+        assert db.query(models.User).filter_by(id=alice.id).one().birthday == before
+
+    def test_a_legitimate_correction_still_works(self, as_user, make_user):
+        #a typo in a birthday is a real thing to want to fix, so the check
+        #must not make the field read-only
+        alice = make_user(name="Alice")
+        response = as_user(alice).patch("/users/me", json={
+            "birthday": self.days_old(25).isoformat(),
+        })
+        assert response.status_code == 200
+
+    def test_editing_something_else_does_not_need_a_birthday(
+        self, as_user, make_user
+    ):
+        #exclude_unset means an absent key is "leave it alone", so the check
+        #must only fire when a birthday is actually being sent
+        alice = make_user(name="Alice")
+        response = as_user(alice).patch("/users/me", json={"bio": "hello"})
+        assert response.status_code == 200
