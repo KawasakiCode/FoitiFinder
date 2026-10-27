@@ -1959,4 +1959,95 @@ class AppLocalizationsEl extends AppLocalizations {
   @override
   String get bannerMatchRevealed =>
       'Συνδεθήκατε — το Instagram του είναι έτοιμο';
+
+  @override
+  String get reportTitle => 'Αναφορά προφίλ';
+
+  @override
+  String get reportAnonymous =>
+      'Οι αναφορές είναι ανώνυμες. Το άτομο που αναφέρεις δεν μαθαίνει ποιος έκανε την αναφορά, ούτε ότι έγινε.';
+
+  @override
+  String get reportNotInterested => 'Δεν με ενδιαφέρει αυτό το προφίλ';
+
+  @override
+  String get reportProfileContent => 'Ακατάλληλο περιεχόμενο στο προφίλ';
+
+  @override
+  String get reportUnderage => 'Πιθανώς κάτω των 18';
+
+  @override
+  String get reportFakeProfile => 'Ψεύτικο ή παραπλανητικό προφίλ';
+
+  @override
+  String get reportHarassment => 'Παρενόχληση ή επικίνδυνη συμπεριφορά';
+
+  @override
+  String get reportProfileContentTitle => 'Τι φταίει στο προφίλ;';
+
+  @override
+  String get reportUnderageTitle => 'Τι σε κάνει να το πιστεύεις;';
+
+  @override
+  String get reportFakeProfileTitle => 'Τι είναι παραπλανητικό;';
+
+  @override
+  String get reportHarassmentTitle => 'Τι συνέβη;';
+
+  @override
+  String get reportNudity => 'Γυμνό ή σεξουαλικό περιεχόμενο';
+
+  @override
+  String get reportHateful => 'Ρατσιστικό, βίαιο ή ενοχλητικό περιεχόμενο';
+
+  @override
+  String get reportMayBeUnder18 => 'Αυτό το άτομο μπορεί να είναι κάτω των 18';
+
+  @override
+  String get reportMinorSexualContent => 'Σεξουαλικό περιεχόμενο με ανήλικο';
+
+  @override
+  String get reportNotThePerson => 'Δεν είναι το άτομο των φωτογραφιών';
+
+  @override
+  String get reportImpersonation => 'Παρουσιάζεται ως άλλο υπαρκτό πρόσωπο';
+
+  @override
+  String get reportSpamScam => 'Spam, απάτη ή αίτημα για χρήματα';
+
+  @override
+  String get reportAbusiveMessages => 'Παρενοχλητικά ή υβριστικά μηνύματα';
+
+  @override
+  String get reportThreats => 'Απειλές ή παρακολούθηση';
+
+  @override
+  String get reportSexualAssault =>
+      'Σεξουαλική επίθεση ή μη συναινετική σωματική επαφή';
+
+  @override
+  String get reportSharedMyInfo =>
+      'Μοιράστηκε τα στοιχεία μου χωρίς τη συναίνεσή μου';
+
+  @override
+  String get reportFeltUnsafe => 'Με έκανε να νιώσω άβολα';
+
+  @override
+  String get reportOther => 'Κάτι άλλο';
+
+  @override
+  String get reportDetailsTitle => 'Πες μας τι συνέβη';
+
+  @override
+  String get reportDetailsHelp =>
+      'Γράψε όσες λεπτομέρειες μπορείς — τι είδες και πού. Το διαβάζει άνθρωπος και είναι αυτό που κάνει μια αναφορά δυνατό να εξεταστεί. Παραμένει ανώνυμη και εμπιστευτική.';
+
+  @override
+  String get reportDetailsHint => 'Τι συνέβη;';
+
+  @override
+  String get reportSubmit => 'Αποστολή αναφοράς';
+
+  @override
+  String get reportSent => 'Η αναφορά στάλθηκε. Σε ευχαριστούμε.';
 }

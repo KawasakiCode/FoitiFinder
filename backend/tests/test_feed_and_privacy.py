@@ -170,6 +170,67 @@ class TestWhatOthersCanSee:
         assert as_user(me).get("/users/me").json()["instagram_handle"] == "my_handle"
 
 
+class TestAConsideredNo:
+    """not_interested: the same outcome as a pass, kept as a different fact.
+
+    A PASS IS A THUMB MOVING AT SPEED over a card. This is somebody who opened
+    the whole profile, opened a menu inside it and chose the option - the
+    strongest negative signal the app can collect, and the only one that says
+    the person thought about it.
+
+    STORED NOW BECAUSE IT CANNOT BE STORED LATER. There is no way to look at a
+    pile of passes afterwards and work out which were deliberate, so ranking
+    either has this from the beginning or never has it at all - the same
+    argument as the minimum-build check shipping before anything needed it.
+    """
+
+    def test_it_is_accepted(self, as_user, make_user):
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        response = as_user(alice).post(
+            "/swipes", json={"target_id": bob.id, "action": "not_interested"})
+        assert response.status_code == 200
+
+    def test_it_is_stored_as_itself(self, db, as_user, make_user):
+        #NOT FOLDED INTO pass, which is the whole point of the value existing
+        from database import models
+
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        as_user(alice).post(
+            "/swipes", json={"target_id": bob.id, "action": "not_interested"})
+
+        swipe = db.query(models.UserSwipes).filter_by(
+            user_id=alice.id, target_id=bob.id).one()
+        assert swipe.action == "not_interested"
+
+    def test_they_leave_the_deck(self, as_user, make_user):
+        #the deck excludes on target_id whatever the action was, so a new
+        #negative value needs no change there - this is what proves it
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        as_user(alice).post(
+            "/swipes", json={"target_id": bob.id, "action": "not_interested"})
+
+        assert bob.id not in [card["id"] for card in
+                              as_user(alice).get("/users/feed").json()]
+
+    def test_it_cannot_make_a_match(self, as_user, make_user, swipe):
+        #every match check asks which actions count as INTEREST rather than
+        #which do not, so this must not complete one even against a like
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        swipe(bob, alice, "like")
+
+        body = as_user(alice).post(
+            "/swipes",
+            json={"target_id": bob.id, "action": "not_interested"}).json()
+        assert body["match_id"] is None
+
+    def test_nor_show_up_as_a_like(self, as_user, make_user):
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        as_user(bob).post(
+            "/swipes", json={"target_id": alice.id, "action": "not_interested"})
+
+        assert as_user(alice).get("/likes").json() == []
+
+
 class TestTheSwipeItself:
     def test_a_nonsense_action_is_refused(self, as_user, make_user):
         #an unconstrained string used to be stored happily and then behave

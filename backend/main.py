@@ -36,6 +36,7 @@ from routers import (
     notifications,
     photos,
     profiles,
+    reports,
     swipes,
     users,
 )
@@ -83,6 +84,7 @@ app.include_router(swipes.router, tags=["swipes"])
 app.include_router(likes.router, tags=["likes"])
 app.include_router(matches.router, tags=["matches"])
 app.include_router(notifications.router, tags=["notifications"])
+app.include_router(reports.router, tags=["reports"])
 #LAST, because /users/{user_id}/profile would otherwise swallow /users/me
 app.include_router(profiles.router, tags=["profiles"])
 

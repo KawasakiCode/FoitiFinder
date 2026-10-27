@@ -94,6 +94,24 @@ class MatchResponse(BaseModel):
     class Config:
         from_attributes = True
 
+#Filing a report.
+#
+#THE CODES ARE NOT Literal HERE, unlike SwipeRequest's action. A Literal would
+#have to list every category and subcategory pair as a flat set, which cannot
+#express that a subcategory belongs to one category - and 'minor_sexual_content'
+#accepted under 'fake_profile' is a report nobody can read. report_reasons
+#validates the PAIR, in the one place the taxonomy lives.
+class ReportRequest(BaseModel):
+    reported_user_id: int
+    category: str
+    subcategory: str
+    #WHAT THE REPORTER TYPED, and usually the only part that makes a report
+    #actionable. Capped, not required: insisting on it turns "I would rather
+    #not write this out" into "I will not report it", and a cap stops the
+    #column being used as storage.
+    details: Optional[str] = Field(default=None, max_length=2000)
+
+
 #One row of the bell.
 #
 #NO INSTAGRAM HANDLE, and no text. The handle is only ever handed over by
@@ -143,7 +161,7 @@ class SwipeRequest(BaseModel):
     #'pass' on purpose: the two are identical to the deck, but a feature that
     #ever offers a second look at profiles you skipped must not hand back
     #somebody you reported, and by then the two would be indistinguishable.
-    action: Literal["like", "pass", "super_like", "reported"]
+    action: Literal["like", "pass", "super_like", "reported", "not_interested"]
 
 #body for replacing a user's whole photo set in order
 #NOTE: no firebase_uid — the owner is taken from the verified ID token

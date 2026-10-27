@@ -3805,6 +3805,180 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You\'re connected — their Instagram is ready'**
   String get bannerMatchRevealed;
+
+  /// No description provided for @reportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report profile'**
+  String get reportTitle;
+
+  /// No description provided for @reportAnonymous.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports are anonymous. The person you report is never told who reported them, or that a report was made.'**
+  String get reportAnonymous;
+
+  /// No description provided for @reportNotInterested.
+  ///
+  /// In en, this message translates to:
+  /// **'Not interested in this profile'**
+  String get reportNotInterested;
+
+  /// No description provided for @reportProfileContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Inappropriate profile content'**
+  String get reportProfileContent;
+
+  /// No description provided for @reportUnderage.
+  ///
+  /// In en, this message translates to:
+  /// **'Possibly under 18'**
+  String get reportUnderage;
+
+  /// No description provided for @reportFakeProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Fake or misleading profile'**
+  String get reportFakeProfile;
+
+  /// No description provided for @reportHarassment.
+  ///
+  /// In en, this message translates to:
+  /// **'Harassment or unsafe behaviour'**
+  String get reportHarassment;
+
+  /// No description provided for @reportProfileContentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What is wrong with the profile?'**
+  String get reportProfileContentTitle;
+
+  /// No description provided for @reportUnderageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What makes you think so?'**
+  String get reportUnderageTitle;
+
+  /// No description provided for @reportFakeProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What is misleading?'**
+  String get reportFakeProfileTitle;
+
+  /// No description provided for @reportHarassmentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What happened?'**
+  String get reportHarassmentTitle;
+
+  /// No description provided for @reportNudity.
+  ///
+  /// In en, this message translates to:
+  /// **'Nudity or sexual content'**
+  String get reportNudity;
+
+  /// No description provided for @reportHateful.
+  ///
+  /// In en, this message translates to:
+  /// **'Hateful, violent or disturbing content'**
+  String get reportHateful;
+
+  /// No description provided for @reportMayBeUnder18.
+  ///
+  /// In en, this message translates to:
+  /// **'This person may be under 18'**
+  String get reportMayBeUnder18;
+
+  /// No description provided for @reportMinorSexualContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sexual content involving a minor'**
+  String get reportMinorSexualContent;
+
+  /// No description provided for @reportNotThePerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Not the person in the photos'**
+  String get reportNotThePerson;
+
+  /// No description provided for @reportImpersonation.
+  ///
+  /// In en, this message translates to:
+  /// **'Impersonating someone real'**
+  String get reportImpersonation;
+
+  /// No description provided for @reportSpamScam.
+  ///
+  /// In en, this message translates to:
+  /// **'Spam, scam, or asking for money'**
+  String get reportSpamScam;
+
+  /// No description provided for @reportAbusiveMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Harassing or abusive messages'**
+  String get reportAbusiveMessages;
+
+  /// No description provided for @reportThreats.
+  ///
+  /// In en, this message translates to:
+  /// **'Threats or stalking'**
+  String get reportThreats;
+
+  /// No description provided for @reportSexualAssault.
+  ///
+  /// In en, this message translates to:
+  /// **'Sexual assault or unwanted physical contact'**
+  String get reportSexualAssault;
+
+  /// No description provided for @reportSharedMyInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared my information without consent'**
+  String get reportSharedMyInfo;
+
+  /// No description provided for @reportFeltUnsafe.
+  ///
+  /// In en, this message translates to:
+  /// **'Made me feel unsafe'**
+  String get reportFeltUnsafe;
+
+  /// No description provided for @reportOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Something else'**
+  String get reportOther;
+
+  /// No description provided for @reportDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us what happened'**
+  String get reportDetailsTitle;
+
+  /// No description provided for @reportDetailsHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Add as much detail as you can — what you saw, and where. This is read by a person, and it is what makes a report possible to act on. It stays anonymous and confidential.'**
+  String get reportDetailsHelp;
+
+  /// No description provided for @reportDetailsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What happened?'**
+  String get reportDetailsHint;
+
+  /// No description provided for @reportSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit report'**
+  String get reportSubmit;
+
+  /// No description provided for @reportSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Report sent. Thank you.'**
+  String get reportSent;
 }
 
 class _AppLocalizationsDelegate

@@ -303,7 +303,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
 
-  void _swipeLeft({bool fromButton = false}) async {
+  //THE SAME ANIMATION FOR TWO DIFFERENT ANSWERS. 'not interested' is chosen
+  //from a menu inside the full profile rather than flicked past, so it is a
+  //considered no - but it leaves the deck exactly like a pass, and making it
+  //look different on the way out would suggest something else had happened.
+  //Only the recorded action differs; see UserSwipes.action for why that is
+  //worth keeping apart.
+  void _swipeLeft({bool fromButton = false, bool considered = false}) async {
     final card = cards[currentIndex];
     //animate immediately so the X button / left swipe never gets stuck on a
     //slow or failing backend call, then register the pass in the background
@@ -314,7 +320,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     await SwipeQueue.instance.send(
       uid: FirebaseAuth.instance.currentUser!.uid,
       targetId: card.id,
-      action: "pass",
+      action: considered ? "not_interested" : "pass",
     );
   }
 
@@ -838,6 +844,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     switch (decision) {
       case ProfileDecision.pass:
         _swipeLeft(fromButton: true);
+      case ProfileDecision.notInterested:
+        _swipeLeft(fromButton: true, considered: true);
       case ProfileDecision.superLike:
         _swipeUp(fromButton: true);
       case ProfileDecision.like:

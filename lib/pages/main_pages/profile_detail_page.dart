@@ -41,6 +41,7 @@ import 'package:foitifinder/pages/profile_pages/view_profile/profile_details_bod
 import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/app_dialog.dart';
+import 'package:foitifinder/widgets/report_sheet.dart';
 import 'package:foitifinder/widgets/photo_card.dart';
 import 'package:foitifinder/widgets/profile_photo.dart';
 
@@ -50,7 +51,10 @@ const Key kProfileBodySlideKey = Key('profile-body-slide');
 //what the page pops with, so the deck knows what to do next.
 //superLike is never popped when the page is opened without that button - see
 //showSuperLike below.
-enum ProfileDecision { pass, superLike, like }
+//A CONSIDERED NO IS ITS OWN DECISION, not a pass with a different label.
+//Both leave the deck the same way; only one of them was thought about, and
+//that difference is worth keeping for ranking - see UserSwipes.action.
+enum ProfileDecision { pass, superLike, like, notInterested }
 
 //How the page is opened, kept beside the layout it depends on.
 Route<ProfileDecision> profileDetailRoute({
@@ -407,16 +411,47 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
               title: Text(text.reportUser),
               onTap: () {
                 Navigator.pop(sheetContext);
-                //TODO: reporting needs a backend table and a reason list -
-                //until then the menu exists but promises nothing
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text(text.comingSoon)));
+                _report();
               },
             ),
           ],
         ),
       ),
+    );
+  }
+
+  //AFTER A MATCH IS WHAT onRemoveMatch ALREADY TELLS US. It is non-null only
+  //for a revealed match, which is also the only state where the harassment
+  //group makes sense - that group is about what somebody did once they had
+  //your Instagram handle. The endpoint refuses it without a match too, so
+  //this decides what is OFFERED rather than what is allowed.
+  void _report() {
+    showReportSheet(
+      context,
+      reportedUserId: widget.userId,
+      afterMatch: widget.onRemoveMatch != null,
+      //REPORTING TAKES THEM OUT OF THE DECK and off this user's match list,
+      //so there is nothing left on this page to look at.
+      onReported: () {
+        if (mounted) Navigator.pop(context);
+      },
+      //THE DECK ONLY, which is what `decisions` means: this page can send a
+      //decision back to whoever opened it. The matches page opens profiles
+      //with decisions off and discards what comes back, so the option used to
+      //sit there doing nothing at all when tapped.
+      //
+      //AND IT WOULD BE THE WRONG QUESTION THERE. 'Not interested' in somebody
+      //you have already matched with is not a pass - you cannot un-see a
+      //handle, and acting on it would mean destroying a match through a
+      //button that says nothing about destroying anything. That is what
+      //'Remove match' is for, two rows up the same menu, with a warning on it.
+      onNotInterested: widget.decisions
+          ? () {
+              if (mounted) {
+                Navigator.pop(context, ProfileDecision.notInterested);
+              }
+            }
+          : null,
     );
   }
 

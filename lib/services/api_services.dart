@@ -572,6 +572,38 @@ class ApiService {
     }
   }
 
+  //File a report. One call, because the server does three things with it -
+  //writes the row, records the 'reported' swipe so they leave the deck, and
+  //hides the reporter's own copy of any match - and a report that half
+  //landed is worse than none.
+  //
+  //422 MEANS THE REASON CODES ARE WRONG, which is a bug in this app rather
+  //than anything the user did: kReportReasons must mirror the server's
+  //report_reasons.py, and a code that drifted would be refused at the worst
+  //possible moment, after somebody had typed out what happened.
+  static Future<void> sendReport({
+    required int reportedUserId,
+    required String category,
+    required String subcategory,
+    String? details,
+  }) async {
+    final response = await http
+        .post(
+          Uri.parse("$baseUrl/reports"),
+          headers: await _authHeaders(),
+          body: jsonEncode({
+            'reported_user_id': reportedUserId,
+            'category': category,
+            'subcategory': subcategory,
+            'details': details,
+          }),
+        )
+        .timeout(kRequestTimeout);
+    if (response.statusCode != 201) {
+      throw Exception("Failed to send report ${response.body}");
+    }
+  }
+
   //Take a finished match off your own list, and only yours.
   //
   //THE OTHER PERSON KEEPS THEIRS and is told nothing - see the endpoint. 409

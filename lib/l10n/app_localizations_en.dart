@@ -1950,4 +1950,94 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get bannerMatchRevealed =>
       'You\'re connected — their Instagram is ready';
+
+  @override
+  String get reportTitle => 'Report profile';
+
+  @override
+  String get reportAnonymous =>
+      'Reports are anonymous. The person you report is never told who reported them, or that a report was made.';
+
+  @override
+  String get reportNotInterested => 'Not interested in this profile';
+
+  @override
+  String get reportProfileContent => 'Inappropriate profile content';
+
+  @override
+  String get reportUnderage => 'Possibly under 18';
+
+  @override
+  String get reportFakeProfile => 'Fake or misleading profile';
+
+  @override
+  String get reportHarassment => 'Harassment or unsafe behaviour';
+
+  @override
+  String get reportProfileContentTitle => 'What is wrong with the profile?';
+
+  @override
+  String get reportUnderageTitle => 'What makes you think so?';
+
+  @override
+  String get reportFakeProfileTitle => 'What is misleading?';
+
+  @override
+  String get reportHarassmentTitle => 'What happened?';
+
+  @override
+  String get reportNudity => 'Nudity or sexual content';
+
+  @override
+  String get reportHateful => 'Hateful, violent or disturbing content';
+
+  @override
+  String get reportMayBeUnder18 => 'This person may be under 18';
+
+  @override
+  String get reportMinorSexualContent => 'Sexual content involving a minor';
+
+  @override
+  String get reportNotThePerson => 'Not the person in the photos';
+
+  @override
+  String get reportImpersonation => 'Impersonating someone real';
+
+  @override
+  String get reportSpamScam => 'Spam, scam, or asking for money';
+
+  @override
+  String get reportAbusiveMessages => 'Harassing or abusive messages';
+
+  @override
+  String get reportThreats => 'Threats or stalking';
+
+  @override
+  String get reportSexualAssault =>
+      'Sexual assault or unwanted physical contact';
+
+  @override
+  String get reportSharedMyInfo => 'Shared my information without consent';
+
+  @override
+  String get reportFeltUnsafe => 'Made me feel unsafe';
+
+  @override
+  String get reportOther => 'Something else';
+
+  @override
+  String get reportDetailsTitle => 'Tell us what happened';
+
+  @override
+  String get reportDetailsHelp =>
+      'Add as much detail as you can — what you saw, and where. This is read by a person, and it is what makes a report possible to act on. It stays anonymous and confidential.';
+
+  @override
+  String get reportDetailsHint => 'What happened?';
+
+  @override
+  String get reportSubmit => 'Submit report';
+
+  @override
+  String get reportSent => 'Report sent. Thank you.';
 }

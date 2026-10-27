@@ -265,7 +265,26 @@ class UserSwipes(Base):
     id = Column(Integer, primary_key = True, index = True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     target_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
-    action = Column(String) #like, pass or super like
+    #WHAT THE VIEWER DECIDED, validated as a Literal in api_models:
+    #
+    #  like, super_like   wants them; either can complete a match
+    #  pass               flicked past in the deck
+    #  not_interested     THE SAME OUTCOME AS pass AND A DIFFERENT FACT. A
+    #                     pass is a thumb moving at speed over a card; this
+    #                     is somebody who opened the whole profile, opened a
+    #                     menu inside it and chose this - a considered no, and
+    #                     the strongest negative signal the app can collect.
+    #                     Kept apart from pass because the two cannot be told
+    #                     apart afterwards: there is no way to look at a pile
+    #                     of passes later and recover which were deliberate,
+    #                     so ranking either has this from the start or never.
+    #  reported           also a no, and final - see record_swipe
+    #
+    #EVERY QUERY THAT BRANCHES ON THIS ASKS WHICH ACTIONS COUNT AS INTEREST
+    #(like, super_like) rather than which ones do not, so a new negative value
+    #needs no changes anywhere: the deck excludes on target_id whatever the
+    #action was, and nothing here can build a match.
+    action = Column(String)
     timestamp = Column(TIMESTAMP(timezone = True), nullable = False, server_default = text('now()'))
 
     #THE TWO DIRECTIONS THIS TABLE IS READ IN, and until now neither had an
@@ -283,3 +302,68 @@ class UserSwipes(Base):
         Index("ix_user_swipes_target_action", "target_id", "action"),
     )
     
+
+class Reports(Base):
+    """Somebody telling us about somebody else.
+
+    A TABLE, NOT A PUSH TO AN INBOX, because a report has to survive being
+    read. The reporter is anonymous TO THE REPORTED USER, which is not the
+    same as anonymous: reporter_id is kept, and has to be, or the same person
+    cannot be seen reporting fifteen profiles in an afternoon and nothing can
+    be weighed against the account's other history.
+
+    WHY THE SWIPE IS NOT ENOUGH. user_swipes already takes 'reported' as an
+    action, which is what removes the person from the deck for good - but an
+    action with no reason attached says only that somebody objected, and every
+    report here needs a reviewer to know WHAT to look at. The swipe is the
+    consequence; this is the content.
+
+    NOTHING IS DELETED WHEN A USER IS. Both sides are ON DELETE SET NULL
+    rather than CASCADE, which is the opposite of the choice everywhere else
+    in this schema: a report whose subject deleted their account is precisely
+    the record worth keeping, since leaving is what somebody does after being
+    reported. The codes and the text stay readable with no user attached.
+    """
+    __tablename__ = "reports"
+
+    id = Column(Integer, primary_key = True, nullable = False)
+    reporter_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable = True)
+    reported_user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable = True)
+
+    #CODES, validated against report_reasons.REASONS before they are written.
+    #Two columns rather than one joined string: "how many reports mention a
+    #minor" is the question that gets asked, and it should not need LIKE.
+    category = Column(String, nullable = False)
+    subcategory = Column(String, nullable = False)
+
+    #WHAT THE REPORTER TYPED, and often the only thing that makes a report
+    #actionable - the codes say which drawer to look in, this says what
+    #happened. Nullable because insisting on it would turn "I do not want to
+    #write this out" into "I will not report it".
+    details = Column(String, nullable = True)
+
+    created_at = Column(TIMESTAMP(timezone=True), nullable = False, server_default = text('now()'))
+
+    #WHEN SOMEBODY LOOKED, not whether they agreed. There is no outcome column
+    #on purpose: what was done about a report is a decision about an account
+    #and belongs wherever that is recorded, while this only answers "has this
+    #been seen" - which is the question a review queue needs and the one a
+    #boolean would answer worse, since "seen when" is what tells you the queue
+    #is keeping up.
+    reviewed_at = Column(TIMESTAMP(timezone=True), nullable = True)
+
+    #THE TWO QUESTIONS A REVIEWER ASKS, and neither is answered by a scan.
+    #
+    #  reviewed_at IS NULL   "what is waiting for me" - the queue itself, and
+    #                        PARTIAL, because the rows that have been dealt
+    #                        with are the ones that accumulate forever and the
+    #                        queue never wants to see them again
+    #  reported_user_id      "what else has been said about this account" -
+    #                        the first thing worth knowing about any single
+    #                        report, since one complaint and the fifth
+    #                        complaint are not the same report
+    __table_args__ = (
+        Index("ix_reports_pending", "created_at",
+              postgresql_where=text("reviewed_at IS NULL")),
+        Index("ix_reports_reported_user", "reported_user_id"),
+    )
