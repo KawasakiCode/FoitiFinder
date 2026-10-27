@@ -262,7 +262,11 @@ def confirm_match(match_id: int, uid: str = Depends(verified_email_uid), db: Ses
     #stored notification used to carry that guarantee with `once`; without a
     #row it has to come from here.
     if not already_confirmed:
-        push(other, 'match_revealed' if revealed else 'match')
+        #THE ID TRAVELS WITH IT, so the banner opens this match instead of
+        #a list to search. Both kinds carry it and both open the same place -
+        #which is why the app does not branch on the kind at all.
+        push(other, 'match_revealed' if revealed else 'match',
+             match_id=match.id)
 
     return {
         "revealed": revealed,

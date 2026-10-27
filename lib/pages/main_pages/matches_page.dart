@@ -93,6 +93,35 @@ class MatchesPageState extends State<MatchesPage> {
     }
   }
 
+  //Open one specific match, for a tapped notification.
+  //
+  //PUBLIC, like loadMatches: main_screen holds a GlobalKey to this state and
+  //calls it when a banner is tapped, which can happen while this page has
+  //never been looked at.
+  //
+  //IT RELOADS FIRST. The push arrived while the app was in the background or
+  //shut, so whatever is in _matches is from before that - and on a cold start
+  //there is nothing in it at all.
+  Future<void> openMatch(int matchId) async {
+    await loadMatches();
+    if (!mounted) return;
+
+    //GONE IS A NORMAL OUTCOME, not an error. Between the push being sent and
+    //the banner being tapped the other side can have declined, either side
+    //can have removed it, and a match left unanswered for three days expires.
+    //Landing on the list is then the honest answer: the notification was
+    //true when it was sent, and the page says what is true now.
+    final match = _matches
+        .where((candidate) => candidate.matchId == matchId)
+        .firstOrNull;
+    if (match == null) return;
+
+    //NO NAVIGATION OF ITS OWN: the same call a tapped tile makes, so a match
+    //reached from a banner is the same screen with the same action bar and
+    //the same reload behind it.
+    await _openProfile(match);
+  }
+
   //ties a grid tile's photo to the header photo of the profile page.
   //
   //The 'match-' prefix matters: the home deck is built at the same time as

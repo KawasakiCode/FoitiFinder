@@ -155,7 +155,12 @@ def pushes(monkeypatch) -> list[tuple[str, str]]:
     """
     sent: list[tuple[str, str]] = []
 
-    def record(target_uid, notification_type, _db_firestore):
+    #match_id IS ACCEPTED AND NOT RECORDED. The rules this list exists for are
+    #about WHO is told and of what - "whoever was waiting gets told, nobody
+    #else" - and folding a third field into the tuples would rewrite every
+    #assertion in the suite to say nothing new. That the id reaches the data
+    #payload is checked in test_push_gating, against the real sender.
+    def record(target_uid, notification_type, _db_firestore, match_id=None):
         sent.append((target_uid, notification_type))
 
     #PATCHED WHERE IT IS CALLED FROM. notifications.notify looks the name up

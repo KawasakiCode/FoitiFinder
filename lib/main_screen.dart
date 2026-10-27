@@ -15,6 +15,20 @@ import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Which match a tapped push is about, or null if it does not say.
+///
+/// A FUNCTION OF ITS OWN because the feature hinges on it and its failure is
+/// silent: get this wrong and the banner opens the list instead of the match,
+/// with nothing in any log to say why. A test can call this; it cannot tap a
+/// notification.
+///
+/// PARSED, NOT CAST. FCM data values are strings over the wire whatever the
+/// sender put in, so an int arrives as "57" - and anything unparseable
+/// (absent, empty, the literal "None" a careless sender would produce) means
+/// "not said" rather than an error, because the tab is still worth opening.
+int? matchIdFromPush(Map<String, dynamic> data) =>
+    int.tryParse(data['match_id']?.toString() ?? '');
+
 class MainScreen extends StatefulWidget {
   final String uid;
   const MainScreen({super.key, required this.uid});
@@ -101,13 +115,69 @@ class _MainScreenState extends State<MainScreen> {
       }
     });
 
+    //TAPPED WHILE THE APP WAS MERELY IN THE BACKGROUND. The system drew the
+    //banner, nothing in this isolate ran, and the tap brings the app forward
+    //with the message in hand.
+    FirebaseMessaging.onMessageOpenedApp.listen(_openFromNotification);
+
     //after build has finished cache the users pfp so it loads faster 
     //and grab data from the database
     //if database data different from disk data change disk else leave as is
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _precacheProfileImage();
       _runBgTasks();
+
+      //TAPPED WHILE THE APP WAS SHUT, which is a different question with a
+      //different answer: there was no listener to receive it, so the message
+      //is waiting to be asked for instead. Firebase hands it over exactly
+      //once, so this cannot double up with onMessageOpenedApp above.
+      //
+      //AFTER THE FIRST FRAME, because opening a match needs the matches page
+      //to exist - its GlobalKey has no state attached until the PageView has
+      //built it.
+      FirebaseMessaging.instance.getInitialMessage().then((message) {
+        if (message != null) _openFromNotification(message);
+      });
     });
+  }
+
+  //Take a tapped notification to the match it is about.
+  //
+  //NO BACKGROUND HANDLER ACCOMPANIES THIS. onBackgroundMessage exists to run
+  //Dart while the app is not, and the only thing wanted here is navigation,
+  //which cannot happen then anyway - these are notification messages, so the
+  //system draws the banner without any code of ours running.
+  //
+  //THE KIND IS NOT CONSULTED. 'match' and 'match_revealed' are about the same
+  //match and open the same screen; the difference is what the action bar
+  //shows once it is there, which it reads from the server rather than from
+  //the banner that brought the user in.
+  Future<void> _openFromNotification(RemoteMessage message) async {
+    //DATA VALUES ARE STRINGS over the wire, so this is parsed rather than
+    //cast - and a payload without a usable id still opens the tab, which is
+    //better than the tap appearing to do nothing.
+    final matchId = matchIdFromPush(message.data);
+
+    //THE TAB FIRST, so there is somewhere for the profile to be pushed on top
+    //of - and so backing out of that profile lands on the matches page rather
+    //than on whatever was open when the push arrived.
+    _onItemTapped(_kMatchesTab);
+
+    //ONE FRAME, because the key has no state until the page is built. On a
+    //cold start this runs moments after the first frame and the PageView may
+    //not have reached index 1 yet, so reading currentState immediately gets
+    //null and the tap does nothing at all. A frame is enough - the page only
+    //has to be BUILT, not finished sliding into place.
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return;
+
+    final page = _matchesPageKey.currentState;
+    if (page == null) return;
+    if (matchId == null) {
+      page.loadMatches();
+      return;
+    }
+    await page.openMatch(matchId);
   }
 
   //Function to store the fcm token in the firebase firestore database

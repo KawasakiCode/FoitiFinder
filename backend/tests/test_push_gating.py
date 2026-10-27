@@ -41,13 +41,13 @@ class FakeFirestore:
         return FakeDoc(self._data)
 
 
-def sent_for(monkeypatch, kind, user_data):
+def sent_for(monkeypatch, kind, user_data, match_id=None):
     """The messages send_smart_notification would hand to Firebase."""
     out = []
     monkeypatch.setattr(notifications.messaging, "send",
                         lambda message: out.append(message) or "id")
     notifications.send_smart_notification(
-        "uid-them", kind, FakeFirestore(user_data))
+        "uid-them", kind, FakeFirestore(user_data), match_id=match_id)
     return out
 
 
@@ -121,3 +121,36 @@ class TestWhatTheMessageCarries:
             message = sent_for(monkeypatch, kind, ON)[0]
             assert "uid-them" not in message.notification.body
             assert message.notification.body
+
+class TestTheTapCanFindTheMatch:
+    """match_id in the data payload: what makes a tapped banner go somewhere.
+
+    WITHOUT IT the app can only open the matches list and leave the user to
+    find the row themselves - which was the state of things, and the reason
+    the push felt like a dead end even though it was correct.
+    """
+
+    def test_the_id_travels(self, monkeypatch):
+        message = sent_for(monkeypatch, "match", ON, match_id=57)[0]
+        assert message.data["match_id"] == "57"
+
+    def test_as_a_string(self, monkeypatch):
+        #FCM DATA VALUES ARE STRINGS over the wire, and the SDK rejects an int
+        #rather than coercing it - so this would fail at send time, on the one
+        #path no test exercises if the type is only checked by eye.
+        message = sent_for(monkeypatch, "match", ON, match_id=57)[0]
+        assert isinstance(message.data["match_id"], str)
+
+    def test_both_kinds_carry_it(self, monkeypatch):
+        #the app does not branch on the kind - both open the same match - so
+        #a kind that arrived without an id would be a banner leading nowhere
+        for kind in ("match", "match_revealed"):
+            message = sent_for(monkeypatch, kind, ON, match_id=57)[0]
+            assert message.data["match_id"] == "57"
+
+    def test_absent_rather_than_the_string_none(self, monkeypatch):
+        #str(None) is "None", which the app would then have to recognise as
+        #meaning absent - a second spelling of null, and the kind of thing
+        #that is only found by tapping a banner and watching nothing happen
+        message = sent_for(monkeypatch, "match", ON)[0]
+        assert "match_id" not in message.data

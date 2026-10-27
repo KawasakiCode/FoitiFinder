@@ -16,7 +16,8 @@
 
 from firebase_admin import messaging, firestore
 
-def send_smart_notification(target_uid: str, notification_type: str, db_firestore):
+def send_smart_notification(target_uid: str, notification_type: str, db_firestore,
+                            match_id: int | None = None):
     """
     Sends a notification ONLY if the user has it switched on.
 
@@ -27,6 +28,11 @@ def send_smart_notification(target_uid: str, notification_type: str, db_firestor
             back, so the handles are out). Anything else is ignored rather
             than sent under a generic title.
         db_firestore: The firestore client instance.
+        match_id: which match it is about, so tapping the banner opens THAT
+            match rather than a list the user then has to search. Travels in
+            the data payload, which is never displayed - and the id alone
+            discloses nothing, since every endpoint that takes one checks
+            that the caller is in it.
     """
 
     user_ref = db_firestore.collection('users').document(target_uid)
@@ -93,9 +99,15 @@ def send_smart_notification(target_uid: str, notification_type: str, db_firestor
         try:
             message = messaging.Message(  
                 token=fcm_token,
+                #STRINGS ONLY. FCM data values are strings over the wire,
+                #and an int here is rejected by the SDK rather than coerced.
                 data = {
                     "type": notification_type,
-                    "click_action": "FLUTTER_NOTIFICATION_CLICK"
+                    "click_action": "FLUTTER_NOTIFICATION_CLICK",
+                    #omitted rather than sent as "None", which the app would
+                    #have to recognise as meaning absent
+                    **({"match_id": str(match_id)} if match_id is not None
+                       else {}),
                 },
                 notification=messaging.Notification(  
                     title=content['title'],
@@ -119,7 +131,7 @@ from database import models
 from firebase_app import firestore_db
 
 
-def push(user: models.User, kind: str) -> None:
+def push(user: models.User, kind: str, *, match_id: int | None = None) -> None:
     """Send a push and nothing else - no row, no record.
 
     FOR THE THINGS THE MATCHES PAGE ALREADY KNOWS. A match that is waiting on
@@ -137,7 +149,8 @@ def push(user: models.User, kind: str) -> None:
     the name itself would hold its own reference and quietly keep the real one.
     """
     try:
-        send_smart_notification(user.firebase_uid, kind, firestore_db)
+        send_smart_notification(user.firebase_uid, kind, firestore_db,
+                                match_id=match_id)
     except Exception as exc:
         logger.warning("push failed (%s): %s: %s", kind, type(exc).__name__, exc)
 
