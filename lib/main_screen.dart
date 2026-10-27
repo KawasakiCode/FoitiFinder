@@ -7,7 +7,12 @@ import 'package:flutter/material.dart';
 import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/pages/main_pages/home_page.dart';
 import 'package:foitifinder/pages/main_pages/profile_page.dart';
+import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/models/matches_model.dart';
 import 'package:foitifinder/pages/main_pages/matches_page.dart';
+import 'package:foitifinder/services/api_services.dart';
+import 'package:foitifinder/services/error_reporting.dart';
+import 'package:foitifinder/widgets/top_banner.dart';
 import 'package:foitifinder/providers/notifications_provider.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/services/swipe_queue.dart';
@@ -47,6 +52,14 @@ class _MainScreenState extends State<MainScreen> {
   //of thing that quietly starts refreshing the wrong page when a tab is added.
   static const int _kMatchesTab = 1;
 
+  //THE SAME TAP CAN ARRIVE TWICE ON A COLD START. getInitialMessage hands
+  //over the message that launched the app, and onMessageOpenedApp streams the
+  //same intent alongside it - so the handler ran twice, two identical
+  //profiles stacked, and the first back press looked broken because what it
+  //revealed was the second one.
+  String? _handledPushId;
+  bool _openingFromPush = false;
+
   //drives the swipeable PageView; kept in sync with the bottom nav bar
   final PageController _pageController = PageController();
 
@@ -55,7 +68,8 @@ class _MainScreenState extends State<MainScreen> {
   final GlobalKey _homeCardAreaKey = GlobalKey();
   //true = page-swipe is currently blocked (a touch landed on the card)
   bool _lockHomeSwipe = true;
-  static const double _cardSwipeMargin = 12; // extra no-swipe px above/below card
+  static const double _cardSwipeMargin =
+      12; // extra no-swipe px above/below card
 
   //On every touch, if we're on the home page, decide whether the press landed
   //on the card region (then block page-swipe so the deck owns the drag) or
@@ -64,12 +78,14 @@ class _MainScreenState extends State<MainScreen> {
     if (_selectedIndex != 0) return;
 
     bool onCard = true; // default to locked if we can't measure yet (card-safe)
-    final RenderObject? obj = _homeCardAreaKey.currentContext?.findRenderObject();
+    final RenderObject? obj = _homeCardAreaKey.currentContext
+        ?.findRenderObject();
     if (obj is RenderBox && obj.hasSize) {
       final double top = obj.localToGlobal(Offset.zero).dy;
       final double bottom = top + obj.size.height;
       final double y = event.position.dy;
-      onCard = y >= (top - _cardSwipeMargin) && y <= (bottom + _cardSwipeMargin);
+      onCard =
+          y >= (top - _cardSwipeMargin) && y <= (bottom + _cardSwipeMargin);
     }
 
     if (onCard != _lockHomeSwipe) {
@@ -112,6 +128,20 @@ class _MainScreenState extends State<MainScreen> {
       final kind = message.data['type'] as String?;
       if (kind != null && kind.startsWith('match')) {
         _matchesPageKey.currentState?.loadMatches();
+
+        //AND SAY SO, because nothing else will. Android does not draw a
+        //system banner while the app is in the foreground, so refreshing the
+        //list on its own meant a match being revealed changed a row on a page
+        //the user was not looking at - invisible unless they went and counted.
+        //
+        //The same tap target as the real banner: it opens that match.
+        if (mounted) {
+          showTopBanner(
+            context,
+            message: _bannerTextFor(kind),
+            onTap: () => _openFromNotification(message),
+          );
+        }
       }
     });
 
@@ -120,7 +150,7 @@ class _MainScreenState extends State<MainScreen> {
     //with the message in hand.
     FirebaseMessaging.onMessageOpenedApp.listen(_openFromNotification);
 
-    //after build has finished cache the users pfp so it loads faster 
+    //after build has finished cache the users pfp so it loads faster
     //and grab data from the database
     //if database data different from disk data change disk else leave as is
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -152,32 +182,117 @@ class _MainScreenState extends State<MainScreen> {
   //match and open the same screen; the difference is what the action bar
   //shows once it is there, which it reads from the server rather than from
   //the banner that brought the user in.
+  //WHAT THE IN-APP BANNER SAYS, translated here rather than taken from
+  //message.notification. The server builds that text in English only, and
+  //the app has both languages - so a Greek user reading a Greek app would
+  //get an English line for no reason other than where the string was built.
+  //
+  //AS VAGUE AS THE PUSH ABOUT WHO. Not for privacy, since this one is only
+  //ever on screen for somebody already signed in - the payload simply does
+  //not carry a name, and the match page is one tap away with all of them.
+  String _bannerTextFor(String kind) {
+    final text = AppLocalizations.of(context)!;
+    return kind == 'match_revealed'
+        ? text.bannerMatchRevealed
+        : text.bannerMatch;
+  }
+
+  //The guarded entry point. Every delivery route goes through here.
   Future<void> _openFromNotification(RemoteMessage message) async {
+    if (_openingFromPush) return;
+    //messageId IS THE DEDUPE KEY. _openingFromPush covers the window before
+    //one is known - the two deliveries land milliseconds apart, well inside
+    //the request made below before anything appears on screen.
+    final pushId = message.messageId;
+    if (pushId != null && pushId == _handledPushId) return;
+    _openingFromPush = true;
+    _handledPushId = pushId;
+    try {
+      await _takeTapToItsMatch(message);
+    } finally {
+      _openingFromPush = false;
+    }
+  }
+
+  Future<void> _takeTapToItsMatch(RemoteMessage message) async {
     //DATA VALUES ARE STRINGS over the wire, so this is parsed rather than
     //cast - and a payload without a usable id still opens the tab, which is
     //better than the tap appearing to do nothing.
     final matchId = matchIdFromPush(message.data);
 
-    //THE TAB FIRST, so there is somewhere for the profile to be pushed on top
-    //of - and so backing out of that profile lands on the matches page rather
-    //than on whatever was open when the push arrived.
-    _onItemTapped(_kMatchesTab);
-
-    //ONE FRAME, because the key has no state until the page is built. On a
-    //cold start this runs moments after the first frame and the PageView may
-    //not have reached index 1 yet, so reading currentState immediately gets
-    //null and the tap does nothing at all. A frame is enough - the page only
-    //has to be BUILT, not finished sliding into place.
-    await WidgetsBinding.instance.endOfFrame;
+    //THE MATCH IS FETCHED BEFORE ANYTHING MOVES, which is what makes this
+    //land on the profile rather than travel to it. Switching tabs first meant
+    //the user watched the app launch, slide to the matches page, wait on a
+    //request and only then animate a profile in - three transitions replaying
+    //a journey they never made. The request happens while the app is still
+    //showing whatever it opened on, and by the time anything changes there is
+    //a profile ready to put there.
+    MatchModel? match;
+    if (matchId != null) {
+      try {
+        final matches = await ApiService.getMatches(
+          uid: FirebaseAuth.instance.currentUser!.uid,
+        );
+        match = matches
+            .where((candidate) => candidate.matchId == matchId)
+            .firstOrNull;
+      } catch (error, stack) {
+        //A FAILED LOAD LANDS THE USER ON THE LIST, which is a fine outcome
+        //and a terrible silence: the tap looks like it half worked and there
+        //is nothing anywhere saying the request failed. reportError is
+        //stripped from release builds the same way debugPrint is.
+        reportError(error,
+            stack: stack, context: 'opening a match from a push');
+      }
+    }
     if (!mounted) return;
 
-    final page = _matchesPageKey.currentState;
-    if (page == null) return;
-    if (matchId == null) {
-      page.loadMatches();
+    //JUMPED, NOT SLID. The slide is for somebody choosing a tab; arriving
+    //here was decided by tapping a banner, and animating it only delays the
+    //thing they asked for.
+    if (_pageController.hasClients) {
+      _pageController.jumpToPage(_kMatchesTab);
+    }
+    if (_selectedIndex != _kMatchesTab) {
+      setState(() => _selectedIndex = _kMatchesTab);
+    }
+
+    //GONE IS A NORMAL OUTCOME, not an error. Between the push being sent and
+    //the banner being tapped, the other side can decline, either side can
+    //remove it, and a match left unanswered for three days expires. Landing
+    //on the list is then the honest answer: the notification was true when it
+    //was sent, and the page says what is true now.
+    if (match == null) {
+      _matchesPageKey.currentState?.loadMatches();
       return;
     }
-    await page.openMatch(matchId);
+
+    final page = await _matchesPageWhenBuilt();
+    if (page == null) return;
+    //RELEASED BEFORE THE PROFILE OPENS. openMatch does not return until the
+    //user backs out of it, and holding the guard that long would make a
+    //genuine second notification unanswerable.
+    _openingFromPush = false;
+    await page.openMatch(match);
+  }
+
+  //Wait for the matches page to exist, for as long as that is reasonable.
+  //
+  //A GlobalKey HAS NO STATE UNTIL THE WIDGET IS BUILT, and on a cold start
+  //the PageView may still be building it when a tapped notification is
+  //already asking for it. Awaiting the slide above is usually enough; this is
+  //what stops a slow frame turning the tap into nothing at all.
+  //
+  //BOUNDED, because the alternative is waiting forever for a page that is
+  //never coming - at which point landing on the tab is the right answer.
+  Future<MatchesPageState?> _matchesPageWhenBuilt() async {
+    for (var frame = 0; frame < 60; frame++) {
+      final state = _matchesPageKey.currentState;
+      if (state != null) return state;
+      await WidgetsBinding.instance.endOfFrame;
+      if (!mounted) return null;
+    }
+    return null;
   }
 
   //Function to store the fcm token in the firebase firestore database
@@ -188,15 +303,12 @@ class _MainScreenState extends State<MainScreen> {
     if (user != null) {
       String? token = await FirebaseMessaging.instance.getToken();
 
-      if (token != null) {  
-        await FirebaseFirestore.instance  
-          .collection('users')
-          .doc(user.uid)
-          .set({  
-            'fcm_token': token,
-            'last_active': FieldValue.serverTimestamp(),
-            'match_notifications': settings.matchNotificationsEnabled
-          }, SetOptions(merge: true));
+      if (token != null) {
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          'fcm_token': token,
+          'last_active': FieldValue.serverTimestamp(),
+          'match_notifications': settings.matchNotificationsEnabled,
+        }, SetOptions(merge: true));
       }
     }
   }
@@ -225,15 +337,18 @@ class _MainScreenState extends State<MainScreen> {
       //the stream builder grabs a firebase user from local phone cache so the user could be deleted
       //but still login
       //If database says user is null then the user has been deleted or banned and so we sign out
-      if(user == null) {
+      if (user == null) {
         await FirebaseAuth.instance.signOut();
       }
     }
   }
 
   void _precacheProfileImage() {
-    final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
-    if(profileProvider.tempProfileImage != null) {
+    final profileProvider = Provider.of<ProfileProvider>(
+      context,
+      listen: false,
+    );
+    if (profileProvider.tempProfileImage != null) {
       precacheImage(FileImage(profileProvider.tempProfileImage!), context);
     }
   }
@@ -276,12 +391,12 @@ class _MainScreenState extends State<MainScreen> {
     return GestureDetector(
       onTap: () => _onItemTapped(index),
       behavior: HitTestBehavior.opaque,
-      
+
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOut,
         transform: Matrix4.translationValues(0, isSelected ? -6.0 : 0.0, 0),
-        
+
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -290,7 +405,7 @@ class _MainScreenState extends State<MainScreen> {
               iconPath,
               width: 28,
               height: 28,
-              color: isSelected ? AppColors.primary : Colors.grey[600]
+              color: isSelected ? AppColors.primary : Colors.grey[600],
             ),
             const SizedBox(height: 4),
             AnimatedDefaultTextStyle(
@@ -298,9 +413,9 @@ class _MainScreenState extends State<MainScreen> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: Theme.of(context).brightness == Brightness.dark 
-                ? (isSelected ? Colors.white : Colors.grey[600]) 
-                : (isSelected ? Colors.grey[900] : Colors.grey[600])
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? (isSelected ? Colors.white : Colors.grey[600])
+                    : (isSelected ? Colors.grey[900] : Colors.grey[600]),
               ),
               child: Text(label),
             ),
@@ -342,34 +457,39 @@ class _MainScreenState extends State<MainScreen> {
             physics: (_selectedIndex == 0 && _lockHomeSwipe)
                 ? const NeverScrollableScrollPhysics()
                 : const ClampingScrollPhysics(),
-            children:
-                pages.map((page) => _KeepAlivePage(child: page)).toList(),
+            children: pages.map((page) => _KeepAlivePage(child: page)).toList(),
           ),
         ),
         bottomNavigationBar: SafeArea(
           child: Container(
             height: 70,
-            decoration: BoxDecoration(  
+            decoration: BoxDecoration(
               color: Theme.of(context).brightness == Brightness.dark
                   ? AppColors.darkBackground
                   : AppColors.lightSurface,
-              border: Border(  
-                top: BorderSide(  
-                  color: Theme.of(context).brightness == Brightness.dark  
-                    ? Colors.white.withValues(alpha: 0.06)
-                    : Colors.black.withValues(alpha: 0.08),
+              border: Border(
+                top: BorderSide(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white.withValues(alpha: 0.06)
+                      : Colors.black.withValues(alpha: 0.08),
                   width: 0.5,
                 ),
               ),
             ),
             child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Expanded(child: _buildNavItem(0, 'assets/icons/home_page.png', 'Home')),
-                  Expanded(child: _buildNavItem(1, 'assets/icons/like.png', 'Matches')),
-                  Expanded(child: _buildNavItem(2, 'assets/icons/user.png', 'Profile')),
-                ],
-              ),
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Expanded(
+                  child: _buildNavItem(0, 'assets/icons/home_page.png', 'Home'),
+                ),
+                Expanded(
+                  child: _buildNavItem(1, 'assets/icons/like.png', 'Matches'),
+                ),
+                Expanded(
+                  child: _buildNavItem(2, 'assets/icons/user.png', 'Profile'),
+                ),
+              ],
+            ),
           ),
         ),
       ),

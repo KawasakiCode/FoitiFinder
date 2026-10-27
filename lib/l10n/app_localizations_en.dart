@@ -1943,4 +1943,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationsBlockedAction => 'Open settings';
+
+  @override
+  String get bannerMatch => 'It\'s a match — your turn to answer';
+
+  @override
+  String get bannerMatchRevealed =>
+      'You\'re connected — their Instagram is ready';
 }

@@ -3793,6 +3793,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open settings'**
   String get notificationsBlockedAction;
+
+  /// No description provided for @bannerMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s a match — your turn to answer'**
+  String get bannerMatch;
+
+  /// No description provided for @bannerMatchRevealed.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re connected — their Instagram is ready'**
+  String get bannerMatchRevealed;
 }
 
 class _AppLocalizationsDelegate

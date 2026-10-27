@@ -1952,4 +1952,11 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get notificationsBlockedAction => 'Άνοιγμα ρυθμίσεων';
+
+  @override
+  String get bannerMatch => 'Έγινε ματς — σειρά σου να απαντήσεις';
+
+  @override
+  String get bannerMatchRevealed =>
+      'Συνδεθήκατε — το Instagram του είναι έτοιμο';
 }

@@ -771,5 +771,7 @@
   "askNotificationsLater": "Not now",
   "notificationsBlockedTitle": "Notifications are off",
   "notificationsBlockedBody": "Your phone is blocking notifications for FoitiFinder, so this cannot be turned on from here. You can allow them in your device settings.",
-  "notificationsBlockedAction": "Open settings"
+  "notificationsBlockedAction": "Open settings",
+  "bannerMatch": "It's a match — your turn to answer",
+  "bannerMatchRevealed": "You're connected — their Instagram is ready"
 }

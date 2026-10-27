@@ -57,6 +57,13 @@ class MatchesPageState extends State<MatchesPage> {
   //true until the first load finishes, so the page does not flash "no
   //matches" at someone who has them
   bool _loading = true;
+  //ONE PROFILE AT A TIME. home_page has carried this guard for a while for
+  //the same reason: Navigator.push is not idempotent, so two calls that
+  //arrive before the first route is on screen stack two identical pages, and
+  //the first back press then appears to do nothing because what it uncovers
+  //looks the same. A tapped notification was the second way to cause that;
+  //a fast double tap on a tile is the first.
+  bool _openingProfile = false;
 
   AppLocalizations get text => AppLocalizations.of(context)!;
 
@@ -102,24 +109,16 @@ class MatchesPageState extends State<MatchesPage> {
   //IT RELOADS FIRST. The push arrived while the app was in the background or
   //shut, so whatever is in _matches is from before that - and on a cold start
   //there is nothing in it at all.
-  Future<void> openMatch(int matchId) async {
-    await loadMatches();
-    if (!mounted) return;
-
-    //GONE IS A NORMAL OUTCOME, not an error. Between the push being sent and
-    //the banner being tapped the other side can have declined, either side
-    //can have removed it, and a match left unanswered for three days expires.
-    //Landing on the list is then the honest answer: the notification was
-    //true when it was sent, and the page says what is true now.
-    final match = _matches
-        .where((candidate) => candidate.matchId == matchId)
-        .firstOrNull;
-    if (match == null) return;
-
-    //NO NAVIGATION OF ITS OWN: the same call a tapped tile makes, so a match
-    //reached from a banner is the same screen with the same action bar and
-    //the same reload behind it.
-    await _openProfile(match);
+  Future<void> openMatch(MatchModel match) async {
+    //ALREADY LOADED BY THE CALLER, deliberately. main_screen fetches the
+    //match before it switches to this tab, so the list is never shown
+    //mid-flight while a request runs - the profile is the first thing the
+    //notification puts on screen.
+    //
+    //NO NAVIGATION OF ITS OWN BEYOND THAT: the same call a tapped tile
+    //makes, so a match reached from a banner is the same screen with the same
+    //action bar and the same reload behind it.
+    await _openProfile(match, instant: true);
   }
 
   //ties a grid tile's photo to the header photo of the profile page.
@@ -135,13 +134,18 @@ class MatchesPageState extends State<MatchesPage> {
   //you have already matched with - the decision left is whether to hand over
   //an Instagram handle, and that lives in the bar so it can show the three
   //states the server reports rather than two buttons that mean one thing.
-  Future<void> _openProfile(MatchModel match) async {
+  Future<void> _openProfile(MatchModel match, {bool instant = false}) async {
+    if (_openingProfile) return;
+    _openingProfile = true;
     await Navigator.push<void>(
       context,
       profileDetailRoute(
         userId: match.otherUserId,
         photoHeroTag: _photoHeroTag(match),
         decisions: false,
+        //a tapped notification asks for this profile, not for a journey to it
+        transitionDuration:
+            instant ? Duration.zero : const Duration(milliseconds: 680),
         footer: MatchActionBar(match: match, onChanged: loadMatches),
         //ONLY ON A FINISHED MATCH, which is the only state with no other way
         //out: decline covers the unanswered ones and the clock covers the
@@ -162,6 +166,7 @@ class MatchesPageState extends State<MatchesPage> {
         ),
       ),
     );
+    _openingProfile = false;
     //sharing or declining while in there changes what this list should say
     if (mounted) await loadMatches();
   }

@@ -70,12 +70,21 @@ Route<ProfileDecision> profileDetailRoute({
   //alternative is a profile page that has to ask what kind of thing it is
   //looking at before it can draw its own menu.
   VoidCallback? onRemoveMatch,
+  //ZERO WHEN THE PAGE SHOULD ALREADY BE THERE. A tapped notification is
+  //asking for this profile, not for the matches page - so animating in from
+  //the grid replays, on top of the app launching, a journey the user never
+  //made. The flight runs on this animation too, so zero means the photo is
+  //simply in place rather than flying from a tile that was never on screen.
+  //
+  //THE EXIT IS LEFT ALONE: pressing back IS a journey, and it lands on the
+  //grid, which is where the reverse flight belongs.
+  Duration transitionDuration = const Duration(milliseconds: 680),
 }) {
   return PageRouteBuilder<ProfileDecision>(
     //THIS IS THE FLIGHT'S DURATION TOO. A hero flight runs on the route's
     //animation, so these two numbers are what makes the photo and the buttons
     //travel at the speed they do.
-    transitionDuration: const Duration(milliseconds: 680),
+    transitionDuration: transitionDuration,
     reverseTransitionDuration: const Duration(milliseconds: 520),
     pageBuilder: (_, _, _) => ProfileDetailPage(
       userId: userId,

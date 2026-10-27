@@ -621,5 +621,7 @@
   "askNotificationsLater": "Όχι τώρα",
   "notificationsBlockedTitle": "Οι ειδοποιήσεις είναι απενεργοποιημένες",
   "notificationsBlockedBody": "Το τηλέφωνό σου μπλοκάρει τις ειδοποιήσεις για το FoitiFinder, οπότε δεν μπορεί να ενεργοποιηθεί από εδώ. Μπορείς να τις επιτρέψεις από τις ρυθμίσεις της συσκευής.",
-  "notificationsBlockedAction": "Άνοιγμα ρυθμίσεων"
+  "notificationsBlockedAction": "Άνοιγμα ρυθμίσεων",
+  "bannerMatch": "Έγινε ματς — σειρά σου να απαντήσεις",
+  "bannerMatchRevealed": "Συνδεθήκατε — το Instagram του είναι έτοιμο"
 }
