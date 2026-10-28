@@ -7,6 +7,15 @@
         <item name="android:windowDrawsSystemBarBackgrounds">false</item>
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
         <!--
+             THE GRADIENT, AFTER THE SYSTEM SPLASH AND BEFORE FLUTTER.
+             This was missing, which is why the gradient never appeared on a
+             modern phone at all: without it LaunchTheme falls back to the
+             parent theme's plain background, so API 31+ went system splash ->
+             white -> app and the drawable was only ever seen on Android 11
+             and below.
+        -->
+        <item name="android:windowBackground">@drawable/launch_background</item>
+        <!--
              SOLID, BECAUSE THE OS GIVES NO CHOICE. The API 31+ splash is drawn
              by the system from this attribute, which takes a colour - there is
              no form of it that accepts a drawable, so the gradient in

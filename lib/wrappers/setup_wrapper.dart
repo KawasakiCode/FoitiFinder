@@ -3,6 +3,7 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:foitifinder/widgets/launch_screen.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/main_screen.dart';
 import 'package:foitifinder/models/user_model.dart';
@@ -121,7 +122,8 @@ class _SetupWrapperState extends State<SetupWrapper> {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      //the native launch gradient, continued - see LaunchScreen
+      return const LaunchScreen();
     }
 
     //Backend unreachable: the user stays signed in and can try again, instead

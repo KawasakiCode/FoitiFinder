@@ -55,6 +55,49 @@ def read_properties(path: str) -> dict:
     return values
 
 
+def fingerprints(keytool: str, path: str, alias: str, password: str) -> bool:
+    """Print a keystore entry's fingerprints. True if it found any."""
+    result = subprocess.run(
+        [keytool, "-list", "-v", "-keystore", path, "-alias", alias],
+        input=(password or "") + "\n",
+        capture_output=True,
+        text=True,
+    )
+    shown = False
+    for line in result.stdout.splitlines():
+        stripped = line.strip()
+        if stripped.startswith(("SHA1:", "SHA-1:", "SHA256:", "SHA-256:")):
+            print("   " + stripped)
+            shown = True
+    return shown
+
+
+def debug_key(keytool: str) -> None:
+    """The debug keystore, which the Android SDK creates by itself.
+
+    AS IMPORTANT AS THE UPLOAD KEY, AND EASY TO FORGET. The API key is
+    restricted by package name AND certificate, so a build signed with a
+    fingerprint Google has not been told about is refused - and `flutter run`
+    signs with THIS key, not the upload one.
+
+    Register only the upload key and every debug build silently loses Firebase
+    Auth, while plain HTTP to your own backend keeps working. That combination
+    is badly misleading: the backend answers, the login does not, and nothing
+    in the backend log shows a thing, because the app never gets far enough to
+    call it.
+
+    The password is Android's own published default. It is not a secret - the
+    SDK generates this file locally and it signs nothing anybody ships.
+    """
+    path = os.path.join(os.path.expanduser("~"), ".android", "debug.keystore")
+    print("\ndebug keystore (what `flutter run` signs with)")
+    if not os.path.exists(path):
+        print("   not found - created the first time a debug APK is built here")
+        return
+    if not fingerprints(keytool, path, "androiddebugkey", "android"):
+        print("   keytool returned nothing for alias androiddebugkey")
+
+
 def main() -> None:
     properties_path = os.path.join(ANDROID, "key.properties")
     if not os.path.exists(properties_path):
@@ -81,26 +124,19 @@ def main() -> None:
     print("(this is the UPLOAD key; Play's own signing key is in Play Console"
           " > Setup > App integrity)\n")
 
-    result = subprocess.run(
-        [find_keytool(), "-list", "-v", "-keystore", path, "-alias", alias],
-        input=(password or "") + "\n",
-        capture_output=True,
-        text=True,
-    )
-
-    shown = False
-    for line in result.stdout.splitlines():
-        stripped = line.strip()
-        if stripped.startswith(("SHA1:", "SHA-1:", "SHA256:", "SHA-256:")):
-            print("   " + stripped)
-            shown = True
-
-    if not shown:
+    keytool = find_keytool()
+    if not fingerprints(keytool, path, alias, password):
         #NEVER PRINT keytool's stderr WHOLESALE - it can echo back what was
         #typed at it, which here is the password.
         sys.exit("keytool returned no fingerprint. Check keyAlias and the "
                  "password in key.properties, and that keytool is installed "
                  "(it ships with the JDK inside Android Studio).")
+
+    debug_key(keytool)
+
+    print("\nBOTH belong in Firebase (project settings > the Android app) and")
+    print("in the API key's Android restriction. Play adds a third of its own")
+    print("once you upload: Play Console > Setup > App integrity.")
 
 
 if __name__ == "__main__":

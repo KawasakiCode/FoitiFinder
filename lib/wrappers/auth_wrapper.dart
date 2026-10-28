@@ -5,6 +5,7 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:foitifinder/widgets/launch_screen.dart';
 import 'package:foitifinder/pages/auth_pages/login.dart';
 import 'package:foitifinder/wrappers/setup_wrapper.dart';
 
@@ -17,11 +18,8 @@ class AuthWrapper extends StatelessWidget {
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
           if(snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(  
-              body: Center(  
-                child: CircularProgressIndicator(),
-              )
-            );
+            //the native launch gradient, continued - see LaunchScreen
+            return const LaunchScreen();
           }
           if(snapshot.hasData) {
             return SetupWrapper(firebaseUser: snapshot.data!);
