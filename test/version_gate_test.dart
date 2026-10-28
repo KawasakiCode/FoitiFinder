@@ -17,6 +17,8 @@
 //VersionGate's own buildIsTooOld - the real function, not a copy of it - and
 //the fail-open contract of minimumBuild() is stated at the method itself.
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
@@ -106,11 +108,20 @@ void main() {
   });
 
   test('the store link points at this app', () {
-    //A PLACEHOLDER UNTIL THE PACKAGE NAME IS, TOO. The app still ships as
-    //com.example.foitifinder, which Play refuses at upload - so this link is
-    //wrong in exactly the same way and becomes right the day that is fixed.
-    //Pinned so the two cannot be fixed separately and silently disagree.
-    expect(kStoreUrl, contains('com.example.foitifinder'));
-    expect(kStoreUrl, startsWith('https://play.google.com/store/apps/details'));
+    //READ OUT OF THE GRADLE FILE, not written here twice. The wall's only
+    //button goes to this URL, so a package name that drifted from the one
+    //the app actually ships under would be a dead button on the one screen
+    //whose entire purpose is sending somebody to the store - and nothing
+    //would fail until a user with an old build pressed it.
+    final gradle = File('android/app/build.gradle.kts').readAsStringSync();
+    final applicationId = RegExp(r'applicationId\s*=\s*"([^"]+)"')
+        .firstMatch(gradle)
+        ?.group(1);
+
+    expect(applicationId, isNotNull, reason: 'applicationId not found');
+    expect(applicationId, isNot(contains('com.example')),
+        reason: 'Play refuses the example prefix');
+    expect(kStoreUrl, 'https://play.google.com/store/apps/details'
+        '?id=$applicationId');
   });
 }

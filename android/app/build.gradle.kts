@@ -18,7 +18,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.example.foitifinder"
+    namespace = "com.foitifinder.app"
     compileSdk = 36
     ndkVersion = "29.0.13599879"
 
@@ -32,8 +32,16 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.foitifinder"
+        //PERMANENT ONCE PUBLISHED. Play keys a listing to this string for
+        //life: it cannot be changed later, and shipping under a different one
+        //means a new listing with no installs, no reviews and no update path
+        //for anybody already on the old build. It was com.example.foitifinder,
+        //which Play refuses outright - the example prefix is reserved.
+        //
+        //CHANGING IT INVALIDATES THE FIREBASE CONFIG AND THE API KEY
+        //RESTRICTION, both of which are keyed to the package name. See
+        //docs/release.md.
+        applicationId = "com.foitifinder.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

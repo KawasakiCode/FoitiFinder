@@ -1,6 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  The pre-API-21 fallback. See drawable-v21/launch_background.xml for what
+  this is and why it is hand-written rather than generated.
+
+  THE SAME GRADIENT WITHOUT THE GLOW LAYER: radial gradients here would need
+  gradientRadius in %p, which is API 21 and up. Keeping the colours identical
+  means the two cannot drift into looking like different apps.
+
+  Nothing this project ships actually runs below 21 - minSdk comes from
+  Flutter, which is well past it - so this exists to keep the resource set
+  valid rather than because any phone will see it.
+-->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
-        <bitmap android:gravity="fill" android:src="@drawable/background"/>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="linear"
+                android:angle="315"
+                android:startColor="#C084FC"
+                android:centerColor="#7C3AED"
+                android:endColor="#312E81" />
+        </shape>
     </item>
 </layer-list>

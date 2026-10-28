@@ -33,11 +33,11 @@ import 'package:url_launcher/url_launcher.dart';
 //because Play resolves it and the same URL opens the installed Play app or
 //the web page if there is none.
 //
-//NOT YET THE REAL ONE: the app still ships as com.example.foitifinder, which
-//Play refuses to accept at upload. This link is correct the day that changes,
-//and wrong in exactly the same way the package name is until then.
+//KEYED TO THE applicationId in android/app/build.gradle.kts, and a test
+//pins the two together - a link to a package name that is not this app's is
+//a wall with a dead button on it, which is worse than no wall at all.
 const String kStoreUrl =
-    'https://play.google.com/store/apps/details?id=com.example.foitifinder';
+    'https://play.google.com/store/apps/details?id=com.foitifinder.app';
 
 /// Whether a build of [mine] must stop talking to a backend asking for
 /// [minimum]. Null for either means "not known", which always lets the app run.

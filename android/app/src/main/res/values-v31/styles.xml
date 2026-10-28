@@ -6,7 +6,16 @@
         <item name="android:windowFullscreen">false</item>
         <item name="android:windowDrawsSystemBarBackgrounds">false</item>
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
-        <item name="android:windowSplashScreenBackground">#7734eb</item>
+        <!--
+             SOLID, BECAUSE THE OS GIVES NO CHOICE. The API 31+ splash is drawn
+             by the system from this attribute, which takes a colour - there is
+             no form of it that accepts a drawable, so the gradient in
+             drawable-v21/launch_background.xml cannot be used here.
+
+             7C3AED is that gradient's middle stop, so the system splash and
+             the window behind it are the same colour at the moment they swap.
+        -->
+        <item name="android:windowSplashScreenBackground">#7C3AED</item>
     </style>
     <!-- Theme applied to the Android Window as soon as the process has started.
          This theme determines the color of the Android Window while your
