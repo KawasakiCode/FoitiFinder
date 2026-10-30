@@ -821,3 +821,90 @@ class TestAnUnansweredMatchBelongsToOnePerson:
         assert as_user(alice).post(
             f"/matches/{match_id}/decline"
         ).status_code == 200
+
+
+class TestAnExpiredMatchCanBeDismissed:
+    """The gap between "nothing left to answer" and "nothing you can do".
+
+    AN EXPIRED MATCH WAS ACTIONABLE BY NOTHING. decline refuses it, because
+    the list and the endpoints have to agree about what is over; and remove
+    refused it too, for not being confirmed. So it sat in the list, correctly
+    saying it had lapsed, with no way to acknowledge that and move on - until
+    the grace window ran out days later.
+
+    Showing the notice is right. Being unable to dismiss it is not.
+    """
+
+    def expired(self, db, as_user, swipe, alice, bob):
+        """A match nobody answered, three days old."""
+        import datetime
+
+        from database import models
+
+        swipe(bob, alice, "like")
+        match_id = as_user(alice).post(
+            "/swipes", json={"target_id": bob.id, "action": "like"}
+        ).json()["match_id"]
+        match = db.query(models.Matches).filter_by(id=match_id).first()
+        match.created_at = (datetime.datetime.now(datetime.timezone.utc)
+                            - datetime.timedelta(days=3, hours=1))
+        db.commit()
+        return match_id
+
+    def test_it_is_shown_as_expired_first(self, db, as_user, make_user, swipe):
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        self.expired(db, as_user, swipe, alice, bob)
+
+        body = as_user(alice).get("/matches").json()
+        assert len(body) == 1
+        assert body[0]["expired"] is True
+
+    def test_and_can_then_be_removed(self, db, as_user, make_user, swipe):
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = self.expired(db, as_user, swipe, alice, bob)
+
+        assert as_user(alice).delete(f"/matches/{match_id}").status_code == 200
+        assert as_user(alice).get("/matches").json() == []
+
+    def test_only_from_the_list_of_whoever_removed_it(
+        self, db, as_user, make_user, swipe
+    ):
+        #the same rule as everywhere else: a removal is one side's, never both
+        from database import models
+
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = self.expired(db, as_user, swipe, alice, bob)
+        as_user(alice).delete(f"/matches/{match_id}")
+
+        row = db.query(models.Matches).filter_by(id=match_id).first()
+        #alice completed the match, so she is user_a
+        assert row.hidden_by_a_at is not None
+        assert row.hidden_by_b_at is None
+
+    def test_a_live_unanswered_match_still_cannot_be(
+        self, as_user, make_user, swipe
+    ):
+        """THE LINE THIS DOES NOT CROSS.
+
+        An unanswered match that has NOT expired belongs to decline, which
+        tells whoever was waiting. Removing it instead would be a silent way
+        to abandon somebody mid-exchange - which is the whole reason the two
+        endpoints were split in the first place.
+        """
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        swipe(bob, alice, "like")
+        match_id = as_user(alice).post(
+            "/swipes", json={"target_id": bob.id, "action": "like"}
+        ).json()["match_id"]
+
+        assert as_user(alice).delete(f"/matches/{match_id}").status_code == 409
+
+    def test_nor_one_waiting_on_an_answer(self, as_user, make_user, swipe):
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        swipe(bob, alice, "like")
+        match_id = as_user(alice).post(
+            "/swipes", json={"target_id": bob.id, "action": "like"}
+        ).json()["match_id"]
+        as_user(alice).post(f"/matches/{match_id}/confirm")
+
+        assert as_user(alice).delete(f"/matches/{match_id}").status_code == 409

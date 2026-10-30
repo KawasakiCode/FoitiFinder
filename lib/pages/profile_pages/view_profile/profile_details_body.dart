@@ -134,10 +134,22 @@ class _HeaderCard extends StatelessWidget {
     final text = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
-    //"24 · 178 cm", with either half missing if it is not set
+    //"24 · 178 cm · she/her", with any part missing if it is not set.
+    //
+    //PRONOUNS SIT HERE RATHER THAN WITH THE OTHER CHOICES BELOW. They are not
+    //an opinion somebody holds, they are how to refer to the person while
+    //reading the rest of the profile - so they belong beside the name, where
+    //they are read before the bio rather than a screen further down among
+    //answers about drinking and religion.
+    //
+    //FREE TEXT IS POSSIBLE here: pronouns_page lets somebody type their own,
+    //so this is whatever they wrote rather than one of three known values -
+    //hence no catalogueLabel, which would only find the three.
+    final pronouns = user.choice(kChoicePronouns.key);
     final line = [
       if (user.age != null) '${user.age}',
       if (user.heightCm != null) '${user.heightCm} ${text.cm}',
+      if (pronouns.isNotEmpty) pronouns.first,
     ].join('  ·  ');
     final bio = (user.bio ?? '').trim();
 

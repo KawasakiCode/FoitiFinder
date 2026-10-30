@@ -151,7 +151,14 @@ class MatchesPageState extends State<MatchesPage> {
         //out: decline covers the unanswered ones and the clock covers the
         //expired ones. Passing null for the rest is what keeps the option out
         //of the menu, so the page never has to know what a match is.
-        onRemoveMatch: match.revealed ? () => _removeMatch(match) : null,
+        //FINISHED OR EXPIRED. Both are states with nothing left to answer
+        //and both need a way off the page - an expired one used to be
+        //removable by nothing at all, so it sat there dead until the grace
+        //window ran out. An unanswered one is still decline's job, which
+        //tells whoever was waiting.
+        onRemoveMatch: (match.revealed || match.expired)
+            ? () => _removeMatch(match)
+            : null,
         //the tile already has a face and a name, so the page opens with them
         //rather than a spinner; the rest arrives a moment later
         preview: PublicProfile(

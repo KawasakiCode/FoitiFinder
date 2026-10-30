@@ -380,14 +380,27 @@ def remove_match(match_id: int, uid: str = Depends(verified_email_uid),
         raise HTTPException(status_code=404, detail="Match not found")
 
     i_am_a = match.user_a_id == me.id
+    now = datetime.datetime.now(datetime.timezone.utc)
 
-    if match.a_confirmed_at is None or match.b_confirmed_at is None:
+    #FINISHED, OR OVER. Those are the two states with nothing left to answer,
+    #and both of them need a way off the page.
+    #
+    #AN EXPIRED MATCH USED TO BE REMOVABLE BY NOTHING AT ALL - decline refuses
+    #it (see _match_for_participant), and this refused it for not being
+    #confirmed, so it sat in the list being dead until the grace window ran
+    #out. The notice is worth showing; being unable to dismiss it is not.
+    #
+    #STILL NOT A LIVE UNANSWERED MATCH. That one belongs to decline, which
+    #tells whoever was waiting - letting it through here would be a silent way
+    #to abandon somebody mid-exchange.
+    finished = (match.a_confirmed_at is not None
+                and match.b_confirmed_at is not None)
+    if not finished and not match_expiry.is_expired(match, now):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Only a completed match can be removed",
+            detail="Only a completed or expired match can be removed",
         )
 
-    now = datetime.datetime.now(datetime.timezone.utc)
     if i_am_a and match.hidden_by_a_at is None:
         match.hidden_by_a_at = now
     elif not i_am_a and match.hidden_by_b_at is None:

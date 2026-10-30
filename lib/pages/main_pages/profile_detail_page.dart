@@ -242,6 +242,19 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
     return Scaffold(
       //the photo runs under the bar and up to the very top of the screen
       extendBodyBehindAppBar: true,
+      //LAID OUT, NOT OVERLAID. The footer used to be a Positioned child of
+      //the Stack below, floating over the scroll view, and the scroll view
+      //ended with a fixed 120px spacer to clear it. That number was measured
+      //against the like/pass bar; MatchActionBar in its revealed state is
+      //taller - a title, the handle in large type and two buttons - so the
+      //last card on a connected profile was cut in half by it and could not
+      //be scrolled into view at all.
+      //
+      //In this slot the Scaffold shortens the body by whatever the bar
+      //actually measures, so nothing has to guess. The decision bar stays in
+      //the Stack because it flies there from the deck's card and a Hero needs
+      //its destination to sit still.
+      bottomNavigationBar: widget.footer,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -287,8 +300,12 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
                     ),
                   ),
                 ),
-                //clear of the buttons pinned below
-                const SizedBox(height: 120),
+                //CLEAR OF THE DECISION BAR, which is the only thing still
+                //pinned over this scroll view. A footer is laid out by the
+                //Scaffold instead (see bottomNavigationBar), so it needs no
+                //allowance here - and when there is neither, this is just
+                //breathing room at the end of a profile.
+                SizedBox(height: widget.decisions ? 120 : 24),
               ],
             ),
           ),
@@ -315,15 +332,6 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
                 backgroundColor: Colors.transparent,
                 color: theme.colorScheme.primary.withValues(alpha: 0.5),
               ),
-            ),
-
-          if (widget.footer != null)
-            Positioned(
-              key: const ValueKey('profile-footer'),
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: widget.footer!,
             ),
 
           //the decision, pinned to the screen rather than to the scroll

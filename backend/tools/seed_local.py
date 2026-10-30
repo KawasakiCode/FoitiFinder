@@ -120,6 +120,23 @@ INTENTIONS = ["Something casual", "Something serious",
 KIDS = ["I'm open to kids", "I want kids", "I don't want kids",
         "Still figuring it out"]
 LANGUAGES = ["Greek", "English", "German", "French", "Italian"]
+#THE REST OF THE PILLS. These were missing, so every seeded profile showed
+#four answers and three blanks - which looked like the profile page not
+#rendering them rather than like nobody having filled them in.
+#
+#None IS IN EVERY LIST ON PURPOSE. These are the questions real people skip,
+#and a seeded world where everybody answers everything hides what a
+#half-filled profile looks like - which is most of them.
+RELIGIONS = ["Agnostic", "Atheist", "Christian", "Orthodox", "Spiritual",
+             None, None]
+POLITICS = ["Apolitical", "Left-Leaning", "Liberal", "Progressive",
+            "Right-Leaning", None, None, None]
+ORIENTATIONS = ["Straight", "Straight", "Straight", "Gay", "Lesbian",
+                "Bisexual", None, None]
+PRONOUNS_BY_GENDER = {
+    "Female": ["she/her", "she/her", "she/they", None],
+    "Male": ["he/him", "he/him", "he/they", None],
+}
 STORIES = [
     "This was five minutes before it started raining.",
     "My sister took this and refuses to take a better one.",
@@ -475,6 +492,15 @@ def make_profile(db, index: int, gender: str,
         smoking=random.choice(ALCOHOL),
         dating_intention=random.choice(INTENTIONS),
         kids=random.choice(KIDS),
+        religion=random.choice(RELIGIONS),
+        political_view=random.choice(POLITICS),
+        sexual_orientation=random.choice(ORIENTATIONS),
+        #MATCHED TO THE PROFILE'S GENDER, because a card reading "Maria,
+        #he/him" is noise while testing: you end up wondering whether the bug
+        #is in the rendering or in the seed. The same reason the names are
+        #picked per gender.
+        pronouns=random.choice(
+            PRONOUNS_BY_GENDER.get(gender, ["they/them", None])),
         interest_tags=random.sample(INTERESTS, random.randint(3, 8)),
         trait_tags=random.sample(TRAITS, random.randint(2, 5)),
         languages_spoken=random.sample(LANGUAGES, random.randint(1, 3)),
