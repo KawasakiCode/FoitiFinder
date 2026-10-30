@@ -80,16 +80,24 @@ Route<ProfileDecision> profileDetailRoute({
   //made. The flight runs on this animation too, so zero means the photo is
   //simply in place rather than flying from a tile that was never on screen.
   //
-  //THE EXIT IS LEFT ALONE: pressing back IS a journey, and it lands on the
-  //grid, which is where the reverse flight belongs.
+  //THE EXIT IS SEPARATE: pressing back IS a journey, and it lands on the
+  //grid, which is where the reverse flight belongs - so a page that opened
+  //instantly still closes properly.
   Duration transitionDuration = const Duration(milliseconds: 680),
+  //HAS TO MATCH THE WAY IN WHEN THE WAY IN WAS MEASURED. A flight whose
+  //duration depends on distance and whose return does not is a photo that
+  //drifts out and snaps back - the two legs cover the same ground, so they
+  //have to take the same time. Only the notification path wants them
+  //different, and it is explicit about it.
+  Duration? reverseTransitionDuration,
 }) {
   return PageRouteBuilder<ProfileDecision>(
     //THIS IS THE FLIGHT'S DURATION TOO. A hero flight runs on the route's
     //animation, so these two numbers are what makes the photo and the buttons
     //travel at the speed they do.
     transitionDuration: transitionDuration,
-    reverseTransitionDuration: const Duration(milliseconds: 520),
+    reverseTransitionDuration:
+        reverseTransitionDuration ?? const Duration(milliseconds: 520),
     pageBuilder: (_, _, _) => ProfileDetailPage(
       userId: userId,
       preview: preview,
@@ -115,6 +123,58 @@ Route<ProfileDecision> profileDetailRoute({
 
 //how much of the screen the photo takes, top edge included
 const double _kPhotoFraction = 0.55;
+
+//HOW LONG A FLIGHT INTO THIS PAGE SHOULD TAKE, given where it started.
+//
+//A FIXED DURATION MAKES SPEED DEPEND ON POSITION. The photo flies from
+//wherever it was tapped to the header at the top, so a tile in the bottom row
+//of the matches grid covers several times the distance of one in the top row -
+//and with one duration for both, it covers it several times faster. The long
+//flights snapped.
+//
+//CONSTANT SPEED IS NOT THE ANSWER EITHER, which is what this was first. Make
+//duration strictly proportional to distance and the short flights become the
+//problem instead: a top-row tile has barely a hundred points to travel, so it
+//finishes in a blink and reads as a cut rather than a movement. The eye wants
+//a floor on DURATION, not on speed.
+//
+//So this interpolates between a short flight and a long one across the
+//distances that actually occur. Further is slower, but not proportionally -
+//the longest flight is about a third longer than the shortest while covering
+//five times the ground, and that compression is what makes them look like
+//the same gesture.
+const Duration _kFlightShortest = Duration(milliseconds: 620);
+const Duration _kFlightLongest = Duration(milliseconds: 900);
+//DISTANCE AT WHICH IT REACHES THE LONGEST, as a fraction of screen height
+//rather than a number of points: the grid is laid out in fractions of the
+//screen too, so a tall phone should not push every flight to the maximum.
+const double _kFlightFullTravelFraction = 0.6;
+
+/// How long the hero flight from [from] into this page should last.
+///
+/// [from] is where the photo starts, in global coordinates - the tapped tile.
+/// Null means the caller does not know, and gets the shortest flight.
+Duration profileFlightDuration(BuildContext context, Rect? from) {
+  if (from == null) return _kFlightShortest;
+
+  final screen = MediaQuery.sizeOf(context);
+  //where the photo is going: the header, which fills the top of the page
+  final destination = Rect.fromLTWH(
+    0, 0, screen.width, screen.height * _kPhotoFraction,
+  );
+
+  final travelled = (from.center - destination.center).distance;
+  final fullTravel = screen.height * _kFlightFullTravelFraction;
+  final t = (travelled / fullTravel).clamp(0.0, 1.0);
+
+  return Duration(
+    milliseconds: (_kFlightShortest.inMilliseconds +
+            (_kFlightLongest.inMilliseconds -
+                    _kFlightShortest.inMilliseconds) *
+                t)
+        .round(),
+  );
+}
 
 //THE PROFILE RIDES THE ROUTE'S OWN ANIMATION, and has no controller of its
 //own. It slides in from the right as the page opens and retraces that exact

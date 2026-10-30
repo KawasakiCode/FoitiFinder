@@ -134,7 +134,8 @@ class MatchesPageState extends State<MatchesPage> {
   //you have already matched with - the decision left is whether to hand over
   //an Instagram handle, and that lives in the bar so it can show the three
   //states the server reports rather than two buttons that mean one thing.
-  Future<void> _openProfile(MatchModel match, {bool instant = false}) async {
+  Future<void> _openProfile(MatchModel match,
+      {bool instant = false, Rect? from}) async {
     if (_openingProfile) return;
     _openingProfile = true;
     await Navigator.push<void>(
@@ -143,9 +144,18 @@ class MatchesPageState extends State<MatchesPage> {
         userId: match.otherUserId,
         photoHeroTag: _photoHeroTag(match),
         decisions: false,
-        //a tapped notification asks for this profile, not for a journey to it
-        transitionDuration:
-            instant ? Duration.zero : const Duration(milliseconds: 680),
+        //a tapped notification asks for this profile, not for a journey to
+        //it; a tapped tile asks for the journey, at a speed that does not
+        //depend on how far down the grid it happened to be
+        //SAME NUMBER BOTH WAYS for a tapped tile: the return covers the
+        //same ground, so a fixed reverse would snap back after a long flight
+        //out. The notification path deliberately differs - it opens with no
+        //flight at all and still closes with one.
+        transitionDuration: instant
+            ? Duration.zero
+            : profileFlightDuration(context, from),
+        reverseTransitionDuration:
+            instant ? null : profileFlightDuration(context, from),
         footer: MatchActionBar(match: match, onChanged: loadMatches),
         //ONLY ON A FINISHED MATCH, which is the only state with no other way
         //out: decline covers the unanswered ones and the clock covers the
@@ -314,7 +324,7 @@ class MatchesPageState extends State<MatchesPage> {
               return _MatchTile(
                 match: match,
                 heroTag: _photoHeroTag(match),
-                onTap: () => _openProfile(match),
+                onTap: (from) => _openProfile(match, from: from),
               );
             },
           ),
@@ -333,7 +343,9 @@ class MatchesPageState extends State<MatchesPage> {
 class _MatchTile extends StatelessWidget {
   final MatchModel match;
   final Object heroTag;
-  final VoidCallback onTap;
+  //TAKES WHERE THE TILE IS, so the page it opens can time the flight to the
+  //distance it has to cover - see profileFlightDuration.
+  final void Function(Rect? from) onTap;
 
   const _MatchTile({
     required this.match,
@@ -377,7 +389,15 @@ class _MatchTile extends StatelessWidget {
     return Opacity(
       opacity: match.expired ? 0.45 : 1,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: () {
+          //MEASURED AT TAP TIME, not held in state: the grid scrolls and
+          //resizes under this, so a position captured when the tile was built
+          //would describe where it used to be.
+          final box = context.findRenderObject() as RenderBox?;
+          onTap(box == null || !box.hasSize
+              ? null
+              : box.localToGlobal(Offset.zero) & box.size);
+        },
         child: ClipRRect(
           borderRadius: BorderRadius.circular(kCardRadius),
           //the photo, its scrim AND the name are all inside the Hero, so the
