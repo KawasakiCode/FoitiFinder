@@ -10,9 +10,9 @@
 #what make somebody turn the lot off, taking the match push down with them.
 #
 #NOR IS A DECLINE, AN EXPIRY, A REMOVAL OR A REPORT. None of them give the
-#recipient anything to do, and the matches page already says what happened -
-#an expired match is shown saying so for two days, and a declined one simply
-#is not there. A notification about a non-event is worse than silence.
+#recipient anything to do, and the matches page already says what happened by
+#not listing it - a declined match is deleted and so is an expired one. A
+#notification about a non-event is worse than silence.
 
 from firebase_admin import messaging, firestore
 

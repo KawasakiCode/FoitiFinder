@@ -1872,9 +1872,6 @@ class AppLocalizationsEl extends AppLocalizations {
   }
 
   @override
-  String get matchesSectionExpired => 'Έληξαν';
-
-  @override
   String get matchLaterTitle => 'Αποφάσισε αργότερα';
 
   @override
@@ -1892,18 +1889,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String matchExpiresOn(String name, String day) {
     return 'Αν το $name δεν απαντήσει μέχρι $day, το ματς θα λήξει.';
   }
-
-  @override
-  String get matchExpiredTitle => 'Αυτό το ματς έληξε';
-
-  @override
-  String matchExpiredTheirs(String name) {
-    return 'Το $name δεν απάντησε έγκαιρα. Δεν μοιράστηκε τίποτα.';
-  }
-
-  @override
-  String get matchExpiredMine =>
-      'Δεν απάντησες έγκαιρα, οπότε έληξε. Δεν μοιράστηκε τίποτα.';
 
   @override
   String get removeMatch => 'Αφαίρεση ματς';

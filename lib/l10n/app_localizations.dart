@@ -3656,12 +3656,6 @@ abstract class AppLocalizations {
   /// **'You matched with {name}'**
   String notifMatchOwnTitle(String name);
 
-  /// No description provided for @matchesSectionExpired.
-  ///
-  /// In en, this message translates to:
-  /// **'Expired'**
-  String get matchesSectionExpired;
-
   /// No description provided for @matchLaterTitle.
   ///
   /// In en, this message translates to:
@@ -3691,24 +3685,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'If {name} does not answer by {day}, this match will expire.'**
   String matchExpiresOn(String name, String day);
-
-  /// No description provided for @matchExpiredTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'This match expired'**
-  String get matchExpiredTitle;
-
-  /// No description provided for @matchExpiredTheirs.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} did not answer in time. Nothing was shared.'**
-  String matchExpiredTheirs(String name);
-
-  /// No description provided for @matchExpiredMine.
-  ///
-  /// In en, this message translates to:
-  /// **'You did not answer in time, so it has run out. Nothing was shared.'**
-  String get matchExpiredMine;
 
   /// No description provided for @removeMatch.
   ///

@@ -1864,9 +1864,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get matchesSectionExpired => 'Expired';
-
-  @override
   String get matchLaterTitle => 'Decide later';
 
   @override
@@ -1884,18 +1881,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String matchExpiresOn(String name, String day) {
     return 'If $name does not answer by $day, this match will expire.';
   }
-
-  @override
-  String get matchExpiredTitle => 'This match expired';
-
-  @override
-  String matchExpiredTheirs(String name) {
-    return '$name did not answer in time. Nothing was shared.';
-  }
-
-  @override
-  String get matchExpiredMine =>
-      'You did not answer in time, so it has run out. Nothing was shared.';
 
   @override
   String get removeMatch => 'Remove match';

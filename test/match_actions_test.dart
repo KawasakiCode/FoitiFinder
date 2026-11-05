@@ -24,7 +24,6 @@ MatchModel match({
   bool iConfirmed = false,
   bool theyConfirmed = false,
   bool revealed = false,
-  bool expired = false,
   DateTime? expiresAt,
 }) {
   return MatchModel(
@@ -35,7 +34,6 @@ MatchModel match({
     iConfirmed: iConfirmed,
     theyConfirmed: theyConfirmed,
     revealed: revealed,
-    expired: expired,
     expiresAt: expiresAt,
   );
 }
@@ -98,33 +96,12 @@ void main() {
     expect(find.text('Share my Instagram'), findsNothing);
   });
 
-  group('when it has run out', () {
-    testWidgets('it says so instead of offering the share button',
-        (tester) async {
-      //THE WHOLE POINT OF THE EXPIRED STATE. The flags still say it is this
-      //user's turn, so without its own branch the bar would offer a one-way
-      //door that the server now answers 409 to.
-      await pumpBar(tester, match(expired: true));
-
-      expect(find.text('This match expired'), findsOneWidget);
-      expect(find.text('Share my Instagram'), findsNothing);
-      expect(find.text('Not interested'), findsNothing);
-    });
-
-    testWidgets('it names whoever owed the answer', (tester) async {
-      await pumpBar(tester, match(iConfirmed: true, expired: true));
-      expect(
-        find.text('Katerina did not answer in time. Nothing was shared.'),
-        findsOneWidget,
-      );
-    });
-
-    testWidgets('and says it was you when you were the one who went quiet',
-        (tester) async {
-      await pumpBar(tester, match(expired: true));
-      expect(find.textContaining('You did not answer in time'), findsOneWidget);
-    });
-  });
+  //THERE WAS AN 'IT HAS RUN OUT' GROUP HERE, with three tests: a title, and
+  //two sentences naming whoever went quiet. The server now deletes an expired
+  //match instead of serving it flagged, so this bar can never be built for
+  //one and the branch it tested is gone. The deadline is still shown while
+  //the match is live, which is the part that was always worth having - see
+  //'while waiting on them' below.
 
   group('while waiting on them', () {
     testWidgets('it names the day it runs out', (tester) async {

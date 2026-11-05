@@ -200,41 +200,10 @@ class _MatchActionBarState extends State<MatchActionBar> {
 
   Widget _content(ThemeData theme) {
     if (_revealed) return _revealedContent(theme);
-    //BEFORE THE TURN CHECKS. An expired match is still somebody's turn by the
-    //flags, and offering the share button would be offering a press the
-    //server now answers 409 to.
-    if (widget.match.expired) return _expiredContent(theme);
+    //NO EXPIRED STATE. A match that has run out is deleted by the server, so
+    //this bar is never built for one - see backend/match_expiry.
     if (_iConfirmed) return _waitingContent(theme);
     return _decideContent();
-  }
-
-  //IT RAN OUT. The only state here with nothing to press and nothing coming:
-  //this is the notice, and the match leaves the list on its own in a day or
-  //two. Says WHO did not answer, because "expired" on its own reads like the
-  //app lost something.
-  Widget _expiredContent(ThemeData theme) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          text.matchExpiredTitle,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 4),
-        Text(
-          //whoever owed the answer is who it names: if I had confirmed, they
-          //went quiet; if I had not, it lapsed on me
-          _iConfirmed
-              ? text.matchExpiredTheirs(widget.match.otherUserName)
-              : text.matchExpiredMine,
-          style: theme.textTheme.bodySmall,
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
   }
 
   //BOTH SAID YES. The handle, and the two things anyone does with one.

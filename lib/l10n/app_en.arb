@@ -718,7 +718,6 @@
       }
     }
   },
-  "matchesSectionExpired": "Expired",
   "matchLaterTitle": "Decide later",
   "matchLaterBody": "This match moves to your matches page. You have 3 days to share your Instagram with {name} — after that it expires. {name} is not told anything either way.",
   "@matchLaterBody": {
@@ -741,16 +740,6 @@
       }
     }
   },
-  "matchExpiredTitle": "This match expired",
-  "matchExpiredTheirs": "{name} did not answer in time. Nothing was shared.",
-  "@matchExpiredTheirs": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "matchExpiredMine": "You did not answer in time, so it has run out. Nothing was shared.",
   "removeMatch": "Remove match",
   "removeMatchTitle": "Remove this match?",
   "removeMatchBody": "This cannot be undone. {name} is not told, and keeps the match on their own list — this only removes it from yours. If you have not saved their Instagram, you will lose it.",

@@ -543,9 +543,13 @@ class TestAnUnansweredMatchRunsOut:
     without a deadline, a mutual like becomes a row nobody is told about and
     nothing ever clears.
 
-    NOTHING IS WRITTEN TO EXPIRE A MATCH. The state is derived from created_at
-    and a_confirmed_at, so these tests move those timestamps rather than
-    calling an endpoint - there is no endpoint, and that is the design.
+    THE DEADLINE IS DERIVED, THE DELETION IS NOT. Nothing writes an expiry:
+    the rule reads created_at and a_confirmed_at, so these tests move those
+    timestamps rather than calling an endpoint, because there is no endpoint.
+    What HAS changed is what happens when the rule fires - the row is deleted
+    by the next read of either side's list, where it used to be served for two
+    more days with an `expired` flag on it. There is no such flag any more and
+    these tests assert its absence, not its value.
     """
 
     def age(self, db, match_id, *, created=None, confirmed=None):
@@ -568,15 +572,24 @@ class TestAnUnansweredMatchRunsOut:
         assert len(body) == 1, body
         return body[0]
 
-    def test_a_fresh_unanswered_match_is_not_expired(
+    def exists(self, db, match_id):
+        from database import models
+
+        db.expire_all()
+        return (db.query(models.Matches).filter_by(id=match_id).first()
+                is not None)
+
+    def test_a_fresh_unanswered_match_is_still_there(
         self, as_user, make_user, swipe
     ):
         alice, bob = make_user(name="Alice"), make_user(name="Bob")
         complete_match(as_user, swipe, alice, bob)
 
         row = self.only_match(as_user(alice).get("/matches"))
-        assert row["expired"] is False
+        #THE DEADLINE IS STILL SENT, which is the part of the old design worth
+        #keeping: the page names the day rather than quoting a three-day rule.
         assert row["expires_at"] is not None
+        assert "expired" not in row
 
     def test_nobody_answered_for_three_days(
         self, db, as_user, make_user, swipe
@@ -587,20 +600,81 @@ class TestAnUnansweredMatchRunsOut:
         match_id = complete_match(as_user, swipe, alice, bob)
         self.age(db, match_id, created=datetime.timedelta(days=3, hours=1))
 
-        #STILL THERE, SAYING SO. Alice backed out of answering and this is how
-        #she learns it lapsed, rather than finding it missing.
-        row = self.only_match(as_user(alice).get("/matches"))
-        assert row["expired"] is True
+        #GONE, NOT FLAGGED. Alice backed out of answering, the three days ran
+        #out, and the match is simply not there - the same way a declined one
+        #is not there. An "it lapsed" notice is a sentence about something
+        #that is over, on a page whose job is matches that are not.
+        assert as_user(alice).get("/matches").json() == []
 
-    def test_past_the_grace_window_it_is_gone(
+    def test_and_the_row_is_deleted_rather_than_hidden(
         self, db, as_user, make_user, swipe
     ):
+        """THE DIFFERENCE BETWEEN THIS AND A REMOVAL, in one assertion.
+
+        Removing a match sets one side's hidden_by_*_at and keeps the row,
+        because the other side's copy is still live and the connection is
+        still on record. An expiry has neither of those to protect: nothing
+        was exchanged and nobody is left holding anything.
+        """
         import datetime
 
         alice, bob = make_user(name="Alice"), make_user(name="Bob")
         match_id = complete_match(as_user, swipe, alice, bob)
-        self.age(db, match_id, created=datetime.timedelta(days=6))
+        self.age(db, match_id, created=datetime.timedelta(days=3, hours=1))
 
+        as_user(alice).get("/matches")
+
+        assert not self.exists(db, match_id)
+
+    def test_the_swipes_survive_it(self, db, as_user, make_user, swipe):
+        """SO THE TWO OF THEM ARE NEVER OFFERED EACH OTHER AGAIN.
+
+        Expired means over, not forgotten. A decline turns the like back into
+        a pass on purpose, so the liker can be shown again by somebody who
+        changed their mind; an expiry does not, because both sides already
+        said yes and re-offering the pair would restart a clock that just ran
+        out. The deck excludes anybody you have swiped on, so leaving the rows
+        alone is what makes it permanent.
+        """
+        import datetime
+
+        from database import models
+
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = complete_match(as_user, swipe, alice, bob)
+        self.age(db, match_id, created=datetime.timedelta(days=3, hours=1))
+
+        as_user(alice).get("/matches")
+
+        actions = {
+            (row.user_id, row.target_id): row.action
+            for row in db.query(models.UserSwipes).all()
+        }
+        assert actions[(alice.id, bob.id)] == "like"
+        assert actions[(bob.id, alice.id)] == "like"
+
+        #and neither of them comes back in the other's deck
+        assert bob.id not in [
+            card["id"] for card in as_user(alice).get("/users/feed").json()
+        ]
+
+    def test_either_side_reading_their_list_is_enough(
+        self, db, as_user, make_user, swipe
+    ):
+        """THE SWEEP IS SCOPED TO THE CALLER, so this is the case that proves
+        it covers both of them: bob can also be the one who clears it, and
+        after he does it is gone from alice's list without her reading first.
+        """
+        import datetime
+
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = complete_match(as_user, swipe, alice, bob)
+        #alice confirmed, so it is bob's turn and bob can see it
+        as_user(alice).post(f"/matches/{match_id}/confirm")
+        self.age(db, match_id, confirmed=datetime.timedelta(days=3, hours=1))
+
+        assert as_user(bob).get("/matches").json() == []
+        assert not self.exists(db, match_id)
         assert as_user(alice).get("/matches").json() == []
 
     def test_the_clock_restarts_when_somebody_commits(
@@ -621,8 +695,11 @@ class TestAnUnansweredMatchRunsOut:
 
         as_user(alice).post(f"/matches/{match_id}/confirm")
 
+        #SURVIVES THE SWEEP, which is the real assertion now that expiry
+        #deletes: a clock measured from created_at would have destroyed it.
         row = self.only_match(as_user(alice).get("/matches"))
-        assert row["expired"] is False
+        assert row["expires_at"] is not None
+        assert self.exists(db, match_id)
 
     def test_waiting_on_them_expires_three_days_after_the_commit(
         self, db, as_user, make_user, swipe
@@ -634,14 +711,16 @@ class TestAnUnansweredMatchRunsOut:
         as_user(alice).post(f"/matches/{match_id}/confirm")
         self.age(db, match_id, confirmed=datetime.timedelta(days=3, hours=1))
 
-        row = self.only_match(as_user(alice).get("/matches"))
-        assert row["expired"] is True
+        assert as_user(alice).get("/matches").json() == []
+        assert not self.exists(db, match_id)
 
     def test_a_finished_exchange_never_expires(
         self, db, as_user, make_user, swipe
     ):
         #BOTH HANDLES ARE OUT, so there is nothing a deadline could take back -
         #it would only destroy the record of a connection that did happen.
+        #THE ONE ROW THE SWEEP MUST NOT TOUCH, and the one whose loss would be
+        #unrecoverable, so it is aged well past any window and read back.
         import datetime
 
         alice, bob = make_user(name="Alice"), make_user(name="Bob")
@@ -652,10 +731,10 @@ class TestAnUnansweredMatchRunsOut:
                  confirmed=datetime.timedelta(days=400))
 
         row = self.only_match(as_user(alice).get("/matches"))
-        assert row["expired"] is False
         assert row["revealed"] is True
         #nothing to count down to
         assert row["expires_at"] is None
+        assert self.exists(db, match_id)
 
 
 class TestAnExpiredMatchCannotBeActedOn:
@@ -823,16 +902,22 @@ class TestAnUnansweredMatchBelongsToOnePerson:
         ).status_code == 200
 
 
-class TestAnExpiredMatchCanBeDismissed:
-    """The gap between "nothing left to answer" and "nothing you can do".
+class TestRemovingAnExpiredMatch:
+    """What DELETE does to a match that ran out, from a page drawn before it.
 
-    AN EXPIRED MATCH WAS ACTIONABLE BY NOTHING. decline refuses it, because
-    the list and the endpoints have to agree about what is over; and remove
-    refused it too, for not being confirmed. So it sat in the list, correctly
-    saying it had lapsed, with no way to acknowledge that and move on - until
-    the grace window ran out days later.
+    THIS CLASS USED TO BE ABOUT A GAP THAT NO LONGER EXISTS. An expired match
+    was served for two more days with a flag on it, and was actionable by
+    nothing: decline refused it because the list and the endpoints have to
+    agree about what is over, and remove refused it for not being confirmed.
+    So it sat there, correctly saying it had lapsed, with no way to
+    acknowledge it. Remove was relaxed to accept it, and then expiry was
+    changed to delete instead - which removes the gap at the source.
 
-    Showing the notice is right. Being unable to dismiss it is not.
+    WHAT IS LEFT IS A RACE, and a small one: a match with minutes left when
+    the page was drawn, removed after the deadline but before anybody's read
+    has swept it. The honest answer is to delete it, because that is what the
+    next read would do anyway - a 409 would be an error message about
+    something the user cannot act on and did not get wrong.
     """
 
     def expired(self, db, as_user, swipe, alice, bob):
@@ -851,35 +936,36 @@ class TestAnExpiredMatchCanBeDismissed:
         db.commit()
         return match_id
 
-    def test_it_is_shown_as_expired_first(self, db, as_user, make_user, swipe):
+    def test_it_never_reaches_the_list(self, db, as_user, make_user, swipe):
         alice, bob = make_user(name="Alice"), make_user(name="Bob")
         self.expired(db, as_user, swipe, alice, bob)
 
-        body = as_user(alice).get("/matches").json()
-        assert len(body) == 1
-        assert body[0]["expired"] is True
-
-    def test_and_can_then_be_removed(self, db, as_user, make_user, swipe):
-        alice, bob = make_user(name="Alice"), make_user(name="Bob")
-        match_id = self.expired(db, as_user, swipe, alice, bob)
-
-        assert as_user(alice).delete(f"/matches/{match_id}").status_code == 200
         assert as_user(alice).get("/matches").json() == []
 
-    def test_only_from_the_list_of_whoever_removed_it(
-        self, db, as_user, make_user, swipe
-    ):
-        #the same rule as everywhere else: a removal is one side's, never both
+    def test_removing_one_deletes_it(self, db, as_user, make_user, swipe):
+        """Straight to DELETE without a read first, which is the race."""
         from database import models
 
         alice, bob = make_user(name="Alice"), make_user(name="Bob")
         match_id = self.expired(db, as_user, swipe, alice, bob)
-        as_user(alice).delete(f"/matches/{match_id}")
 
-        row = db.query(models.Matches).filter_by(id=match_id).first()
-        #alice completed the match, so she is user_a
-        assert row.hidden_by_a_at is not None
-        assert row.hidden_by_b_at is None
+        assert as_user(alice).delete(f"/matches/{match_id}").status_code == 200
+
+        #DELETED, NOT HIDDEN FROM ALICE, which is the difference from removing
+        #a finished match: there is no copy of this worth leaving bob.
+        db.expire_all()
+        assert db.query(models.Matches).filter_by(id=match_id).first() is None
+
+    def test_and_removing_an_already_swept_one_is_a_404(
+        self, db, as_user, make_user, swipe
+    ):
+        #the ordinary case: the read swept it, and the stale page's button
+        #addresses a row that is gone. Not found is the truth.
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        match_id = self.expired(db, as_user, swipe, alice, bob)
+        as_user(alice).get("/matches")
+
+        assert as_user(alice).delete(f"/matches/{match_id}").status_code == 404
 
     def test_a_live_unanswered_match_still_cannot_be(
         self, as_user, make_user, swipe

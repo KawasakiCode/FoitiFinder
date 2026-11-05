@@ -19,7 +19,6 @@ MatchModel match(
   bool iConfirmed = false,
   bool theyConfirmed = false,
   bool revealed = false,
-  bool expired = false,
 }) {
   return MatchModel(
     matchId: id,
@@ -28,7 +27,6 @@ MatchModel match(
     iConfirmed: iConfirmed,
     theyConfirmed: theyConfirmed,
     revealed: revealed,
-    expired: expired,
   );
 }
 
@@ -80,13 +78,10 @@ void main() {
     for (final mine in [false, true]) {
       for (final theirs in [false, true]) {
         for (final revealed in [false, true]) {
-          for (final expired in [false, true]) {
-            all.add(match(id++,
-                iConfirmed: mine,
-                theyConfirmed: theirs,
-                revealed: revealed,
-                expired: expired));
-          }
+          all.add(match(id++,
+              iConfirmed: mine,
+              theyConfirmed: theirs,
+              revealed: revealed));
         }
       }
     }
@@ -99,7 +94,6 @@ void main() {
       ...ids(sections.yourTurn),
       ...ids(sections.waitingOnThem),
       ...ids(sections.connected),
-      ...ids(sections.expired),
     ];
     expect(placed.toSet().length, all.length);
   });
@@ -128,50 +122,31 @@ void main() {
     );
   });
 
-  group('a match that ran out', () {
-    test('goes to its own section', () {
-      final sections = MatchSections.of([match(1, expired: true)]);
-      expect(ids(sections.expired), [1]);
-      expect(sections.yourTurn, isEmpty);
-      expect(sections.waitingOnThem, isEmpty);
-    });
+  test('a match that ran out is not a section, because it is not sent', () {
+    //THERE WAS A FOURTH SECTION HERE, with five tests under it. An expired
+    //match used to arrive for two more days carrying a flag, so the page had
+    //to give it a heading, dim its tile, keep it out of the two turn sections
+    //it still matched by the booleans, and allow a removal that nothing else
+    //allowed.
+    //
+    //The server now deletes it on the read that notices it, so the whole
+    //state is unreachable from here. This test is what is left of that group:
+    //the three sections above partition everything the server can send, and
+    //the totality check is the thing that would catch a fourth kind arriving
+    //with nowhere to go.
+    //
+    //If an `expired` flag ever comes back, this is the test that should fail
+    //to explain itself first.
+    final sections = MatchSections.of([
+      match(1),
+      match(2, theyConfirmed: true),
+      match(3, iConfirmed: true),
+      match(4, iConfirmed: true, theyConfirmed: true, revealed: true),
+    ]);
 
-    test('is not left under your turn', () {
-      //BY THE BOOLEANS IT STILL IS. An expired match has nobody confirmed, so
-      //waitingOnMe is true - and leaving it there would offer a share button
-      //for something the server now answers 409 to.
-      final sections = MatchSections.of([
-        match(1, expired: true),
-        match(2, theyConfirmed: true, expired: true),
-      ]);
-      expect(sections.yourTurn, isEmpty);
-      expect(ids(sections.expired), [1, 2]);
-    });
-
-    test('is not left under waiting on them either', () {
-      final sections = MatchSections.of([
-        match(1, iConfirmed: true, expired: true),
-      ]);
-      expect(sections.waitingOnThem, isEmpty);
-      expect(ids(sections.expired), [1]);
-    });
-
-    test('never outranks a finished exchange', () {
-      //the server never sends this pair - a revealed match does not expire -
-      //but if it did, the handles are out and that is the truer fact
-      final sections = MatchSections.of([
-        match(1, revealed: true, expired: true),
-      ]);
-      expect(ids(sections.connected), [1]);
-      expect(sections.expired, isEmpty);
-    });
-
-    test('carries no badge, because nobody is waiting', () {
-      expect(match(1, theyConfirmed: true).theyAreWaitingOnMe, isTrue);
-      expect(
-        match(1, theyConfirmed: true, expired: true).theyAreWaitingOnMe,
-        isFalse,
-      );
-    });
+    expect(sections.total, 4);
+    expect(ids(sections.yourTurn), [2, 1]);
+    expect(ids(sections.waitingOnThem), [3]);
+    expect(ids(sections.connected), [4]);
   });
 }

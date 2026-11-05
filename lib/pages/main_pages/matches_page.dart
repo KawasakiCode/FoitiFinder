@@ -159,16 +159,10 @@ class MatchesPageState extends State<MatchesPage> {
         footer: MatchActionBar(match: match, onChanged: loadMatches),
         //ONLY ON A FINISHED MATCH, which is the only state with no other way
         //out: decline covers the unanswered ones and the clock covers the
-        //expired ones. Passing null for the rest is what keeps the option out
-        //of the menu, so the page never has to know what a match is.
-        //FINISHED OR EXPIRED. Both are states with nothing left to answer
-        //and both need a way off the page - an expired one used to be
-        //removable by nothing at all, so it sat there dead until the grace
-        //window ran out. An unanswered one is still decline's job, which
-        //tells whoever was waiting.
-        onRemoveMatch: (match.revealed || match.expired)
-            ? () => _removeMatch(match)
-            : null,
+        //ones that run out, by deleting them. Passing null for the rest is
+        //what keeps the option out of the menu, so the page never has to know
+        //what a match is.
+        onRemoveMatch: match.revealed ? () => _removeMatch(match) : null,
         //the tile already has a face and a name, so the page opens with them
         //rather than a spinner; the rest arrives a moment later
         preview: PublicProfile(
@@ -264,10 +258,6 @@ class MatchesPageState extends State<MatchesPage> {
         ..._section(text.matchYourTurn, sections.yourTurn),
         ..._section(text.matchesSectionWaiting, sections.waitingOnThem),
         ..._section(text.matchesSectionConnected, sections.connected),
-        //LAST, because it is the only section nobody can act on. It is here
-        //so a match that ran out is read rather than discovered missing, and
-        //it leaves on its own a couple of days later.
-        ..._section(text.matchesSectionExpired, sections.expired),
         const SliverToBoxAdapter(child: SizedBox(height: 24)),
       ],
     );
@@ -384,11 +374,7 @@ class _MatchTile extends StatelessWidget {
     //kCardRadius, not a radius of its own: the flight shuttle interpolates
     //from that exact value down to 0, so any other number makes the corners
     //jump the instant the photo lifts off
-    //A LAPSED MATCH READS AS PAST, not as something to press. Dimmed rather
-    //than removed, because this tile is the notice that it ran out.
-    return Opacity(
-      opacity: match.expired ? 0.45 : 1,
-      child: GestureDetector(
+    return GestureDetector(
         onTap: () {
           //MEASURED AT TAP TIME, not held in state: the grid scrolls and
           //resizes under this, so a position captured when the tile was built
@@ -460,7 +446,6 @@ class _MatchTile extends StatelessWidget {
             ),
           ),
         ),
-      ),
     );
   }
 }

@@ -20,11 +20,11 @@ class MatchModel {
   final bool iConfirmed;
   final bool theyConfirmed;
   final bool revealed;
-  //RAN OUT UNANSWERED. Three days after the match became somebody's turn the
-  //server stops serving it; for a short window before that it still arrives
-  //with this set, which is the only chance the page gets to say it lapsed
-  //rather than letting it disappear between two refreshes.
-  final bool expired;
+  //THERE IS NO `expired` FLAG, and there used to be. Three days after a match
+  //became somebody's turn the server deletes it, on the next read of either
+  //side's list - so a match that has run out does not arrive in a lapsed
+  //state, it simply is not in the response. See backend/match_expiry.
+  //
   //the deadline, so the waiting state can name a day instead of quoting a
   //rule. Null once both sides have confirmed, because nothing expires then.
   final DateTime? expiresAt;
@@ -38,7 +38,6 @@ class MatchModel {
     this.iConfirmed = false,
     this.theyConfirmed = false,
     this.revealed = false,
-    this.expired = false,
     this.expiresAt,
   });
 
@@ -51,10 +50,7 @@ class MatchModel {
   //is actually sitting there waiting on you. The other half of waitingOnMe is
   //a match YOU completed: the server shows them nothing until you answer, so
   //they do not know it exists and nobody is waiting on anything.
-  //Not once it has run out: by the booleans alone an expired match is still
-  //somebody's turn, but there is nobody waiting on an answer the server will
-  //no longer accept.
-  bool get theyAreWaitingOnMe => waitingOnMe && theyConfirmed && !expired;
+  bool get theyAreWaitingOnMe => waitingOnMe && theyConfirmed;
 
   factory MatchModel.fromJson(Map<String, dynamic> json) {
     return MatchModel(
@@ -68,9 +64,8 @@ class MatchModel {
       iConfirmed: json['i_confirmed'] ?? false,
       theyConfirmed: json['they_confirmed'] ?? false,
       revealed: json['revealed'] ?? false,
-      //an older backend sends neither: a match that never expires and no
-      //deadline to show, which is what the app did before the rule existed
-      expired: json['expired'] ?? false,
+      //an older backend sends no deadline: nothing to show, which is what the
+      //app did before the rule existed
       expiresAt: json['expires_at'] == null
           ? null
           //the server sends UTC; toLocal so the day named is the user's day
@@ -98,37 +93,30 @@ class MatchSections {
   final List<MatchModel> waitingOnThem;
   //both of you, and both handles are out.
   final List<MatchModel> connected;
-  //ran out before anybody answered. Shown for a couple of days so the lapse
-  //is read rather than discovered, then the server stops sending it.
-  final List<MatchModel> expired;
+
+  //THERE IS NO 'EXPIRED' SECTION, and there used to be, between `connected`
+  //and the turn checks. A match that ran out is deleted by the server on the
+  //next read, so one can never reach this function - and a section that can
+  //only ever be empty is a heading, a dimmed tile, a dismiss button and a
+  //branch in every state check, all to display "this is over" where not
+  //being on the page says it better.
 
   const MatchSections({
     required this.yourTurn,
     required this.waitingOnThem,
     required this.connected,
-    required this.expired,
   });
 
   factory MatchSections.of(List<MatchModel> matches) {
     final mine = <MatchModel>[];
     final theirs = <MatchModel>[];
     final open = <MatchModel>[];
-    final over = <MatchModel>[];
 
     for (final match in matches) {
       //`revealed` FIRST: it is the server's own verdict, including the
-      //handles, so it outranks anything the other flags imply. A finished
-      //exchange never expires, so the two can never both be true - tested
-      //in that order anyway, because relying on the server to be consistent
-      //is how a match ends up in two sections.
-      //
-      //`expired` SECOND, before the turn checks: an expired match is still
-      //somebody's turn by the booleans, and showing it under 'Your turn'
-      //would invite a press on something the server now refuses.
+      //handles, so it outranks anything the other flags imply.
       if (match.revealed) {
         open.add(match);
-      } else if (match.expired) {
-        over.add(match);
       } else if (match.waitingOnMe) {
         mine.add(match);
       } else {
@@ -143,10 +131,9 @@ class MatchSections {
       ],
       waitingOnThem: theirs,
       connected: open,
-      expired: over,
     );
   }
 
   int get total =>
-      yourTurn.length + waitingOnThem.length + connected.length + expired.length;
+      yourTurn.length + waitingOnThem.length + connected.length;
 }

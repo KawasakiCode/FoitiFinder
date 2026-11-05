@@ -52,9 +52,24 @@ def get_matches(uid: str = Depends(verified_email_uid), db: Session = Depends(ge
     #see - so without a deadline, a match the other side never heard about
     #would sit there forever. See match_expiry: three days from whenever it
     #became somebody's turn, derived rather than stored.
+    #
+    #SWEPT BEFORE THE READ, NOT FILTERED OUT OF IT. This is the only place an
+    #expired match is ever noticed, so it is the place it dies: the rows are
+    #deleted and then the list is built, which is what makes "there is no such
+    #thing as an expired match on this page" a fact about the data rather than
+    #a rule the UI has to keep.
+    #
+    #COMMITTED, THOUGH THIS IS A GET, because get_db closes the session in a
+    #finally and closing rolls back - a sweep that is not committed is a sweep
+    #that happens on every single read and never takes. Only when it found
+    #something, so the overwhelmingly common case stays a read-only request.
+    #Nothing can reintroduce an expired row between the commit and the query
+    #below: the deadline only moves one way.
     now = datetime.datetime.now(datetime.timezone.utc)
+    if match_expiry.sweep(db, me.id, now):
+        db.commit()
+
     matches = db.query(models.Matches).filter(
-        match_expiry.not_past_grace(now),
         #WHICH SIDE I AM ON DECIDES BOTH QUESTIONS, so they are answered
         #together rather than as two filters that have to agree:
         #
@@ -123,11 +138,6 @@ def get_matches(uid: str = Depends(verified_email_uid), db: Session = Depends(ge
             "revealed": (mine is not None and theirs is not None
                          and bool(me.instagram_handle)
                          and bool(other_user.instagram_handle)),
-            #RAN OUT, AND STILL SHOWN SAYING SO. Inside the grace window the
-            #row is still served with this set, so whoever was owed an answer
-            #reads that it lapsed rather than finding a match missing. Past
-            #the window the query above has already dropped it.
-            "expired": match_expiry.is_expired(match, now),
             #THE DEADLINE, so the page can name a date instead of a policy.
             #'Matches expire after three days' in a help screen is read by
             #nobody; 'if Maria does not answer by Thursday' is read by
@@ -176,9 +186,10 @@ def _match_for_participant(match_id: int, me: models.User, db: Session) -> model
     #other side. The two reads have to agree, or a client holding a stale page
     #is the way around the rule.
     #
-    #EXPIRED: it ran out unanswered. The other side was shown that it lapsed,
-    #so letting a confirm land afterwards would hand them a handle for a match
-    #they were told was over.
+    #EXPIRED: it ran out unanswered, so the next read of either side's list
+    #deletes it (match_expiry.sweep). This is the window in between - a client
+    #holding a page drawn before the deadline - and letting a confirm land
+    #there would hand over a handle for a match that no longer exists.
     #
     #REMOVED BY ME: my own copy is gone, so there is nothing of mine left to
     #answer. THEIR removal is not checked, deliberately - the whole point of
@@ -324,9 +335,8 @@ def decline_match(match_id: int, uid: str = Depends(verified_email_uid), db: Ses
     #who has shared their handle and is waiting deserves to hear. The argument
     #against is what it actually says: a notification whose only content is
     #that somebody said no, with nothing to do about it. The match leaves
-    #their list, which is the honest representation and the same way an
-    #expired one goes - that one is shown saying so for a couple of days and
-    #sends nothing either.
+    #their list, which is the honest representation and exactly how an expired
+    #one goes too - deleted on the next read, silently.
     #
     #Declining as the person who COMPLETED the match was always silent, for a
     #stronger reason: they were never shown the match, so "someone matched
@@ -355,6 +365,9 @@ def remove_match(match_id: int, uid: str = Depends(verified_email_uid),
     whoever was waiting - letting this one through instead would be a silent
     way to leave somebody waiting on an answer that never comes.
 
+    AN EXPIRED ONE IS DELETED INSTEAD OF HIDDEN. It is over for both sides,
+    so there is no per-side copy worth keeping - see the branch below.
+
     THE OTHER SIDE IS TOLD NOTHING AND LOSES NOTHING. Their copy stays. See
     the model: removing it from them would take back nothing they do not
     already have, while making the removal something they can notice - and
@@ -382,23 +395,31 @@ def remove_match(match_id: int, uid: str = Depends(verified_email_uid),
     i_am_a = match.user_a_id == me.id
     now = datetime.datetime.now(datetime.timezone.utc)
 
-    #FINISHED, OR OVER. Those are the two states with nothing left to answer,
-    #and both of them need a way off the page.
+    #EXPIRED MEANS GONE, not hidden, and it is deleted here for the same
+    #reason match_expiry.sweep deletes it: this is a place an expired match is
+    #noticed. The window is small but real - a match with two minutes left
+    #when the page was drawn, removed five minutes later - and the two honest
+    #answers are "deleted, as it would have been on the next refresh" and a
+    #409 about something the user can do nothing about. The sweep is scoped to
+    #one user and this row may be somebody else's too, so it goes directly.
+    if match_expiry.is_expired(match, now):
+        db.delete(match)
+        db.commit()
+        return {"removed": True}
+
+    #OTHERWISE, ONLY A FINISHED ONE. decline's refusal condition inverted
+    #rather than `revealed`: a match where both said yes but somebody has no
+    #handle yet is not revealed, and it still needs the way out.
     #
-    #AN EXPIRED MATCH USED TO BE REMOVABLE BY NOTHING AT ALL - decline refuses
-    #it (see _match_for_participant), and this refused it for not being
-    #confirmed, so it sat in the list being dead until the grace window ran
-    #out. The notice is worth showing; being unable to dismiss it is not.
-    #
-    #STILL NOT A LIVE UNANSWERED MATCH. That one belongs to decline, which
-    #tells whoever was waiting - letting it through here would be a silent way
-    #to abandon somebody mid-exchange.
+    #NOT A LIVE UNANSWERED MATCH. That one belongs to decline, which tells
+    #whoever was waiting - letting it through here would be a silent way to
+    #abandon somebody mid-exchange.
     finished = (match.a_confirmed_at is not None
                 and match.b_confirmed_at is not None)
-    if not finished and not match_expiry.is_expired(match, now):
+    if not finished:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Only a completed or expired match can be removed",
+            detail="Only a completed match can be removed",
         )
 
     if i_am_a and match.hidden_by_a_at is None:
