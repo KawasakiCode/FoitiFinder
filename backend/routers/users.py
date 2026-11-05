@@ -11,6 +11,7 @@ from database.database import get_db
 
 router = APIRouter()
 
+import account_deletion
 from ages import MINIMUM_AGE, is_old_enough
 from app_logging import logger
 from instagram import normalise_instagram_handle
@@ -107,16 +108,48 @@ def get_user_data(uid: str = Depends(current_uid), db: Session = Depends(get_db)
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
 
-#delete a user completely from the database
 @router.delete("/users/me")
 def delete_user(
     uid: str = Depends(current_uid),
     db: Session = Depends(get_db),
 ):
+    """Delete the account: the rows here, and what Firebase holds as well.
+
+    THE ROW IS NOT THE WHOLE ACCOUNT, which is what this used to assume. The
+    cascade takes the photos table, the swipes, the matches, the settings and
+    the notifications - but the photo FILES live in Cloud Storage and the push
+    token lives in Firestore, and neither of them is reachable from a deleted
+    row. See account_deletion for what that left behind and why it matters
+    more than an ordinary leak: the published privacy statement and the
+    account deletion page both say these go.
+
+    FIREBASE FIRST. If it fails, nothing has been deleted and the caller still
+    has an account to retry with; the other order loses the only index of the
+    files. The purge is idempotent, so a retry is safe.
+
+    REPORTS SURVIVE, deliberately, with both sides set to NULL rather than
+    cascaded - see the Reports model. Deleting an account is a common thing to
+    do after being reported.
+    """
     db_user = db.query(models.User).filter(models.User.firebase_uid == uid).first()
 
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
+
+    try:
+        account_deletion.purge(uid)
+    except Exception:
+        #LOGGED WITH THE TRACE AND REFUSED, not swallowed. Everything else in
+        #this backend treats a Firebase failure as a warning and carries on,
+        #because a push that does not arrive must not fail a match. This is
+        #the opposite case: carrying on would report a deletion that did not
+        #happen, to somebody who will never ask again.
+        logger.exception("account deletion: Firebase purge failed for uid %s", uid)
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Could not delete your stored files. Nothing was deleted - "
+                   "please try again.",
+        )
 
     db.delete(db_user)
     db.commit()
