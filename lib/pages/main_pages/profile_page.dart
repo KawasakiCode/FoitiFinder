@@ -65,13 +65,36 @@ class _ProfilePageState extends State<ProfilePage> {
   //Built here rather than in legal.dart because the labels are localised and
   //there is no BuildContext at file top level. The URLs come from legal.dart;
   //the pairing is the only thing this list adds.
-  List<({String label, String url})> get _policyDocuments => [
-        (label: text.privacyStatement, url: kPrivacyStatementUrl),
-        (label: text.userTerms, url: kUserTermsUrl),
-        (label: text.userGuidelines, url: kUserGuidelinesUrl),
-        (label: text.cancellationPolicy, url: kCancellationPolicyUrl),
-        (label: text.recommenderSystem, url: kRecommenderSystemUrl),
-      ];
+  //
+  //THE DOCUMENT IS OPENED IN THE LANGUAGE THE APP IS IN, which is the same
+  //locale the label beside it was just read from - so a Greek dialog cannot
+  //hand out English documents. Taken from the active locale rather than from
+  //the settings provider so it follows whatever Flutter actually resolved.
+  List<({String label, String url})> get _policyDocuments {
+    final language = Localizations.localeOf(context).languageCode;
+    return [
+      (
+        label: text.privacyStatement,
+        url: legalUrl(LegalDocument.privacyStatement, language)
+      ),
+      (
+        label: text.userTerms,
+        url: legalUrl(LegalDocument.userTerms, language)
+      ),
+      (
+        label: text.userGuidelines,
+        url: legalUrl(LegalDocument.userGuidelines, language)
+      ),
+      (
+        label: text.cancellationPolicy,
+        url: legalUrl(LegalDocument.cancellationPolicy, language)
+      ),
+      (
+        label: text.recommenderSystem,
+        url: legalUrl(LegalDocument.recommenderSystem, language)
+      ),
+    ];
+  }
 
   //One row on the profile page opens all five documents.
   //
