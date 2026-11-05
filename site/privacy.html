@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FoitiFinder — Privacy Statement</title>
+<meta name="description" content="What FoitiFinder collects, why, who can see it, how long it is kept, and your rights over it.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="index.html">Foiti<span>Finder</span></a>
+    <nav><a href="index.html">All policies</a> &middot;
+    <a href="el/privacy.html">Ελληνικά</a></nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <h1>Privacy Statement</h1>
+  <p class="lede">FoitiFinder is a dating app, which means almost everything in
+  it is personal data about you. This explains all of it.</p>
+  <p class="stamp">Last updated 5 November 2026.</p>
+
+  <div class="callout">
+    <p><strong>The short version.</strong> We hold what you put on your
+    profile, who you swiped and how, your matches, and the device token that
+    lets us send you a notification. We do not track your location, we run no
+    advertising and no analytics, and we sell nothing to anybody. Other users
+    see your profile; nobody but you sees your Instagram handle until you and
+    one other person have each said yes twice. You can delete all of it from
+    inside the app.</p>
+  </div>
+
+  <h2>1. Who is responsible for your data</h2>
+  <p>The controller of the personal data described here is
+  <span class="todo">[[ENTITY]]</span>, <span class="todo">[[ADDRESS]]</span>,
+  Greece. You can reach us about anything on this page at
+  <a href="mailto:[[EMAIL]]"><span class="todo">[[EMAIL]]</span></a>.</p>
+  <p>We are a very small operation and are not required to appoint a Data
+  Protection Officer. The address above reaches the people who actually run the
+  service.</p>
+
+  <h2>2. What we collect, and why</h2>
+  <p>Everything in the first three groups below is data you type or choose
+  yourself. There is no hidden collection: if it is not in this table, we do
+  not have it.</p>
+
+  <h3>Your account</h3>
+  <table>
+    <tr><th>Data</th><th>Where it lives</th><th>Why</th></tr>
+    <tr>
+      <td>Your university email address, and whether you have verified it</td>
+      <td>Firebase Authentication (Google)</td>
+      <td>It is how you sign in, and it is the eligibility check — only an
+      address at a Greek public university can create an account. Our own
+      database never stores your email address.</td>
+    </tr>
+    <tr>
+      <td>Your password</td>
+      <td>Firebase Authentication (Google)</td>
+      <td>To sign you in. It is stored by Google in hashed form and we never
+      see it. We cannot tell you what your password is, only help you reset
+      it.</td>
+    </tr>
+    <tr>
+      <td>An account identifier (your Firebase UID)</td>
+      <td>Firebase, and our database</td>
+      <td>It is the only link between your sign-in and your profile. Every
+      request you make is identified by it.</td>
+    </tr>
+    <tr>
+      <td>Your university and the city it is in</td>
+      <td>Our database</td>
+      <td>Worked out by the app from your email domain and shown on your
+      profile. We store the result rather than the address it came from.</td>
+    </tr>
+  </table>
+
+  <h3>Your profile</h3>
+  <p>All of this is shown to other users of FoitiFinder. That is what it is
+  for. Every field except your name, date of birth and photos is optional and
+  can be left blank or cleared later.</p>
+  <table>
+    <tr><th>Data</th><th>Notes</th></tr>
+    <tr>
+      <td>Name</td>
+      <td>Whatever you want to be called. It does not have to be your legal
+      name.</td>
+    </tr>
+    <tr>
+      <td>Date of birth</td>
+      <td>Required, and used in two ways: to refuse anyone under 18, and to
+      show your age. Other users see your age, never your date of birth.</td>
+    </tr>
+    <tr>
+      <td>3 to 6 photos, and an optional caption on each</td>
+      <td>Stored in Firebase Storage. See <a href="#photos">section 5</a> for
+      who can reach a photo file.</td>
+    </tr>
+    <tr>
+      <td>Bio</td>
+      <td>Free text.</td>
+    </tr>
+    <tr>
+      <td>Gender, pronouns, height</td>
+      <td>Gender is also used as a filter — see
+      <a href="recommender.html">how the recommender works</a>.</td>
+    </tr>
+    <tr>
+      <td>Sexual orientation, religion, political view</td>
+      <td><strong>Special category data.</strong> Optional, and handled
+      separately — see <a href="#special">section 3</a>.</td>
+    </tr>
+    <tr>
+      <td>Smoking, drinking, whether you want children, what you are looking
+      for</td>
+      <td>Single answers from a fixed list.</td>
+    </tr>
+    <tr>
+      <td>Course, whether you are still studying, job, volunteering</td>
+      <td>Free text.</td>
+    </tr>
+    <tr>
+      <td>City</td>
+      <td>Typed by you, as text. <strong>We do not collect your
+      location.</strong> The app asks for no location permission, reads no GPS,
+      and derives nothing from your IP address. Your city is a line on your
+      profile and nothing filters on it.</td>
+    </tr>
+    <tr>
+      <td>Interests, personality tags, languages you speak</td>
+      <td>Chosen from a fixed catalogue.</td>
+    </tr>
+    <tr>
+      <td>Your Instagram handle</td>
+      <td>Held back. It is not on your profile and no other user can see it
+      until you and they have both confirmed a match. See
+      <a href="#matching">section 4</a>.</td>
+    </tr>
+  </table>
+
+  <h3>What you are looking for</h3>
+  <p>Your dating preferences — gender, age range, height range, and optionally
+  smoking, drinking, intentions, children and languages. These are never shown
+  to anybody. They exist to decide which profiles reach you and are used for
+  nothing else — <a href="recommender.html">how our recommender works</a> says
+  which of them the deck applies today.</p>
+
+  <h3>What you do in the app</h3>
+  <table>
+    <tr><th>Data</th><th>Why</th></tr>
+    <tr>
+      <td>Every swipe: who it was about, whether it was a like, a super like, a
+      pass, a considered "not interested" or a report, and when</td>
+      <td>So the same profile is not shown to you twice, and so a mutual like
+      can be recognised. A like is never shown to the person who received it
+      unless it turns into a match; a super like is.</td>
+    </tr>
+    <tr>
+      <td>Your matches, who confirmed when, and whether either of you removed
+      the match from your own list</td>
+      <td>To run the match itself: whose turn it is, whether a match has
+      expired, and who should be told what.</td>
+    </tr>
+    <tr>
+      <td>Your notifications, and when you read them</td>
+      <td>So the bell in the app can tell you the truth on next launch even if
+      a push notification never arrived.</td>
+    </tr>
+    <tr>
+      <td>Reports you send and reports about you: the reason codes and anything
+      you typed</td>
+      <td>To act on them. See <a href="#reports">section 6</a>, which is the
+      one place in this document where data outlives an account.</td>
+    </tr>
+    <tr>
+      <td>Your settings: light or dark theme, language, whether match
+      notifications are on</td>
+      <td>So the app looks and behaves the same on your next sign-in.</td>
+    </tr>
+  </table>
+
+  <h3>Technical data</h3>
+  <table>
+    <tr><th>Data</th><th>Why</th></tr>
+    <tr>
+      <td>A notification token for your device (an FCM token), the time you
+      were last active, and your notification preference</td>
+      <td>Stored in Firestore (Google). Without the token we cannot send you a
+      notification at all. If you turn match notifications off, the token stays
+      but we stop sending.</td>
+    </tr>
+    <tr>
+      <td>Which build of the app you are running</td>
+      <td>Sent on launch so the app can tell you if it is too old to work
+      against the current server. It is a version number and nothing else.</td>
+    </tr>
+    <tr>
+      <td>Server logs</td>
+      <td>Our hosting provider records requests to our API, which includes the
+      IP address your device connected from, for operating and securing the
+      service. These are short-lived operational logs, not a profile of
+      you.</td>
+    </tr>
+    <tr>
+      <td>App integrity signals</td>
+      <td>The app uses Firebase App Check with Google Play Integrity, so our
+      API only answers the real app and not a script pretending to be it.
+      Google assesses your device and app installation and returns a verdict to
+      us. We get the verdict, not the signals behind it.</td>
+    </tr>
+  </table>
+
+  <div class="callout">
+    <p><strong>What we deliberately do not do.</strong> No advertising. No ad
+    identifiers. No analytics or crash-reporting SDK. No third-party trackers.
+    No location. No access to your contacts, calendar or microphone, and no
+    access to your camera roll beyond the photos you pick yourself. We do not
+    sell or rent personal data, and we do not share it for anybody else's
+    marketing.</p>
+  </div>
+
+  <h2 id="special">3. Sexual orientation, religion and political views</h2>
+  <p>Article 9 of the GDPR treats these as special category data and forbids
+  processing them unless a narrow condition applies. The one we rely on is your
+  <strong>explicit consent</strong> — Article 9(2)(a).</p>
+  <p>In practice that means:</p>
+  <ul>
+    <li>All three fields are optional, and an account with all three blank
+    works exactly like any other.</li>
+    <li>If you fill one in, it goes on your profile where other users can see
+    it. That is the only thing we do with it. Nothing filters or ranks on these
+    fields.</li>
+    <li>You withdraw consent by clearing the field, at any time, from your
+    profile. The value is removed from our database, and withdrawing has no
+    other effect on your account.</li>
+  </ul>
+  <p>Your gender and pronouns are not special category data under Article 9,
+  but we recognise they can be just as sensitive. Pronouns are optional. Gender
+  is not, because gender filtering is how the app decides who to show you at
+  all.</p>
+
+  <h2 id="matching">4. Who can see what</h2>
+  <h3>Other users</h3>
+  <p>Your profile is visible to other signed-in FoitiFinder users whose
+  preferences you fit and who have not already swiped past you. It is not
+  visible on the public internet, to search engines, or to anyone without a
+  verified account at a Greek public university.</p>
+  <p>Your <strong>Instagram handle is the exception to all of that</strong>. It
+  is handed over only when every one of the following has happened: you liked
+  each other, and then each of you separately confirmed the match on the match
+  page. Until the second confirmation lands, neither side has the other's
+  handle. This is enforced on our server rather than in the app, so a modified
+  app cannot get at it early.</p>
+  <p>A handle cannot be un-shared. Once it has been revealed, removing the
+  match hides it from your own list but does not take it back from the other
+  person — and the app tells you so before you confirm.</p>
+  <h3>Us</h3>
+  <p>We can read what is in the database when we have a reason to: fixing a
+  fault, or looking into a report. We do not read it out of interest.</p>
+  <h3>Nobody else</h3>
+  <p>We disclose personal data outside the service only where we are legally
+  obliged to — a lawful request from a competent authority — or where it is
+  necessary to protect someone's life or safety. A report concerning a minor or
+  a sexual offence may be referred to the authorities.</p>
+
+  <h2 id="photos">5. Your photos</h2>
+  <p>Photos are uploaded to Firebase Storage (Google) under a path tied to your
+  account identifier. The app then holds a download link to each one.</p>
+  <p>Those links are long and unguessable, but they are not individually
+  access-controlled: <strong>anybody who has the link to one of your photos can
+  open it</strong>, with or without a FoitiFinder account, for as long as the
+  file exists. This is how the images load quickly in the app. Treat a photo
+  you put on a dating profile as a photo that can travel — which is true of
+  every app of this kind, screenshots included. Deleting the photo, or your
+  account, deletes the file and the link stops working.</p>
+
+  <h2 id="reports">6. Reports</h2>
+  <p>A report is the one record that is not erased when an account goes.</p>
+  <p>When you report somebody we keep the category you chose, the specific
+  reason, anything you typed, and the time. We keep who reported whom, because
+  a single complaint and a fifth complaint about the same account are not the
+  same thing, and because one person reporting fifteen profiles in an afternoon
+  is itself worth seeing. <strong>The person you report is never told who
+  reported them</strong>, and reporting them removes them from your deck for
+  good.</p>
+  <p>If either of you later deletes their account, the report survives with the
+  link to the deleted account severed — the reason and the text stay readable,
+  attached to nobody. We keep it because deleting an account is a common thing
+  to do after being reported, and a safety record that disappears on request is
+  not a safety record.</p>
+
+  <h2>7. The legal basis for each use</h2>
+  <table>
+    <tr><th>What</th><th>Basis</th></tr>
+    <tr>
+      <td>Creating your account, showing you profiles, running matches and the
+      Instagram exchange, keeping your settings</td>
+      <td><strong>Performance of a contract</strong> (Art. 6(1)(b)) — the User
+      Terms. Without this data there is no service to provide.</td>
+    </tr>
+    <tr>
+      <td>Sexual orientation, religion, political view</td>
+      <td><strong>Explicit consent</strong> (Art. 9(2)(a)), withdrawable by
+      clearing the field.</td>
+    </tr>
+    <tr>
+      <td>Push notifications about matches</td>
+      <td><strong>Consent</strong> (Art. 6(1)(a)) — the permission you granted
+      the app, plus the in-app toggle. Turning either off stops them.</td>
+    </tr>
+    <tr>
+      <td>Reports, moderation, enforcement, keeping the 18+ rule and the
+      university rule real, security and abuse prevention</td>
+      <td><strong>Legitimate interests</strong> (Art. 6(1)(f)) — running a
+      service people are safe on, which we consider to outweigh the limited
+      intrusion of keeping a report on file. Special category data that appears
+      inside a report is handled under Art. 9(2)(f) or (g), where it bears on a
+      legal claim or a public-interest duty.</td>
+    </tr>
+    <tr>
+      <td>Responding to a lawful request from an authority</td>
+      <td><strong>Legal obligation</strong> (Art. 6(1)(c)).</td>
+    </tr>
+  </table>
+
+  <h2>8. Who processes data for us</h2>
+  <p>We use three providers, each under a data processing agreement, and each
+  acting only on our instructions.</p>
+  <dl>
+    <dt>Google Ireland Limited / Google LLC — Firebase</dt>
+    <dd>Authentication (your email and password), Storage (your photos),
+    Firestore (your notification token), Cloud Messaging (delivering
+    notifications) and App Check. Google's terms:
+    <a href="https://firebase.google.com/support/privacy">firebase.google.com/support/privacy</a>.</dd>
+    <dt><span class="todo">[[HOSTING]]</span> — our API server</dt>
+    <dd>Runs the FoitiFinder API and keeps the operational request logs
+    described above.</dd>
+    <dt><span class="todo">[[DATABASE]]</span> — our database</dt>
+    <dd>Hosts the PostgreSQL database holding your profile, swipes, matches,
+    notifications and reports.</dd>
+  </dl>
+  <p>Some of these providers process data outside the European Economic Area,
+  including in the United States. Where they do, the transfer is covered by the
+  European Commission's Standard Contractual Clauses, by the EU-US Data Privacy
+  Framework, or by both. You can ask us for the details.</p>
+
+  <h2>9. How long we keep things</h2>
+  <dl>
+    <dt>Your profile, photos, preferences, swipes, matches and settings</dt>
+    <dd>For as long as your account exists. Deleting your account deletes
+    them.</dd>
+    <dt>Matches</dt>
+    <dd>A match that nobody confirms expires 3 days after it is created, or 3
+    days after the first confirmation, and is then deleted — the next time
+    either of you opens your matches, it is gone.</dd>
+    <dt>Notifications</dt>
+    <dd>With your account.</dd>
+    <dt>Reports</dt>
+    <dd>Up to 3 years from the report, or longer where it relates to a safety
+    or legal matter that is still open. Links to a deleted account are severed
+    at the moment of deletion. See <a href="#reports">section 6</a>.</dd>
+    <dt>Server logs</dt>
+    <dd>As long as our hosting provider retains them for operational purposes,
+    which is a matter of days.</dd>
+    <dt>Your sign-in record at Firebase</dt>
+    <dd>Deleted when you delete your account.</dd>
+  </dl>
+
+  <h2 id="rights">10. Your rights</h2>
+  <p>Under the GDPR you can ask us to:</p>
+  <ul>
+    <li><strong>Give you a copy</strong> of your personal data, in a portable
+    form (Art. 15 and 20).</li>
+    <li><strong>Correct</strong> anything wrong (Art. 16). Most of it you can
+    correct yourself from your profile, which is faster.</li>
+    <li><strong>Delete</strong> your data (Art. 17). You can do this yourself —
+    see <a href="delete-account.html">deleting your account</a>. The one
+    exception is a report, explained in section 6.</li>
+    <li><strong>Restrict</strong> or <strong>object to</strong> processing we
+    do on legitimate interests (Art. 18 and 21).</li>
+    <li><strong>Withdraw consent</strong> at any time, by clearing a special
+    category field or turning notifications off. Withdrawing does not undo what
+    was lawful before it.</li>
+  </ul>
+  <p>Write to <a href="mailto:[[EMAIL]]"><span class="todo">[[EMAIL]]</span></a>
+  and we will answer within one month. We may need to confirm you control the
+  account before we hand over a copy of its data.</p>
+  <p>If you are not satisfied, you can complain to the Hellenic Data Protection
+  Authority (Αρχή Προστασίας Δεδομένων Προσωπικού Χαρακτήρα),
+  <a href="https://www.dpa.gr">www.dpa.gr</a>, or to the authority where you
+  live.</p>
+
+  <h2>11. Automated decisions</h2>
+  <p>We make no decision about you by automated means that has a legal or
+  similarly significant effect, so Article 22 does not apply. The order of your
+  swipe deck is decided automatically, and we describe exactly how in
+  <a href="recommender.html">how our recommender system works</a> — but being
+  shown one profile before another is not a decision about you.</p>
+  <p>Suspending or removing an account is a human decision, informed by
+  reports.</p>
+
+  <h2>12. Security</h2>
+  <p>Sign-in and password storage are handled by Firebase Authentication and we
+  never hold your password. Every request to our API carries a verified
+  identity token; the API takes your identity only from that token and never
+  from the body of a request, so no client can claim to be somebody else.
+  Firebase App Check means our API ignores requests that do not come from the
+  real app. All traffic is over HTTPS. The database is not reachable from the
+  public internet.</p>
+  <p>No system is perfect. If we ever suffer a breach that is likely to put
+  your rights at risk, we will tell the Hellenic Data Protection Authority
+  within 72 hours and tell you without undue delay.</p>
+
+  <h2>13. Nobody under 18</h2>
+  <p>FoitiFinder is for adults. The sign-up form refuses a date of birth under
+  18, the server refuses one too, and an account needs a verified university
+  email address. If you believe an account belongs to a minor, report it from
+  the profile — the "Underage" category exists for exactly this and goes to the
+  front of the queue.</p>
+
+  <h2>14. Changes</h2>
+  <p>When we change this statement we update the date at the top. If a change
+  materially affects you, we will tell you in the app before it takes effect.
+  The current version always lives at this address, which is also linked from
+  Policies inside the app.</p>
+
+  <h2>15. Contact</h2>
+  <p><span class="todo">[[ENTITY]]</span><br>
+  <span class="todo">[[ADDRESS]]</span><br>
+  <a href="mailto:[[EMAIL]]"><span class="todo">[[EMAIL]]</span></a></p>
+
+  <footer class="bottom">
+    <p><a href="index.html">All policies</a> &middot;
+    <a href="terms.html">User Terms</a> &middot;
+    <a href="guidelines.html">User Guidelines</a> &middot;
+    <a href="el/privacy.html">Ελληνικά</a></p>
+  </footer>
+</main>
+
+</body>
+</html>

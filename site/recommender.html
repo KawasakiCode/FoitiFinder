@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FoitiFinder — How our recommender system works</title>
+<meta name="description" content="In plain language: what decides whose profiles you are shown on FoitiFinder, and what has no bearing on it.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="index.html">Foiti<span>Finder</span></a>
+    <nav><a href="index.html">All policies</a> &middot;
+    <a href="el/recommender.html">Ελληνικά</a></nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <h1>How our recommender system works</h1>
+  <p class="lede">What decides whose profiles reach you. This is not a legal
+  document — it is an honest description of a fairly simple piece of
+  software.</p>
+  <p class="stamp">Last updated 5 November 2026. Describes the app as it works
+  today.</p>
+
+  <div class="callout">
+    <p><strong>The whole thing, in one sentence.</strong> We take everybody you
+    have not already swiped on, remove anyone outside the age range and gender
+    you asked for, and <strong>shuffle what is left</strong>. There is no
+    scoring, no ranking and no desirability model. Ten profiles at a time, in
+    random order.</p>
+  </div>
+
+  <h2>Step 1: who is taken out</h2>
+  <p>Before anything else, three groups never appear in your deck.</p>
+  <ul>
+    <li><strong>You.</strong></li>
+    <li><strong>Anybody you have already swiped on</strong>, whatever you
+    chose — like, pass, super like, "not interested" or report. A profile you
+    have seen does not come back, so passing on somebody is permanent from your
+    side.</li>
+    <li>Accounts we have removed.</li>
+  </ul>
+  <p>People who have liked <em>you</em> are <strong>not</strong> taken out.
+  They stay in the ordinary deck and you are not told they are interested, so a
+  match can happen from any swipe. The one exception is a
+  <strong>super like</strong>: that one is shown to you, with a banner on the
+  card, because telling you is the point of it.</p>
+
+  <h2>Step 2: the two filters</h2>
+  <p>Two of your preferences are applied as hard filters. Somebody outside them
+  is not shown to you at all, ever.</p>
+  <dl>
+    <dt>Age</dt>
+    <dd>The range you set. We work it out from dates of birth rather than
+    stored ages, so it stays right on everybody's birthday.</dd>
+    <dt>Gender</dt>
+    <dd>Who you said you wanted to see.</dd>
+  </dl>
+  <p>A profile that has not filled in its age or gender yet is
+  <strong>kept</strong> rather than hidden, so people still setting up are not
+  invisible.</p>
+
+  <h3>What your other preferences do today: nothing</h3>
+  <p>You can also tell the app your preferred height range, and your
+  preferences about smoking, drinking, intentions, children and languages. We
+  store them, you can see and change them, and <strong>the deck does not yet
+  use them</strong>. They are there for the ranking work described at the
+  bottom of this page. We would rather say that than let you believe a filter
+  is working when it is not.</p>
+
+  <h3>One filter you should know is one-directional</h3>
+  <p><strong>Your preferences decide who you see. They do not yet decide who
+  sees you.</strong> Somebody whose age range or gender preference you fall
+  outside can still be shown your profile and can still like you. If they do
+  and you like them back, you will match normally.</p>
+  <p>This is a known limitation and we are fixing it. Until we do, a like you
+  send is not a guarantee that the other person's filters would ever have shown
+  them to you.</p>
+
+  <h2>Step 3: the order</h2>
+  <p>Random. Genuinely random — the server shuffles the remaining profiles and
+  hands back ten.</p>
+  <p>That means <strong>none</strong> of the following affects your position in
+  anybody's deck, or theirs in yours:</p>
+  <ul>
+    <li>How attractive anyone is, by any measure. There is no score attached to
+    any account.</li>
+    <li>How many likes you have had, given, or received.</li>
+    <li>How often you open the app, or how recently.</li>
+    <li>How long you have been a member.</li>
+    <li>Whether anybody has super liked you — that shows a banner, and nothing
+    more.</li>
+    <li>Anything you could pay for. There is nothing to pay for.</li>
+    <li>Your religion, politics, sexual orientation or pronouns. Nothing in the
+    app filters, ranks or sorts on any of these. They appear on your profile
+    because you chose to put them there, and that is their only effect.</li>
+    <li>Your university, your course, or your city. Your city is text on your
+    profile and nothing reads it.</li>
+    <li>Your location. We do not have it — see the
+    <a href="privacy.html">Privacy Statement</a>.</li>
+  </ul>
+
+  <h2>What this means for you</h2>
+  <p>Mostly that there is not much to game. Two things are genuinely in your
+  hands:</p>
+  <ul>
+    <li><strong>Your filters decide the size of your pool.</strong> A narrow
+    age range on a service with a few thousand students is the single biggest
+    reason a deck runs dry. Widening it takes effect immediately — the deck
+    refills without restarting the app.</li>
+    <li><strong>Your profile decides what people do when they reach it.</strong>
+    Since the order is random, a photo and a bio are the entire difference
+    between a like and a pass.</li>
+  </ul>
+  <p>And passing is permanent, so it is worth opening a profile you are unsure
+  about rather than flicking it away.</p>
+
+  <h2>What we plan to change</h2>
+  <p>We are working on ordering the deck rather than shuffling it. The signals
+  we intend to use, in rough order of weight:</p>
+  <ol>
+    <li><strong>Whether somebody is actually around.</strong> An active account
+    before a dormant one — a like that nobody will ever see is worse than no
+    like.</li>
+    <li><strong>Whether they super liked you.</strong> Shown already, and it
+    should also come first.</li>
+    <li><strong>New profiles</strong>, briefly, so somebody who joined today is
+    not buried under everybody who joined before them.</li>
+    <li><strong>How well your stated preferences overlap</strong> — the
+    smoking, drinking, intentions, children and language preferences above,
+    used as a nudge in the ordering rather than as a wall. We would rather
+    show you somebody who is a near-fit than show you nobody.</li>
+    <li><strong>Same university or department</strong>, as a mild preference.
+    Shared ground is the thing this app has that a general dating app does
+    not.</li>
+  </ol>
+  <p>There will still be no attractiveness score, nothing sold, and no use of
+  special category data. When this ships we will update this page before it
+  goes live, not after.</p>
+
+  <div class="callout">
+    <p><strong>Why we publish this.</strong> Article 27 of the EU Digital
+    Services Act requires online platforms to set out the main parameters of
+    their recommender systems in plain language. As a micro enterprise we are
+    exempt from it under Article 19. We publish it anyway, because the exemption
+    runs out the moment we grow and because "how does this decide what I see" is
+    a fair question whatever the law says.</p>
+  </div>
+
+  <footer class="bottom">
+    <p><a href="index.html">All policies</a> &middot;
+    <a href="privacy.html">Privacy Statement</a> &middot;
+    <a href="terms.html">User Terms</a> &middot;
+    <a href="el/recommender.html">Ελληνικά</a></p>
+  </footer>
+</main>
+
+</body>
+</html>
