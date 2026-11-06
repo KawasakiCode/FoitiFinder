@@ -1,7 +1,13 @@
-//From this page the user can delete their account permanently
-//As of now the deletion is instant
-//Later a grace period of 10 days will be added in case the user changes 
-//their mind or deleted accidenticaly
+//From this page the user can delete their account permanently.
+//
+//THE DELETION IS INSTANT AND THE COPY NOW SAYS SO. deleteAccountLongText used
+//to promise a 10 day window in which signing in would recover the account,
+//written against a grace period this comment said would be added later and
+//which never was. So the app described a feature it did not have, on the one
+//screen where being wrong is unrecoverable - and once the privacy statement
+//and the account deletion page were published, it contradicted them too.
+//
+//If a grace period is ever built, the string is where it gets announced again.
 
 //Request the user's password for 2 reasons:
 //Security to prevent third party deleting someone's account

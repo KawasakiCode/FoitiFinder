@@ -95,7 +95,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteAccountLongText =>
-      'Your profile will be removed from FoitiFinder and won\'t be visible to other members. If you change your mind within 10 days, you can sign in to recover your account. After 10 days we will delete your data in accordance with our Privacy Policy and you will no longer be able to recover your profile.';
+      'Your profile, photos, swipes and matches are deleted and your profile stops being visible to other members. This happens immediately and cannot be undone — there is no recovery period and we cannot restore an account afterwards. Reports you sent or received are kept with the link to your account removed, as explained in our Privacy Policy.';
 
   @override
   String get readPolicy => 'Read our ';
