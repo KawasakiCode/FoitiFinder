@@ -152,6 +152,48 @@ class TestThePurgeItself:
         account_deletion.purge("uid-alice", firestore_db=None, bucket=None)
 
 
+class TestTheSuiteCannotReachFirebase:
+    """The guard that should have existed before any of this was written.
+
+    DELETE /users/me now deletes real things outside Postgres, and
+    serviceAccountKey.json sits next to main.py on a development machine - so
+    for a while every test that deleted an account made live gRPC calls
+    against the real project. It passed in CI, which has no key, and took
+    three minutes and four failures locally. The _no_real_firebase fixture in
+    conftest closes it; this is what notices if that fixture is removed,
+    renamed, or stops covering a new way of reaching Firebase.
+
+    An assertion about the test environment rather than about the app, which
+    is unusual and is the point: the thing being protected is somebody's
+    photos, and the protection is a fixture nobody has a reason to look at.
+    """
+
+    def test_there_is_no_firestore_client(self):
+        import firebase_app
+
+        assert firebase_app.firestore_db is None
+
+    def test_and_no_storage_bucket(self):
+        import firebase_app
+
+        assert firebase_app.storage_bucket is None
+        assert account_deletion._bucket() is None
+
+    def test_so_a_real_purge_does_nothing(self, as_user, make_user, db):
+        """The default arguments, with nothing monkeypatched: the whole point
+        is that this is the call the endpoint makes, and it must not go
+        anywhere near a network.
+        """
+        from database import models
+
+        me = make_user(name="Me", photos=3)
+        my_id = me.id
+
+        #no monkeypatch.setattr(account_deletion, "purge", ...) here
+        assert as_user(me).delete("/users/me").status_code == 200
+        assert db.query(models.User).filter_by(id=my_id).first() is None
+
+
 class TestTheEndpoint:
     def test_it_purges_firebase_for_the_calling_uid(
         self, as_user, make_user, monkeypatch, db

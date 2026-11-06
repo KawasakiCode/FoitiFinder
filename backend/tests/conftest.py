@@ -321,3 +321,42 @@ def _assert_test_database(db):
     """
     name = db.execute(text("select current_database()")).scalar()
     assert name.endswith("_test"), f"running against {name}!"
+
+
+@pytest.fixture(autouse=True)
+def _no_real_firebase(monkeypatch):
+    """Keep the promise at the top of this file: no Firebase, for any test.
+
+    THIS FIXTURE IS HERE BECAUSE THAT PROMISE WAS BROKEN. Identity comes from
+    a replaceable dependency and pushes go through the `pushes` fixture, so
+    nothing in the suite reached Firebase - until DELETE /users/me started
+    deleting the Firestore document and the Storage objects for an account
+    (see account_deletion). serviceAccountKey.json exists on a development
+    machine, so firebase_app hands out a LIVE client, and five tests that
+    delete an account were quietly making real gRPC calls against the real
+    project. It showed up as a suite that took three minutes instead of seven
+    seconds and failed four tests on a bad network - and it would have passed
+    in CI, which has no key at all, so the two environments disagreed about
+    what the tests even did.
+
+    THE REAL DANGER WAS NEVER THE FLAKINESS. purge() deletes by uid prefix. A
+    test uid is made up, so nothing matched - but the distance between "made
+    up" and "collides with a real account" is one fixture someone writes in a
+    hurry, and what is on the other side of it is somebody's photos.
+
+    PATCHES THE DEPENDENCIES, NOT purge ITSELF, which matters for two reasons.
+    The real function still runs, taking the branch it documents for a process
+    with no service account - the same code CI exercises. And the tests in
+    test_account_deletion that pass explicit fakes still reach the real logic,
+    where patching purge would have silently turned them into assertions about
+    a stub.
+    """
+    import account_deletion
+    import firebase_app
+
+    monkeypatch.setattr(firebase_app, "firestore_db", None)
+    monkeypatch.setattr(firebase_app, "storage_bucket", None)
+    #_bucket() reads firebase_app.storage_bucket and returns None without it,
+    #so this is belt and braces again: it also covers the day somebody gives
+    #_bucket another way to find a bucket.
+    monkeypatch.setattr(account_deletion, "_bucket", lambda: None)
