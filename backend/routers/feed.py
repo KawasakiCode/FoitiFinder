@@ -1,6 +1,6 @@
 """The swipe deck: who is offered, and who is deliberately not."""
 
-from sqlalchemy import func, or_
+from sqlalchemy import any_, func, literal, or_
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -15,8 +15,41 @@ from sqlalchemy.orm import selectinload
 
 from ages import age_from_birthday, years_ago
 from api_models import UserCards
-from preferences.preferences import preference_to_genders
+from preferences.preferences import (gender_to_preference_token,
+                                     preference_to_genders)
 from typing import List
+
+
+#WHETHER A CANDIDATE'S OWN GENDER PREFERENCE ACCEPTS THE VIEWER.
+#
+#preferred_gender is a comma separated string of 'Men'/'Women'/'Everyone', so
+#this has to look inside it in SQL. EXACT TOKENS, NOT LIKE '%Men%': 'Women'
+#contains the letters of 'Men' in lower case, so a substring match happens to
+#work only because Postgres LIKE is case sensitive and the app happens to
+#capitalise. That is a trap, not a rule. Splitting on the comma and comparing
+#whole tokens cannot be broken by either.
+#
+#SPACES ARE STRIPPED FIRST because the string is assembled by the client and
+#'Men, Women' is as likely as 'Men,Women'.
+def _accepts_gender(column, gender: str | None):
+    token = gender_to_preference_token(gender)
+    #NO TOKEN MEANS NO FILTER. A viewer who has not set a gender, or whose
+    #gender the preference vocabulary cannot express, must not be hidden from
+    #everybody - they are shown, and the other side's preference goes
+    #unchecked because it cannot be checked.
+    if token is None:
+        return None
+
+    #<value> = ANY(string_to_array(...)), via the standalone any_(). The
+    #column method of the same name is the ANY(subquery) form and takes no
+    #argument, which fails as a TypeError at request time rather than at
+    #import - the sort of thing that only a test of the endpoint catches.
+    tokens = func.string_to_array(func.replace(column, " ", ""), ",")
+    return or_(
+        column.is_(None),
+        literal("Everyone") == any_(tokens),
+        literal(token) == any_(tokens),
+    )
 
 #get multiple users for the homepage
 @router.get("/users/feed", response_model = List[UserCards])
@@ -94,6 +127,40 @@ def get_swipe_feed(uid: str = Depends(verified_email_uid), db: Session = Depends
     wanted_genders = preference_to_genders(me.preferred_gender)
     if wanted_genders is not None:
         filters.append(or_(models.User.gender.in_(wanted_genders), models.User.gender.is_(None)))
+
+    #=====================================================================
+    #AND NOW THE OTHER DIRECTION, which is what this endpoint spent its
+    #whole life not doing.
+    #
+    #THE BUG. Only the viewer's preferences were applied, so the deck
+    #offered people whose own filters would never have offered the viewer
+    #back. A right swipe on one of them could not become a match no matter
+    #what they did - they were never going to see the card. The app called
+    #that "no match yet"; it was structurally impossible, and the user had
+    #no way to tell the two apart.
+    #
+    #WHY IT IS WORTH THE SMALLER DECK. A deck of people who can match you
+    #is smaller than a deck of people who cannot, and on a service with a
+    #few thousand students that difference is felt. It is still the right
+    #trade: the alternative spends somebody's attention on cards that
+    #cannot pay out, and a like that cannot be returned is the most
+    #discouraging thing this app can produce.
+    #
+    #EVERY CHECK KEEPS NULL, exactly as the two above do. A candidate who
+    #has not set an age range or a gender preference has not said no to
+    #anybody, so they stay - an unfinished profile is not a rejection.
+    #=====================================================================
+    my_age = age_from_birthday(me.birthday)
+    if my_age is not None:
+        #their minimum must not be above me, their maximum must not be below
+        filters.append(or_(models.User.min_age_range.is_(None),
+                           models.User.min_age_range <= my_age))
+        filters.append(or_(models.User.max_age_range.is_(None),
+                           models.User.max_age_range >= my_age))
+
+    accepts_me = _accepts_gender(models.User.preferred_gender, me.gender)
+    if accepts_me is not None:
+        filters.append(accepts_me)
 
     #order the users randomly for now and limit then at 10
     #selectinload pulls every user's photos in a single extra query (no N+1)

@@ -85,14 +85,19 @@ The Greek is a translation of the English, not a separate document. If the two
 ever disagree the English was written first, and `terms.html` §15 says so to
 the reader rather than hiding it.
 
-### 3. One promise the app still breaks
+### 3. Promises the app used to break
 
-`deleteAccountLongText` in both `.arb` files tells the user "if you change your
-mind within 10 days, you can sign in to recover your account". There is no such
-window: `delete_account_page.dart` deletes immediately, and its own comment says
-the grace period is for later. `delete-account.html` documents the immediate
-behaviour, which is the truthful one, so **the string is what needs changing** —
-either to match, or by building the grace period it describes.
+Both of these are now fixed, and are recorded because they are the two ways
+these pages can quietly stop being true.
+
+- `deleteAccountLongText` promised a 10-day window in which signing in would
+  recover a deleted account. Nothing of the kind existed, and once
+  `delete-account.html` was published it contradicted it. The string now
+  describes the immediate, permanent deletion the code actually performs.
+- `recommender.html` described the feed as one-directional, which it was: your
+  filters decided who you saw and nothing decided who saw you. The feed now
+  applies both sides' age range and gender preference, so the page describes
+  four filters rather than two.
 
 ## Keeping the pages honest
 
@@ -102,8 +107,9 @@ wrong, in both languages:
 
 - **shipping the ranking work** — `recommender.html` says the deck is shuffled,
   and says so three times;
-- **making the feed filter mutually** — `recommender.html` has a whole
-  subsection on it being one-directional;
+- **changing which preferences the feed applies** — `recommender.html` names
+  the four that are filters and says plainly that height, smoking, drinking,
+  intentions, children and languages are stored and unused;
 - **adding any paid feature** — `terms.html` §9 and all of
   `cancellation.html`;
 - **adding analytics, crash reporting or ads** — `privacy.html` has a callout

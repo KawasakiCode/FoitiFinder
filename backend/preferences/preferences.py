@@ -30,3 +30,23 @@ def preference_to_genders(preferred_gender: Optional[str]) -> Optional[List[str]
     mapping = {"Men": "Male", "Women": "Female"}
     genders = [mapping[s] for s in selected if s in mapping]
     return genders or None
+
+
+#THE SAME MAPPING, READ THE OTHER WAY. preference_to_genders answers "whose
+#profiles may I be shown"; this answers "what must THEY have selected for me
+#to be shown to them", which is the half the feed was missing.
+_GENDER_TO_PREFERENCE = {"Male": "Men", "Female": "Women"}
+
+
+def gender_to_preference_token(gender: Optional[str]) -> Optional[str]:
+    """The ``preferred_gender`` token somebody must have picked to see `gender`.
+
+    ``"Male"`` -> ``"Men"``. Returns ``None`` when the gender is absent or is
+    not one of the two the preference vocabulary can express, which the caller
+    must read as "no reverse gender filter can be applied" rather than as
+    "nobody matches" - refusing to show a profile because its gender has no
+    token would hide it from everybody.
+    """
+    if not gender:
+        return None
+    return _GENDER_TO_PREFERENCE.get(gender.strip())
