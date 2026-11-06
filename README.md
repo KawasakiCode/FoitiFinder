@@ -20,7 +20,7 @@ A Flutter app (`lib/`), a FastAPI + PostgreSQL backend (`backend/`), and Firebas
 
 **Discovery**
 * Physics-based swipe deck — drag, rotation and velocity, with **Like** (right), **Pass** (left) and **Super Like** (up), live "like/pass" stamps that track drag distance, and background cards that interpolate position and scale as you drag.
-* A sliding-window buffer: 20 cards per fetch, refilled at 10 remaining, with a 5-deep history for rewind.
+* A sliding-window buffer: 20 cards per fetch, refilled at 10 remaining, with a 5-deep history for rewind. The deck sends the server the cards it is already holding — including the targets of swipes still queued offline — so every page is entirely new rather than filtered down on arrival.
 * Photos for the top two cards are pre-cached before they are needed.
 * Tapping a card opens the full profile in a shared-element transition: the photo, the six stat pills and the action buttons all fly to their new positions rather than cutting.
 

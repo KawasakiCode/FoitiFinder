@@ -288,8 +288,28 @@ class ApiService {
   }
 
   //Get multiple users to display as cards
-  static Future<List<CardData>> getMultipleUsers(String uid) async {
-    final url = Uri.parse("$baseUrl/users/feed");
+  //[exclude] is everyone the deck already knows about: the cards still in
+  //hand, and the targets of swipes stuck in SwipeQueue waiting for a network.
+  //
+  //WHY THE SERVER NEEDS TELLING. It leaves out anybody it holds a swipe row
+  //for, and a queued swipe has no row yet - so it keeps offering those people
+  //and the deck discards them on arrival. Harmless while the discarded set is
+  //small; once it is bigger than a page, a whole page can land inside it, and
+  //the deck reads three of those in a row as "no more profiles" while people
+  //are still unseen.
+  static Future<List<CardData>> getMultipleUsers(
+    String uid, {
+    Set<int> exclude = const {},
+    int limit = 20,
+  }) async {
+    final url = Uri.parse("$baseUrl/users/feed").replace(
+      queryParameters: {
+        'limit': '$limit',
+        //omitted rather than sent empty, so the common first fetch is the
+        //same bare URL it always was
+        if (exclude.isNotEmpty) 'exclude': exclude.join(','),
+      },
+    );
     try {
       final response = await http.get(url, headers: await _authHeaders()).timeout(kRequestTimeout);
 

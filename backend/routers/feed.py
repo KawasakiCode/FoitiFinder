@@ -193,9 +193,67 @@ def _score(me: models.User, super_liked_me: set[int]):
         total = total + term
     return total
 
+#HOW MANY CARDS A PAGE HOLDS, and the ceiling on what a client may ask for.
+#
+#THE DEFAULT WAS 10 AND HARDCODED, while the deck declared batchSize = 20 and
+#sent nothing - so the client, the server and the README each described a
+#different page size. 20 matches what the deck always thought it was getting.
+#
+#THE CAP EXISTS BECAUSE THE NUMBER ARRIVES FROM A CLIENT. Nothing here is
+#expensive per row, but an unbounded limit is an invitation to ask for the
+#whole table in one request.
+DEFAULT_PAGE = 20
+MAX_PAGE = 40
+
+#AND HOW MANY IDS IT WILL ACCEPT BACK. The deck sends what it is holding plus
+#whatever is stuck in the swipe queue; both are bounded by how fast somebody
+#can swipe between flushes, so this is generous rather than tight. Past it the
+#extras are ignored rather than refused: the only cost of a missed exclusion
+#is a card the client filters out itself, which is what it did before any of
+#this existed.
+MAX_EXCLUDE = 200
+
+
+def _parse_exclude(raw: str) -> list[int]:
+    """Read a comma separated id list, ignoring anything that is not one.
+
+    LENIENT ON PURPOSE. These are exclusions: every id here can only ever
+    REMOVE a candidate from the caller's own deck, so a malformed one is not
+    worth a 422 that breaks the swipe deck. Nothing is disclosed by it and
+    nothing but the caller is affected.
+    """
+    out: list[int] = []
+    for part in raw.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        try:
+            out.append(int(part))
+        except ValueError:
+            continue
+        if len(out) >= MAX_EXCLUDE:
+            break
+    return out
+
+
 #get multiple users for the homepage
 @router.get("/users/feed", response_model = List[UserCards])
-def get_swipe_feed(uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
+def get_swipe_feed(
+    limit: int = DEFAULT_PAGE,
+    #WHAT THE CLIENT IS ALREADY HOLDING: the cards in the deck, plus the
+    #targets of swipes still sitting in SwipeQueue waiting for a network.
+    #
+    #WHY THE SERVER HAS TO BE TOLD. It excludes what it has a swipe row for,
+    #and a queued swipe has no row yet - so it keeps offering those people,
+    #and the deck throws them away on arrival. That was merely wasteful until
+    #the discarded set grew past a page: then a whole page could land inside
+    #it, three of those in a row tripped the deck's "nothing new" counter, and
+    #the user was told there were no more profiles with people still unseen.
+    #Offline, that is reachable in about forty swipes. See the test.
+    exclude: str = "",
+    uid: str = Depends(verified_email_uid),
+    db: Session = Depends(get_db),
+):
     #first get the current user id to exclude it
     me = db.query(models.User).filter(models.User.firebase_uid == uid).first()
     if not me:
@@ -209,6 +267,7 @@ def get_swipe_feed(uid: str = Depends(verified_email_uid), db: Session = Depends
     seen_ids_list = [x[0] for x in seen_ids]
 
     seen_ids_list.append(me.id)
+    seen_ids_list.extend(_parse_exclude(exclude))
 
     #WHOEVER LIKED YOU IS IN THE DECK, AND IS NOT TOLD SO.
     #
@@ -354,10 +413,16 @@ def get_swipe_feed(uid: str = Depends(verified_email_uid), db: Session = Depends
     score = _score(me, super_liked_me)
     sampling_key = -func.ln(func.random()) / func.greatest(score, 0.001)
 
+    #CLAMPED, NOT VALIDATED. A client asking for 0 or 500 gets a page rather
+    #than a 422: there is one caller, the number is a buffer size rather than
+    #a user's intent, and a deck that fails to refill is worse than one that
+    #refills by a different amount than it asked for.
+    page = max(1, min(limit, MAX_PAGE))
+
     #selectinload pulls every user's photos in a single extra query (no N+1)
     users = db.query(models.User).options(
         selectinload(models.User.photos)
-    ).filter(*filters).order_by(sampling_key).limit(10).all()
+    ).filter(*filters).order_by(sampling_key).limit(page).all()
 
     results = []
     for user in users:

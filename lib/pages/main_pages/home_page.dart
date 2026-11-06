@@ -55,11 +55,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   final int batchSize = 20; // how many cards to load at a time
   bool _isFetching = false;
   bool _hasNoMoreProfiles = false;
-  //How many fetches in a row came back with nobody the deck did not already
-  //hold. See _fetchMoreCards: one such answer proves nothing, a run of them
-  //means the pool really is exhausted. Reset as soon as anyone new arrives.
-  int _fetchesWithNothingNew = 0;
-  static const int _kGiveUpAfterEmptyFetches = 3;
+  //THERE IS NO "nothing new" COUNTER ANY MORE. It gave up after three replies
+  //that added nobody, which was a guess at exhaustion made necessary by the
+  //server not knowing what the deck held. It now does, so an empty reply is
+  //the only signal needed - and the counter was what turned a bad network
+  //into a false "no more profiles". See _fetchMoreCards.
   //WHICH DECK A REPLY BELONGS TO. Changing a filter throws the deck away and
   //asks again, but a request already in flight answers with people chosen
   //under the OLD criteria - and appending those to the cleared deck would put
@@ -181,7 +181,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       cards = [];
       currentIndex = 0;
       _hasNoMoreProfiles = false;
-      _fetchesWithNothingNew = 0;
       _swipeNotifier.value = Offset.zero;
     });
     _fetchMoreCards();
@@ -476,7 +475,25 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
     try {
       String uid = FirebaseAuth.instance.currentUser!.uid;
-      List<CardData> users = await ApiService.getMultipleUsers(uid);
+
+      //EVERYONE THIS DECK ALREADY KNOWS ABOUT, sent so the server can leave
+      //them out instead of being filtered on arrival. Both halves matter: the
+      //cards in hand, and the swipes still queued - the server has no row for
+      //a queued swipe, so without this it keeps offering those people.
+      //
+      //THE FILTERS BELOW STAY ANYWAY. A request can be in the air while the
+      //user keeps swiping, so by the time a reply lands the deck may know
+      //about people it could not have named when it asked.
+      final known = <int>{
+        ...cards.map((card) => card.id),
+        ...SwipeQueue.instance.pendingTargetIds,
+      };
+
+      List<CardData> users = await ApiService.getMultipleUsers(
+        uid,
+        exclude: known,
+        limit: batchSize,
+      );
 
       //THE FILTERS CHANGED WHILE THIS WAS IN THE AIR. These people were
       //chosen under the old ones, and _resetDeck has already started a fetch
@@ -512,22 +529,30 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           users.where((card) => !inDeck.contains(card.id)).toList();
 
       if (fresh.isEmpty) {
-        //AN EMPTY SAMPLE AND A DUPLICATE SAMPLE ARE NOT THE SAME THING. The
-        //server returning nothing means there is nobody left. A sample that
-        //happens to land entirely inside the deck does not prove that - the
-        //cap is applied server side and the order is random - so treating it
-        //as the end would show "no more profiles" with people still to see.
-        //Several in a row is a different matter.
-        _fetchesWithNothingNew++;
-        if (users.isEmpty ||
-            _fetchesWithNothingNew >= _kGiveUpAfterEmptyFetches) {
+        //AN EMPTY REPLY IS THE ONLY PROOF THE POOL IS EMPTY, and now it is
+        //the only thing trusted.
+        //
+        //THIS USED TO GIVE UP AFTER THREE REPLIES THAT ADDED NOBODY, because
+        //the server had no way to know what the deck was holding and kept
+        //re-offering it, so a single colliding page proved nothing. That
+        //heuristic then caused the exact thing it was written to prevent: on
+        //a bad network the queued swipes pile up, the discarded set grows past
+        //one page, three pages in a row land entirely inside it, and the deck
+        //announces "no more profiles" with people still unseen - latched for
+        //the session, since only _resetDeck clears it.
+        //
+        //The server is told what we hold now (see `known` above), so a reply
+        //that adds nobody means the pool really is down to what is in hand.
+        //Trusting `users.isEmpty` alone turns a wrong answer into a slower
+        //one: the worst case is an extra request on a deck that was about to
+        //end anyway.
+        if (users.isEmpty) {
           _hasNoMoreProfiles = true;
         }
         _isFetching = false;
         return;
       }
 
-      _fetchesWithNothingNew = 0;
       if (mounted) {
         setState(() {
           cards.addAll(fresh);
