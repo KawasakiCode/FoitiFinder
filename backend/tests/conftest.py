@@ -266,6 +266,11 @@ def make_user(db):
         #win, and passing the same keyword twice is a TypeError
         extra.setdefault("min_age_range", 18)
         extra.setdefault("max_age_range", 99)
+        #MOVED OUT OF THE CONSTRUCTOR so a test can set it. It was hardcoded,
+        #which made make_user(university=...) a TypeError rather than an
+        #override - and the feed now scores a shared university, so "two
+        #people at different ones" is a case tests have to be able to build.
+        extra.setdefault("university", "University of Macedonia")
         user = models.User(
             firebase_uid=f"uid-test-{index}",
             name=name,
@@ -275,7 +280,6 @@ def make_user(db):
             has_finished_set_up=True,
             has_photos=photos > 0,
             instagram_handle=handle,
-            university="University of Macedonia",
             **extra,
         )
         db.add(user)
