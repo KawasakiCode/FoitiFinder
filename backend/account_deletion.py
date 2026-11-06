@@ -11,9 +11,9 @@ two things behind in Firebase:
                              the worst version of this bug: the rows that say
                              who they were of are the part that went.
 
-    users/<uid>              the Firestore document holding fcm_token,
-                             last_active and match_notifications. A live push
-                             token for an account that no longer exists.
+    users/<uid>              the Firestore document holding fcm_token and
+                             match_notifications. A live push token for an
+                             account that no longer exists.
 
 Both are now deleted here, and the privacy statement and the account deletion
 page say so, which is the real reason this module exists: those documents are

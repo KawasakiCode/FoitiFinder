@@ -30,6 +30,29 @@ class User(Base):
     #range query on a float is a nuisance for no gain in precision.
     height_cm = Column(Integer, nullable = True)
     created_at = Column(TIMESTAMP(timezone=True), nullable = False, server_default = text('now()'))
+
+    #THE LAST TIME THE APP WAS OPENED, and the one thing ranking needs that
+    #nothing here could answer.
+    #
+    #IT LIVED IN FIRESTORE, next to the push token, written by the client on
+    #every launch. That was the wrong place by one requirement: the feed orders
+    #candidates in SQL, and a value in another database cannot appear in an
+    #ORDER BY. Ranking an active account above a dormant one is the single
+    #biggest thing the deck can do for a small user base - a like that nobody
+    #will ever open is worse than no like - and it was unreachable.
+    #
+    #WRITTEN BY POST /users/me/active, which the app calls on launch and on
+    #resume. One UPDATE, no body.
+    #
+    #DEFAULTS TO now() SO A NEW ACCOUNT IS NOT DORMANT. Null would be the
+    #honest value for "has never been seen", but a brand-new account has just
+    #been seen by definition, and sorting nulls last would bury exactly the
+    #people who need to be found. The migration backfills existing rows from
+    #created_at rather than now(), because claiming everybody was active the
+    #moment it ran would be a lie that takes a week to wash out.
+    last_active = Column(TIMESTAMP(timezone=True), nullable = True,
+                         server_default = text('now()'))
+
     gender = Column(String, nullable = True)
     min_age_range = Column(Integer, nullable = True)
     max_age_range = Column(Integer, nullable = True)

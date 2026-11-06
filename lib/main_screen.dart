@@ -107,6 +107,10 @@ class _MainScreenState extends State<MainScreen> {
     onResume: () {
       SwipeQueue.instance.flush(uid: widget.uid);
       _notificationsProvider.load();
+      //RESUME COUNTS AS BEING HERE. A phone that sat in a pocket for two days
+      //and came back is an active account, and the launch-time call would not
+      //fire again for somebody who never closes the app.
+      ApiService.markActive();
     },
   );
 
@@ -115,6 +119,7 @@ class _MainScreenState extends State<MainScreen> {
     super.initState();
     _lifecycle;
     _updateFcmToken();
+    ApiService.markActive();
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       //ANYTHING ABOUT A MATCH REFRESHES THE MATCHES PAGE, whatever the kind.
@@ -304,9 +309,14 @@ class _MainScreenState extends State<MainScreen> {
       String? token = await FirebaseMessaging.instance.getToken();
 
       if (token != null) {
+        //NO last_active HERE ANY MORE. It was written beside the token on
+        //every launch and nothing ever read it: the feed orders candidates in
+        //SQL and cannot see into Firestore, which is the one place the value
+        //was wanted. It is now users.last_active, written by
+        //ApiService.markActive. What stays here is what the BACKEND reads out
+        //of Firestore to send a push - the token and the toggle.
         await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
           'fcm_token': token,
-          'last_active': FieldValue.serverTimestamp(),
           'match_notifications': settings.matchNotificationsEnabled,
         }, SetOptions(merge: true));
       }

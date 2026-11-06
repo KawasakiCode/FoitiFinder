@@ -3,6 +3,7 @@
 from firebase_admin import auth
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from auth import current_uid, verified_claims, verified_email_uid
@@ -107,6 +108,39 @@ def get_user_data(uid: str = Depends(current_uid), db: Session = Depends(get_db)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
+
+@router.post("/users/me/active")
+def mark_active(
+    uid: str = Depends(verified_email_uid),
+    db: Session = Depends(get_db),
+):
+    """Record that the app was just opened. One UPDATE, no body, no response.
+
+    WHY THIS IS AN ENDPOINT AND NOT A SIDE EFFECT of some other call. It was
+    tempting to touch last_active inside the feed request, since an active
+    session fetches the feed - but somebody who only opens their matches is
+    just as active, and chasing that leads to the same write scattered through
+    four handlers, each of them a read endpoint quietly doing a write. One
+    explicit call, made once per launch and once per resume, says what it
+    means and can be found.
+
+    IT USED TO BE A FIRESTORE WRITE from the client, next to the push token.
+    See the column on the model for why it had to move: the feed cannot order
+    by a value in another database.
+
+    NO 404 FOR A MISSING ROW, deliberately. This fires on launch, which is
+    also when a half-finished signup has a verified token and no users row
+    yet; answering 404 would put an error in the client's log for something
+    that is not wrong. Nothing was recorded, which is correct, and the caller
+    has nothing to do about it either way.
+    """
+    db.query(models.User).filter(models.User.firebase_uid == uid).update(
+        {models.User.last_active: func.now()},
+        synchronize_session=False,
+    )
+    db.commit()
+    return {"ok": True}
+
 
 @router.delete("/users/me")
 def delete_user(

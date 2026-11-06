@@ -194,6 +194,30 @@ class ApiService {
     }
   }
 
+  //Say "the app is open", so the backend can rank an active account above a
+  //dormant one.
+  //
+  //FIRE AND FORGET, AND IT SWALLOWS EVERYTHING. This is a courtesy write with
+  //nothing downstream of it: nothing on screen depends on it, nothing retries
+  //it, and the worst case of losing one is a timestamp that is a few hours
+  //stale. Letting it throw would mean a launch with no network surfaced an
+  //error about a feature the user has never heard of.
+  //
+  //IT USED TO BE A FIRESTORE WRITE from main_screen, in the same call that
+  //stores the push token. The token still goes there - that is where the
+  //backend reads it from - but last_active had to move to Postgres, because
+  //the feed orders candidates in SQL and cannot see into Firestore.
+  static Future<void> markActive() async {
+    try {
+      await http
+          .post(Uri.parse('$baseUrl/users/me/active'),
+              headers: await _authHeaders())
+          .timeout(kRequestTimeout);
+    } catch (_) {
+      //deliberately silent: see above
+    }
+  }
+
   //Get users data back
   static Future<UserModel?> getUserData(String uid) async {
     final url = Uri.parse('$baseUrl/users/me');
