@@ -83,3 +83,7 @@ backend/serviceAccountKey.json
 backend/.pytest_cache
 /tmp_photos
 backend/tools/demo_photos.json
+#Report exports from tools/reports.py --csv. Names, and free text one
+#person wrote about another, in one file. Never commit one.
+backend/tools/*.csv
+*.csv

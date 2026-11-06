@@ -169,6 +169,66 @@ class TestSettings:
         ).status_code == 404
 
 
+class TestBeingSeen:
+    """users.last_active, and the endpoint that writes it.
+
+    IT USED TO BE A FIRESTORE FIELD, written by the client beside its push
+    token, and nothing ever read it - because the one place it was wanted is
+    the feed's ORDER BY, and no SQL can see into Firestore. Ranking an active
+    account above a dormant one is the biggest single thing the deck can do
+    for a small user base, and it was unreachable.
+
+    NOTHING ORDERS BY IT YET. The column and its writer land first so the
+    history exists by the time the ranking work needs it: a column added on
+    the same day it starts being sorted on has no data in it worth sorting.
+    """
+
+    def test_a_new_account_counts_as_active(self, make_user):
+        #NOT NULL ON INSERT, deliberately. Null is the honest value for "never
+        #seen", but a signup has just been seen by definition, and sorting
+        #nulls last would bury exactly the people who need to be found.
+        me = make_user(name="Me")
+        assert me.last_active is not None
+
+    def test_opening_the_app_moves_it(self, db, as_user, make_user):
+        import datetime
+
+        me = make_user(name="Me")
+        me.last_active = (datetime.datetime.now(datetime.timezone.utc)
+                          - datetime.timedelta(days=30))
+        db.flush()
+        stale = me.last_active
+
+        assert as_user(me).post("/users/me/active").status_code == 200
+
+        db.expire_all()
+        assert me.last_active > stale
+
+    def test_it_takes_no_body_and_identifies_by_token(
+        self, db, as_user, make_user
+    ):
+        """THE UID NEVER COMES FROM A REQUEST. Same rule as everywhere else:
+        a body carrying somebody else's uid would let any client mark any
+        account active, which is a cheap way to float yourself up a ranking
+        that is about to start reading this column.
+        """
+        me, other = make_user(name="Me"), make_user(name="Other")
+        before = other.last_active
+
+        as_user(me).post("/users/me/active",
+                         json={"uid": other.firebase_uid, "user_id": other.id})
+
+        db.expire_all()
+        assert other.last_active == before
+
+    def test_an_account_that_does_not_exist_yet_is_not_an_error(self, client):
+        """A verified token with no users row - a signup part way through
+        setup - calls this on launch. 404 would put an error in the client's
+        log for something that is not wrong and that it cannot act on.
+        """
+        assert client.post("/users/me/active").status_code == 200
+
+
 class TestLeaving:
     def test_the_account_goes_and_takes_its_data_with_it(
         self, as_user, make_user, swipe, db
