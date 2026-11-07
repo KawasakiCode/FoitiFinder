@@ -146,11 +146,36 @@ Future<void> runWithErrorReporting(
     appRunner: () async {
       installErrorHandlers();
       await app();
+      if (_smokeTest) _fireSmokeTest();
     },
   );
 }
 
 const String _dsn = String.fromEnvironment('SENTRY_DSN');
+
+//PROVES THE WHOLE CHAIN, ON DEMAND, WITHOUT AN EDIT TO REMOVE.
+//
+//    flutter run --dart-define=SENTRY_DSN=... --dart-define=SENTRY_SMOKE_TEST=true
+//
+//A temporary `throw` in a button works once and then has to be remembered.
+//This cannot ship by accident - the default is false and no release build
+//passes the define - and it stays useful: the day obfuscation is turned on,
+//the question "do stack traces still resolve" needs asking again.
+const bool _smokeTest = bool.fromEnvironment('SENTRY_SMOKE_TEST');
+
+//AN UNCAUGHT ASYNC ERROR, deliberately, rather than Sentry.captureException.
+//captureException only proves the DSN and the network; this travels the path a
+//real crash takes - through the handler installed above - so it also proves
+//that the handler is installed at all, which is the part that was missing
+//before any of this existed.
+//
+//THE APP SURVIVES IT, because that handler returns true.
+void _fireSmokeTest() {
+  Future<void>.error(
+    StateError('sentry smoke test - if you can read this in Sentry, it works'),
+    StackTrace.current,
+  );
+}
 
 //EVERY EVENT IS ATTRIBUTED TO THIS AND NOTHING ELSE.
 //
