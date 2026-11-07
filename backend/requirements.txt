@@ -37,6 +37,11 @@ firebase_admin==7.1.0
 #reading backend/.env
 python-dotenv==1.2.1
 
+#error reporting, so a 500 in production is not discoverable only by somebody
+#reading Render's log stream while it happens. Does nothing without SENTRY_DSN
+#- see error_reporting.py.
+sentry-sdk==2.74.0
+
 # resolved dependencies of the above, pinned for reproducibility
 annotated-doc==0.0.5
 annotated-types==0.8.0

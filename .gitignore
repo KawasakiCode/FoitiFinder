@@ -87,3 +87,9 @@ backend/tools/demo_photos.json
 #person wrote about another, in one file. Never commit one.
 backend/tools/*.csv
 *.csv
+
+#The Sentry setup wizard, if you download it to run once. 86MB, and git
+#history cannot be unmade - GitHub would accept it at just under the 100MB
+#file limit and it would be in every clone forever.
+sentry-wizard.exe
+sentry-wizard*

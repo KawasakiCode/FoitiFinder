@@ -11,7 +11,10 @@ import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/pages/auth_pages/login.dart';
 import 'package:foitifinder/providers/notifications_provider.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
+import 'package:foitifinder/services/error_reporting.dart';
 import 'package:foitifinder/services/swipe_queue.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:foitifinder/theme/app_theme.dart';
 import 'package:foitifinder/wrappers/auth_wrapper.dart';
 import 'package:foitifinder/wrappers/internet_wrapper.dart';
@@ -23,8 +26,28 @@ import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  //EVERYTHING INSIDE THIS IS WATCHED, which is why the whole of main moved
+  //into it rather than Sentry being initialised partway down. Firebase
+  //failing to start, App Check being rejected, a corrupt SharedPreferences -
+  //those are startup crashes, and they are exactly the ones nobody can report
+  //to you by hand because the app never draws a frame.
+  //
+  //WITHOUT A DSN IT JUST RUNS THE CALLBACK. See error_reporting.dart: a debug
+  //build and CI need no secret and behave as they always did.
+  await runWithErrorReporting(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    //THE BUILD NUMBER, so an error can be attributed to a release. Read here
+    //rather than inside the reporter because package_info is async and the
+    //reporter has to be usable from a synchronous catch block.
+    final info = await PackageInfo.fromPlatform();
+    Sentry.configureScope(
+      (scope) => scope.setTag('build', info.buildNumber),
+    );
+    await _startApp();
+  });
+}
 
+Future<void> _startApp() async {
   // Initialize Firebase and Shared Preferences together to reduce wait time
   final results = await Future.wait([
     Firebase.initializeApp(

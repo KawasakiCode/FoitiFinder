@@ -28,6 +28,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 import app_version
+import error_reporting
 from app_logging import logger
 from routers import (
     feed,
@@ -42,6 +43,15 @@ from routers import (
 )
 
 load_dotenv()
+
+#BEFORE FastAPI(), not after. The integration wraps the ASGI app, so a Sentry
+#started once the routers are included sees less than you would expect - and
+#an exception thrown while the app is being built is exactly the kind that
+#takes the whole deploy down silently.
+#
+#Does nothing without SENTRY_DSN, which is the normal state for tests and CI.
+#See error_reporting for what it refuses to send.
+error_reporting.install()
 
 app = FastAPI()
 

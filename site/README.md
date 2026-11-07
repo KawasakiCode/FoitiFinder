@@ -53,7 +53,10 @@ tokens, in both languages:
 | `[[ENTITY]]` | Who operates the app — your name, or a company if you form one |
 | `[[ADDRESS]]` | A postal address. Mandatory under GDPR Art. 13; a city and postcode is enough, it does not have to be your flat |
 | `[[EMAIL]]` | One contact address, for privacy requests, appeals and complaints |
-| `[[HOSTING]]`, `[[DATABASE]]` | The two sub-processors, with their legal entity names — e.g. "Render Services, Inc." and "Neon Inc." |
+| `[[HOSTING]]`, `[[DATABASE]]` | Two sub-processors, with their legal entity names — e.g. "Render Services, Inc." and "Neon Inc." |
+| `[[SENTRY_ENTITY]]` | The Sentry legal entity on your DPA — "Functional Software, Inc." for the US entity, or the Irish entity if you signed with that one |
+| `[[SENTRY_REGION]]` | One sentence on where the data goes. If your Sentry project is in the **EU** region, say so and the transfer paragraph below does not apply to it. If it is in the US, say that instead and leave it covered by the SCC/DPF sentence |
+| `[[SENTRY_RETENTION]]` | How long your plan keeps events — check it in the project settings rather than trusting a blog post; the free-tier figure is reported inconsistently |
 
 Fill one in across both languages:
 
@@ -112,8 +115,14 @@ wrong, in both languages:
   intentions, children and languages are stored and unused;
 - **adding any paid feature** — `terms.html` §9 and all of
   `cancellation.html`;
-- **adding analytics, crash reporting or ads** — `privacy.html` has a callout
-  promising none of these, and the Play data safety form has to agree with it;
+- **adding analytics or ads** — `privacy.html` has a callout promising none of
+  either, and the Play data safety form has to agree with it. Crash reporting
+  is now in (Sentry, both halves of the stack), and what keeps that honest is
+  `backend/tests/test_error_scrubbing.py` plus the `beforeSend` in
+  `lib/services/error_reporting.dart`: §2 of the privacy statement describes
+  exactly what those two refuse to send, so widening either is a change to a
+  published document. Turning on `tracesSampleRate` would make the "no
+  analytics" promise false;
 - **adding a report category** — `guidelines.html` names each one;
 - **renaming a page in this folder** — the app builds its URLs from the
   filenames in `LegalDocument`, and `test/legal_urls_test.dart` pins them.

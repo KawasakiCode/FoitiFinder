@@ -205,6 +205,17 @@
       you.</td>
     </tr>
     <tr>
+      <td>Crash and error reports</td>
+      <td>When the app or our server hits an error, a report is sent to Sentry
+      (see <a href="#processors">section 8</a>): what went wrong, where in the
+      code, the app version, and your device model and Android version.
+      <strong>No crash report identifies you.</strong> Every one is filed
+      against "anonymous" rather than your account, and we deliberately do not
+      send your IP address, your sign-in token, anything you had typed, or
+      screenshots. Without this, an error on somebody else's phone is
+      completely invisible to us.</td>
+    </tr>
+    <tr>
       <td>App integrity signals</td>
       <td>The app uses Firebase App Check with Google Play Integrity, so our
       API only answers the real app and not a script pretending to be it.
@@ -215,11 +226,16 @@
 
   <div class="callout">
     <p><strong>What we deliberately do not do.</strong> No advertising. No ad
-    identifiers. No analytics or crash-reporting SDK. No third-party trackers.
-    No location. No access to your contacts, calendar or microphone, and no
-    access to your camera roll beyond the photos you pick yourself. We do not
-    sell or rent personal data, and we do not share it for anybody else's
-    marketing.</p>
+    identifiers. No analytics, and no tracking of what you tap or how long you
+    spend on anything. No third-party trackers. No location. No access to your
+    contacts, calendar or microphone, and no access to your camera roll beyond
+    the photos you pick yourself. We do not sell or rent personal data, and we
+    do not share it for anybody else's marketing.</p>
+    <p>We do collect <strong>crash reports</strong>, described in the table
+    above. That is the one thing in this list that changed: the app used to
+    send errors nowhere at all, which meant a crash on your phone was
+    something we could only hear about if you told us. A crash report says
+    what broke, not who it happened to.</p>
   </div>
 
   <h2 id="special">3. Sexual orientation, religion and political views</h2>
@@ -321,13 +337,22 @@
       legal claim or a public-interest duty.</td>
     </tr>
     <tr>
+      <td>Crash and error reports</td>
+      <td><strong>Legitimate interests</strong> (Art. 6(1)(f)) — keeping the
+      app working. The intrusion is as close to nothing as we could make it:
+      the reports are anonymous and carry no account, no IP address and no
+      content. There is no opt-out switch, and we think that is defensible for
+      exactly that reason; if you disagree, section 10 covers your right to
+      object.</td>
+    </tr>
+    <tr>
       <td>Responding to a lawful request from an authority</td>
       <td><strong>Legal obligation</strong> (Art. 6(1)(c)).</td>
     </tr>
   </table>
 
-  <h2>8. Who processes data for us</h2>
-  <p>We use three providers, each under a data processing agreement, and each
+  <h2 id="processors">8. Who processes data for us</h2>
+  <p>We use four providers, each under a data processing agreement, and each
   acting only on our instructions.</p>
   <dl>
     <dt>Google Ireland Limited / Google LLC — Firebase</dt>
@@ -341,6 +366,13 @@
     <dt><span class="todo">[[DATABASE]]</span> — our database</dt>
     <dd>Hosts the PostgreSQL database holding your profile, swipes, matches,
     notifications and reports.</dd>
+    <dt><span class="todo">[[SENTRY_ENTITY]]</span> — crash and error
+    reports</dt>
+    <dd>Receives the error reports described in section 2, from both the app
+    and our server. It never receives your identity: reports are filed against
+    "anonymous", and your IP address, sign-in token, request contents and
+    screenshots are all withheld before anything is sent.
+    <span class="todo">[[SENTRY_REGION]]</span></dd>
   </dl>
   <p>Some of these providers process data outside the European Economic Area,
   including in the United States. Where they do, the transfer is covered by the
@@ -365,6 +397,11 @@
     <dt>Server logs</dt>
     <dd>As long as our hosting provider retains them for operational purposes,
     which is a matter of days.</dd>
+    <dt>Crash and error reports</dt>
+    <dd><span class="todo">[[SENTRY_RETENTION]]</span>, then deleted
+    automatically. They are not linked to your account, so deleting your
+    account does not delete them — there is nothing in them to find you
+    by.</dd>
     <dt>Your sign-in record at Firebase</dt>
     <dd>Deleted when you delete your account.</dd>
   </dl>
