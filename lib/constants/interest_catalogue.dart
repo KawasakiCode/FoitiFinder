@@ -23,9 +23,6 @@
 //trait_tags) with no section. The section is looked up again from this file
 //when the page opens - see selectionsFromTags - which only works because no
 //option appears twice within a group. Keep it that way.
-//
-//TODO: these labels are hardcoded English - the app ships Greek too, so they
-//need to move to app_en.arb / app_el.arb before this goes live.
 
 //A subcategory: a title and the boxes under it.
 class InterestSection {
@@ -54,10 +51,6 @@ class InterestGroup {
   });
 }
 
-//The catalogue. Kept in this file while it's still being shaped; move it to
-//lib/constants/ once it settles.
-//TODO: these labels are hardcoded English — the app ships Greek too, so they
-//need to move to app_en.arb / app_el.arb before this page goes live.
 const List<InterestGroup> kInterestGroups = [
   //=========================================================================
   //1. HOBBIES & INTERESTS — 7 sections sharing a budget of 10

@@ -1,9 +1,9 @@
 //The settings page: app-level preferences only.
 //
-//Deliberately small. Everything that used to live here has moved to where it
-//belongs - discovery filters to DatePreferencesPage, log out and delete account
-//to AccountSettingsPage, and the legal documents to the About section on the
-//profile page. What is left is appearance, notifications and language.
+//Deliberately small: appearance, notifications and language. Discovery
+//filters live in DatePreferencesPage, log out and delete account in
+//AccountSettingsPage, and the legal documents in the About section on the
+//profile page.
 //
 //Settings changed here are monitored by SettingsProvider and stored in
 //SharedPreferences.

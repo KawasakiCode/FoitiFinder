@@ -43,7 +43,7 @@ class ApiService {
   /// HOW LONG ANY REQUEST MAY HANG BEFORE IT COUNTS AS FAILED.
   ///
   /// Without one, a socket that is open but silent never returns - and that
-  /// is not a hypothetical: the deck, the likes page and the notification
+  /// is not a hypothetical: the deck, the matches page and the notification
   /// list all show a spinner while they wait, with no error and no retry
   /// button, so a backend that stops answering mid-session leaves a screen
   /// that spins forever. A thrown TimeoutException at least reaches a catch.
@@ -57,7 +57,7 @@ class ApiService {
   /// Auth headers for every backend call.
   ///
   /// The backend derives WHO is calling from this Firebase ID token — a JWT
-  /// signed by Google — and no longer trusts any uid we put in a path or body.
+  /// signed by Google - and does not trust any uid in a path or body.
   /// That's what stops anyone from acting as anyone else just by knowing a uid.
   ///
   /// `getIdToken()` returns the cached token and refreshes it automatically once
@@ -203,10 +203,9 @@ class ApiService {
   //stale. Letting it throw would mean a launch with no network surfaced an
   //error about a feature the user has never heard of.
   //
-  //IT USED TO BE A FIRESTORE WRITE from main_screen, in the same call that
-  //stores the push token. The token still goes there - that is where the
-  //backend reads it from - but last_active had to move to Postgres, because
-  //the feed orders candidates in SQL and cannot see into Firestore.
+  //last_active lives in Postgres rather than in Firestore beside the push
+  //token, because the feed orders candidates in SQL and cannot see into
+  //Firestore.
   static Future<void> markActive() async {
     try {
       await http

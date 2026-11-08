@@ -157,9 +157,10 @@ def guard_target(allow_production: bool) -> None:
     url = SQLALCHEMY_DATABASE_URL or ""
 
     #SAYS WHICH DATABASE, ALWAYS - the same rule main.py follows on startup.
-    #Silence used to mean localhost, which is exactly the case you cannot
+    #Silence must not mean localhost, which is exactly the case you cannot
     #afford to guess at: a shell without DATABASE_URL falls back to .env, so
-    #a command meant for Neon writes to the dev database and reports success.
+    #a command meant for Neon would write to the dev database and report
+    #success.
     #Host and name only, never the password.
     print(f"database: {url.split('@')[-1] if url else 'NOT SET'}")
 

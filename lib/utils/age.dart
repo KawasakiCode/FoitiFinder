@@ -5,7 +5,7 @@
 //to display a number derives it here.
 //
 //The backend does the same on its side (backend/ages.py) for people OTHER than
-//the signed-in user - cards and likers still arrive with a plain `age` integer
+//the signed-in user - cards arrive with a plain `age` integer
 //already computed, so only the owner's own profile needs this.
 
 //Whole years since [birthday], or null when it was never set.

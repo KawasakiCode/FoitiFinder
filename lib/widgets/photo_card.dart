@@ -4,11 +4,9 @@
 //the top, stats and the three buttons at the bottom - with a dark gradient at
 //each end so white text stays readable over a bright photo.
 //
-//A TAP OPENS THE WHOLE PROFILE. It used to flick between this person's photos,
-//left half back and right half forward, with thin bars along the top counting
-//them - both are gone. The card shows one photo and one question: do you want
-//to know more? The rest of the photos live on the profile page, where they sit
-//beside the text that explains them.
+//A TAP OPENS THE WHOLE PROFILE. The card shows one photo and one question:
+//do you want to know more? The rest of the photos live on the profile page,
+//where they sit beside the text that explains them.
 //
 //Dragging still belongs to the deck above (pass / like / super like), so this
 //is a GestureDetector with onTap and nothing else.
@@ -91,9 +89,9 @@ const int kMinPhotos = 3;
 const int kMaxPhotos = 6;
 
 //THE SCRIM TRAVELS WITH THE PHOTO. Drawn inside the Hero on both ends - here
-//and on the profile page - so it is present for the whole flight. Left outside
-//it, the darkening vanished the instant the photo lifted off and snapped back
-//when it landed.
+//and on the profile page - so it is present for the whole flight. Left
+//outside it, the darkening would vanish the instant the photo lifts off and
+//snap back when it lands.
 const LinearGradient kPhotoTopScrim = LinearGradient(
   begin: Alignment.topCenter,
   end: Alignment.bottomCenter,
@@ -115,17 +113,16 @@ const LinearGradient kPhotoBottomScrim = LinearGradient(
 //THE FLIGHT. One builder, used by every source a photo can fly out of.
 //
 //Without a shuttle Flutter draws the DESTINATION's child for the whole
-//flight - so the corners went square the moment the photo lifted and only
-//rounded again after it had landed. Here the radius is interpolated, and
-//anything the source draws ON the photo rides along and fades off it.
+//flight, so the corners go square the moment the photo lifts and round again
+//only after it has landed. Here the radius is interpolated, and anything the
+//source draws ON the photo rides along and fades off it.
 //
 //`furniture` is what belongs to the source and not to the page: the swipe
-//card's stat pills and bottom darkening, a likes tile's name. It is drawn
+//card's stat pills and bottom darkening, a matches tile's name. It is drawn
 //over the photo and faded out across kCardFurnitureFadeEnd of the flight, in
 //the navigator's overlay, which is the only place in the app that is above
 //the flying photo. Left in the page it came from, it would spend the whole
-//flight hidden underneath it - which is exactly how the pills "vanished
-//instantly" before this existed.
+//flight hidden underneath it.
 //
 //IT MUST BE DECLARED ON THE SOURCE, never on the profile page. Flutter
 //prefers the destination hero's shuttle (heroes.dart: `toHero.widget
@@ -143,9 +140,9 @@ HeroFlightShuttleBuilder photoHeroShuttle({
     BuildContext toContext,
   ) {
     //ONE TWEEN FOR BOTH DIRECTIONS, and it must not be flipped by hand: the
-    //flight animation itself already runs 0 -> 1 opening and 1 -> 0 closing. A
-    //reversed tween on a reversed animation cancels out, which is why the photo
-    //used to land back on the card still square.
+    //flight animation itself already runs 0 -> 1 opening and 1 -> 0 closing.
+    //A reversed tween on a reversed animation cancels out, landing the photo
+    //back on the card still square.
     //
     //  opening:  t 0 -> 1   gives  24 -> 0   (card corners to full bleed)
     //  closing:  t 1 -> 0   gives   0 -> 24  (full bleed back to card corners)
@@ -187,13 +184,12 @@ HeroFlightShuttleBuilder photoHeroShuttle({
             //individually. The inner stack expands, so the furniture sits
             //against the rect being flown and is where the source had it.
             //
-            //AND A Material, WHICH IS NOT DECORATION. A flight is built in the
-            //navigator's overlay, which is outside the route - so it inherits
-            //no Scaffold and no Material, and a Text in there falls back to
-            //the framework's "put your text in a Material" style: yellow
-            //double underline, which is exactly what the likes tile's name did
-            //for the whole flight. A Text style MERGES onto the ambient one,
-            //so a style that sets colour and size still picks up that
+            //AND A Material, WHICH IS NOT DECORATION. A flight is built in
+            //the navigator's overlay, which is outside the route - so it
+            //inherits no Scaffold and no Material, and a Text in there falls
+            //back to the framework's "put your text in a Material" style: a
+            //yellow double underline. A Text style MERGES onto the ambient
+            //one, so a style that sets colour and size still picks up that
             //decoration. MaterialType.transparency adds a text style and
             //nothing visible.
             if (furniture.isNotEmpty)
@@ -369,10 +365,10 @@ class _PhotoCardState extends State<PhotoCard> {
           //words, and carrying this along would leave a star hanging over it.
           //
           //AFTER the tap-anywhere layer, not before. A Stack hit-tests its
-          //children back to front, and that layer is translucent - so a badge
-          //placed above it in the list is painted underneath, and tapping the
-          //star opened the profile AND explained itself at the same time.
-          //Last child, opaque gesture: the tap stops here.
+          //children back to front and that layer is translucent, so a badge
+          //placed above it in the list is painted underneath and a tap on the
+          //star would open the profile AND explain itself at once. Last
+          //child, opaque gesture: the tap stops here.
           if (widget.card.superLikedYou)
             Positioned(
               top: kCardSideInset,
@@ -419,9 +415,9 @@ class _PhotoCardState extends State<PhotoCard> {
             ),
           ),
 
-          //fifth layer: the actions. The pills used to share this Column and
-          //now live in the photo's Hero above - kStatsBottomInset is what
-          //keeps them the same distance apart as the Column did.
+          //fifth layer: the actions. The pills live in the photo's Hero
+          //above, and kStatsBottomInset is what keeps them the same distance
+          //from these buttons as a shared Column would.
           Positioned(
             left: kCardSideInset,
             right: kCardSideInset,

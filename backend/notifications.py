@@ -1,13 +1,12 @@
 #Push notifications, and the two moments worth sending one.
 #
-#A MATCH IS THE ONLY THING ANNOUNCED. There used to be a 'like' push, which
-#made sense while a likes page existed to open: the notification led
-#somewhere. That page is gone and likers go back into the deck unannounced,
-#so "someone liked you" became a ping with nothing on the other end of the
-#tap - you cannot find them, you can only swipe and hope. It was also the
-#most frequent push in the app by a wide margin, and on Android the
-#notification permission is one switch for everything: unactionable pings are
-#what make somebody turn the lot off, taking the match push down with them.
+#A MATCH IS THE ONLY THING ANNOUNCED. There is no 'like' push: likers go
+#back into the deck unannounced, so "someone liked you" would be a ping with
+#nothing on the other end of the tap - you cannot find them, you can only
+#swipe and hope. It would also be the most frequent push in the app by a wide
+#margin, and on Android the notification permission is one switch for
+#everything: unactionable pings are what make somebody turn the lot off,
+#taking the match push down with them.
 #
 #NOR IS A DECLINE, AN EXPIRY, A REMOVAL OR A REPORT. None of them give the
 #recipient anything to do, and the matches page already says what happened by
@@ -50,11 +49,9 @@ def send_smart_notification(target_uid: str, notification_type: str, db_firestor
         return
     
 
-    #ONE TOGGLE, AND IT COVERS BOTH. It used to be a like toggle that happened
-    #to gate matches too, which meant turning off the useless pings also
-    #turned off "somebody is waiting on your answer" - the one push that
-    #carries the whole point of the app. The pings are gone, so the switch now
-    #means what its name says.
+    #ONE TOGGLE, AND IT COVERS BOTH. There are no like pings for it to gate,
+    #so the switch means what its name says: 'somebody is waiting on your
+    #answer' and 'they said yes back'.
     #
     #IT CAN BE TURNED OFF, deliberately. The OS switch can do it anyway, so
     #refusing to here would not keep anybody reachable; it would only make the

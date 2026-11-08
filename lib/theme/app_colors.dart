@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // ---- Brand (refined violet, deeper/less neon than the old #8A2BE2) ----
+  // ---- Brand (refined violet) ----
   static const Color primary = Color(0xFF7C3AED); // violet-600
   static const Color primaryDark = Color(0xFF6D28D9); // violet-700
   static const Color primaryLight = Color(0xFF8B5CF6); // violet-500
@@ -76,14 +76,14 @@ class AppColors {
 
   // ---- Dark neutrals ----
   //
-  //TRUE NEUTRAL (R == G == B), not "tuned". These used to carry a few units of
-  //blue bias (#0A0A0B, #1A1A1E and so on), which is invisible at rest but not
-  //when a surface is DIMMED: darkening scales all three channels toward zero,
-  //so the ratio between them is preserved while the absolute values shrink,
-  //and a bias that was 4/255 at full brightness is proportionally a third of
-  //the signal at quarter brightness. That is what made every card flash blue
-  //while a dialog's barrier faded in over it - and why light mode never did,
-  //since white dimming toward grey has no hue to amplify.
+  //TRUE NEUTRAL (R == G == B), not "tuned". A few units of blue bias
+  //(#0A0A0B, #1A1A1E and so on) are invisible at rest but not when a surface
+  //is DIMMED: darkening scales all three channels toward zero, so the ratio
+  //between them is preserved while the absolute values shrink, and a bias
+  //that is 4/255 at full brightness is proportionally a third of the signal
+  //at quarter brightness. That is what makes a card flash blue while a
+  //dialog's barrier fades in over it - and why light mode never does, since
+  //white dimming toward grey has no hue to amplify.
   //
   //Keep these grey. A tint here is a tint that only shows up mid-animation.
   static const Color darkBackground = Color(0xFF0A0A0A);

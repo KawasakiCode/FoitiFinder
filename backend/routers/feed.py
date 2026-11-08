@@ -63,14 +63,13 @@ def _within(value, low, high):
 
     #THE THREE WAYS THIS CAN BE UNANSWERABLE, and all of them pass.
     #
-    #THE THIRD ONE WAS A BUG. `value` is sometimes the viewer's own height - a
-    #Python int, absent as None, caught by the return above - and sometimes
-    #users.height_cm, a COLUMN that is null per row. Checking only the bounds
-    #meant `175 <= users.height_cm` against a null height evaluated to NULL,
-    #which is not true, so anybody who had not entered a height disappeared
-    #from the deck of everybody who had set a height preference. Exactly the
-    #rule every other filter here follows, broken by the one case where the
-    #missing value is on the other side of the comparison.
+    #THE THIRD ONE IS EASY TO MISS. `value` is sometimes the viewer's own
+    #height - a Python int, absent as None, caught by the return above - and
+    #sometimes users.height_cm, a COLUMN that is null per row. Checking only
+    #the bounds would make `175 <= users.height_cm` evaluate to NULL against a
+    #null height, which is not true, so anybody who had not entered a height
+    #would disappear from the deck of everybody who had set a height
+    #preference.
     unknown = literal(False) if isinstance(value, int) else value.is_(None)
     return [or_(unknown, low.is_(None), low <= value),
             or_(unknown, high.is_(None), high >= value)]
@@ -271,25 +270,18 @@ def get_swipe_feed(
 
     #WHOEVER LIKED YOU IS IN THE DECK, AND IS NOT TOLD SO.
     #
-    #This reverses an earlier decision, deliberately. They used to be held
-    #back for a likes page, on the grounds that a flick could pass on a
-    #guaranteed match the user was never told was on offer. That argument
-    #assumed the user would otherwise have been told - and the likes page is
-    #gone, so they never were. A pass on somebody whose interest you did not
-    #know about is simply a pass.
-    #
-    #WHAT IT BUYS is the only moment the app is really about: a match can now
-    #happen from the main deck, on any swipe. Under the old arrangement the
-    #deck could not produce a match at all - every one of them arrived on a
-    #separate page - so the primary screen never paid out.
+    #Holding them back for a separate page would mean the deck could not
+    #produce a match at all - every one of them would arrive somewhere else,
+    #and the primary screen would never pay out. A pass on somebody whose
+    #interest you did not know about is simply a pass.
     #
     #Their interest stays hidden, which is the point: it is what keeps a right
     #swipe honest, and it is the shape a "see who liked you" tier is sold on
     #later. /likes still works and still has its tests.
 
     #WHO SUPER LIKED ME, which is the only interest the deck discloses. Reads
-    #straight off ix_user_swipes_target_action - (target_id, action) is exactly
-    #this question, and it was added for the opposite one.
+    #straight off ix_user_swipes_target_action - (target_id, action) is
+    #exactly this question.
     super_liked_me = {
         row[0] for row in db.query(models.UserSwipes.user_id).filter(
             models.UserSwipes.target_id == me.id,
@@ -299,16 +291,10 @@ def get_swipe_feed(
 
     #base filter: skip yourself and anyone already swiped.
     #
-    #There USED to be a score band here - candidates had to sit within +-1.5 of
-    #the viewer's users.score. Nothing ever computed that score (the client sent
-    #0 at signup), so the band silently passed everyone, and a patched client
-    #could have placed itself in anyone's band. Ranking belongs in the ORDER BY,
-    #computed per viewer - see the note in the matching design.
-    #A PROFILE THAT CANNOT BE SWIPED IS NOT A CANDIDATE. Both of these were
-    #previously let through on the principle that an unfinished profile should
-    #still surface - which is right for a blank FIELD and wrong for a blank
-    #CARD. No photo means a grey rectangle with a name on it, and the deck
-    #offering one spends a swipe on nothing.
+    #A PROFILE THAT CANNOT BE SWIPED IS NOT A CANDIDATE. An unfinished profile
+    #should still surface - which is right for a blank FIELD and wrong for a
+    #blank CARD. No photo means a grey rectangle with a name on it, and the
+    #deck offering one spends a swipe on nothing.
     filters = [
         models.User.id.notin_(seen_ids_list),
         models.User.has_photos.is_(True),
@@ -317,7 +303,7 @@ def get_swipe_feed(
 
     #Age range filter, always applied - the range the user picked is the range
     #they get. Expressed as BIRTHDAY CUTOFFS rather than age comparisons: age is
-    #no longer a column, and comparing the raw birthday column to a constant
+    #not a column, and comparing the raw birthday column to a constant
     #date keeps an index on it usable. Profiles with no birthday are kept so
     #incomplete profiles still surface.
     #

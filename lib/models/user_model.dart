@@ -25,7 +25,7 @@ class UserModel{
   //(constants/university_domains.dart) and editable afterwards.
   final String? city;
   //The user's photos in display order. [0] IS the profile picture - there is
-  //no separate column for it any more, so the two can never disagree.
+  //no separate column for it, so the two can never disagree.
   final List<String> photoUrls;
   final String? gender;
   final int? minAgeRange;

@@ -263,15 +263,11 @@ def confirm_match(match_id: int, uid: str = Depends(verified_email_uid), db: Ses
     #and a push that cannot be sent - no token, Firebase down - must not turn a
     #successful exchange into an error for the person who just agreed to it.
     #
-    #A retried confirm sends a second push, where the old notification row was
-    #deduplicated. That is the honest trade for dropping the row: a duplicate
-    #banner is a smaller harm than a stale list, and the matches page is where
-    #the truth is either way.
     #ONLY WHEN THIS CALL CHANGED SOMETHING. confirm is idempotent, so the
     #client is free to retry one whose answer it never saw - and that must not
-    #reach the other person as a second banner saying the same thing. The
-    #stored notification used to carry that guarantee with `once`; without a
-    #row it has to come from here.
+    #reach the other person as a second banner saying the same thing. With no
+    #stored notification row to deduplicate against, that guarantee has to
+    #come from here.
     if not already_confirmed:
         #THE ID TRAVELS WITH IT, so the banner opens this match instead of
         #a list to search. Both kinds carry it and both open the same place -
@@ -310,8 +306,7 @@ def decline_match(match_id: int, uid: str = Depends(verified_email_uid), db: Ses
     #handles have been handed over, and nothing can take back something
     #somebody has already read - so deleting the row here would destroy the
     #only record of a connection that genuinely happened, and turn the like
-    #that made it into a pass. It is also how an already-answered
-    #notification, tapped twice, used to delete a finished match.
+    #that made it into a pass.
     if mine_confirmed is not None and other_confirmed is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -331,17 +326,15 @@ def decline_match(match_id: int, uid: str = Depends(verified_email_uid), db: Ses
 
     #NOBODY IS TOLD, not even somebody who was waiting on the answer.
     #
-    #THERE USED TO BE A PUSH HERE, and the argument for it was that a person
-    #who has shared their handle and is waiting deserves to hear. The argument
-    #against is what it actually says: a notification whose only content is
-    #that somebody said no, with nothing to do about it. The match leaves
-    #their list, which is the honest representation and exactly how an expired
-    #one goes too - deleted on the next read, silently.
+    #A push here would say only that somebody said no, with nothing to do
+    #about it. The match leaves their list, which is the honest
+    #representation and exactly how an expired one goes too - deleted on the
+    #next read, silently.
     #
-    #Declining as the person who COMPLETED the match was always silent, for a
-    #stronger reason: they were never shown the match, so "someone matched
-    #with you and then changed their mind" would be news of a rejection they
-    #could not have seen coming.
+    #Declining as the person who COMPLETED the match is silent for a stronger
+    #reason: they were never shown the match, so "someone matched with you
+    #and then changed their mind" would be news of a rejection they could not
+    #have seen coming.
     return {"declined": True}
 
 

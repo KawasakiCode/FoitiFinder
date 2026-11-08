@@ -37,7 +37,6 @@ does not exist yet.
 MINIMUM_BUILD = {
     #1 is the first build there has ever been, so this currently blocks
     #nobody - which is the point. The CHECK has to exist in the shipped
-    #binary; a build that never asks can never be told to stop, so every
-    #release made before this landed would have been beyond reach forever.
+    #binary; a build that never asks can never be told to stop.
     "android": 1,
 }

@@ -48,8 +48,8 @@ class _SetUpPageState extends State<SetUpPage> {
   }
 
   //Pick a birthday. Bounded at 18 years ago so an under-age date cannot be
-  //chosen at all - which is why the old "age must be >= 18" snackbar is gone:
-  //an invalid value is now unreachable rather than rejected after the fact.
+  //chosen at all: an invalid value is unreachable rather than rejected after
+  //the fact.
   Future<void> _pickBirthday() async {
     final latest = birthdayForAge(18);
     final picked = await showDatePicker(

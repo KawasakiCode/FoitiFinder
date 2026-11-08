@@ -26,14 +26,10 @@ import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 Future<void> main() async {
-  //EVERYTHING INSIDE THIS IS WATCHED, which is why the whole of main moved
-  //into it rather than Sentry being initialised partway down. Firebase
-  //failing to start, App Check being rejected, a corrupt SharedPreferences -
-  //those are startup crashes, and they are exactly the ones nobody can report
-  //to you by hand because the app never draws a frame.
-  //
-  //WITHOUT A DSN IT JUST RUNS THE CALLBACK. See error_reporting.dart: a debug
-  //build and CI need no secret and behave as they always did.
+  //EVERYTHING INSIDE THIS IS WATCHED: Firebase failing to start, App Check
+  //being rejected, a corrupt SharedPreferences. Those are startup crashes,
+  //and they are the ones nobody can report by hand because the app never
+  //draws a frame. Without a DSN this just runs the callback.
   await runWithErrorReporting(() async {
     WidgetsFlutterBinding.ensureInitialized();
     //THE BUILD NUMBER, so an error can be attributed to a release. Read here
@@ -61,14 +57,12 @@ Future<void> _startApp() async {
   SwipeQueue.init(prefs);
   //APP CHECK PROVES THE CALLER IS THIS APP, not a script with a stolen key.
   //
-  //AndroidProvider.debug sends a debug token that only works for devices
-  //registered by hand in the Firebase console - correct while developing,
-  //useless in anyone else's hands. Play Integrity is the real one, and it is
-  //what a release build has to use, so the provider follows the build rather
-  //than being a flag somebody has to remember to flip before shipping.
-  //
-  //kDebugMode is a compile-time constant, so the release binary contains only
-  //the playIntegrity branch.
+  //AndroidProvider.debug sends a token that only works for devices registered
+  //by hand in the Firebase console. Play Integrity is the real one and is what
+  //a release build must use, so the provider follows the build rather than
+  //being a flag somebody has to remember to flip before shipping. kDebugMode
+  //is a compile-time constant, so the release binary contains only the
+  //playIntegrity branch.
   await FirebaseAppCheck.instance.activate(
     androidProvider: kDebugMode
         ? AndroidProvider.debug
@@ -102,7 +96,7 @@ class FoitiFinder extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginPage(),
       },
-      //All visual styling now lives in lib/theme/ (tokens + AppTheme).
+      //visual styling lives in lib/theme/ (tokens + AppTheme)
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: settings.themeMode,

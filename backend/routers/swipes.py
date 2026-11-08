@@ -180,21 +180,16 @@ def record_swipe(swipe: SwipeRequest, uid: str = Depends(verified_email_uid), db
         #out of that page leaves the match on hold, and on hold means silent:
         #they are told when somebody decides, not when somebody matches.
         #
-        #AND A LIKE IS NOT ANNOUNCED AT ALL ANY MORE. It used to be, back when
-        #a likes page existed for the notification to open. Without one,
-        #"someone liked you" points at a deck where they cannot be found - see
-        #notifications.py for why that push was worse than nothing.
+        #AND A LIKE IS NOT ANNOUNCED AT ALL. "someone liked you" would point
+        #at a deck where they cannot be found - see notifications.py for why
+        #that push would be worse than nothing.
 
-    #THE SWIPER USED TO GET A NOTIFICATION about their own match, because the
-    #match page was the ONLY entrance to it: a swipe delivered late by the
-    #retry queue, or the app being killed while the page was open, left a
-    #match nobody could reach.
-    #
-    #THE MATCHES PAGE IS THAT ENTRANCE NOW. Every live match is listed there
-    #whatever happened to the swipe or the app, so the row has nothing left to
-    #rescue - and it was the row that made 'match' mean two different things
-    #(see the notify dedupe), gave the wrong title to whoever completed the
-    #match, and sat dead in the bell once they had answered.
+    #THE SWIPER IS NOT NOTIFIED ABOUT THEIR OWN MATCH. The matches page is
+    #the entrance to every live match, whatever happened to the swipe or the
+    #app, so a stored row would have nothing to rescue - and it would make
+    #'match' mean two different things (see the notify dedupe), give the
+    #wrong title to whoever completed the match, and sit dead in the bell
+    #once they had answered.
 
     #match_id so the client can confirm or decline the match it just created.
     #

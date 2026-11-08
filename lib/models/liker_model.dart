@@ -7,9 +7,9 @@ class LikerModel {
   final String name;
   final int age;
   //NULLABLE, because a liker may have no profile photo - an account from
-  //before three photos were required, or one that lost them. It used to fall
-  //back to a random picsum image, which showed a STRANGER'S face next to
-  //somebody's name; the placeholder is the honest answer.
+  //before three photos were required, or one that lost them. The placeholder
+  //is the honest answer: a random stand-in would put a stranger's face next
+  //to somebody's name.
   final String? imageUrl;
 
   LikerModel({

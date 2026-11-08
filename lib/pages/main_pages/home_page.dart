@@ -55,11 +55,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   final int batchSize = 20; // how many cards to load at a time
   bool _isFetching = false;
   bool _hasNoMoreProfiles = false;
-  //THERE IS NO "nothing new" COUNTER ANY MORE. It gave up after three replies
-  //that added nobody, which was a guess at exhaustion made necessary by the
-  //server not knowing what the deck held. It now does, so an empty reply is
-  //the only signal needed - and the counter was what turned a bad network
-  //into a false "no more profiles". See _fetchMoreCards.
   //WHICH DECK A REPLY BELONGS TO. Changing a filter throws the deck away and
   //asks again, but a request already in flight answers with people chosen
   //under the OLD criteria - and appending those to the cleared deck would put
@@ -116,7 +111,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         // 1. Pre-cache the main list of photos.
         //
         //profilePhotoProvider, NOT NetworkImage: a bare NetworkImage keys a
-        //different cache entry AND bypasses the disk cache, so this used to
+        //different cache entry AND bypasses the disk cache, so it would
         //download every photo a second time and warm an entry no widget here
         //ever asks for.
         if (card.photos.isNotEmpty) {
@@ -165,12 +160,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   //START THE DECK OVER, because the people in it no longer answer the
   //question that was asked.
   //
-  //_hasNoMoreProfiles IS THE WHOLE REASON THIS EXISTS. It was a one-way
-  //latch: a feed that came back empty set it for the lifetime of this State,
-  //and nothing ever cleared it. Open the app with an 18-19 range, get an
-  //empty deck, widen it to 20-28, and the latch was already closed - so the
-  //only way back was to kill the app. Worse, with an empty deck there is no
-  //card left to swipe, and a swipe is what used to trigger the only refetch.
+  //_hasNoMoreProfiles HAS TO COME DOWN HERE. It is otherwise a one-way
+  //latch: a feed that comes back empty sets it for the lifetime of this
+  //State, so an 18-19 range that found nobody would survive widening it to
+  //20-28 - and with an empty deck there is no card left to swipe, which is
+  //the only other thing that triggers a refetch.
   void _resetDeck() {
     //a reply from the old deck is now meaningless, and _fetchMoreCards below
     //cannot start while the flag it sets is still raised
@@ -273,13 +267,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
     await _openMatch(card, result);
   }
-  //A match opens the match page, not a dialog.
-  //
-  //The old dialog said "it's a match" and left: nothing was exchanged and
-  //there was nothing to do. The page is where this side answers for the match
-  //it just created - see match_page.dart - so a match that cannot be opened
-  //(an older backend sending no match_id) is better left alone than announced
-  //with no way to act on it.
+  //A match opens the match page, not a dialog: the page is where this side
+  //answers for the match it just created - see match_page.dart - so a match
+  //that cannot be opened (an older backend sending no match_id) is better
+  //left alone than announced with no way to act on it.
   Future<void> _openMatch(CardData card, SwipeResult result) async {
     //MATCH ID, NOT isMatch. `isMatch` is only true the first time the server
     //sees the swipe; a retry re-finds the same match and reports false with
@@ -458,10 +449,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     _isAnimating = false;
   }
 
-  //REWIND IS GONE FROM THE UI. The card now carries exactly three buttons -
-  //pass, super like, like - so there is nowhere to put it. The state it needed
-  //is still here (currentIndex only moves forward, and maxHistory keeps the
-  //last few cards in the list), so bringing it back is a button, not a rebuild.
+  //REWIND IS NOT IN THE UI. The card carries exactly three buttons - pass,
+  //super like, like - so there is nowhere to put it. The state it needs is
+  //still here (currentIndex only moves forward, and maxHistory keeps the last
+  //few cards in the list), so bringing it back is a button, not a rebuild.
 
   //This function is responsible for grabbing more cards from the database if less
   //than 10 remain in the active deck
@@ -513,35 +504,17 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             .toList();
       }
 
-      //NOBODY WHO IS ALREADY IN THE DECK. /users/feed has no pagination: it
-      //answers with a random sample of everyone you have not swiped, so a
-      //second request returns the SAME people, and appending them shows one
-      //profile twice.
-      //
-      //It bites hardest on a small deck, which is the opposite of what you
-      //would guess. A refetch is triggered whenever fewer than fetchThreshold
-      //cards remain, so with four candidates the deck is permanently below
-      //that line and every single swipe refetches the three people still in
-      //front of you. With fifty candidates the random sample differs each
-      //time and the collisions look like coincidence.
+      //NOBODY WHO IS ALREADY IN THE DECK. The server is told what to leave
+      //out, but a request can be in the air while the user keeps swiping, so
+      //a reply can still name somebody the deck picked up in the meantime -
+      //and appending them would show one profile twice.
       final inDeck = cards.map((card) => card.id).toSet();
       final fresh =
           users.where((card) => !inDeck.contains(card.id)).toList();
 
       if (fresh.isEmpty) {
-        //AN EMPTY REPLY IS THE ONLY PROOF THE POOL IS EMPTY, and now it is
-        //the only thing trusted.
-        //
-        //THIS USED TO GIVE UP AFTER THREE REPLIES THAT ADDED NOBODY, because
-        //the server had no way to know what the deck was holding and kept
-        //re-offering it, so a single colliding page proved nothing. That
-        //heuristic then caused the exact thing it was written to prevent: on
-        //a bad network the queued swipes pile up, the discarded set grows past
-        //one page, three pages in a row land entirely inside it, and the deck
-        //announces "no more profiles" with people still unseen - latched for
-        //the session, since only _resetDeck clears it.
-        //
-        //The server is told what we hold now (see `known` above), so a reply
+        //AN EMPTY REPLY IS THE ONLY PROOF THE POOL IS EMPTY. The server is
+        //told what the deck already holds (see `known` above), so a reply
         //that adds nobody means the pool really is down to what is in hand.
         //Trusting `users.isEmpty` alone turns a wrong answer into a slower
         //one: the worst case is an extra request on a deck that was about to
@@ -560,8 +533,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       }
     } catch (e) {
       //NO setState HERE. _isFetching is not read by build, so rebuilding for
-      //it achieves nothing - and this used to call setState with no mounted
-      //check, which throws if the request fails after the page is disposed.
+      //it achieves nothing, and setState after the page is disposed throws.
       //The generation check is the same one as above: a failed fetch from a
       //discarded deck must not lower the flag a live one has raised.
       if (generation != _deckGeneration) return;

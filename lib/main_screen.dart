@@ -54,9 +54,9 @@ class _MainScreenState extends State<MainScreen> {
 
   //THE SAME TAP CAN ARRIVE TWICE ON A COLD START. getInitialMessage hands
   //over the message that launched the app, and onMessageOpenedApp streams the
-  //same intent alongside it - so the handler ran twice, two identical
-  //profiles stacked, and the first back press looked broken because what it
-  //revealed was the second one.
+  //same intent alongside it - so without a guard the handler runs twice,
+  //stacking two identical profiles and making the first back press look
+  //broken, because what it reveals is the second one.
   String? _handledPushId;
   bool _openingFromPush = false;
 
@@ -123,13 +123,12 @@ class _MainScreenState extends State<MainScreen> {
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       //ANYTHING ABOUT A MATCH REFRESHES THE MATCHES PAGE, whatever the kind.
-      //The push is only a nudge now: nothing about a match is stored in the
-      //bell any more, so this list IS the delivery, and it is reloaded here so
-      //the page is already right if the user opens it from the banner.
+      //The push is only a nudge: nothing about a match is stored in the
+      //bell, so this list IS the delivery, and it is reloaded here so the
+      //page is already right if the user opens it from the banner.
       //
       //NOTHING ELSE ARRIVES. 'match' and 'match_revealed' are the only two
-      //pushes the backend sends - a like push existed while there was a
-      //likes page to open it, and there is nothing left for one to refresh.
+      //pushes the backend sends.
       final kind = message.data['type'] as String?;
       if (kind != null && kind.startsWith('match')) {
         _matchesPageKey.currentState?.loadMatches();
@@ -242,10 +241,9 @@ class _MainScreenState extends State<MainScreen> {
             .where((candidate) => candidate.matchId == matchId)
             .firstOrNull;
       } catch (error, stack) {
-        //A FAILED LOAD LANDS THE USER ON THE LIST, which is a fine outcome
-        //and a terrible silence: the tap looks like it half worked and there
-        //is nothing anywhere saying the request failed. reportError is
-        //stripped from release builds the same way debugPrint is.
+        //a failed load lands the user on the list, which is a fine outcome
+        //and a silent one: the tap looks like it half worked and nothing
+        //says the request failed, so it is worth a report
         reportError(error,
             stack: stack, context: 'opening a match from a push');
       }
@@ -309,12 +307,11 @@ class _MainScreenState extends State<MainScreen> {
       String? token = await FirebaseMessaging.instance.getToken();
 
       if (token != null) {
-        //NO last_active HERE ANY MORE. It was written beside the token on
-        //every launch and nothing ever read it: the feed orders candidates in
-        //SQL and cannot see into Firestore, which is the one place the value
-        //was wanted. It is now users.last_active, written by
-        //ApiService.markActive. What stays here is what the BACKEND reads out
-        //of Firestore to send a push - the token and the toggle.
+        //WHAT THE BACKEND READS OUT OF FIRESTORE TO SEND A PUSH: the token
+        //and the toggle, and nothing else. last_active is deliberately not
+        //here - it is users.last_active, written by ApiService.markActive,
+        //because the feed orders candidates in SQL and cannot see into
+        //Firestore.
         await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
           'fcm_token': token,
           'match_notifications': settings.matchNotificationsEnabled,
@@ -381,8 +378,8 @@ class _MainScreenState extends State<MainScreen> {
     //OPENING THE TAB IS WHAT REFRESHES IT, and the FCM hook in initState is
     //not enough on its own: the push for a new match goes to the OTHER
     //person. Whoever completed the match by swiping gets nothing - which is
-    //why a match made in the deck used to sit invisible here until the list
-    //was pulled down by hand.
+    //so a match made in the deck would otherwise sit invisible here until
+    //the list was pulled down by hand.
     //
     //It also covers the paths no push exists for at all: a swipe the retry
     //queue delivered long after the fact, and a match the other side
@@ -508,7 +505,7 @@ class _MainScreenState extends State<MainScreen> {
 }
 
 //Keeps a PageView child alive when it's scrolled off-screen, so the 4 tabs
-//preserve their state (like the swipe deck) just like the old IndexedStack did.
+//preserve their state (like the swipe deck).
 class _KeepAlivePage extends StatefulWidget {
   final Widget child;
   const _KeepAlivePage({required this.child});

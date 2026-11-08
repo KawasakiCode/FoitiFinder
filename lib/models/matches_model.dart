@@ -20,12 +20,12 @@ class MatchModel {
   final bool iConfirmed;
   final bool theyConfirmed;
   final bool revealed;
-  //THERE IS NO `expired` FLAG, and there used to be. Three days after a match
-  //became somebody's turn the server deletes it, on the next read of either
-  //side's list - so a match that has run out does not arrive in a lapsed
-  //state, it simply is not in the response. See backend/match_expiry.
+  //THERE IS NO `expired` FLAG. Three days after a match became somebody's
+  //turn the server deletes it, on the next read of either side's list - so a
+  //match that has run out does not arrive in a lapsed state, it simply is
+  //not in the response. See backend/match_expiry.
   //
-  //the deadline, so the waiting state can name a day instead of quoting a
+  //The deadline below lets the waiting state name a day instead of quoting a
   //rule. Null once both sides have confirmed, because nothing expires then.
   final DateTime? expiresAt;
 
@@ -94,12 +94,11 @@ class MatchSections {
   //both of you, and both handles are out.
   final List<MatchModel> connected;
 
-  //THERE IS NO 'EXPIRED' SECTION, and there used to be, between `connected`
-  //and the turn checks. A match that ran out is deleted by the server on the
-  //next read, so one can never reach this function - and a section that can
-  //only ever be empty is a heading, a dimmed tile, a dismiss button and a
-  //branch in every state check, all to display "this is over" where not
-  //being on the page says it better.
+  //THERE IS NO 'EXPIRED' SECTION. A match that ran out is deleted by the
+  //server on the next read, so one can never reach this function - and a
+  //section that can only ever be empty is a heading, a dimmed tile, a
+  //dismiss button and a branch in every state check, all to display "this is
+  //over" where not being on the page says it better.
 
   const MatchSections({
     required this.yourTurn,

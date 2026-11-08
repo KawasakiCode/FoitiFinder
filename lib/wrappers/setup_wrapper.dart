@@ -77,10 +77,10 @@ class _SetupWrapperState extends State<SetupWrapper> {
 
     final user = profileProvider.currentUser;
 
-    //Couldn't reach the backend -> keep the session and offer a retry. Signing
-    //out here used to destroy a perfectly good login on any network blip or
-    //Render cold start, and because signOut() clears the persisted session the
-    //app could never recover from it on later launches.
+    //Couldn't reach the backend -> keep the session and offer a retry.
+    //Signing out here would destroy a perfectly good login on any network
+    //blip or Render cold start, and because signOut() clears the persisted
+    //session the app could never recover from it on later launches.
     if (user == null && loadFailed) {
       setState(() {
         loadError = true;

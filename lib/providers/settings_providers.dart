@@ -55,8 +55,7 @@ class SettingsProvider extends ChangeNotifier {
 
   void _loadDefaults() {
     //isDark==true means DARK (matches toggleTheme + fetchSettingsFromApi);
-    //default (no saved pref) is dark. This was previously inverted, which made
-    //the app flash/stick in light mode for users who actually had dark on.
+    //default (no saved pref) is dark.
     _themeMode = (_prefs.getBool('isDark') ?? true) ? ThemeMode.dark : ThemeMode.light;
     _matchNotificationsEnabled = (_prefs.getBool('match_notifications_enabled') ?? false) ? true : false;
     //KEY NAME MATTERS: changeLanguage() and fetchSettingsFromApi() both write
@@ -207,11 +206,7 @@ class SettingsProvider extends ChangeNotifier {
     }
   }
 
-  //Turn the match pushes on or off - 'somebody is waiting on your answer'
-  //and 'they said yes back'. It used to be a LIKE toggle that gated the
-  //match pushes as well, so silencing the useless pings silenced the one
-  //push that matters. There are no like pushes any more.
-  //Setup has put the question; do not put it again.
+  //Setup has put the notifications question; do not put it again.
   Future<void> markNotificationsAsked() async {
     await _prefs.setBool('notifications_asked', true);
     //SetupWrapper watches this provider and moves on once it is set
@@ -223,10 +218,8 @@ class SettingsProvider extends ChangeNotifier {
   //say no - after two refusals Android stops asking at all and the only way
   //back is the system settings screen.
   //
-  //This used to swallow that: the switch flipped itself back and said
-  //nothing, so the user tapped, watched it bounce, and had no idea why or
-  //what to do. The provider still shows no UI of its own - it reports, and
-  //the settings page explains.
+  //The provider shows no UI of its own: it reports, and the settings page
+  //explains.
   Future<bool> toggleMatchNotifications(bool value) async {
     // If turning ON, we must check OS permission first
     if (value == true) {

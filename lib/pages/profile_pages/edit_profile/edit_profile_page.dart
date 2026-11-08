@@ -446,11 +446,9 @@ class _EditProfileState extends State<EditProfile> {
 
   //Save what this page still owns - the photos - and leave.
   //
-  //Username, full name and age USED to be edited here and are now on the
-  //Account Settings page, so all of their validation and their write went with
-  //them. Bio is likewise not saved from here: BioPage writes it directly, and
-  //a controller seeded when this page opened would send a stale value back
-  //over a newer edit.
+  //Bio is not saved from here either: BioPage writes it directly, and a
+  //controller seeded when this page opened would send a stale value back over
+  //a newer edit.
   Future<void>? _saveAndExit() async {
     try {
       await _submitPhotos();
@@ -523,8 +521,7 @@ class _EditProfileState extends State<EditProfile> {
   }
 
   Future<void> _submitPhotos() async {
-    //Nothing changed in the photo grid — don't re-upload or re-score. This is
-    //what stops the old behaviour of duplicating every photo on each save.
+    //Nothing changed in the photo grid - don't re-upload or re-score.
     if (!_photosChanged) return;
 
     setState(() {
@@ -565,8 +562,7 @@ class _EditProfileState extends State<EditProfile> {
 
       //Reconcile the backend to exactly this ordered list: keeps unchanged
       //photos, inserts new ones, deletes removed ones — no duplicates.
-      //syncPhotos reports failure by returning false, not by throwing - it
-      //was being ignored, so a failed save looked like a successful one
+      //syncPhotos reports failure by returning false rather than throwing.
       final synced = await ApiService.syncPhotos(
         uid: uid,
         photoUrls: photoUrls,
@@ -585,8 +581,8 @@ class _EditProfileState extends State<EditProfile> {
 
       //The slots now match what the backend holds: each carries its URL, so a
       //later save re-uploads nothing, and a story can be attached to a photo
-      //that was picked a moment ago. Without this every slot stayed "new" and
-      //the next save uploaded the whole set again under fresh URLs, taking
+      //that was picked a moment ago. Without this every slot stays "new" and
+      //the next save uploads the whole set again under fresh URLs, taking
       //their stories with it.
       if (mounted) {
         setState(() {
@@ -665,8 +661,8 @@ class _EditProfileState extends State<EditProfile> {
                       children: [
                         //=========================== PHOTOS ===========================
                         SectionHeader(text.photos),
-                        //3 per row, 2 rows. Smaller than before so the whole grid
-                        //plus the first section fits above the fold.
+                        //3 per row, 2 rows, sized so the whole grid plus the
+                        //first section fits above the fold.
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 15),
                           child: _buildPhotoGrid(),
@@ -786,9 +782,9 @@ class _EditProfileState extends State<EditProfile> {
                         CardGroup(
                           dividers: true,
                           children: [
-                            //NOTE: EducationPage and OccupationPage are already
-                            //built and working - swapping either stub for the real
-                            //page is a one-line change.
+                            //EducationPage and OccupationPage are built and
+                            //working; swapping either stub for the real page
+                            //is a one-line change.
                             //
                             //Location is NOT here: where the user lives is one
                             //value, so it gets one home, and that home is the
@@ -820,8 +816,7 @@ class _EditProfileState extends State<EditProfile> {
                               onTap: _openPronouns,
                             ),
                             //one answer, five options: a dialog like the
-                            //habits rather than a whole page. The column
-                            //existed from the start and nothing could set it.
+                            //habits rather than a whole page
                             NavRow(
                               label: catalogueLabel(
                                 text,
@@ -1050,13 +1045,12 @@ class _EditProfileState extends State<EditProfile> {
               decoration: BoxDecoration(
                 //TRANSPARENT UNDER A PHOTO. While the photo is flying to the
                 //detail page the Hero leaves an empty placeholder here, and a
-                //filled box made that read as a white hole punched in the
-                //grid. Transparent means the page background shows through,
-                //so the slot looks like it travelled with the photo.
+                //filled box reads as a white hole punched in the grid.
+                //Transparent means the page background shows through, so the
+                //slot looks like it travelled with the photo.
                 //
                 //Empty slots keep a fill, since that box IS the "add a photo"
-                //target. Theme colours, not Colors.grey[200], which was a
-                //light-grey box in dark mode too.
+                //target. Theme colours, so it follows dark mode.
                 color: photo != null
                     ? Colors.transparent
                     : Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -1135,8 +1129,8 @@ class _EditProfileState extends State<EditProfile> {
 //apart in size, colour or placement.
 //
 //INSIDE the photo, inset from its top and right edges, rather than hanging
-//off the corner - an overhanging badge got clipped by neighbouring tiles
-//during the reorder animation and looked detached from its photo.
+//off the corner: an overhanging badge is clipped by neighbouring tiles during
+//the reorder animation and reads as detached from its photo.
 class _PhotoCornerButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
@@ -1273,17 +1267,10 @@ class _WiggleState extends State<_Wiggle> with SingleTickerProviderStateMixin {
   }
 }
 
-//A photo shown in the edit grid: either one already saved on the backend
-//(existingUrl != null, so it never needs re-uploading) or a freshly-picked
-//local file that still has to be uploaded on save.
-//A photo in the grid: EITHER a file just picked from the gallery, OR a URL the
-//backend already has. Never both, and never neither.
-//
-//It used to always hold a File, which meant every saved photo had to be
-//DOWNLOADED to a temp file before the grid could draw it - one at a time, into
-//a cache nothing else in the app shared, so the same photos were fetched twice
-//and the slots sat empty for seconds. Saved photos now draw straight from
-//CachedNetworkImage, the same cache the profile page and the preview fill.
+//A photo in the grid: EITHER a file just picked from the gallery, OR a URL
+//the backend already has. Never both, and never neither. A saved photo draws
+//straight from CachedNetworkImage - the same cache the profile page and the
+//preview fill - so it never needs re-uploading.
 class _PhotoSlot {
   //set only for a photo picked in this session and not yet uploaded
   final File? file;

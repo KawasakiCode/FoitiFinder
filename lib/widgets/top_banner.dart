@@ -13,10 +13,10 @@
 //than passing over it, so the deck would physically move while being swiped.
 //An overlay entry sits above everything and touches nothing underneath.
 //
-//ONE AT A TIME. Two pushes arriving together used to be possible (a confirm
-//and a reveal seconds apart), and two stacked banners would cover each other
-//at the same offset. The newer message is the one worth showing, so it
-//replaces rather than queues - this is a notice, not a log.
+//ONE AT A TIME. Two pushes can arrive together (a confirm and a reveal
+//seconds apart), and two stacked banners would cover each other at the same
+//offset. The newer message is the one worth showing, so it replaces rather
+//than queues - this is a notice, not a log.
 
 import 'dart:async';
 

@@ -234,8 +234,8 @@ class _SignUpPageState extends State<SignUpPage> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        //AbsorbPointer locks the screen while signing up; the spinner now lives
-        //in the button itself (PrimaryButton) so we don't show a second one.
+        //AbsorbPointer locks the screen while signing up; the spinner lives
+        //in the button itself (PrimaryButton), so there is never a second one.
         body: AbsorbPointer(
           absorbing: _isLoading,
           child: SingleChildScrollView(

@@ -101,10 +101,9 @@ def main() -> None:
     for them in seeded:
         photos = db.query(models.Photos).filter(models.Photos.user_id == them.id).count()
         verdict = feed_verdict(me, them)
-        #MY OWN SWIPE IS CHECKED FIRST, and theirs is no longer checked at all.
-        #Somebody who liked me used to be held out of the deck for a likes
-        #page; the page is gone and so is the exclusion, so the only thing
-        #their like changes now is whether the card carries a badge.
+        #MY OWN SWIPE IS CHECKED FIRST, and theirs is not checked at all: a
+        #like from them does not hold them out of the deck, it only decides
+        #whether the card carries a badge.
         if them.id in swiped:
             where_ = f"GONE: you already swiped {swiped[them.id]!r}"
         elif verdict != "shown":

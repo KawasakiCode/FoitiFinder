@@ -285,7 +285,7 @@ class AppTheme {
       dialogTheme: DialogThemeData(
         //In dark mode the dialog sits ABOVE the cards rather than level with
         //them (#202020 against their #1a1a1a). With a lighter scrim the cards
-        //no longer collapse to black, so the dialog needs its own separation
+        //do not collapse to black, so the dialog needs its own separation
         //instead of relying on everything behind it going dark.
         backgroundColor: isDark ? const Color(0xFF202020) : surface,
         surfaceTintColor: Colors.transparent,

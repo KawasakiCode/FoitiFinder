@@ -302,18 +302,14 @@ class _MatchPageState extends State<MatchPage> {
     final photoHeight =
         MediaQuery.sizeOf(context).height * _kMatchPhotoFraction;
 
-    //ANSWERING IS NOT THE ONLY WAY OUT ANY MORE.
+    //ANSWERING IS NOT THE ONLY WAY OUT. get_matches does not show user_b the
+    //match until user_a has confirmed, so a match nobody has answered is one
+    //the other side has never heard of - a back press leaves nobody waiting.
     //
-    //IT USED TO BE, and the reason given was that backing out would leave the
-    //other person waiting on somebody who had moved on. That stopped being
-    //true: get_matches does not show user_b the match until user_a has
-    //confirmed, so a match nobody has answered is one the other side has
-    //never heard of. Nobody was waiting.
-    //
-    //What the forced choice actually did was put the only non-committal
-    //option - 'not interested' - next to a destructive one, so a moment of
-    //doubt about a swipe cost the match. Now doubt costs nothing: the match
-    //moves to the matches page, under 'Your turn', and waits three days.
+    //A forced choice would put the only non-committal option - 'not
+    //interested' - beside a destructive one, so a moment of doubt about a
+    //swipe would cost the match. Here doubt costs nothing: the match moves to
+    //the matches page, under 'Your turn', and waits three days.
     //
     //THE DIALOG IS NOT A CONFIRMATION, it is the promise. Leaving is
     //harmless, so there is nothing to confirm - but the three days are a

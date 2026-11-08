@@ -1,17 +1,10 @@
 //Your matches: everyone you and somebody else both said yes to.
 //
-//THIS WAS THE LIKES PAGE. Hiding who liked you put every match on a page of
-//its own and left the deck unable to produce one at all - every payoff in the
-//app arrived somewhere other than the screen people actually use. Now likers
-//go back into the deck unannounced, a match can happen on any swipe, and this
-//page is where they live afterwards.
-//
-//IT IS ALSO WHY THE BELL NO LONGER CARRIES MATCHES. A stored notification
-//existed because the match page was the only entrance to a match: a swipe
-//delivered late by the retry queue, or an app killed at the wrong moment,
-//stranded it. This list is always reachable and always current, so the
-//notification had nothing left to rescue - and it was the row that made
-//'match' mean two different things at once.
+//THE BELL DOES NOT CARRY MATCHES. This list is always reachable and always
+//current, so a stored notification about one could only ever be a staler copy
+//of a screen the user can simply open - and it would make 'match' mean two
+//different things at once. Likers go back into the deck unannounced, a match
+//can happen on any swipe, and this page is where they live afterwards.
 //
 //A TAP OPENS THE SAME PROFILE THE DECK OPENS, with the match's own action
 //pinned under it: share, waiting, or their handle. One profile layout in the
@@ -146,10 +139,11 @@ class MatchesPageState extends State<MatchesPage> {
         decisions: false,
         //a tapped notification asks for this profile, not for a journey to
         //it; a tapped tile asks for the journey, at a speed that does not
-        //depend on how far down the grid it happened to be
-        //SAME NUMBER BOTH WAYS for a tapped tile: the return covers the
-        //same ground, so a fixed reverse would snap back after a long flight
-        //out. The notification path deliberately differs - it opens with no
+        //depend on how far down the grid it happened to be.
+        //
+        //SAME NUMBER BOTH WAYS for a tapped tile: the return covers the same
+        //ground, so a fixed reverse would snap back after a long flight out.
+        //The notification path deliberately differs - it opens with no
         //flight at all and still closes with one.
         transitionDuration: instant
             ? Duration.zero
@@ -378,7 +372,7 @@ class _MatchTile extends StatelessWidget {
         onTap: () {
           //MEASURED AT TAP TIME, not held in state: the grid scrolls and
           //resizes under this, so a position captured when the tile was built
-          //would describe where it used to be.
+          //would describe where it was built, not where it is.
           final box = context.findRenderObject() as RenderBox?;
           onTap(box == null || !box.hasSize
               ? null
@@ -410,10 +404,6 @@ class _MatchTile extends StatelessWidget {
                 //an answer rather than a match they do not know they have. It
                 //is the only thing the section heading above cannot say: both
                 //kinds sit under 'Your turn', because both need the same press.
-                //
-                //THIS USED TO READ 'Your turn' on every untouched tile, which
-                //the heading now says once for the whole group instead of
-                //repeating on every face under it.
                 //
                 //Outside the Hero deliberately: it belongs to this list, not to
                 //the profile the photo flies to, and carrying it along would

@@ -11,12 +11,12 @@
 //    ProfileProvider like Edit Profile does (PATCH min/max_height_preference,
 //    show_outside_residence, preferred_alcohol/_smoking/_dating_intention/_kids)
 //
-//SLIDERS SAVE ON RELEASE, not on every tick. onChanged fires dozens of times a
-//drag and each one used to be a PATCH; now the drag is local and onChangeEnd
-//sends the one value the user let go on.
+//SLIDERS SAVE ON RELEASE, not on every tick. onChanged fires dozens of times
+//a drag, so the drag is local and onChangeEnd sends the one value the user
+//let go on.
 //
-//Only gender and age filter the feed so far - the rest is stored and waiting
-//for the feed query to use it.
+//Gender, age, height and languages filter the feed. Place of residence and
+//the four choices are stored and not yet used by the query.
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -452,7 +452,7 @@ class _RangeRow extends StatelessWidget {
             children: [
               //the label gives way, the value never does: "≤130 - 220+ cm"
               //next to a Greek label, or with a large system font, is wider
-              //than the card and used to overflow
+              //than the card and would overflow
               Expanded(
                 child: Text(
                   label,

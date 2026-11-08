@@ -16,10 +16,10 @@
 //nobody will ask for. profilePhotoProvider builds exactly the same key the
 //widget below asks for - use it for every precache.
 //
-//LOADING IS NOT THE SAME AS MISSING. Both used to draw the same grey box with
-//a person in it, which is why a photo on its way in looks exactly like an
-//account with no photo. A photo that is coming gets a plain surface; the
-//person icon means there is nothing to show.
+//LOADING IS NOT THE SAME AS MISSING. Drawing the same grey box with a person
+//in it for both makes a photo on its way in look exactly like an account
+//with no photo. A photo that is coming gets a plain surface; the person icon
+//means there is nothing to show.
 //
 //AND NO CROSS-FADE. The package defaults are a 500ms fade in over a 1000ms
 //fade out, so the placeholder hangs around for a full second after a cached
@@ -41,7 +41,7 @@ import 'package:flutter/material.dart';
 //is visibly soft on a swipe card.
 const int kPhotoDecodeWidth = 1080;
 
-//Half-width grid tiles (the likes page) need a quarter of the pixels. Sharing
+//Half-width grid tiles (the matches grid) need a quarter of the pixels. Sharing
 //the big width would make the flight into a profile seamless, but at six
 //tiles on screen that is 40MB of cache for photos the size of a thumbnail.
 const int kThumbDecodeWidth = 540;
@@ -86,7 +86,7 @@ class PhotoLoadingBox extends StatelessWidget {
 /// because the states that "cannot happen" are the ones nobody looks at - a
 /// row written before the rule existed, a Storage object deleted underneath
 /// us, or an offline load that fails. The one thing it must never do is show
-/// somebody else's face, which is what the old picsum fallback did.
+/// somebody else's face.
 class PhotoMissingBox extends StatelessWidget {
   //kept so a small tile and a full-bleed header can differ
   final double iconSize;
@@ -123,7 +123,7 @@ class PersonPhoto extends StatelessWidget {
   final double missingIconSize;
   //Shown while the photo decodes, in place of the plain box. The profile
   //header passes the thumbnail version of the same photo here, which the
-  //likes grid has already decoded - so arriving from a tile shows a slightly
+  //matches grid has already decoded - so arriving from a tile shows a slightly
   //softer copy of the right photo instead of an empty box.
   final Widget? whileLoading;
 

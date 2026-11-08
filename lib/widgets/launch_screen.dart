@@ -4,7 +4,7 @@
 //(android/app/src/main/res/drawable*/launch_background.xml) and it stops the
 //instant Flutter draws its first frame - which, for anybody already signed
 //in, is a wrapper waiting on Firebase Auth and then on the backend. That
-//frame used to be a bare Scaffold, so the launch went gradient, white,
+//frame is otherwise a bare Scaffold, so the launch goes gradient, white,
 //app: a flash of white in the middle of starting up, which reads as the app
 //having crashed and restarted rather than as it loading.
 //

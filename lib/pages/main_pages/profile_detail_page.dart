@@ -126,23 +126,19 @@ const double _kPhotoFraction = 0.55;
 
 //HOW LONG A FLIGHT INTO THIS PAGE SHOULD TAKE, given where it started.
 //
-//A FIXED DURATION MAKES SPEED DEPEND ON POSITION. The photo flies from
-//wherever it was tapped to the header at the top, so a tile in the bottom row
-//of the matches grid covers several times the distance of one in the top row -
-//and with one duration for both, it covers it several times faster. The long
-//flights snapped.
-//
-//CONSTANT SPEED IS NOT THE ANSWER EITHER, which is what this was first. Make
-//duration strictly proportional to distance and the short flights become the
-//problem instead: a top-row tile has barely a hundred points to travel, so it
-//finishes in a blink and reads as a cut rather than a movement. The eye wants
-//a floor on DURATION, not on speed.
+//A fixed duration makes speed depend on position: the photo flies from
+//wherever it was tapped up to the header, so a tile in the bottom row of the
+//matches grid covers several times the distance of one in the top row, and
+//one duration for both means it covers that ground several times faster.
+//Strict proportionality is no better - a top-row tile has barely a hundred
+//points to travel and finishes in a blink, reading as a cut rather than a
+//movement. The eye wants a floor on DURATION, not on speed.
 //
 //So this interpolates between a short flight and a long one across the
-//distances that actually occur. Further is slower, but not proportionally -
+//distances that actually occur. Further is slower, but not proportionally:
 //the longest flight is about a third longer than the shortest while covering
-//five times the ground, and that compression is what makes them look like
-//the same gesture.
+//five times the ground, and that compression is what makes them look like the
+//same gesture.
 const Duration _kFlightShortest = Duration(milliseconds: 620);
 const Duration _kFlightLongest = Duration(milliseconds: 900);
 //DISTANCE AT WHICH IT REACHES THE LONGEST, as a fraction of screen height
@@ -180,20 +176,6 @@ Duration profileFlightDuration(BuildContext context, Rect? from) {
 //own. It slides in from the right as the page opens and retraces that exact
 //path on the way out, because the route animation runs backwards when the
 //page is popped and the same curve is used in both directions.
-//
-//IT USED TO BE AN AnimationController DRIVEN BY A STATUS LISTENER, and that
-//quietly did not work at all. The hero controller parks a pushed route
-//OFFSTAGE for one frame to measure where the flight is landing
-//(heroes.dart: `toRoute.offstage = toRoute.animation!.value == 0.0`), and
-//while a route is offstage ModalRoute.animation is swapped for
-//kAlwaysCompleteAnimation (routes.dart). The page's first build happens in
-//exactly that frame, so the animation claimed to be COMPLETED: the listener
-//was never attached, the content slid in immediately instead of after the
-//flight, and nothing ever reversed it - the body simply stopped being
-//painted when the route was disposed. Hence a slide in and no slide out.
-//
-//The lesson is in the only place it still matters, below: a route animation
-//reading `completed` is not the same as the transition having finished.
 
 class ProfileDetailPage extends StatefulWidget {
   final int userId;
@@ -203,10 +185,10 @@ class ProfileDetailPage extends StatefulWidget {
   //matches the card the photo flew out of
   final Object? photoHeroTag;
   //matches the card's button row, when it was opened from something that has
-  //one. Null from the likes grid: a tile has no buttons to fly from, so the
+  //one. Null from the matches grid: a tile has no buttons to fly from, so the
   //bar arrives with the rest of the page instead.
   final Object? actionsHeroTag;
-  //FALSE ON THE LIKES PAGE. A super like is a way to get noticed by someone
+  //FALSE ON THE MATCHES PAGE. A super like is a way to get noticed by someone
   //who has not seen you yet; this person already liked you, so liking back
   //matches on its own and the star would buy nothing. Offering a button that
   //changes nothing is worse than not offering it.
@@ -302,18 +284,12 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
     return Scaffold(
       //the photo runs under the bar and up to the very top of the screen
       extendBodyBehindAppBar: true,
-      //LAID OUT, NOT OVERLAID. The footer used to be a Positioned child of
-      //the Stack below, floating over the scroll view, and the scroll view
-      //ended with a fixed 120px spacer to clear it. That number was measured
-      //against the like/pass bar; MatchActionBar in its revealed state is
-      //taller - a title, the handle in large type and two buttons - so the
-      //last card on a connected profile was cut in half by it and could not
-      //be scrolled into view at all.
-      //
-      //In this slot the Scaffold shortens the body by whatever the bar
-      //actually measures, so nothing has to guess. The decision bar stays in
-      //the Stack because it flies there from the deck's card and a Hero needs
-      //its destination to sit still.
+      //LAID OUT, NOT OVERLAID. In this slot the Scaffold shortens the body
+      //by whatever the bar actually measures, so nothing has to guess how
+      //much room to leave - and MatchActionBar in its revealed state is much
+      //taller than the like/pass bar. The decision bar stays in the Stack
+      //because it flies there from the deck's card and a Hero needs its
+      //destination to sit still.
       bottomNavigationBar: widget.footer,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -352,8 +328,7 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
                   child: FadeTransition(
                     opacity: bodyFade,
                     child: SlideTransition(
-                      //named so a test can watch it move - this slide has
-                      //broken twice, both times silently
+                      //named so a test can watch it move
                       key: kProfileBodySlideKey,
                       position: bodySlide,
                       child: ProfileDetailsBody(profile: _profile),
@@ -372,15 +347,11 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
 
           //a hairline of progress while the rest of the profile loads; the
           //preview is already readable behind it
-          //KEYED, and that is a bug fix, not tidiness. A Stack's children are
-          //matched by position when nothing is keyed, so the frame this one
-          //disappears on handed the bar's widget to the progress bar's
-          //element - both are Positioned. The bar's subtree was rebuilt from
-          //scratch mid-flight, which gave its Hero a fresh state that knew
-          //nothing about the flight in progress, so the real buttons appeared
-          //at the bottom while their copy was still travelling. The profile
-          //loads in a few milliseconds against a local backend, which is why
-          //it happened every single time there.
+          //KEYED: a Stack matches its children by position when nothing is
+          //keyed, so the frame this one disappears on would hand the bar's
+          //widget to the progress bar's element - both are Positioned. That
+          //rebuilds the bar's subtree mid-flight and gives its Hero a fresh
+          //state that knows nothing about the flight in progress.
           if (_loading)
             Positioned(
               key: const ValueKey('loading-hairline'),
@@ -433,7 +404,7 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
                         heroTag: widget.actionsHeroTag,
                       ),
                     )
-                  //nothing to fly from (the likes grid), so it arrives AND
+                  //nothing to fly from (the matches grid), so it arrives AND
                   //leaves with the profile, on the same animation
                   : FadeTransition(
                       opacity: bodyFade,
@@ -505,8 +476,7 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
       },
       //THE DECK ONLY, which is what `decisions` means: this page can send a
       //decision back to whoever opened it. The matches page opens profiles
-      //with decisions off and discards what comes back, so the option used to
-      //sit there doing nothing at all when tapped.
+      //with decisions off and discards what comes back.
       //
       //AND IT WOULD BE THE WRONG QUESTION THERE. 'Not interested' in somebody
       //you have already matched with is not a pass - you cannot un-see a
@@ -569,7 +539,7 @@ class _HeaderPhoto extends StatelessWidget {
 
   //NO flightShuttleBuilder HERE, deliberately. Flutter prefers the
   //destination hero's shuttle, so one declared on this page would describe
-  //every flight that lands here - including the one out of the likes grid,
+  //every flight that lands here - including the one out of the matches grid,
   //which has no pills and no card darkening to fade. Leaving it null falls
   //through to whichever source the photo came from, and each of those knows
   //what it looks like: deckPhotoHeroFlightShuttle for a swipe card,
@@ -590,7 +560,7 @@ class _HeaderPhoto extends StatelessWidget {
         children: [
           PersonPhoto(
             url: url,
-            //ARRIVING FROM A LIKES TILE, the only copy of this photo in
+            //ARRIVING FROM A MATCHES TILE, the only copy of this photo in
             //memory is the tile's small one, so that is what stands in while
             //the full-size decode runs: a slightly soft version of the right
             //face beats an empty box. Arriving from a swipe card this never

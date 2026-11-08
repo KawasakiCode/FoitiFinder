@@ -1,9 +1,8 @@
 //What a swipe and a match confirmation answer with.
 //
-//Two tiny types rather than a bool and a Map: the swipe used to return only
-//"was it a match", and the match page needs the id of the match it is deciding
-//about. A bool cannot carry it, and reading raw json at the call site puts the
-//backend's key names into the UI.
+//Two tiny types rather than a bool and a Map: the match page needs the id of
+//the match it is deciding about, a bool cannot carry it, and reading raw json
+//at the call site puts the backend's key names into the UI.
 
 class SwipeResult {
   final bool isMatch;

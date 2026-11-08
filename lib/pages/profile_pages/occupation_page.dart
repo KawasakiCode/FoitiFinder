@@ -3,10 +3,6 @@
 //Two free-text fields, both optional. Students often have neither, so nothing
 //here is required and an empty page is a valid answer.
 //
-//There used to be a third "Other" box. It was dropped: it invited the same
-//answers as the other two in a vaguer form, and a field nobody can describe
-//the purpose of gets filled with noise. Its column went with it.
-//
 //Pops with a Map<String, dynamic> of the two fields.
 
 import 'package:flutter/material.dart';

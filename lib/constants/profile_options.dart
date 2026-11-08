@@ -9,9 +9,6 @@
 //`key` is what gets persisted, and it is deliberately the backend column name:
 //it keeps the app and the database from drifting, and makes the eventual
 //PATCH /users/me body a straight map of key -> value.
-//
-//TODO: labels are hardcoded English like the interest catalogue. Both need to
-//move to app_en.arb / app_el.arb before launch.
 
 //How many options a category accepts.
 enum ChoiceMode {

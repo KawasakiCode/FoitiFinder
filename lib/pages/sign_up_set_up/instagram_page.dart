@@ -90,9 +90,9 @@ class _InstagramPageState extends State<InstagramPage> {
 
       if (!mounted) return;
       //WHERE NEXT DEPENDS ON WHY THEY ARE HERE. A new user is part way
-      //through setup and carries on to the photos. Someone who finished setup
-      //before this page existed is only here to fill in the one missing
-      //field, and sending them through onboarding again would be absurd.
+      //through setup and carries on to the photos. Someone who has already
+      //finished setup is only here to fill in the one missing field, and
+      //sending them through onboarding again would be absurd.
       final onboarding = !(profile.currentUser?.hasFinishedSetUp ?? false);
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(

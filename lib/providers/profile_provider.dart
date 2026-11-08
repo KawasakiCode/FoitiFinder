@@ -64,11 +64,12 @@ class ProfileProvider extends ChangeNotifier {
         Map<String, dynamic> userMap = jsonDecode(userJson);
         _currentUser = UserModel.fromJson(userMap);
       } catch (e) {
-        //Unreadable cache (corrupt, or written by a build whose shape we can
-        //no longer parse). Dropping it was not enough on its own: _currentUser
-        //stayed null, and SetupWrapper reads a null user with no load error as
-        //"this account is gone" and signs out. Fall through to the network so
-        //a bad cache costs one request instead of the user's session.
+        //Unreadable cache (corrupt, or written by a build whose shape we
+        //can no longer parse). Dropping it is not enough on its own:
+        //_currentUser would stay null, and SetupWrapper reads a null user
+        //with no load error as "this account is gone" and signs out. Fall
+        //through to the network so a bad cache costs one request instead of
+        //the user's session.
         _prefs.remove('user_data');
       }
     }
@@ -273,8 +274,8 @@ class ProfileProvider extends ChangeNotifier {
   }) async {
     if(currentUser == null)return;
 
-    //copyWith carries every other field over. This used to build a UserModel
-    //by hand, where any field left out was silently reset to null.
+    //copyWith carries every other field over; building a UserModel by hand
+    //here would silently reset any field left out to null.
     _currentUser = _currentUser!.copyWith(
       name: name,
       bio: bio == null ? null : () => bio,

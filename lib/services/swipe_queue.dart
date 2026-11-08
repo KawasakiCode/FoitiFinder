@@ -118,10 +118,6 @@ class SwipeQueue {
   /// been queued - the caller cannot know yet whether it was a match, so a
   /// match made by a queued swipe is never celebrated. It is found later, on
   /// the matches page, which reloads whenever that tab is opened.
-  ///
-  /// record_swipe USED TO leave the swiper a notification for exactly this
-  /// case; that row is gone along with the rest of the in-app match
-  /// notifications, and the matches page replaced it.
   Future<SwipeResult> send({
     required String uid,
     required int targetId,

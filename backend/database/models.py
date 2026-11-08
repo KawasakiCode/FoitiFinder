@@ -141,9 +141,8 @@ class User(Base):
     photos = relationship("Photos", back_populates="user", cascade="all, delete", passive_deletes=True)
 
     #THE PROFILE PICTURE IS photo_urls[0], the photo with display_order 0.
-    #There used to be a profile_picture column as well, written by a separate
-    #upload, and nothing kept the two in step - likes showed one face and
-    #matches another. Now there is one fact in one place.
+    #One fact in one place: a separate profile_picture column would have to be
+    #kept in step with this list, and nothing would keep it.
     @property
     def photo_urls(self):
         return [p.photo_url for p in sorted(self.photos, key=lambda p: p.display_order)]
