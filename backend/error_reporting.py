@@ -29,6 +29,10 @@ describes:
     the request body      profile text, bios, report details
     the query string      /users/feed carries `exclude`, a list of everybody
                           the deck was holding
+    stack frame locals    the one that was actually leaking. Sent by default,
+                          and in an ASGI app every frame has `scope` in scope
+                          - which is the whole request, headers included. See
+                          include_local_variables below.
 """
 
 import os
@@ -71,11 +75,31 @@ def _scrub(event, hint):
     #for. Overwritten rather than deleted so that a later sentry_sdk.set_user
     #anywhere in this codebase cannot put a real uid back.
     event["user"] = {"id": "anonymous"}
+
+    #AND NO FRAME LOCALS, as a second line behind include_local_variables.
+    #
+    #That option is what actually keeps them out, and this is here because it
+    #defaults to ON: anybody who sets it back - or any SDK release that
+    #changes the default - reintroduces a leak of the Authorization header
+    #through every ASGI frame's `scope`. Cheap to do twice for something whose
+    #failure is silent and publishes a credential.
+    for exception in (event.get("exception") or {}).get("values") or []:
+        for frame in (exception.get("stacktrace") or {}).get("frames") or []:
+            frame.pop("vars", None)
+
     return event
 
 
-def install() -> None:
-    """Start Sentry if a DSN is configured. Safe to call when it is not."""
+def install(transport=None) -> None:
+    """Start Sentry if a DSN is configured. Safe to call when it is not.
+
+    [transport] exists for the test that proves an unhandled exception in a
+    route reaches before_send at all. tools/check_sentry.py captures an
+    exception by hand, which tests the DSN and the network but NOT the
+    FastAPI integration - and the integration is the part that carries every
+    real 500. Passing a list's append here makes that assertable without
+    anything leaving the process.
+    """
     dsn = os.getenv("SENTRY_DSN", "").strip()
     if not dsn:
         logger.info("SENTRY_DSN not set - error reporting is disabled")
@@ -96,6 +120,27 @@ def install() -> None:
         #braces, because the default covers the general case and this app has
         #specific things that must never travel.
         send_default_pii=False,
+        #NO STACK FRAME LOCALS, AND THIS ONE IS NOT A PRECAUTION - IT IS A FIX.
+        #
+        #sentry-sdk sends the local variables of every frame by default, and
+        #it is the richest thing it offers: the actual values that produced the
+        #crash. In an ASGI app it is also a disclosure. Every Starlette frame
+        #has `scope` in its locals, and `scope` holds the complete request -
+        #so each report carried the Authorization header (a live Firebase ID
+        #token) and the full query string, including the `exclude` list of
+        #everybody in one person's deck.
+        #
+        #before_send cannot sensibly fix that. It is handed a dict whose
+        #request.headers were already cleaned, while the same values sit
+        #untouched inside exception.values[].stacktrace.frames[].vars - which
+        #is exactly why the scrubbing tests passed and the integration tests
+        #did not.
+        #
+        #The cost is real: debugging without locals is harder. The published
+        #privacy statement says a report does not carry "anything you had
+        #typed", and a frame holding a bio, a report's free text or a revealed
+        #Instagram handle makes that a lie.
+        include_local_variables=False,
         #NO PERFORMANCE TRACING. It would make the "no analytics" promise in
         #the privacy statement false, and it is what burns a free quota.
         traces_sample_rate=0.0,
@@ -104,5 +149,6 @@ def install() -> None:
             StarletteIntegration(),
             FastApiIntegration(),
         ],
+        transport=transport,
     )
     logger.info("error reporting enabled")
