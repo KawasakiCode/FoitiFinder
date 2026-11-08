@@ -73,6 +73,20 @@ def _test_database_url() -> str:
 TEST_DATABASE_URL = _test_database_url()
 os.environ["DATABASE_URL"] = TEST_DATABASE_URL
 
+#AND NO SENTRY, FOR THE SAME REASON AND IN THE SAME PLACE.
+#
+#main calls error_reporting.install() at import time, so by the time any
+#fixture could tidy up, a live client already exists and every exception the
+#suite deliberately raises is on its way to the real project. Unset BEFORE the
+#import below, which is the only moment that works.
+#
+#THIS IS NOT HYPOTHETICAL. tools/check_sentry.py is run by setting
+#$env:SENTRY_DSN in a PowerShell window, and that variable persists for the
+#rest of the session - so the very next pytest in the window would have
+#shipped a few hundred test errors into a 5,000-a-month quota. The suite
+#raises on purpose, constantly; it is the last thing that should be reporting.
+os.environ.pop("SENTRY_DSN", None)
+
 import main  # noqa: E402
 import notifications as notification_service  # noqa: E402
 from auth import current_uid, verified_claims, verified_email_uid  # noqa: E402
@@ -357,6 +371,16 @@ def _no_real_firebase(monkeypatch):
     """
     import account_deletion
     import firebase_app
+
+    #AND SENTRY, belt to the braces of popping SENTRY_DSN before main is
+    #imported. That pop is the real fix; this is what fails loudly if somebody
+    #later imports main from somewhere earlier, or re-inits a client.
+    import sentry_sdk
+
+    assert sentry_sdk.get_client().dsn is None, (
+        "a live Sentry client exists during tests - the suite raises on "
+        "purpose and would report all of it"
+    )
 
     monkeypatch.setattr(firebase_app, "firestore_db", None)
     monkeypatch.setattr(firebase_app, "storage_bucket", None)
