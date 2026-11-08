@@ -99,8 +99,17 @@ these pages can quietly stop being true.
   describes the immediate, permanent deletion the code actually performs.
 - `recommender.html` described the feed as one-directional, which it was: your
   filters decided who you saw and nothing decided who saw you. The feed now
-  applies both sides' age range and gender preference, so the page describes
-  four filters rather than two.
+  applies both sides' age range, gender preference, height range and spoken
+  languages.
+- `recommender.html` then said three times that the deck was shuffled and that
+  there was "no scoring, no ranking", and listed the ranking signals under
+  "what we plan to change" — after the ranking had already shipped. It now
+  describes the four scoring signals, their weights, and the weighted random
+  draw. This is the one that mattered most: a DSA Article 27 disclosure that
+  describes a system the service no longer runs is worse than none.
+- `privacy.html` said the time you were last active was stored in Firestore.
+  It moved to Postgres when the feed started ordering on it, and the statement
+  now says so and discloses what it is used for.
 
 ## Keeping the pages honest
 
@@ -108,11 +117,22 @@ The content is specific to how this app actually behaves, which is the point
 and also the maintenance cost. Each of these changes makes a sentence here
 wrong, in both languages:
 
-- **shipping the ranking work** — `recommender.html` says the deck is shuffled,
-  and says so three times;
+- **changing a scoring weight** — `recommender.html` publishes all four as
+  numbers (super like 3, activity up to 2, 1 per shared interest, same
+  university 1) and states that the interest term can outweigh the rest
+  combined. The constants are `W_*` at the top of `backend/routers/feed.py`;
+- **adding or removing a scoring signal** — the same page says "the sum of
+  four things and nothing else", and separately promises that personality
+  tags, MBTI, pronouns, city and the Article 9 fields are not read. The
+  comment above `_score` in `feed.py` records why each of those is excluded;
+- **sorting the deck instead of drawing it** — the page explains at length
+  that a higher score only raises the probability. Replacing the sampling key
+  with a plain `order_by(score)` would make that false;
 - **changing which preferences the feed applies** — `recommender.html` names
-  the four that are filters and says plainly that height, smoking, drinking,
-  intentions, children and languages are stored and unused;
+  the four hard filters and says plainly that smoking, drinking, intentions,
+  children and show-outside-residence are stored and unused;
+- **changing the page size** — the page says twenty cards at a time
+  (`DEFAULT_PAGE` in `feed.py`);
 - **adding any paid feature** — `terms.html` §9 and all of
   `cancellation.html`;
 - **adding analytics or ads** — `privacy.html` has a callout promising none of

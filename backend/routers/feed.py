@@ -194,9 +194,8 @@ def _score(me: models.User, super_liked_me: set[int]):
 
 #HOW MANY CARDS A PAGE HOLDS, and the ceiling on what a client may ask for.
 #
-#THE DEFAULT WAS 10 AND HARDCODED, while the deck declared batchSize = 20 and
-#sent nothing - so the client, the server and the README each described a
-#different page size. 20 matches what the deck always thought it was getting.
+#TWENTY, WHICH IS WHAT THE DECK EXPECTS. The client's batchSize and the
+#number published in site/recommender.html both have to agree with this.
 #
 #THE CAP EXISTS BECAUSE THE NUMBER ARRIVES FROM A CLIENT. Nothing here is
 #expensive per row, but an unbounded limit is an invitation to ask for the
@@ -244,11 +243,10 @@ def get_swipe_feed(
     #
     #WHY THE SERVER HAS TO BE TOLD. It excludes what it has a swipe row for,
     #and a queued swipe has no row yet - so it keeps offering those people,
-    #and the deck throws them away on arrival. That was merely wasteful until
-    #the discarded set grew past a page: then a whole page could land inside
-    #it, three of those in a row tripped the deck's "nothing new" counter, and
-    #the user was told there were no more profiles with people still unseen.
-    #Offline, that is reachable in about forty swipes. See the test.
+    #and the deck throws them away on arrival. Wasteful while the discarded
+    #set is small, and worse once it grows past a page: a whole page can then
+    #land inside it and add nobody. Offline, that is reachable in about forty
+    #swipes. See the test.
     exclude: str = "",
     uid: str = Depends(verified_email_uid),
     db: Session = Depends(get_db),
@@ -323,15 +321,14 @@ def get_swipe_feed(
         filters.append(or_(models.User.gender.in_(wanted_genders), models.User.gender.is_(None)))
 
     #=====================================================================
-    #AND NOW THE OTHER DIRECTION, which is what this endpoint spent its
-    #whole life not doing.
+    #AND NOW THE OTHER DIRECTION.
     #
-    #THE BUG. Only the viewer's preferences were applied, so the deck
-    #offered people whose own filters would never have offered the viewer
-    #back. A right swipe on one of them could not become a match no matter
-    #what they did - they were never going to see the card. The app called
-    #that "no match yet"; it was structurally impossible, and the user had
-    #no way to tell the two apart.
+    #Applying only the viewer's preferences would offer people whose own
+    #filters would never offer the viewer back. A right swipe on one of them
+    #cannot become a match no matter what they do - they are never going to
+    #see the card - and the app would call that "no match yet" when it is
+    #structurally impossible, with no way for the user to tell the two
+    #apart.
     #
     #WHY IT IS WORTH THE SMALLER DECK. A deck of people who can match you
     #is smaller than a deck of people who cannot, and on a service with a

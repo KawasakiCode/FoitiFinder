@@ -22,26 +22,29 @@
   <p class="lede">What decides whose profiles reach you. This is not a legal
   document — it is an honest description of a fairly simple piece of
   software.</p>
-  <p class="stamp">Last updated 5 November 2026. Describes the app as it works
+  <p class="stamp">Last updated 8 November 2026. Describes the app as it works
   today.</p>
 
   <div class="callout">
     <p><strong>The whole thing, in one sentence.</strong> We take everybody you
-    have not already swiped on, remove anyone outside the age range and gender
-    you asked for — and anyone who asked for an age range or a gender you fall
-    outside of — then <strong>shuffle what is left</strong>. There is no
-    scoring, no ranking and no desirability model. Ten profiles at a time, in
-    random order.</p>
+    have not already swiped on, remove anyone who falls outside your filters —
+    or whose own filters you fall outside of — give each of the rest a small
+    score, and then <strong>draw</strong> twenty of them at random, where a
+    higher score makes a card more likely to come out early but never
+    guarantees it. There is no attractiveness score and nothing is for sale.</p>
   </div>
 
   <h2>Step 1: who is taken out</h2>
-  <p>Before anything else, three groups never appear in your deck.</p>
+  <p>Before anything else, these never appear in your deck.</p>
   <ul>
     <li><strong>You.</strong></li>
     <li><strong>Anybody you have already swiped on</strong>, whatever you
     chose — like, pass, super like, "not interested" or report. A profile you
     have seen does not come back, so passing on somebody is permanent from your
     side.</li>
+    <li><strong>Anybody with no photos</strong>, and anybody who has not
+    finished setting up their profile. A card with no face on it is a grey
+    rectangle with a name, and offering you one spends a swipe on nothing.</li>
     <li>Accounts we have removed.</li>
   </ul>
   <p>People who have liked <em>you</em> are <strong>not</strong> taken out.
@@ -51,98 +54,145 @@
   card, because telling you is the point of it.</p>
 
   <h2>Step 2: the filters, in both directions</h2>
-  <p>Two of your preferences are applied as hard filters. Somebody outside them
-  is not shown to you at all, ever.</p>
+  <p>Four of your preferences are applied as hard filters. Somebody outside
+  them is not shown to you at all, ever.</p>
   <dl>
     <dt>Age</dt>
     <dd>The range you set. We work it out from dates of birth rather than
     stored ages, so it stays right on everybody's birthday.</dd>
     <dt>Gender</dt>
     <dd>Who you said you wanted to see.</dd>
+    <dt>Height</dt>
+    <dd>The range you set, against the height on their profile.</dd>
+    <dt>Languages</dt>
+    <dd><strong>At least one language in common</strong>, and that is all — a
+    second or third shared language earns nothing. Two people either understand
+    each other or they do not.</dd>
   </dl>
-  <p><strong>And the same two are applied the other way round.</strong> You are
-  only shown somebody whose own age range includes you and whose own gender
-  preference accepts you. So a card in your deck is always somebody who could
-  have had you in theirs.</p>
-  <p>This is the point of it: a like you send can be returned. It used to be
-  one-directional — your filters decided who you saw and nothing decided who
-  saw you — which meant the deck offered people who were never going to be
-  shown your profile, and a right swipe on one of them could not become a match
-  whatever they did. It cost you a smaller deck to fix, and that is the right
-  trade: a like that cannot be returned is worse than a card you never saw.</p>
-  <p>A profile that has not filled in its age, gender or preferences yet is
-  <strong>kept</strong>, in every one of the four checks. Not having answered is
-  not the same as saying no, and hiding those people would make the app useless
-  for anybody who just joined.</p>
+  <p><strong>And all four are applied the other way round.</strong> You are
+  only shown somebody whose own age range includes you, whose own gender
+  preference accepts you, and whose own height range includes you. So a card in
+  your deck is always somebody who could have had you in theirs.</p>
+  <p>This is the point of it: a like you send can be returned. One-directional
+  filtering means the deck offers people who are never going to be shown your
+  profile, and a right swipe on one of them cannot become a match whatever they
+  do. It costs a smaller deck, and that is the right trade — a like that cannot
+  be returned is worse than a card you never saw.</p>
+  <p>A profile that has not filled in an age range, a gender preference, a
+  height or a language yet is <strong>kept</strong>, in every one of these
+  checks, in both directions. Not having answered is not the same as saying no,
+  and hiding those people would make the app useless for anybody who just
+  joined.</p>
 
   <h3>What your other preferences do today: nothing</h3>
-  <p>You can also tell the app your preferred height range, and your
-  preferences about smoking, drinking, intentions, children and languages. We
-  store them, you can see and change them, and <strong>the deck does not yet
-  use them</strong>. They are there for the ranking work described at the
-  bottom of this page. We would rather say that than let you believe a filter
-  is working when it is not.</p>
+  <p>You can also state preferences about smoking, drinking, intentions,
+  children, and whether to be shown people outside your city. We store them,
+  you can see and change them, and <strong>the deck does not use them</strong>.
+  We would rather say that than let you believe a filter is working when it is
+  not.</p>
 
-  <h2>Step 3: the order</h2>
-  <p>Random. Genuinely random — the server shuffles the remaining profiles and
-  hands back ten.</p>
-  <p>That means <strong>none</strong> of the following affects your position in
-  anybody's deck, or theirs in yours:</p>
+  <h2>Step 3: the score</h2>
+  <p>Everybody who survives step 2 is given a score. It is the sum of four
+  things and nothing else.</p>
+  <table>
+    <tr><th>Signal</th><th>Worth</th></tr>
+    <tr>
+      <td>They super liked you</td>
+      <td><strong>3 points.</strong> The strongest thing anybody can say in
+      this app, and the only interest the deck discloses — somebody spending
+      one of their two a week on you is a deliberate act, where being online is
+      an accident of timing.</td>
+    </tr>
+    <tr>
+      <td>How recently they were last active</td>
+      <td><strong>Up to 2 points</strong>, fading smoothly rather than at a
+      cutoff: about 2 for somebody using the app now, 0.7 after three days, 0.1
+      after nine. A like that nobody will ever open is worse than no like.</td>
+    </tr>
+    <tr>
+      <td>Each interest you have in common</td>
+      <td><strong>1 point each.</strong> The catalogue lets everybody pick up
+      to ten interests, so this runs from 0 to 10 — which means it can outweigh
+      everything else added together. That is deliberate: shared ground is what
+      this app is for.</td>
+    </tr>
+    <tr>
+      <td>Same university</td>
+      <td><strong>1 point.</strong> Shared ground again, and the thing this app
+      has that a general dating app does not.</td>
+    </tr>
+  </table>
+  <p>Nothing else contributes. In particular, there is no score attached to an
+  account that follows it around: the number above is worked out fresh for each
+  viewer every time a deck is filled, and the same person scores differently
+  for different people. Nobody is ranked globally.</p>
+
+  <h2>Step 4: the order</h2>
+  <p>The deck is <strong>not</strong> sorted by that score. It is a weighted
+  random draw — a higher score raises the chance of coming out early and never
+  guarantees it, and a score of zero still gets a ticket.</p>
+  <p>This matters, and it is worth being plain about why. Sorting by score
+  would hand you the same faces every time the deck refilled, and the rest of
+  the pool would never be seen however well it scored. The people at the top
+  would collect all of the attention, which is exactly the feedback loop this
+  design avoids everywhere else. Drawing rather than sorting also keeps the
+  deck feeling different each time.</p>
+  <p>You get twenty cards at a time, and the deck asks for more before it runs
+  out.</p>
+
+  <h2>What has no bearing on it at all</h2>
   <ul>
-    <li>How attractive anyone is, by any measure. There is no score attached to
-    any account.</li>
+    <li><strong>How attractive anyone is, by any measure.</strong> There is no
+    desirability model, no ELO, no beauty score, and nothing that learns one
+    from the way people swipe.</li>
     <li>How many likes you have had, given, or received.</li>
-    <li>How often you open the app, or how recently.</li>
     <li>How long you have been a member.</li>
-    <li>Whether anybody has super liked you — that shows a banner, and nothing
-    more.</li>
     <li>Anything you could pay for. There is nothing to pay for.</li>
-    <li>Your religion, politics, sexual orientation or pronouns. Nothing in the
-    app filters, ranks or sorts on any of these. They appear on your profile
-    because you chose to put them there, and that is their only effect.</li>
-    <li>Your university, your course, or your city. Your city is text on your
-    profile and nothing reads it.</li>
-    <li>Your location. We do not have it — see the
+    <li><strong>Your religion, politics or sexual orientation.</strong> These
+    are special category data under Article 9 GDPR, and the code that builds
+    the deck does not read them — see
+    <a href="privacy.html#special">section 3 of the Privacy Statement</a>. They
+    appear on your profile because you chose to put them there, and that is
+    their only effect.</li>
+    <li><strong>Your personality tags and your MBTI type.</strong> We collect
+    them and we show them, and we deliberately do not score them. Similar
+    personalities do not predict compatibility and neither do opposite ones, so
+    weighting them would mean inventing a rule and imposing it on everybody.
+    They are on your card to give somebody something to react to.</li>
+    <li>Your pronouns.</li>
+    <li>Your course, your job, or your city. Your city is text on your profile
+    and nothing reads it.</li>
+    <li><strong>Your location.</strong> We do not have it — see the
     <a href="privacy.html">Privacy Statement</a>.</li>
   </ul>
 
   <h2>What this means for you</h2>
-  <p>Mostly that there is not much to game. Two things are genuinely in your
-  hands:</p>
+  <p>Three things are genuinely in your hands:</p>
   <ul>
     <li><strong>Your filters decide the size of your pool.</strong> A narrow
-    age range on a service with a few thousand students is the single biggest
-    reason a deck runs dry. Widening it takes effect immediately — the deck
-    refills without restarting the app.</li>
-    <li><strong>Your profile decides what people do when they reach it.</strong>
-    Since the order is random, a photo and a bio are the entire difference
-    between a like and a pass.</li>
+    age or height range on a service with a few thousand students is the single
+    biggest reason a deck runs dry — and because the filters run both ways, a
+    narrow range also takes you out of other people's decks. Widening takes
+    effect immediately; the deck refills without restarting the app.</li>
+    <li><strong>Your interests decide where you tend to land.</strong> It is
+    the heaviest signal in the score, and the only one you can move by filling
+    something in.</li>
+    <li><strong>Opening the app matters a little.</strong> Being recently
+    active makes your card more likely to come out early. We would rather tell
+    you that than pretend it is not there.</li>
   </ul>
   <p>And passing is permanent, so it is worth opening a profile you are unsure
   about rather than flicking it away.</p>
 
-  <h2>What we plan to change</h2>
-  <p>We are working on ordering the deck rather than shuffling it. The signals
-  we intend to use, in rough order of weight:</p>
-  <ol>
-    <li><strong>Whether somebody is actually around.</strong> An active account
-    before a dormant one — a like that nobody will ever see is worse than no
-    like.</li>
-    <li><strong>Whether they super liked you.</strong> Shown already, and it
-    should also come first.</li>
-    <li><strong>New profiles</strong>, briefly, so somebody who joined today is
-    not buried under everybody who joined before them.</li>
-    <li><strong>How well your stated preferences overlap</strong> — the
-    smoking, drinking, intentions, children and language preferences above,
-    used as a nudge in the ordering rather than as a wall. We would rather
-    show you somebody who is a near-fit than show you nobody.</li>
-    <li><strong>Same university or department</strong>, as a mild preference.
-    Shared ground is the thing this app has that a general dating app does
-    not.</li>
-  </ol>
+  <h2>What we might change</h2>
+  <p>Two things we have considered and not built: a brief boost for profiles
+  that joined today, so somebody new is not drawn behind everybody who joined
+  before them; and some weight on whether a person tends to answer the matches
+  they make, since a match nobody confirms helps nobody. Neither is in the app
+  today.</p>
   <p>There will still be no attractiveness score, nothing sold, and no use of
-  special category data. When this ships we will update this page before it
-  goes live, not after.</p>
+  special category data. When any of this changes we will update this page
+  before it goes live, not after.</p>
 
   <div class="callout">
     <p><strong>Why we publish this.</strong> Article 27 of the EU Digital

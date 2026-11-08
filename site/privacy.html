@@ -21,7 +21,7 @@
   <h1>Privacy Statement</h1>
   <p class="lede">FoitiFinder is a dating app, which means almost everything in
   it is personal data about you. This explains all of it.</p>
-  <p class="stamp">Last updated 5 November 2026.</p>
+  <p class="stamp">Last updated 8 November 2026.</p>
 
   <div class="callout">
     <p><strong>The short version.</strong> We hold what you put on your
@@ -74,7 +74,10 @@
       <td>Your university and the city it is in</td>
       <td>Our database</td>
       <td>Worked out by the app from your email domain and shown on your
-      profile. We store the result rather than the address it came from.</td>
+      profile. We store the result rather than the address it came from. Being
+      at the same university as somebody is a mild nudge in the order of their
+      deck — see <a href="recommender.html">how the recommender works</a>. The
+      city is not used for anything but display.</td>
     </tr>
   </table>
 
@@ -105,8 +108,9 @@
     </tr>
     <tr>
       <td>Gender, pronouns, height</td>
-      <td>Gender is also used as a filter — see
-      <a href="recommender.html">how the recommender works</a>.</td>
+      <td>Gender and height are both used as filters, in both directions — see
+      <a href="recommender.html">how the recommender works</a>. Pronouns are
+      not used for anything but display.</td>
     </tr>
     <tr>
       <td>Sexual orientation, religion, political view</td>
@@ -131,7 +135,10 @@
     </tr>
     <tr>
       <td>Interests, personality tags, languages you speak</td>
-      <td>Chosen from a fixed catalogue.</td>
+      <td>Chosen from a fixed catalogue. Your interests are the heaviest
+      signal in the order of somebody's deck, and a shared language is a
+      filter; your personality tags and MBTI type are deliberately not used for
+      either — see <a href="recommender.html">how the recommender works</a>.</td>
     </tr>
     <tr>
       <td>Your Instagram handle</td>
@@ -186,11 +193,19 @@
   <table>
     <tr><th>Data</th><th>Why</th></tr>
     <tr>
-      <td>A notification token for your device (an FCM token), the time you
-      were last active, and your notification preference</td>
+      <td>A notification token for your device (an FCM token) and your
+      notification preference</td>
       <td>Stored in Firestore (Google). Without the token we cannot send you a
       notification at all. If you turn match notifications off, the token stays
       but we stop sending.</td>
+    </tr>
+    <tr>
+      <td>The time you were last active</td>
+      <td>Stored in our database, updated when you open the app. It is one of
+      the four things that decide where your card tends to land in somebody
+      else's deck — see
+      <a href="recommender.html">how our recommender works</a>. It is never
+      shown to other users: nobody can see when you were last online.</td>
     </tr>
     <tr>
       <td>Which build of the app you are running</td>
