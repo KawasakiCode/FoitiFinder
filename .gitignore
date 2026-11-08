@@ -93,3 +93,6 @@ backend/tools/*.csv
 #file limit and it would be in every clone forever.
 sentry-wizard.exe
 sentry-wizard*
+
+#Claude MD
+CLAUDE.md
