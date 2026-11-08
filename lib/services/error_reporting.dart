@@ -141,7 +141,7 @@ Future<void> runWithErrorReporting(
       options.enableUserInteractionBreadcrumbs = false;
       options.enableAutoNativeBreadcrumbs = true;
 
-      options.beforeSend = _scrub;
+      options.beforeSend = scrubEvent;
     },
     appRunner: () async {
       installErrorHandlers();
@@ -196,7 +196,8 @@ final _anonymous = SentryUser(id: 'anonymous');
 //bio, a name, or - once - an Instagram handle. Nothing here can read a stack
 //frame's locals, so this is not a guarantee about the trace; what it does is
 //refuse the fields Sentry attaches deliberately.
-SentryEvent? _scrub(SentryEvent event, Hint hint) {
+@visibleForTesting
+SentryEvent? scrubEvent(SentryEvent event, Hint hint) {
   return event.copyWith(
     //NO IDENTITY ON ANY REPORT. An error says what broke, not who it broke
     //for - and the Firebase uid is the one value that joins every table in
