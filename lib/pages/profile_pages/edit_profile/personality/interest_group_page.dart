@@ -18,6 +18,7 @@ import 'package:foitifinder/constants/interest_catalogue.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/l10n/catalogue_labels.dart';
 import 'package:foitifinder/widgets/interest_box.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:foitifinder/widgets/primary_button.dart';
 
 class InterestGroupPage extends StatefulWidget {
@@ -41,6 +42,8 @@ class _InterestGroupPageState extends State<InterestGroupPage> {
   //section title -> the options picked in it, in tap order (order matters if we
   //ever show only the first few on a profile card)
   late final Map<String, List<String>> _selected;
+  //sections that have already played their entrance; see Entrance.shouldPlay
+  final Set<int> _enteredSections = {};
 
   @override
   void initState() {
@@ -120,7 +123,6 @@ class _InterestGroupPageState extends State<InterestGroupPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final shared = widget.group.sharedMax;
 
     return PopScope(
@@ -131,7 +133,7 @@ class _InterestGroupPageState extends State<InterestGroupPage> {
         if (didPop) return;
         Navigator.pop(context, _result);
       },
-      child: Scaffold(
+      child: GlassScaffold(
         appBar: AppBar(
           title: Text(catalogueLabel(text, widget.group.title)),
           automaticallyImplyLeading: true,
@@ -140,34 +142,42 @@ class _InterestGroupPageState extends State<InterestGroupPage> {
             //a whole, and no single section owns it
             if (shared != null)
               Padding(
-                padding: const EdgeInsets.only(right: 20),
+                padding: const EdgeInsets.only(right: 16),
                 child: Center(
                   child: Text(
                     '$groupCount/$shared',
-                    style: theme.textTheme.bodyMedium,
+                    style: mutedText(context),
                   ),
                 ),
               ),
           ],
         ),
-        body: ListView.separated(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-          itemCount: widget.group.sections.length,
-          separatorBuilder: (_, _) => const SizedBox(height: 28),
-          itemBuilder: (context, index) => _SectionBlock(
-            section: widget.group.sections[index],
-            state: this,
-          ),
+        body: GlassScroll(
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              sliver: SliverList.separated(
+                itemCount: widget.group.sections.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 24),
+                itemBuilder: (context, index) => Entrance(
+                  key: ValueKey(index),
+                  order: Entrance.orderFor(index),
+                  shouldPlay: () => _enteredSections.add(index),
+                  child: _SectionBlock(
+                    section: widget.group.sections[index],
+                    state: this,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
         //save bar sits outside the list so it never covers the last section
-        bottomNavigationBar: SafeArea(
-          minimum: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-          child: PrimaryButton(
-              label: groupCount == 0
-                ? text.save
-                : text.saveSelected(groupCount),
-            onPressed: () => Navigator.pop(context, _result),
-          ),
+        bottomBar: PrimaryButton(
+          label: groupCount == 0
+              ? text.save
+              : text.saveSelected(groupCount),
+          onPressed: () => Navigator.pop(context, _result),
         ),
       ),
     );
@@ -184,7 +194,6 @@ class _SectionBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -195,7 +204,7 @@ class _SectionBlock extends StatelessWidget {
             Flexible(
               child: Text(
                 catalogueLabel(state.text, section.title),
-                style: theme.textTheme.titleMedium?.copyWith(fontSize: 17),
+                style: headlineText(context).copyWith(fontSize: 18),
               ),
             ),
             //only drawn when the section really owns a cap - a per-section
@@ -204,11 +213,11 @@ class _SectionBlock extends StatelessWidget {
             if (section.maxSelections != null)
               Text(
                 '${state.picksIn(section).length}/${section.maxSelections}',
-                style: theme.textTheme.bodySmall,
+                style: mutedText(context),
               ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         Wrap(
           spacing: 8,
           runSpacing: 8,

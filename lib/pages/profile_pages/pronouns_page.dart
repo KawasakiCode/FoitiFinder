@@ -21,6 +21,8 @@ import 'package:flutter/material.dart';
 import 'package:foitifinder/constants/profile_options.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/l10n/catalogue_labels.dart';
+import 'package:foitifinder/widgets/nav_row.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:foitifinder/widgets/primary_button.dart';
 
 //short on purpose: this is a label beside a name, not a sentence
@@ -68,94 +70,106 @@ class _PronounsPageState extends State<PronounsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     //a picked radio IS the answer, so the free-text alternative is disabled
     final locked = _selected != null;
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
+      child: GlassScaffold(
         appBar: AppBar(
           title: Text(catalogueLabel(text, kChoicePronouns.title)),
           automaticallyImplyLeading: true,
           actions: [
             //the only way back to "no answer" - and what unlocks the text field
-            if (locked)
-              TextButton(
-                onPressed: () => _select(null),
-                child: Text(text.clear),
-              ),
+            AppBarAction(
+              visible: locked,
+              label: text.clear,
+              onPressed: () => _select(null),
+            ),
           ],
         ),
-        body: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-          children: [
-            Text(
-              text.pronounsIntro,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 16),
+        body: GlassScroll(
+          slivers: [
+            SliverStagger(
+              padding: const EdgeInsets.only(top: 16),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: Text(text.pronounsIntro, style: mutedText(context)),
+                ),
 
-            RadioGroup<String>(
-              groupValue: _selected,
-              onChanged: _select,
-              child: Column(
-                children: [
-                  for (final option in kChoicePronouns.options)
-                    RadioListTile<String>(
-                      value: option,
-                      title: Text(catalogueLabel(text, option)),
-                      contentPadding: EdgeInsets.zero,
-                      dense: true,
-                      visualDensity: const VisualDensity(
-                        horizontal: -4,
-                        vertical: -4,
+                CardGroup(
+                  children: [
+                    RadioGroup<String>(
+                      groupValue: _selected,
+                      onChanged: _select,
+                      child: Column(
+                        children: [
+                          for (final option in kChoicePronouns.options)
+                            RadioListTile<String>(
+                              value: option,
+                              title: Text(catalogueLabel(text, option)),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                              ),
+                              dense: true,
+                              visualDensity: const VisualDensity(
+                                horizontal: -4,
+                                vertical: -4,
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                ],
-              ),
-            ),
+                  ],
+                ),
 
-            const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-            //Dimmed AND untouchable while a radio is selected: the opacity says
-            //"not available", IgnorePointer makes it true. Opacity alone still
-            //accepts taps and opens the keyboard.
-            IgnorePointer(
-              ignoring: locked,
-              child: AnimatedOpacity(
-                opacity: locked ? 0.4 : 1,
-                duration: const Duration(milliseconds: 150),
-                child: TextField(
-                  controller: _custom,
-                  maxLength: kPronounsMaxLength,
-                  textCapitalization: TextCapitalization.none,
-                  decoration: InputDecoration(
-                    border: const OutlineInputBorder(),
-                    labelText: text.pronounsCustom,
-                    hintText: text.pronounsCustomHint,
+                //Dimmed AND untouchable while a radio is selected: the opacity
+                //says "not available", IgnorePointer makes it true. Opacity
+                //alone still accepts taps and opens the keyboard.
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: IgnorePointer(
+                    ignoring: locked,
+                    child: AnimatedOpacity(
+                      opacity: locked ? 0.4 : 1,
+                      duration: const Duration(milliseconds: 150),
+                      child: TextField(
+                        controller: _custom,
+                        maxLength: kPronounsMaxLength,
+                        textCapitalization: TextCapitalization.none,
+                        decoration: InputDecoration(
+                          labelText: text.pronounsCustom,
+                          hintText: text.pronounsCustomHint,
+                        ),
+                        onChanged: (_) => setState(() {}),
+                      ),
+                    ),
                   ),
-                  onChanged: (_) => setState(() {}),
                 ),
-              ),
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOutCubic,
+                  alignment: Alignment.topLeft,
+                  child: locked
+                      ? Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            text.pronounsCustomLocked,
+                            style: mutedText(context),
+                          ),
+                        )
+                      : const SizedBox(width: double.infinity),
+                ),
+              ],
             ),
-            if (locked)
-              Text(
-                text.pronounsCustomLocked,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
           ],
         ),
-        bottomNavigationBar: SafeArea(
-          minimum: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-          child: PrimaryButton(
-            label: text.save,
-            onPressed: () => Navigator.pop(context, _value),
-          ),
+        bottomBar: PrimaryButton(
+          label: text.save,
+          onPressed: () => Navigator.pop(context, _value),
         ),
       ),
     );

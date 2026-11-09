@@ -20,6 +20,8 @@ import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:foitifinder/services/api_services.dart';
+import 'package:foitifinder/widgets/nav_row.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:foitifinder/widgets/primary_button.dart';
 import 'package:provider/provider.dart';
 
@@ -113,41 +115,48 @@ class _GenderPageState extends State<GenderPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Scaffold(
+    return GlassScaffold(
       appBar: AppBar(
         title: Text(text.gender),
         automaticallyImplyLeading: true,
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-        children: [
-          Text(text.addGender, style: theme.textTheme.bodyMedium),
-          const SizedBox(height: 12),
-          RadioGroup<String>(
-            groupValue: _selected,
-            onChanged: (value) => setState(() => _selected = value),
-            child: Column(
-              children: [
-                for (final option in kGenderOptions)
-                  RadioListTile<String>(
-                    value: option,
-                    title: Text(genderLabel(text, option)),
-                    contentPadding: EdgeInsets.zero,
+      body: GlassScroll(
+        slivers: [
+          SliverStagger(
+            padding: const EdgeInsets.only(top: 16),
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: Text(text.addGender, style: mutedText(context)),
+              ),
+              CardGroup(
+                children: [
+                  RadioGroup<String>(
+                    groupValue: _selected,
+                    onChanged: (value) => setState(() => _selected = value),
+                    child: Column(
+                      children: [
+                        for (final option in kGenderOptions)
+                          RadioListTile<String>(
+                            value: option,
+                            title: Text(genderLabel(text, option)),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
-              ],
-            ),
+                ],
+              ),
+              //LATER: the second part of this page goes here
+            ],
           ),
-          //LATER: the second part of this page goes here
         ],
       ),
-      bottomNavigationBar: SafeArea(
-        minimum: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-        child: PrimaryButton(
-          label: text.save,
-          onPressed: _selected == null ? null : _save,
-        ),
+      bottomBar: PrimaryButton(
+        label: text.save,
+        onPressed: _selected == null ? null : _save,
       ),
     );
   }

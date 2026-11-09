@@ -14,6 +14,8 @@ import 'package:flutter/material.dart';
 import 'package:foitifinder/constants/languages.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/l10n/catalogue_labels.dart';
+import 'package:foitifinder/widgets/nav_row.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:foitifinder/widgets/primary_button.dart';
 
 class LanguagesPage extends StatefulWidget {
@@ -59,44 +61,47 @@ class _LanguagesPageState extends State<LanguagesPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Scaffold(
+    return GlassScaffold(
       appBar: AppBar(
         title: Text(text.languagesSpoken),
         automaticallyImplyLeading: true,
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-        children: [
-          Text(
-            widget.intro ?? text.languagesIntro,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 8),
-          for (final language in kLanguages)
-            CheckboxListTile(
-              value: _selected.contains(language),
-              title: Text(catalogueLabel(text, language)),
-              contentPadding: EdgeInsets.zero,
-              dense: true,
-              visualDensity: const VisualDensity(
-                horizontal: -4,
-                vertical: -4,
+      body: GlassScroll(
+        slivers: [
+          SliverStagger(
+            padding: const EdgeInsets.only(top: 16),
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: Text(
+                  widget.intro ?? text.languagesIntro,
+                  style: mutedText(context),
+                ),
               ),
-              controlAffinity: ListTileControlAffinity.leading,
-              onChanged: (_) => _toggle(language),
-            ),
+              CardGroup(
+                children: [
+                  for (final language in kLanguages)
+                    CheckboxListTile(
+                      value: _selected.contains(language),
+                      title: Text(catalogueLabel(text, language)),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                      dense: true,
+                      visualDensity: const VisualDensity(
+                        horizontal: -4,
+                        vertical: -4,
+                      ),
+                      controlAffinity: ListTileControlAffinity.leading,
+                      onChanged: (_) => _toggle(language),
+                    ),
+                ],
+              ),
+            ],
+          ),
         ],
       ),
-      bottomNavigationBar: SafeArea(
-        minimum: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-        child: PrimaryButton(
-          label: text.save,
-          onPressed: () => Navigator.pop(context, _result),
-        ),
+      bottomBar: PrimaryButton(
+        label: text.save,
+        onPressed: () => Navigator.pop(context, _result),
       ),
     );
   }

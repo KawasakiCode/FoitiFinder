@@ -9,6 +9,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:foitifinder/widgets/primary_button.dart';
 
 class LocationPage extends StatefulWidget {
@@ -41,7 +42,6 @@ class _LocationPageState extends State<LocationPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
@@ -51,36 +51,31 @@ class _LocationPageState extends State<LocationPage> {
           if (didPop) return;
           Navigator.pop(context, _result);
         },
-        child: Scaffold(
+        child: GlassScaffold(
           appBar: AppBar(
             title: Text(text.location),
             automaticallyImplyLeading: true,
           ),
-          body: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-            children: [
-              Text(
-                text.locationPrompt,
-                style: theme.textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _controller,
-                maxLength: 80,
-                textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
-                  hintText: text.locationHint,
-                ),
+          body: GlassScroll(
+            slivers: [
+              SliverStagger(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                children: [
+                  Text(text.locationPrompt, style: mutedText(context)),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _controller,
+                    maxLength: 80,
+                    textCapitalization: TextCapitalization.words,
+                    decoration: InputDecoration(hintText: text.locationHint),
+                  ),
+                ],
               ),
             ],
           ),
-          bottomNavigationBar: SafeArea(
-            minimum: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-            child: PrimaryButton(
-              label: text.save,
-              onPressed: () => Navigator.pop(context, _result),
-            ),
+          bottomBar: PrimaryButton(
+            label: text.save,
+            onPressed: () => Navigator.pop(context, _result),
           ),
         ),
       ),

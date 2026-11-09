@@ -15,6 +15,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/constants/university_domains.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:foitifinder/widgets/primary_button.dart';
 
 class EducationPage extends StatefulWidget {
@@ -73,66 +74,61 @@ class _EducationPageState extends State<EducationPage> {
           if (didPop) return;
           Navigator.pop(context, _result);
         },
-        child: Scaffold(
+        child: GlassScaffold(
           appBar: AppBar(
             title: Text(text.education),
             automaticallyImplyLeading: true,
           ),
-          body: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-            children: [
-              Text(text.university, style: theme.textTheme.titleMedium),
-              const SizedBox(height: 8),
-              //read-only on purpose: it comes from the verified email
-              InputDecorator(
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  suffixIcon: Icon(Icons.verified_outlined),
-                ),
-                child: Text(
-                  university ?? text.universityNotDetected,
-                  style: theme.textTheme.bodyLarge,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                text.universityFromEmail,
-                style: theme.textTheme.bodySmall,
-              ),
-              const SizedBox(height: 24),
+          body: GlassScroll(
+            slivers: [
+              SliverStagger(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                children: [
+                  Text(text.university, style: theme.textTheme.titleMedium),
+                  const SizedBox(height: 8),
+                  //read-only on purpose: it comes from the verified email
+                  InputDecorator(
+                    decoration: const InputDecoration(
+                      suffixIcon: Icon(Icons.verified_outlined),
+                    ),
+                    child: Text(
+                      university ?? text.universityNotDetected,
+                      style: theme.textTheme.bodyLarge,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(text.universityFromEmail, style: mutedText(context)),
+                  const SizedBox(height: 24),
 
-              Text(text.major, style: theme.textTheme.titleMedium),
-              const SizedBox(height: 8),
-              //free text rather than a picker: Greek universities between them
-              //run hundreds of programmes, and a wrong list is worse than none.
-              //An autocomplete can be layered on later without a schema change.
-              TextField(
-                controller: _majorController,
-                maxLength: 120,
-                textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
-                  hintText: text.majorHint,
-                ),
-              ),
-              const SizedBox(height: 8),
+                  Text(text.major, style: theme.textTheme.titleMedium),
+                  const SizedBox(height: 8),
+                  //free text rather than a picker: Greek universities between
+                  //them run hundreds of programmes, and a wrong list is worse
+                  //than none. An autocomplete can be layered on later without
+                  //a schema change.
+                  TextField(
+                    controller: _majorController,
+                    maxLength: 120,
+                    textCapitalization: TextCapitalization.words,
+                    decoration: InputDecoration(hintText: text.majorHint),
+                  ),
+                  const SizedBox(height: 8),
 
-              CheckboxListTile(
-                value: _isCurrentlyStudying,
-                title: Text(text.currentlyStudying),
-                contentPadding: EdgeInsets.zero,
-                controlAffinity: ListTileControlAffinity.leading,
-                onChanged: (v) =>
-                    setState(() => _isCurrentlyStudying = v ?? false),
+                  CheckboxListTile(
+                    value: _isCurrentlyStudying,
+                    title: Text(text.currentlyStudying),
+                    contentPadding: EdgeInsets.zero,
+                    controlAffinity: ListTileControlAffinity.leading,
+                    onChanged: (v) =>
+                        setState(() => _isCurrentlyStudying = v ?? false),
+                  ),
+                ],
               ),
             ],
           ),
-          bottomNavigationBar: SafeArea(
-            minimum: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-            child: PrimaryButton(
-              label: text.save,
-              onPressed: () => Navigator.pop(context, _result),
-            ),
+          bottomBar: PrimaryButton(
+            label: text.save,
+            onPressed: () => Navigator.pop(context, _result),
           ),
         ),
       ),

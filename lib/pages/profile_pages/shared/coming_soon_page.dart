@@ -6,6 +6,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/widgets/polish.dart';
 
 class ComingSoonPage extends StatelessWidget {
   final String title;
@@ -15,30 +16,20 @@ class ComingSoonPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
 
-    return Scaffold(
+    return GlassScaffold(
       appBar: AppBar(title: Text(title), automaticallyImplyLeading: true),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.construction_outlined,
-                size: 48,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                text.comingSoon,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium,
-              ),
-            ],
+      body: CustomScrollView(
+        slivers: [
+          const SliverGlassBarInset(),
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: EmptyState(
+              icon: Icons.construction_outlined,
+              message: text.comingSoon,
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

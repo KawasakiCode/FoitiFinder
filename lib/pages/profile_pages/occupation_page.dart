@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:foitifinder/widgets/primary_button.dart';
 
 class OccupationPage extends StatefulWidget {
@@ -51,7 +52,6 @@ class _OccupationPageState extends State<OccupationPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
@@ -61,47 +61,44 @@ class _OccupationPageState extends State<OccupationPage> {
           if (didPop) return;
           Navigator.pop(context, _result);
         },
-        child: Scaffold(
+        child: GlassScaffold(
           appBar: AppBar(
             title: Text(text.occupation),
             automaticallyImplyLeading: true,
           ),
-          body: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-            children: [
-              Text(
-                text.occupationAllOptional,
-                style: theme.textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _jobController,
-                maxLength: 120,
-                textCapitalization: TextCapitalization.sentences,
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
-                  labelText: text.job,
-                  hintText: text.jobHint,
-                ),
-              ),
-              TextField(
-                controller: _volunteeringController,
-                maxLength: 120,
-                textCapitalization: TextCapitalization.sentences,
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
-                  labelText: text.volunteering,
-                  hintText: text.volunteeringHint,
-                ),
+          body: GlassScroll(
+            slivers: [
+              SliverStagger(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                children: [
+                  Text(text.occupationAllOptional, style: mutedText(context)),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _jobController,
+                    maxLength: 120,
+                    textCapitalization: TextCapitalization.sentences,
+                    decoration: InputDecoration(
+                      labelText: text.job,
+                      hintText: text.jobHint,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _volunteeringController,
+                    maxLength: 120,
+                    textCapitalization: TextCapitalization.sentences,
+                    decoration: InputDecoration(
+                      labelText: text.volunteering,
+                      hintText: text.volunteeringHint,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          bottomNavigationBar: SafeArea(
-            minimum: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-            child: PrimaryButton(
-              label: text.save,
-              onPressed: () => Navigator.pop(context, _result),
-            ),
+          bottomBar: PrimaryButton(
+            label: text.save,
+            onPressed: () => Navigator.pop(context, _result),
           ),
         ),
       ),

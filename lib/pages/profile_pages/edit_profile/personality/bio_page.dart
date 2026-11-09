@@ -12,6 +12,7 @@ import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/widgets/loading_overlay.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:foitifinder/widgets/primary_button.dart';
 import 'package:provider/provider.dart';
 
@@ -96,7 +97,6 @@ class _BioPageState extends State<BioPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
@@ -109,42 +109,36 @@ class _BioPageState extends State<BioPage> {
         },
         child: LoadingOverlay(
           isLoading: _isSaving,
-          child: Scaffold(
+          child: GlassScaffold(
             appBar: AppBar(
               title: Text(text.bioTitle),
               automaticallyImplyLeading: true,
             ),
-            body: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    text.bioPrompt,
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _controller,
-                    maxLength: kBioMaxLength,
-                    maxLines: 6,
-                    textCapitalization: TextCapitalization.sentences,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      alignLabelWithHint: true,
+            body: GlassScroll(
+              slivers: [
+                SliverStagger(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                  children: [
+                    Text(text.bioPrompt, style: mutedText(context)),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _controller,
+                      maxLength: kBioMaxLength,
+                      maxLines: 6,
+                      textCapitalization: TextCapitalization.sentences,
+                      decoration: const InputDecoration(
+                        alignLabelWithHint: true,
+                      ),
+                      //redraw so the Save label tracks whether anything changed
+                      onChanged: (_) => setState(() {}),
                     ),
-                    //redraw so the Save label tracks whether anything changed
-                    onChanged: (_) => setState(() {}),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              ],
             ),
-            bottomNavigationBar: SafeArea(
-              minimum: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-              child: PrimaryButton(
-                label: text.save,
-                onPressed: _saveAndExit,
-              ),
+            bottomBar: PrimaryButton(
+              label: text.save,
+              onPressed: _saveAndExit,
             ),
           ),
         ),

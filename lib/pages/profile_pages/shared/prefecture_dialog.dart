@@ -19,6 +19,7 @@ import 'package:flutter/material.dart';
 import 'package:foitifinder/constants/greek_prefectures.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/l10n/catalogue_labels.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:foitifinder/widgets/pressable.dart';
 import 'package:foitifinder/widgets/app_dialog.dart';
 
@@ -78,7 +79,7 @@ class _PrefectureDialogState extends State<_PrefectureDialog> {
 
     return AlertDialog(
       title: Text(text.placeOfResidence),
-      contentPadding: const EdgeInsets.fromLTRB(0, 12, 0, 0),
+      contentPadding: const EdgeInsets.fromLTRB(0, 16, 0, 0),
       content: SizedBox(
         width: double.maxFinite,
         //a fixed height so the dialog doesn't resize on every keystroke as the
@@ -93,7 +94,7 @@ class _PrefectureDialogState extends State<_PrefectureDialog> {
                 autofocus: true,
                 decoration: InputDecoration(
                   hintText: text.search,
-                  prefixIcon: const Icon(Icons.search, size: 20),
+                  prefixIcon: const Icon(Icons.search, size: 24),
                   isDense: true,
                 ),
                 onChanged: (value) => setState(() => _query = value),
@@ -115,35 +116,37 @@ class _PrefectureDialogState extends State<_PrefectureDialog> {
                       itemBuilder: (context, index) {
                         final canonical = matches[index];
                         final selected = canonical == widget.initialSelected;
-                        return Pressable(
-                          onTap: () => Navigator.pop(context, canonical),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 14,
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    catalogueLabel(text, canonical),
-                                    style: theme.textTheme.bodyLarge?.copyWith(
-                                      fontWeight: selected
-                                          ? FontWeight.w700
-                                          : FontWeight.w400,
-                                      color: selected
-                                          ? theme.colorScheme.primary
-                                          : null,
+                        return SpringPress(
+                          child: Pressable(
+                            onTap: () => Navigator.pop(context, canonical),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 16,
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      catalogueLabel(text, canonical),
+                                      style: theme.textTheme.bodyLarge?.copyWith(
+                                        fontWeight: selected
+                                            ? FontWeight.w700
+                                            : FontWeight.w400,
+                                        color: selected
+                                            ? theme.colorScheme.primary
+                                            : null,
+                                      ),
                                     ),
                                   ),
-                                ),
-                                if (selected)
-                                  Icon(
-                                    Icons.check,
-                                    size: 20,
-                                    color: theme.colorScheme.primary,
-                                  ),
-                              ],
+                                  if (selected)
+                                    Icon(
+                                      Icons.check,
+                                      size: 24,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                ],
+                              ),
                             ),
                           ),
                         );

@@ -15,6 +15,8 @@ import 'package:flutter/material.dart';
 import 'package:foitifinder/constants/profile_options.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/l10n/catalogue_labels.dart';
+import 'package:foitifinder/widgets/nav_row.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:foitifinder/widgets/primary_button.dart';
 
 class ChoicePage extends StatefulWidget {
@@ -66,7 +68,6 @@ class _ChoicePageState extends State<ChoicePage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final choice = widget.choice;
     final isSingle = choice.mode == ChoiceMode.single;
 
@@ -78,74 +79,88 @@ class _ChoicePageState extends State<ChoicePage> {
         if (didPop) return;
         Navigator.pop(context, List<String>.unmodifiable(_selected));
       },
-      child: Scaffold(
+      child: GlassScaffold(
         appBar: AppBar(
           title: Text(catalogueLabel(text, choice.title)),
           automaticallyImplyLeading: true,
           actions: [
             //the only way to go back to "no answer" on a radio list
-            if (isSingle && _selected.isNotEmpty)
-              TextButton(
-                onPressed: () => _select(null),
-                child: Text(text.clear),
-              ),
+            AppBarAction(
+              visible: isSingle && _selected.isNotEmpty,
+              label: text.clear,
+              onPressed: () => _select(null),
+            ),
           ],
         ),
-        body: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-          children: [
-            Text(catalogueLabel(text, choice.subtitle),
-                style: theme.textTheme.bodyMedium),
-            const SizedBox(height: 12),
-            //a radio group for one-answer categories and checkboxes for the
-            //rest, so the control itself tells the user which they are dealing
-            //with before they tap anything
-            if (isSingle)
-              RadioGroup<String>(
-                groupValue: _selected.isEmpty ? null : _selected.first,
-                onChanged: _select,
-                child: Column(
+        body: GlassScroll(
+          slivers: [
+            SliverStagger(
+              padding: const EdgeInsets.only(top: 16),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: Text(
+                    catalogueLabel(text, choice.subtitle),
+                    style: mutedText(context),
+                  ),
+                ),
+                //a radio group for one-answer categories and checkboxes for the
+                //rest, so the control itself tells the user which they are
+                //dealing with before they tap anything
+                CardGroup(
                   children: [
-                    for (final option in choice.options)
-                      RadioListTile<String>(
-                        value: option,
-                        title: Text(catalogueLabel(text, option)),
-                        contentPadding: EdgeInsets.zero,
-                        //the same tightening as choice_dialog.dart: these are
-                        //answers to one question, not unrelated settings
-                        dense: true,
-                        visualDensity: const VisualDensity(
-                          horizontal: -4,
-                          vertical: -4,
+                    if (isSingle)
+                      RadioGroup<String>(
+                        groupValue: _selected.isEmpty ? null : _selected.first,
+                        onChanged: _select,
+                        child: Column(
+                          children: [
+                            for (final option in choice.options)
+                              RadioListTile<String>(
+                                value: option,
+                                title: Text(catalogueLabel(text, option)),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                ),
+                                //the same tightening as choice_dialog.dart:
+                                //these are answers to one question, not
+                                //unrelated settings
+                                dense: true,
+                                visualDensity: const VisualDensity(
+                                  horizontal: -4,
+                                  vertical: -4,
+                                ),
+                              ),
+                          ],
                         ),
-                      ),
+                      )
+                    else
+                      for (final option in choice.options)
+                        CheckboxListTile(
+                          value: _isSelected(option),
+                          title: Text(catalogueLabel(text, option)),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                          ),
+                          dense: true,
+                          visualDensity: const VisualDensity(
+                            horizontal: -4,
+                            vertical: -4,
+                          ),
+                          controlAffinity: ListTileControlAffinity.leading,
+                          onChanged: (_) => _toggle(option),
+                        ),
                   ],
                 ),
-              )
-            else
-              for (final option in choice.options)
-                CheckboxListTile(
-                  value: _isSelected(option),
-                  title: Text(catalogueLabel(text, option)),
-                  contentPadding: EdgeInsets.zero,
-                  dense: true,
-                  visualDensity: const VisualDensity(
-                    horizontal: -4,
-                    vertical: -4,
-                  ),
-                  controlAffinity: ListTileControlAffinity.leading,
-                  onChanged: (_) => _toggle(option),
-                ),
+              ],
+            ),
           ],
         ),
-        bottomNavigationBar: SafeArea(
-          minimum: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-          child: PrimaryButton(
-            label: text.save,
-            onPressed: () => Navigator.pop(
-              context,
-              List<String>.unmodifiable(_selected),
-            ),
+        bottomBar: PrimaryButton(
+          label: text.save,
+          onPressed: () => Navigator.pop(
+            context,
+            List<String>.unmodifiable(_selected),
           ),
         ),
       ),

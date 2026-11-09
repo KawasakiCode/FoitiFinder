@@ -53,7 +53,7 @@ class _ChoiceDialogState extends State<_ChoiceDialog> {
 
     return AlertDialog(
       title: Text(catalogueLabel(text, choice.title)),
-      contentPadding: const EdgeInsets.fromLTRB(8, 12, 8, 0),
+      contentPadding: const EdgeInsets.fromLTRB(8, 16, 8, 0),
       content: SizedBox(
         width: double.maxFinite,
         child: Column(
