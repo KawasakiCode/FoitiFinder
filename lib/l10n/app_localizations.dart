@@ -425,7 +425,7 @@ abstract class AppLocalizations {
   /// No description provided for @signUpLongText.
   ///
   /// In en, this message translates to:
-  /// **'By signing up, you agree to our AI generated terms of service and Privacy Policy. Learn how we steal your data and sell them to shady multibillion dollar companies '**
+  /// **'By signing up you agree to our User Terms and Privacy Policy. Read the policy '**
   String get signUpLongText;
 
   /// No description provided for @here.

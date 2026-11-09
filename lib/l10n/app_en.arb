@@ -53,7 +53,7 @@
   "tooManyRequests": "Too many failed attempts. Please try again later.",
   "errorOccured": "An error occurred. Please try again.",
   "passwordResetEmail": "Password reset email sent. Please check your email.",
-  "signUpLongText": "By signing up, you agree to our AI generated terms of service and Privacy Policy. Learn how we steal your data and sell them to shady multibillion dollar companies ",
+  "signUpLongText": "By signing up you agree to our User Terms and Privacy Policy. Read the policy ",
   "here": "here",
   "haveAccount": "Have an account?",
   "smallPassword": "Password must be at least 8 characters long.",

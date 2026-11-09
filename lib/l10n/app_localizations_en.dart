@@ -181,7 +181,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signUpLongText =>
-      'By signing up, you agree to our AI generated terms of service and Privacy Policy. Learn how we steal your data and sell them to shady multibillion dollar companies ';
+      'By signing up you agree to our User Terms and Privacy Policy. Read the policy ';
 
   @override
   String get here => 'here';
