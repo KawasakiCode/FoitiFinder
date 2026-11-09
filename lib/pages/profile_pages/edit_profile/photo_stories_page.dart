@@ -18,6 +18,8 @@ import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/models/photos_model.dart';
 import 'package:foitifinder/pages/profile_pages/edit_profile/story_dialog.dart';
 import 'package:foitifinder/services/api_services.dart';
+import 'package:foitifinder/theme/app_colors.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:foitifinder/widgets/pressable.dart';
 
 class PhotoStoriesPage extends StatefulWidget {
@@ -33,6 +35,8 @@ class _PhotoStoriesPageState extends State<PhotoStoriesPage> {
   List<PhotosModel> _photos = [];
   bool _loading = true;
   bool _failed = false;
+  //rows that have already played their entrance; see Entrance.shouldPlay
+  final Set<String> _enteredRows = {};
 
   @override
   void initState() {
@@ -117,59 +121,135 @@ class _PhotoStoriesPageState extends State<PhotoStoriesPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return GlassScaffold(
       appBar: AppBar(title: Text(text.photoStories)),
-      body: SafeArea(child: _body()),
+      body: Crossfade(child: _body()),
+    );
+  }
+
+  Widget _message(
+    String key,
+    IconData icon,
+    String message, {
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) {
+    return CustomScrollView(
+      key: ValueKey(key),
+      slivers: [
+        const SliverGlassBarInset(),
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: EmptyState(
+            icon: icon,
+            message: message,
+            actionLabel: actionLabel,
+            onAction: onAction,
+          ),
+        ),
+      ],
     );
   }
 
   Widget _body() {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const _StoriesSkeleton(key: ValueKey('loading'));
     }
 
     if (_failed) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(text.errorOccured),
-            const SizedBox(height: 16),
-            ElevatedButton(onPressed: _load, child: Text(text.retry)),
-          ],
-        ),
+      return _message(
+        'failed',
+        Icons.cloud_off_outlined,
+        text.errorOccured,
+        actionLabel: text.retry,
+        onAction: _load,
       );
     }
 
     if (_photos.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.all(32),
-        child: Center(
-          child: Text(text.noPhotosYet, textAlign: TextAlign.center),
-        ),
+      return _message(
+        'empty',
+        Icons.photo_library_outlined,
+        text.noPhotosYet,
       );
     }
 
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(15, 8, 15, 24),
-      //one extra leading item for the explanatory line
-      itemCount: _photos.length + 1,
-      separatorBuilder: (_, _) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        if (index == 0) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 4),
-            child: Text(
-              text.photoStoriesIntro,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+    return GlassScroll(
+      key: const ValueKey('list'),
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+          sliver: SliverList.separated(
+            //one extra leading item for the explanatory line
+            itemCount: _photos.length + 1,
+            separatorBuilder: (_, _) => const SizedBox(height: 16),
+            itemBuilder: (context, index) {
+              if (index == 0) {
+                return Entrance(
+                  shouldPlay: () => _enteredRows.add('intro'),
+                  child: Text(
+                    text.photoStoriesIntro,
+                    style: mutedText(context),
                   ),
+                );
+              }
+              final photo = _photos[index - 1];
+              return Entrance(
+                key: ValueKey(photo.photoUrl),
+                order: Entrance.orderFor(index),
+                shouldPlay: () => _enteredRows.add(photo.photoUrl),
+                child: _StoryRow(photo: photo, onTap: () => _editStory(photo)),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+//The intro line and a few rows, before the photos have arrived.
+class _StoriesSkeleton extends StatelessWidget {
+  const _StoriesSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer(
+      child: CustomScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        slivers: [
+          const SliverGlassBarInset(),
+          SliverPadding(
+            padding: const EdgeInsets.all(16),
+            sliver: SliverToBoxAdapter(
+              child: Column(
+                children: [
+                  for (var i = 0; i < 4; i++)
+                    const Padding(
+                      padding: EdgeInsets.only(bottom: 32),
+                      child: Row(
+                        children: [
+                          Bone(width: 64, height: 88),
+                          SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Bone(height: 16),
+                                SizedBox(height: 8),
+                                Bone(width: 96, height: 16),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
             ),
-          );
-        }
-        final photo = _photos[index - 1];
-        return _StoryRow(photo: photo, onTap: () => _editStory(photo));
-      },
+          ),
+        ],
+      ),
     );
   }
 }
@@ -188,61 +268,74 @@ class _StoryRow extends StatelessWidget {
     final story = photo.story ?? '';
     final hasStory = story.isNotEmpty;
 
-    return Material(
-      //instant, not lerped - see widgets/nav_row.dart
-      animationDuration: Duration.zero,
-      color: theme.colorScheme.surfaceContainerHighest,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      clipBehavior: Clip.antiAlias,
-      child: Pressable(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: CachedNetworkImage(
-                  imageUrl: photo.photoUrl,
-                  width: 64,
-                  height: 84,
-                  fit: BoxFit.cover,
-                  //a sized placeholder, not a spinner: the row must not change
-                  //height when the image lands, or the whole list jumps
-                  placeholder: (_, _) => Container(
-                    width: 64,
-                    height: 84,
-                    color: theme.colorScheme.surfaceContainerHigh,
-                  ),
-                  errorWidget: (_, _, _) => Container(
-                    width: 64,
-                    height: 84,
-                    color: theme.colorScheme.surfaceContainerHigh,
-                    child: const Icon(Icons.broken_image_outlined, size: 20),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  hasStory ? story : text.addStory,
-                  maxLines: 4,
-                  overflow: TextOverflow.ellipsis,
-                  style: hasStory
-                      ? theme.textTheme.bodyMedium
-                      : theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                          fontStyle: FontStyle.italic,
+    return SpringPress(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          boxShadow: AppShadows.card,
+        ),
+        child: Material(
+          //instant, not lerped - see widgets/nav_row.dart
+          animationDuration: Duration.zero,
+          color: theme.colorScheme.surfaceContainerHighest,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Pressable(
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                    child: CachedNetworkImage(
+                      imageUrl: photo.photoUrl,
+                      width: 64,
+                      height: 88,
+                      fit: BoxFit.cover,
+                      //a sized placeholder, not a spinner: the row must not
+                      //change height when the image lands, or the whole list
+                      //jumps
+                      placeholder: (_, _) => Container(
+                        width: 64,
+                        height: 88,
+                        color: theme.colorScheme.surfaceContainerHigh,
+                      ),
+                      errorWidget: (_, _, _) => Container(
+                        width: 64,
+                        height: 88,
+                        color: theme.colorScheme.surfaceContainerHigh,
+                        child: const Icon(
+                          Icons.broken_image_outlined,
+                          size: 24,
                         ),
-                ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      hasStory ? story : text.addStory,
+                      maxLines: 4,
+                      overflow: TextOverflow.ellipsis,
+                      style: hasStory
+                          ? theme.textTheme.bodyMedium
+                          : mutedText(
+                              context,
+                            )?.copyWith(fontStyle: FontStyle.italic),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    hasStory ? Icons.edit_outlined : Icons.add,
+                    size: 24,
+                    color: mutedInk(context),
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              Icon(
-                hasStory ? Icons.edit_outlined : Icons.add,
-                size: 20,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ],
+            ),
           ),
         ),
       ),

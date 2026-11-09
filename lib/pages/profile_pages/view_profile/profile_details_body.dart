@@ -30,6 +30,7 @@ import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/l10n/catalogue_labels.dart';
 import 'package:foitifinder/models/public_profile.dart';
 import 'package:foitifinder/theme/app_colors.dart';
+import 'package:foitifinder/widgets/polish.dart';
 
 //shared by every block so a profile has one left edge
 const double kProfileSidePadding = 16;
@@ -59,11 +60,11 @@ class ProfileDetailsBody extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _HeaderCard(user: profile),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         //Spotify's API is not wired up yet, so this is the shape of the answer
         //with nothing in it
         _SoonCard(title: text.myTune),
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
         _Facts(user: profile),
         _Pills(user: profile),
 
@@ -160,20 +161,22 @@ class _HeaderCard extends StatelessWidget {
           Text(
             user.name,
             style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.5,
             ),
           ),
           if (line.isNotEmpty) ...[
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
             Text(
               line,
               style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+                color: mutedInk(context),
+                fontWeight: FontWeight.w400,
               ),
             ),
           ],
           if (bio.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Text(bio, style: theme.textTheme.bodyLarge),
           ],
         ],
@@ -203,25 +206,20 @@ class _SoonCard extends StatelessWidget {
             children: [
               Icon(
                 Icons.music_note_outlined,
-                size: 18,
-                color: theme.colorScheme.onSurfaceVariant,
+                size: 16,
+                color: mutedInk(context),
               ),
               const SizedBox(width: 8),
               Text(
                 title,
                 style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 6),
-          Text(
-            text.comingSoon,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
+          const SizedBox(height: 8),
+          Text(text.comingSoon, style: mutedText(context)),
         ],
       ),
     );
@@ -252,6 +250,7 @@ class _PhotoCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: theme.colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(AppRadius.lg),
+              boxShadow: AppShadows.card,
             ),
             clipBehavior: Clip.antiAlias,
             child: Column(
@@ -264,7 +263,7 @@ class _PhotoCard extends StatelessWidget {
                 ),
                 if (hasStory)
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+                    padding: const EdgeInsets.all(16),
                     child: Text(
                       story!.trim(),
                       style: theme.textTheme.bodyMedium,
@@ -318,9 +317,9 @@ class _Facts extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(
-        kProfileSidePadding + 4,
+        kProfileSidePadding + 8,
         0,
-        kProfileSidePadding + 4,
+        kProfileSidePadding + 8,
         4,
       ),
       child: Column(
@@ -328,22 +327,12 @@ class _Facts extends StatelessWidget {
         children: [
           for (final (icon, value) in facts)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6),
+              padding: const EdgeInsets.symmetric(vertical: 8),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  //nudged down so the icon sits ON the text baseline. Top
-                  //aligned, an 18px icon floats above a 16px line's baseline
-                  //and reads as not quite lined up.
-                  Padding(
-                    padding: const EdgeInsets.only(top: 3),
-                    child: Icon(
-                      icon,
-                      size: 18,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
+                  Icon(icon, size: 24, color: mutedInk(context)),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(value, style: theme.textTheme.bodyLarge),
                   ),
@@ -388,7 +377,7 @@ class _Pills extends StatelessWidget {
     if (answers.isEmpty) return const SizedBox.shrink();
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(kProfileSidePadding, 12, kProfileSidePadding, 0),
+      padding: const EdgeInsets.fromLTRB(kProfileSidePadding, 16, kProfileSidePadding, 0),
       child: Wrap(
         spacing: 8,
         runSpacing: 8,
@@ -425,10 +414,10 @@ class _TagPills extends StatelessWidget {
           Text(
             title,
             style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -451,18 +440,11 @@ class _Card extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: kProfileSidePadding),
-      child: Container(
+      child: SizedBox(
         width: double.infinity,
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-        ),
-        child: child,
+        child: SurfaceCard(radius: AppRadius.lg, child: child),
       ),
     );
   }
@@ -481,7 +463,7 @@ class _Pill extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -493,7 +475,7 @@ class _Pill extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(icon, size: 18, color: theme.colorScheme.onSurfaceVariant),
+            Icon(icon, size: 16, color: mutedInk(context)),
             const SizedBox(width: 8),
           ],
           Text(label, style: theme.textTheme.bodyMedium),

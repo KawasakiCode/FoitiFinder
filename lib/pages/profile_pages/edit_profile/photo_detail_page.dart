@@ -35,6 +35,7 @@ import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/models/photos_model.dart';
 import 'package:foitifinder/pages/profile_pages/edit_profile/story_dialog.dart';
 import 'package:foitifinder/services/api_services.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:foitifinder/widgets/primary_button.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -241,7 +242,7 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
             Expanded(
               child: Center(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                   child: Hero(
                     tag: widget.heroTag,
                     child: AspectRatio(
@@ -273,38 +274,40 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
                 children: [
                   if (widget.allowStory)
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Text(
-                        _loadingStory
-                            ? ''
-                            : hasStory
-                            ? _story!
-                            : text.storyHint,
-                        textAlign: TextAlign.center,
-                        maxLines: 4,
-                        overflow: TextOverflow.ellipsis,
-                        style: hasStory
-                            ? theme.textTheme.bodyMedium
-                            : theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                                fontStyle: FontStyle.italic,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        child: _loadingStory
+                            ? const Shimmer(
+                                key: ValueKey('loading'),
+                                child: Bone(width: 160, height: 16),
+                              )
+                            : Text(
+                                hasStory ? _story! : text.storyHint,
+                                key: const ValueKey('story'),
+                                textAlign: TextAlign.center,
+                                maxLines: 4,
+                                overflow: TextOverflow.ellipsis,
+                                style: hasStory
+                                    ? theme.textTheme.bodyMedium
+                                    : mutedText(
+                                        context,
+                                      )?.copyWith(fontStyle: FontStyle.italic),
                               ),
                       ),
                     )
                   else
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Text(
                         text.profilePictureNoStory,
                         textAlign: TextAlign.center,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
+                        style: mutedText(context),
                       ),
                     ),
 
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                     child: PrimaryButton(
                       label: text.changePhoto,
                       onPressed: _changePhoto,
@@ -312,10 +315,12 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
                   ),
                   if (widget.allowStory)
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-                      child: TextButton(
-                        onPressed: _editStory,
-                        child: Text(hasStory ? text.editStory : text.addStory),
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                      child: SpringPress(
+                        child: TextButton(
+                          onPressed: _editStory,
+                          child: Text(hasStory ? text.editStory : text.addStory),
+                        ),
                       ),
                     ),
                 ],

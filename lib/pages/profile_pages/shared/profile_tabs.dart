@@ -24,7 +24,7 @@ class ProfileTabs extends StatelessWidget {
   const ProfileTabs({super.key, required this.progress, required this.onSelect});
 
   //gap between the two words
-  static const double _gap = 20;
+  static const double _gap = 24;
   static const double _lineHeight = 2.5;
 
   double _widthOf(BuildContext context, String label, TextStyle style) {
@@ -42,7 +42,7 @@ class ProfileTabs extends StatelessWidget {
     final theme = Theme.of(context);
 
     final style = theme.textTheme.titleLarge!.copyWith(
-      fontWeight: FontWeight.w700,
+      fontWeight: FontWeight.w800,
     );
 
     final labels = [text.tabEdit, text.tabView];
@@ -88,7 +88,7 @@ class ProfileTabs extends StatelessWidget {
             ],
           ],
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
         SizedBox(
           width: widths[0] + _gap + widths[1],
           height: _lineHeight,

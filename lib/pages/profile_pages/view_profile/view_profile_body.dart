@@ -26,7 +26,7 @@ import 'package:provider/provider.dart';
 //how much of the screen the header photo takes here
 const double _kFirstPhotoFraction = 0.45;
 //how far the first card is lifted over the bottom of it
-const double _kCardOverlap = 28;
+const double _kCardOverlap = 24;
 
 class ViewProfileBody extends StatefulWidget {
   const ViewProfileBody({super.key});

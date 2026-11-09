@@ -34,6 +34,7 @@ import 'package:foitifinder/pages/profile_pages/edit_profile/photo_stories_page.
 import 'package:foitifinder/pages/profile_pages/edit_profile/personality/interest_group_page.dart';
 import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/nav_row.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:foitifinder/widgets/photo_card.dart';
 import 'package:foitifinder/models/photos_model.dart';
 import 'package:foitifinder/models/user_model.dart';
@@ -655,192 +656,194 @@ class _EditProfileState extends State<EditProfile> {
                     ? const NeverScrollableScrollPhysics()
                     : const PageScrollPhysics(),
                 children: [
-                  SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        //=========================== PHOTOS ===========================
-                        SectionHeader(text.photos),
-                        //3 per row, 2 rows, sized so the whole grid plus the
-                        //first section fits above the fold.
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 15),
-                          child: _buildPhotoGrid(),
-                        ),
-                        const SizedBox(height: 12),
-                        CardGroup(
-                          dividers: true,
-                          children: [
-                            NavRow(
-                              icon: Icons.auto_stories_outlined,
-                              label: text.addStoryToPhoto,
-                              onTap: _openPhotoStories,
-                            ),
-                          ],
-                        ),
-
-                        //======================= MY PERSONALITY =======================
-                        SectionHeader(text.sectionMyPersonality),
-                        CardGroup(
-                          dividers: true,
-                          children: [
-                            for (final title in const [
-                              kGroupHobbies,
-                              kGroupTraits,
-                            ])
+                  CustomScrollView(
+                    slivers: [
+                      SliverStagger(
+                        padding: EdgeInsets.zero,
+                        children: [
+                          //=========================== PHOTOS ===========================
+                          SectionHeader(text.photos),
+                          //3 per row, 2 rows, sized so the whole grid plus the
+                          //first section fits above the fold.
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: _buildPhotoGrid(),
+                          ),
+                          const SizedBox(height: 16),
+                          CardGroup(
+                            dividers: true,
+                            children: [
                               NavRow(
-                                label: catalogueLabel(text, title),
-                                trailing: _pickCount(title) == 0
+                                icon: Icons.auto_stories_outlined,
+                                label: text.addStoryToPhoto,
+                                onTap: _openPhotoStories,
+                              ),
+                            ],
+                          ),
+
+                          //======================= MY PERSONALITY =======================
+                          SectionHeader(text.sectionMyPersonality),
+                          CardGroup(
+                            dividers: true,
+                            children: [
+                              for (final title in const [
+                                kGroupHobbies,
+                                kGroupTraits,
+                              ])
+                                NavRow(
+                                  label: catalogueLabel(text, title),
+                                  trailing: _pickCount(title) == 0
+                                      ? ''
+                                      : '${_pickCount(title)}',
+                                  onTap: () => _openGroup(title),
+                                ),
+                              //Bio saves itself on its own page, so there is nothing
+                              //to summarise on the row
+                              NavRow(
+                                label: catalogueLabel(text, kGroupBio),
+                                onTap: () => _openGroup(kGroupBio),
+                              ),
+                            ],
+                          ),
+
+                          //======================= MY MUSIC TASTE =======================
+                          SectionHeader(text.sectionMyMusicTaste),
+                          CardGroup(
+                            dividers: true,
+                            children: [
+                              //both need the Spotify API, so both are stubs until
+                              //that is wired up
+                              NavRow(
+                                label: text.myTune,
+                                onTap: () =>
+                                    _push(ComingSoonPage(title: text.myTune)),
+                              ),
+                              NavRow(
+                                label: text.favouriteArtists,
+                                onTap: () => _push(
+                                  ComingSoonPage(title: text.favouriteArtists),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          //=================== MY BELIEFS AND VALUES ===================
+                          SectionHeader(text.sectionMyBeliefs),
+                          CardGroup(
+                            dividers: true,
+                            children: [
+                              for (final choice in const [
+                                kChoiceReligion,
+                                kChoicePoliticalView,
+                              ])
+                                NavRow(
+                                  label: catalogueLabel(text, choice.title),
+                                  trailing: _choiceSummary(choice),
+                                  //16 and 18 options: too many for a dialog
+                                  onTap: () => _openChoicePage(choice),
+                                ),
+                            ],
+                          ),
+
+                          //========================= MY HABITS =========================
+                          SectionHeader(text.sectionMyHabits),
+                          CardGroup(
+                            dividers: true,
+                            children: [
+                              for (final choice in const [
+                                kChoiceAlcohol,
+                                kChoiceSmoking,
+                              ])
+                                NavRow(
+                                  label: catalogueLabel(text, choice.title),
+                                  trailing: _choiceSummary(choice),
+                                  onTap: () => _openChoiceDialog(choice),
+                                ),
+                            ],
+                          ),
+
+                          //=============== WHAT I WANT IN MY RELATIONSHIPS ==============
+                          SectionHeader(text.sectionMyRelationships),
+                          CardGroup(
+                            dividers: true,
+                            children: [
+                              for (final choice in const [
+                                kChoiceDatingIntention,
+                                kChoiceKids,
+                              ])
+                                NavRow(
+                                  label: catalogueLabel(text, choice.title),
+                                  trailing: _choiceSummary(choice),
+                                  onTap: () => _openChoiceDialog(choice),
+                                ),
+                            ],
+                          ),
+
+                          //======================= MY BACKGROUND =======================
+                          SectionHeader(text.sectionMyBackground),
+                          CardGroup(
+                            dividers: true,
+                            children: [
+                              //EducationPage and OccupationPage are built and
+                              //working; swapping either stub for the real page
+                              //is a one-line change.
+                              //
+                              //Location is NOT here: where the user lives is one
+                              //value, so it gets one home, and that home is the
+                              //Place of residence row in Account Settings.
+                              NavRow(
+                                label: text.education,
+                                trailing: _user.major ?? '',
+                                onTap: _openEducation,
+                              ),
+                              NavRow(
+                                label: text.occupation,
+                                trailing: _user.job ?? '',
+                                onTap: _openOccupation,
+                              ),
+                            ],
+                          ),
+
+                          //========================== WHO I AM ==========================
+                          SectionHeader(text.sectionWhoIAm),
+                          CardGroup(
+                            dividers: true,
+                            children: [
+                              NavRow(
+                                label: catalogueLabel(
+                                  text,
+                                  kChoicePronouns.title,
+                                ),
+                                trailing: _choiceSummary(kChoicePronouns),
+                                onTap: _openPronouns,
+                              ),
+                              //one answer, five options: a dialog like the
+                              //habits rather than a whole page
+                              NavRow(
+                                label: catalogueLabel(
+                                  text,
+                                  kChoiceSexualOrientation.title,
+                                ),
+                                trailing: _choiceSummary(
+                                  kChoiceSexualOrientation,
+                                ),
+                                onTap: () =>
+                                    _openChoiceDialog(kChoiceSexualOrientation),
+                              ),
+                              NavRow(
+                                label: text.languagesSpoken,
+                                trailing: _user.languagesSpoken.isEmpty
                                     ? ''
-                                    : '${_pickCount(title)}',
-                                onTap: () => _openGroup(title),
+                                    : '${_user.languagesSpoken.length}',
+                                onTap: _openLanguages,
                               ),
-                            //Bio saves itself on its own page, so there is nothing
-                            //to summarise on the row
-                            NavRow(
-                              label: catalogueLabel(text, kGroupBio),
-                              onTap: () => _openGroup(kGroupBio),
-                            ),
-                          ],
-                        ),
+                            ],
+                          ),
 
-                        //======================= MY MUSIC TASTE =======================
-                        SectionHeader(text.sectionMyMusicTaste),
-                        CardGroup(
-                          dividers: true,
-                          children: [
-                            //both need the Spotify API, so both are stubs until
-                            //that is wired up
-                            NavRow(
-                              label: text.myTune,
-                              onTap: () =>
-                                  _push(ComingSoonPage(title: text.myTune)),
-                            ),
-                            NavRow(
-                              label: text.favouriteArtists,
-                              onTap: () => _push(
-                                ComingSoonPage(title: text.favouriteArtists),
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        //=================== MY BELIEFS AND VALUES ===================
-                        SectionHeader(text.sectionMyBeliefs),
-                        CardGroup(
-                          dividers: true,
-                          children: [
-                            for (final choice in const [
-                              kChoiceReligion,
-                              kChoicePoliticalView,
-                            ])
-                              NavRow(
-                                label: catalogueLabel(text, choice.title),
-                                trailing: _choiceSummary(choice),
-                                //16 and 18 options: too many for a dialog
-                                onTap: () => _openChoicePage(choice),
-                              ),
-                          ],
-                        ),
-
-                        //========================= MY HABITS =========================
-                        SectionHeader(text.sectionMyHabits),
-                        CardGroup(
-                          dividers: true,
-                          children: [
-                            for (final choice in const [
-                              kChoiceAlcohol,
-                              kChoiceSmoking,
-                            ])
-                              NavRow(
-                                label: catalogueLabel(text, choice.title),
-                                trailing: _choiceSummary(choice),
-                                onTap: () => _openChoiceDialog(choice),
-                              ),
-                          ],
-                        ),
-
-                        //=============== WHAT I WANT IN MY RELATIONSHIPS ==============
-                        SectionHeader(text.sectionMyRelationships),
-                        CardGroup(
-                          dividers: true,
-                          children: [
-                            for (final choice in const [
-                              kChoiceDatingIntention,
-                              kChoiceKids,
-                            ])
-                              NavRow(
-                                label: catalogueLabel(text, choice.title),
-                                trailing: _choiceSummary(choice),
-                                onTap: () => _openChoiceDialog(choice),
-                              ),
-                          ],
-                        ),
-
-                        //======================= MY BACKGROUND =======================
-                        SectionHeader(text.sectionMyBackground),
-                        CardGroup(
-                          dividers: true,
-                          children: [
-                            //EducationPage and OccupationPage are built and
-                            //working; swapping either stub for the real page
-                            //is a one-line change.
-                            //
-                            //Location is NOT here: where the user lives is one
-                            //value, so it gets one home, and that home is the
-                            //Place of residence row in Account Settings.
-                            NavRow(
-                              label: text.education,
-                              trailing: _user.major ?? '',
-                              onTap: _openEducation,
-                            ),
-                            NavRow(
-                              label: text.occupation,
-                              trailing: _user.job ?? '',
-                              onTap: _openOccupation,
-                            ),
-                          ],
-                        ),
-
-                        //========================== WHO I AM ==========================
-                        SectionHeader(text.sectionWhoIAm),
-                        CardGroup(
-                          dividers: true,
-                          children: [
-                            NavRow(
-                              label: catalogueLabel(
-                                text,
-                                kChoicePronouns.title,
-                              ),
-                              trailing: _choiceSummary(kChoicePronouns),
-                              onTap: _openPronouns,
-                            ),
-                            //one answer, five options: a dialog like the
-                            //habits rather than a whole page
-                            NavRow(
-                              label: catalogueLabel(
-                                text,
-                                kChoiceSexualOrientation.title,
-                              ),
-                              trailing: _choiceSummary(
-                                kChoiceSexualOrientation,
-                              ),
-                              onTap: () =>
-                                  _openChoiceDialog(kChoiceSexualOrientation),
-                            ),
-                            NavRow(
-                              label: text.languagesSpoken,
-                              trailing: _user.languagesSpoken.isEmpty
-                                  ? ''
-                                  : '${_user.languagesSpoken.length}',
-                              onTap: _openLanguages,
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 32),
-                      ],
-                    ),
+                          const SizedBox(height: 32),
+                        ],
+                      ),
+                    ],
                   ),
                   const ViewProfileBody(),
                 ],
@@ -1039,38 +1042,41 @@ class _EditProfileState extends State<EditProfile> {
       children: [
         // 1. The Main Photo Slot
         Positioned.fill(
-          child: GestureDetector(
-            onTap: () => _openPhoto(index),
-            child: Container(
-              decoration: BoxDecoration(
-                //TRANSPARENT UNDER A PHOTO. While the photo is flying to the
-                //detail page the Hero leaves an empty placeholder here, and a
-                //filled box reads as a white hole punched in the grid.
-                //Transparent means the page background shows through, so the
-                //slot looks like it travelled with the photo.
-                //
-                //Empty slots keep a fill, since that box IS the "add a photo"
-                //target. Theme colours, so it follows dark mode.
-                color: photo != null
-                    ? Colors.transparent
-                    : Theme.of(context).colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(10),
+          child: SpringPress(
+            child: GestureDetector(
+              onTap: () => _openPhoto(index),
+              child: Container(
+                decoration: BoxDecoration(
+                  //TRANSPARENT UNDER A PHOTO. While the photo is flying to the
+                  //detail page the Hero leaves an empty placeholder here, and a
+                  //filled box reads as a white hole punched in the grid.
+                  //Transparent means the page background shows through, so the
+                  //slot looks like it travelled with the photo.
+                  //
+                  //Empty slots keep a fill, since that box IS the "add a photo"
+                  //target. Theme colours, so it follows dark mode.
+                  color: photo != null
+                      ? Colors.transparent
+                      : Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  boxShadow: AppShadows.card,
+                ),
+                child: photo != null
+                    ? Hero(
+                        tag: _photoHeroTag(index),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          child: _SlotImage(slot: photo),
+                        ),
+                      )
+                    : Center(
+                        child: Icon(
+                          Icons.add,
+                          size: 32,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
               ),
-              child: photo != null
-                  ? Hero(
-                      tag: _photoHeroTag(index),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: _SlotImage(slot: photo),
-                      ),
-                    )
-                  : Center(
-                      child: Icon(
-                        Icons.add,
-                        size: 30,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
             ),
           ),
         ),
@@ -1138,26 +1144,29 @@ class _PhotoCornerButton extends StatelessWidget {
   const _PhotoCornerButton({required this.icon, required this.onTap});
 
   //gap between the button and the photo's top and right edges
-  static const double _inset = 6;
+  static const double _inset = 8;
 
   @override
   Widget build(BuildContext context) {
     return Positioned(
       top: _inset,
       right: _inset,
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            //deeper and quieter than the bright primary, so the button sits on
-            //the photo instead of shouting over it
-            color: AppColors.primaryDeep,
-            //a rounded square, not a circle: reads as a button rather than a
-            //notification dot
-            borderRadius: BorderRadius.circular(6),
+      child: SpringPress(
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              //deeper and quieter than the bright primary, so the button sits
+              //on the photo instead of shouting over it
+              color: AppColors.primaryDeep,
+              //a rounded square, not a circle: reads as a button rather than a
+              //notification dot
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+            ),
+            child: Icon(icon, color: AppColors.onPrimary, size: 16),
           ),
-          child: Icon(icon, color: AppColors.onPrimary, size: 15),
         ),
       ),
     );
@@ -1188,7 +1197,7 @@ class _SlotImage extends StatelessWidget {
         color: theme.colorScheme.surfaceContainerHighest,
         child: Icon(
           Icons.broken_image_outlined,
-          size: 22,
+          size: 24,
           color: theme.colorScheme.onSurfaceVariant,
         ),
       ),
