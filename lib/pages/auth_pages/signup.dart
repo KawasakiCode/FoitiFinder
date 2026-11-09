@@ -4,10 +4,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:foitifinder/constants/legal.dart';
 import 'package:foitifinder/constants/university_domains.dart';
+import 'package:foitifinder/utils/legal_launcher.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/pages/auth_pages/auth_parts.dart';
@@ -38,13 +39,14 @@ class _SignUpPageState extends State<SignUpPage> {
     _email = TextEditingController();
     _password = TextEditingController();
     _name = TextEditingController();
+    //THE CONTEXT IS READ AT TAP TIME, not here: initState runs before this
+    //State has a usable Localizations ancestor, so resolving the document's
+    //language now would be too early.
     _tapGestureRecognizer = TapGestureRecognizer()
-      ..onTap = () async {
-        final url = Uri.parse('https://google.com');
-        if (await canLaunchUrl(url)) {
-          await launchUrl(url);
-        }
-      };
+      ..onTap = () => openLegalDocument(
+            context,
+            LegalDocument.privacyStatement,
+          );
   }
 
   @override

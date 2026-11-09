@@ -14,7 +14,7 @@ import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/polish.dart';
 import 'package:foitifinder/widgets/pressable.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:foitifinder/utils/legal_launcher.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/utils/age.dart';
 import 'package:provider/provider.dart';
@@ -34,33 +34,9 @@ class _ProfilePageState extends State<ProfilePage> {
     Navigator.push(context, MaterialPageRoute(builder: (_) => page));
   }
 
-  //Open one of the legal documents in the browser.
-  //
-  //External on purpose: Play requires a publicly reachable privacy policy, and
-  //hosting the text in-app would mean shipping an update to correct a typo in a
-  //legal document.
-  Future<void> _openLegal(String url) async {
-    //not published yet -> say so instead of opening a blank tab
-    if (url.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(text.comingSoon)),
-      );
-      return;
-    }
-
-    final ok = await launchUrl(
-      Uri.parse(url),
-      mode: LaunchMode.externalApplication,
-    );
-    if (!ok && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(text.errorOccured),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
+  //The launch itself lives in utils/legal_launcher.dart, which this page used
+  //to own a copy of. Two other screens open policy documents too and both
+  //shipped pointing at a placeholder URL, so the launch is shared now.
 
   //The documents behind the Policies row.
   //
@@ -150,7 +126,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
     //null means dismissed without picking anything
     if (!mounted || chosen == null) return;
-    await _openLegal(chosen);
+    await openLegalUrl(context, chosen);
   }
 
   //Flutter collects every dependency's licence itself and renders them here.

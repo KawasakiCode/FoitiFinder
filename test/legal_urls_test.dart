@@ -11,6 +11,8 @@
 //every assertion about the shape of these URLs would otherwise pass by
 //agreeing that an empty string is an empty string.
 
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:foitifinder/constants/legal.dart';
 
@@ -138,6 +140,67 @@ void main() {
               reason: 'kLegalBaseUrl is empty or $document lost its file');
         }
       }
+    });
+  });
+
+  group('no screen invents its own destination', () {
+    //THE BUG THIS GUARDS AGAINST ALREADY SHIPPED, twice. The sign up consent
+    //line and the delete account page both opened a search engine's home page
+    //instead of the privacy policy - a placeholder written before the site
+    //existed, left behind when the site went up, and invisible afterwards
+    //because a browser opening the wrong page looks exactly like a link that
+    //works. Only a human reading the screen in the right language would ever
+    //have noticed, and one eventually did.
+    //
+    //A SOURCE SCAN RATHER THAN A WIDGET TEST because the thing that was wrong
+    //is not a behaviour - every one of those taps opened a browser, which is
+    //what the code said to do. What was wrong was the string, so the string is
+    //what gets asserted.
+
+    final sources = Directory('lib')
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((file) => file.path.endsWith('.dart'));
+
+    test('the placeholder policy URL is gone and stays gone', () {
+      final offenders = <String>[];
+      for (final file in sources) {
+        //the Play Store listing in version_gate.dart is a real google.com URL
+        //and the only legitimate one in the app
+        if (file.path.endsWith('version_gate.dart')) continue;
+        if (file.readAsStringSync().contains('google.com')) {
+          offenders.add(file.path);
+        }
+      }
+
+      expect(offenders, isEmpty,
+          reason: 'a policy link is pointing at google.com again - open the '
+              'document through utils/legal_launcher.dart instead');
+    });
+
+    test('every policy link goes through the shared launcher', () {
+      //THE THREE SCREENS THAT OPEN A DOCUMENT. If a fourth appears it should
+      //join this list rather than write its own launchUrl, so the assertion is
+      //on who calls launchUrl, not on who calls the launcher.
+      const allowed = {
+        'legal_launcher.dart', //the launcher itself
+        'version_gate.dart', //the Play Store listing
+        'match_page.dart', //opens Instagram
+        'match_actions.dart', //opens Instagram
+      };
+
+      final offenders = <String>[];
+      for (final file in sources) {
+        final name = file.path.split(Platform.pathSeparator).last;
+        if (allowed.contains(name)) continue;
+        if (file.readAsStringSync().contains('launchUrl(')) {
+          offenders.add(name);
+        }
+      }
+
+      expect(offenders, isEmpty,
+          reason: 'these screens launch a URL themselves instead of going '
+              'through utils/legal_launcher.dart');
     });
   });
 

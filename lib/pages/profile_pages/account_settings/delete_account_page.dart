@@ -16,12 +16,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:foitifinder/constants/legal.dart';
+import 'package:foitifinder/utils/legal_launcher.dart';
 import 'package:foitifinder/providers/notifications_provider.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:foitifinder/services/api_services.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/theme/app_colors.dart';
@@ -215,12 +216,10 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                                 decoration: TextDecoration.underline,
                               ),
                               recognizer: TapGestureRecognizer()
-                                ..onTap = () async {
-                                  final url = Uri.parse('https://google.com');
-                                  if (await canLaunchUrl(url)) {
-                                    await launchUrl(url);
-                                  }
-                                },
+                                ..onTap = () => openLegalDocument(
+                                      context,
+                                      LegalDocument.privacyStatement,
+                                    ),
                             ),
                           ],
                         ),
