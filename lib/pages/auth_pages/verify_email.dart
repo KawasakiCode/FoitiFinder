@@ -216,10 +216,7 @@ class _VerifyEmailState extends State<VerifyEmail> with WidgetsBindingObserver {
         content: TextField(
           controller: controller,
           obscureText: true,
-          decoration: InputDecoration(
-            labelText: text.password,
-            border: const OutlineInputBorder(),
-          ),
+          decoration: InputDecoration(labelText: text.password),
         ),
         actions: [
           TextButton(
