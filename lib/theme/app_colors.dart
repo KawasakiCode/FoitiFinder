@@ -97,9 +97,9 @@ class AppColors {
 //Corner radius scale, keep these consistent everywhere.
 class AppRadius {
   AppRadius._();
-  static const double sm = 10;
-  static const double md = 14;
-  static const double lg = 20;
+  static const double sm = 8;
+  static const double md = 16;
+  static const double lg = 24;
 }
 
 //Soft, low-opacity shadows. Material's default elevation shadows read harsh and

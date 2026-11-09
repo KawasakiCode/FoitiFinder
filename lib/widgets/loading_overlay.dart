@@ -1,4 +1,4 @@
-//This file wraps the ui of main and other pages 
+//This file wraps the ui of main and other pages
 //It has 2 attributes isLoading and child
 //Child is the first widget of the ui you want to wrap
 //isLoading is a boolean flag used to tell this widget when to show a throbber
@@ -6,6 +6,7 @@
 //Note this goes at the body property of the Scaffold not instead of the Scaffold
 
 import 'package:flutter/material.dart';
+import 'package:foitifinder/widgets/polish.dart';
 
 class LoadingOverlay extends StatelessWidget {
   final bool isLoading;
@@ -24,28 +25,35 @@ class LoadingOverlay extends StatelessWidget {
     return Stack(
       children: [
         // 1. The main screen UI passes right through
-        child, 
-        
+        child,
+
         // 2. The Throbber Overlay
-        if (isLoading)
-          Positioned.fill(
-            child: Container(
-              color: Colors.black.withValues(alpha: 0.4),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const CircularProgressIndicator(),
-                  if (slowLoading == true) ...[
-                    const SizedBox(height: 16),
-                    Text(
-                      'This is taking longer than usual...',
-                      style: TextStyle(color: Colors.grey[400], fontSize: 13),
+        Positioned.fill(
+          child: Crossfade(
+            child: isLoading
+                ? ColoredBox(
+                    key: const ValueKey('busy'),
+                    color: Colors.black.withValues(alpha: 0.4),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const BusyIndicator(),
+                        if (slowLoading == true) ...[
+                          const SizedBox(height: 16),
+                          Text(
+                            'This is taking longer than usual...',
+                            style: TextStyle(
+                              color: Colors.grey[400],
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
-                  ],
-                ],
-              ),
-            ),
+                  )
+                : const SizedBox.shrink(key: ValueKey('idle')),
           ),
+        ),
       ],
     );
   }

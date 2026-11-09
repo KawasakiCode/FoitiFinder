@@ -5,6 +5,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:foitifinder/theme/app_colors.dart';
+import 'package:foitifinder/widgets/polish.dart';
 
 class InterestBox extends StatelessWidget {
   final String label;
@@ -36,31 +37,35 @@ class InterestBox extends StatelessWidget {
         isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
     final Color border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
 
-    return Opacity(
+    return AnimatedOpacity(
       //only the unpickable ones fade, so a full section still reads clearly
       opacity: dimmed ? 0.4 : 1,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            curve: Curves.easeOut,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: selected ? selectedFill : idleFill,
-              borderRadius: BorderRadius.circular(AppRadius.lg),
-              border: Border.all(
-                color: selected ? selectedFill : border,
-                width: 1,
+      duration: const Duration(milliseconds: 150),
+      curve: Curves.easeOut,
+      child: SpringPress(
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              curve: Curves.easeOut,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: selected ? selectedFill : idleFill,
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+                border: Border.all(
+                  color: selected ? selectedFill : border,
+                  width: 1,
+                ),
               ),
-            ),
-            child: Text(
-              label,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: selected ? selectedLabel : idleLabel,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+              child: Text(
+                label,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: selected ? selectedLabel : idleLabel,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                ),
               ),
             ),
           ),

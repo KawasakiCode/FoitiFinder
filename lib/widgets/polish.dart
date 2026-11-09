@@ -301,15 +301,16 @@ class EmptyState extends StatelessWidget {
     required this.icon,
     this.title,
     required this.message,
-    required this.actionLabel,
-    required this.onAction,
+    this.actionLabel,
+    this.onAction,
   });
 
   final IconData icon;
   final String? title;
   final String message;
-  final String actionLabel;
-  final VoidCallback onAction;
+  //both or neither: some empty states have nothing to offer
+  final String? actionLabel;
+  final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
@@ -338,12 +339,7 @@ class EmptyState extends StatelessWidget {
               child: Text(
                 title!,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.5,
-                  color: ink,
-                ),
+                style: headlineText(context),
               ),
             ),
             const SizedBox(height: 8),
@@ -361,52 +357,54 @@ class EmptyState extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 32),
-          Entrance(
-            order: 3,
-            child: SpringPress(
-              child: Semantics(
-                container: true,
-                button: true,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: onAction,
-                  child: Container(
-                    height: 48,
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
-                    decoration: BoxDecoration(
-                      gradient: AppColors.brandGradient,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: AppShadows.card,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.refresh,
-                          size: 24,
-                          color: AppColors.onPrimary,
-                        ),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: Text(
-                            actionLabel,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.onPrimary,
+          if (actionLabel != null && onAction != null) ...[
+            const SizedBox(height: 32),
+            Entrance(
+              order: 3,
+              child: SpringPress(
+                child: Semantics(
+                  container: true,
+                  button: true,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: onAction,
+                    child: Container(
+                      height: 48,
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      decoration: BoxDecoration(
+                        gradient: AppColors.brandGradient,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: AppShadows.card,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.refresh,
+                            size: 24,
+                            color: AppColors.onPrimary,
+                          ),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              actionLabel!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.onPrimary,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -456,6 +454,231 @@ class SliverGlassBarInset extends StatelessWidget {
       right: false,
       bottom: false,
       sliver: SliverToBoxAdapter(child: SizedBox(height: 8)),
+    );
+  }
+}
+
+//The page's one big line.
+TextStyle headlineText(BuildContext context) => TextStyle(
+  fontSize: 24,
+  fontWeight: FontWeight.w800,
+  letterSpacing: -0.5,
+  color: Theme.of(context).colorScheme.onSurface,
+);
+
+//the colour of everything secondary
+Color mutedInk(BuildContext context) =>
+    Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6);
+
+TextStyle? mutedText(BuildContext context) => Theme.of(context)
+    .textTheme
+    .bodyMedium
+    ?.copyWith(color: mutedInk(context), fontWeight: FontWeight.w400);
+
+//A page whose content scrolls under a frosted bar, and optionally a frosted
+//action pinned to the bottom. Pair it with GlassScroll, or start the body's
+//own scroll view with SliverGlassBarInset.
+class GlassScaffold extends StatelessWidget {
+  const GlassScaffold({
+    super.key,
+    required this.appBar,
+    required this.body,
+    this.bottomBar,
+  });
+
+  final PreferredSizeWidget appBar;
+  final Widget body;
+  final Widget? bottomBar;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      extendBody: bottomBar != null,
+      appBar: GlassAppBar(child: appBar),
+      body: body,
+      bottomNavigationBar: bottomBar == null
+          ? null
+          : GlassBottomBar(child: bottomBar!),
+    );
+  }
+}
+
+//The frosted strip a page's main action sits on.
+class GlassBottomBar extends StatelessWidget {
+  const GlassBottomBar({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRect(
+      child: BackdropFilter(
+        filter: kGlassBlur,
+        child: ColoredBox(
+          color: Theme.of(
+            context,
+          ).scaffoldBackgroundColor.withValues(alpha: 0.72),
+          child: SafeArea(
+            top: false,
+            minimum: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+//A scroll view that clears the glass above and below it.
+class GlassScroll extends StatelessWidget {
+  const GlassScroll({super.key, required this.slivers});
+
+  final List<Widget> slivers;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomScrollView(
+      slivers: [
+        const SliverGlassBarInset(),
+        ...slivers,
+        const SliverSafeArea(
+          top: false,
+          left: false,
+          right: false,
+          sliver: SliverToBoxAdapter(child: SizedBox(height: 24)),
+        ),
+      ],
+    );
+  }
+}
+
+//A short run of blocks that arrive one after another. Built eagerly, so it
+//belongs to a screenful of content; a long list wants a SliverList of
+//Entrances with shouldPlay instead.
+class SliverStagger extends StatelessWidget {
+  const SliverStagger({
+    super.key,
+    this.padding = const EdgeInsets.symmetric(horizontal: 16),
+    required this.children,
+  });
+
+  final EdgeInsets padding;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverPadding(
+      padding: padding,
+      sliver: SliverToBoxAdapter(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var i = 0; i < children.length; i++)
+              Entrance(order: Entrance.orderFor(i), child: children[i]),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+//The raised surface a block of content sits on.
+class SurfaceCard extends StatelessWidget {
+  const SurfaceCard({
+    super.key,
+    this.padding = const EdgeInsets.all(16),
+    this.radius = AppRadius.md,
+    required this.child,
+  });
+
+  final EdgeInsets padding;
+  final double radius;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(radius),
+        boxShadow: AppShadows.card,
+      ),
+      child: child,
+    );
+  }
+}
+
+//What a blocking action shows, on a dimmed page with nothing to mimic.
+class BusyIndicator extends StatelessWidget {
+  const BusyIndicator({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer(
+      base: Colors.white.withValues(alpha: 0.24),
+      highlight: Colors.white,
+      child: const Bone(width: 96, height: 8),
+    );
+  }
+}
+
+//The show/hide control inside a password field.
+class PasswordEye extends StatelessWidget {
+  const PasswordEye({super.key, required this.visible, required this.onTap});
+
+  final bool visible;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SpringPress(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 160),
+            child: Image.asset(
+              visible ? 'assets/icons/hide.png' : 'assets/icons/view.png',
+              key: ValueKey(visible),
+              width: 16,
+              height: 16,
+              color: mutedInk(context),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+//A text action in an app bar that only exists some of the time, and arrives
+//and leaves without making the title jump.
+class AppBarAction extends StatelessWidget {
+  const AppBarAction({
+    super.key,
+    required this.visible,
+    required this.label,
+    required this.onPressed,
+  });
+
+  final bool visible;
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 200),
+      child: visible
+          ? SpringPress(
+              key: const ValueKey('shown'),
+              child: TextButton(onPressed: onPressed, child: Text(label)),
+            )
+          : const SizedBox.shrink(key: ValueKey('hidden')),
     );
   }
 }
