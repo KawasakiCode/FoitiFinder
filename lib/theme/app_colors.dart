@@ -115,6 +115,16 @@ class AppShadows {
     ),
   ];
 
+  //wide and faint, so a card lifts off the page without drawing an outline
+  static List<BoxShadow> card = [
+    BoxShadow(
+      color: const Color(0xFF000000).withValues(alpha: 0.04),
+      blurRadius: 24,
+      spreadRadius: 8,
+      offset: const Offset(0, 8),
+    ),
+  ];
+
   static List<BoxShadow> primaryGlow = [
     BoxShadow(
       color: AppColors.primary.withValues(alpha: 0.32),
