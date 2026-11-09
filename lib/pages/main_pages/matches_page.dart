@@ -22,6 +22,7 @@ import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/main_app_bar.dart';
 import 'package:foitifinder/widgets/match_actions.dart';
 import 'package:foitifinder/widgets/photo_card.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:foitifinder/widgets/profile_photo.dart';
 
 //two across: big enough to recognise a face, small enough to scan a page of
@@ -32,8 +33,18 @@ const double _kGridGap = 8;
 
 //where the name sits on a tile. Constants because the flight redraws it in
 //the same place over a rect that is in mid-air, with no tile to measure.
-const double _kTileLabelInset = 10;
+const double _kTileLabelInset = 8;
 const double _kTileLabelBottom = 8;
+
+const SliverGridDelegate _kGridDelegate =
+    SliverGridDelegateWithFixedCrossAxisCount(
+      crossAxisCount: _kGridColumns,
+      crossAxisSpacing: _kGridGap,
+      mainAxisSpacing: _kGridGap,
+      childAspectRatio: _kTileAspect,
+    );
+
+const EdgeInsets _kSectionHeadingPadding = EdgeInsets.fromLTRB(16, 24, 8, 8);
 
 class MatchesPage extends StatefulWidget {
   const MatchesPage({super.key});
@@ -57,6 +68,8 @@ class MatchesPageState extends State<MatchesPage> {
   //looks the same. A tapped notification was the second way to cause that;
   //a fast double tap on a tile is the first.
   bool _openingProfile = false;
+  //tiles that have already played their entrance; see Entrance.shouldPlay
+  final Set<int> _enteredTiles = {};
 
   AppLocalizations get text => AppLocalizations.of(context)!;
 
@@ -202,33 +215,68 @@ class MatchesPageState extends State<MatchesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const MainAppBar(title: "FoitiFinder"),
-      body: RefreshIndicator(onRefresh: loadMatches, child: _buildBody()),
+      //the grid scrolls under the frosted bar
+      extendBodyBehindAppBar: true,
+      appBar: const GlassAppBar(child: MainAppBar(title: "FoitiFinder")),
+      body: RefreshIndicator(
+        edgeOffset: MediaQuery.paddingOf(context).top + kToolbarHeight,
+        onRefresh: loadMatches,
+        child: Crossfade(child: _buildBody()),
+      ),
+    );
+  }
+
+  //The shape of the page before it has anything in it: a heading and a grid
+  //of tiles the size the real ones will be.
+  Widget _buildSkeleton() {
+    return Shimmer(
+      key: const ValueKey('loading'),
+      child: CustomScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        slivers: [
+          const SliverGlassBarInset(),
+          const SliverPadding(
+            padding: _kSectionHeadingPadding,
+            sliver: SliverToBoxAdapter(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Bone(width: 96, height: 16),
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: _kGridGap),
+            sliver: SliverGrid(
+              gridDelegate: _kGridDelegate,
+              delegate: SliverChildBuilderDelegate(
+                childCount: 6,
+                (_, _) => const Bone(radius: kCardRadius),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildBody() {
-    if (_loading && _matches.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    if (_loading && _matches.isEmpty) return _buildSkeleton();
 
     if (_matches.isEmpty) {
       //still a scroll view, or RefreshIndicator has nothing to pull on - which
       //is exactly the state you most want to refresh
-      return ListView(
-        children: [
-          SizedBox(height: MediaQuery.sizeOf(context).height * 0.25),
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Text(
-                text.noMatches,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+      return CustomScrollView(
+        key: const ValueKey('empty'),
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          const SliverGlassBarInset(),
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: EmptyState(
+              icon: Icons.favorite_border,
+              message: text.noMatches,
+              actionLabel: text.retry,
+              onAction: loadMatches,
             ),
           ),
         ],
@@ -248,7 +296,10 @@ class MatchesPageState extends State<MatchesPage> {
     final sections = MatchSections.of(_matches);
 
     return CustomScrollView(
+      key: const ValueKey('grid'),
+      physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
+        const SliverGlassBarInset(),
         ..._section(text.matchYourTurn, sections.yourTurn),
         ..._section(text.matchesSectionWaiting, sections.waitingOnThem),
         ..._section(text.matchesSectionConnected, sections.connected),
@@ -262,31 +313,36 @@ class MatchesPageState extends State<MatchesPage> {
   //on a page whose job is to show faces.
   List<Widget> _section(String title, List<MatchModel> matches) {
     if (matches.isEmpty) return const [];
+    final Color ink = Theme.of(context).colorScheme.onSurface;
     return [
       SliverToBoxAdapter(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(_kGridGap + 4, 20, _kGridGap, 10),
-          child: Row(
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
+        child: Entrance(
+          child: Padding(
+            padding: _kSectionHeadingPadding,
+            child: Row(
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
+                    color: ink,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              //THE COUNT, because the sections push each other down the page
-              //and a heading with nothing visible under it reads as a bug
-              Text(
-                '${matches.length}',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey[600],
+                const SizedBox(width: 8),
+                //THE COUNT, because the sections push each other down the page
+                //and a heading with nothing visible under it reads as a bug
+                Text(
+                  '${matches.length}',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                    color: ink.withValues(alpha: 0.6),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -295,20 +351,20 @@ class MatchesPageState extends State<MatchesPage> {
         //SliverGrid, not GridView: a GridView inside a scroll view needs
         //shrinkWrap, which builds every tile in every section up front
         sliver: SliverGrid(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: _kGridColumns,
-            crossAxisSpacing: _kGridGap,
-            mainAxisSpacing: _kGridGap,
-            childAspectRatio: _kTileAspect,
-          ),
+          gridDelegate: _kGridDelegate,
           delegate: SliverChildBuilderDelegate(
             childCount: matches.length,
             (_, index) {
               final match = matches[index];
-              return _MatchTile(
-                match: match,
-                heroTag: _photoHeroTag(match),
-                onTap: (from) => _openProfile(match, from: from),
+              return Entrance(
+                key: ValueKey(match.matchId),
+                order: Entrance.orderFor(index),
+                shouldPlay: () => _enteredTiles.add(match.matchId),
+                child: _MatchTile(
+                  match: match,
+                  heroTag: _photoHeroTag(match),
+                  onTap: (from) => _openProfile(match, from: from),
+                ),
               );
             },
           ),
@@ -354,7 +410,8 @@ class _MatchTile extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
         style: const TextStyle(
           fontSize: 18,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -0.2,
           color: Colors.white,
           shadows: [
             //cheaper than a second gradient, and enough to keep the name
@@ -368,7 +425,8 @@ class _MatchTile extends StatelessWidget {
     //kCardRadius, not a radius of its own: the flight shuttle interpolates
     //from that exact value down to 0, so any other number makes the corners
     //jump the instant the photo lifts off
-    return GestureDetector(
+    return SpringPress(
+      child: GestureDetector(
         onTap: () {
           //MEASURED AT TAP TIME, not held in state: the grid scrolls and
           //resizes under this, so a position captured when the tile was built
@@ -378,7 +436,12 @@ class _MatchTile extends StatelessWidget {
               ? null
               : box.localToGlobal(Offset.zero) & box.size);
         },
-        child: ClipRRect(
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(kCardRadius),
+            boxShadow: AppShadows.card,
+          ),
+          child: ClipRRect(
           borderRadius: BorderRadius.circular(kCardRadius),
           //the photo, its scrim AND the name are all inside the Hero, so the
           //three of them leave the tile together at lift-off
@@ -414,13 +477,12 @@ class _MatchTile extends StatelessWidget {
                     top: _kTileLabelInset,
                     left: _kTileLabelInset,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
+                      height: 24,
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
                       decoration: BoxDecoration(
                         color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(AppRadius.lg),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       child: Text(
                         AppLocalizations.of(context)!.matchTheySaidYes,
@@ -435,7 +497,9 @@ class _MatchTile extends StatelessWidget {
               ],
             ),
           ),
+          ),
         ),
+      ),
     );
   }
 }

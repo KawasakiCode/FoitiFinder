@@ -177,8 +177,8 @@ class _LoginPageState extends State<LoginPage> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        //AbsorbPointer locks the screen while logging in; the spinner lives
-        //in the button itself (PrimaryButton), so there is never a second one.
+        //AbsorbPointer locks the screen while logging in; the loading state
+        //lives in the button itself (PrimaryButton), so there is never a second.
         body: AbsorbPointer(
           absorbing: isLoading,
           child: SingleChildScrollView(

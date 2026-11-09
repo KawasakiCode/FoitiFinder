@@ -30,6 +30,7 @@ import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/models/card_data_model.dart';
 import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/app_dialog.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:foitifinder/widgets/profile_photo.dart';
 
 //how round the card is; the deck and the photo clip share it
@@ -58,13 +59,13 @@ const bool kShowStatPills = false;
 //thing flying stops looking like a card almost immediately.
 const double kCardFurnitureFadeEnd = 0.4;
 
-//Where the pills sit above the bottom of the photo: clear of the buttons (58)
-//plus the gap between them (14) plus the card's own bottom inset (16).
+//Where the pills sit above the bottom of the photo: clear of the buttons (56)
+//plus the gap between them (16) plus the card's own bottom inset (16).
 //
 //A number rather than a Column, because the shuttle has to put a copy of them
 //in exactly the same place over a rect that is in mid-flight, and there is no
 //Column out there to ask.
-const double kStatsBottomInset = 16 + 58 + 14;
+const double kStatsBottomInset = 16 + 56 + 16;
 const double kCardSideInset = 16;
 
 //A straight line between two rects, for a Hero that should simply travel.
@@ -383,9 +384,9 @@ class _PhotoCardState extends State<PhotoCard> {
 
           //fourth layer: who this is, at the top
           Positioned(
-            top: 28,
-            left: 20,
-            right: 20,
+            top: 24,
+            left: 24,
+            right: 24,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -396,21 +397,24 @@ class _PhotoCardState extends State<PhotoCard> {
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 28,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w800,
                     letterSpacing: -0.5,
                   ),
                 ),
-                if (subtitle.isNotEmpty)
+                if (subtitle.isNotEmpty) ...[
+                  const SizedBox(height: 8),
                   Text(
                     subtitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.9),
+                      //muted, but it sits on a photo and has to stay legible
+                      color: Colors.white.withValues(alpha: 0.8),
                       fontSize: 15,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
+                ],
               ],
             ),
           ),
@@ -454,18 +458,18 @@ class _StatSlots extends StatelessWidget {
     if (!kShowStatPills) return const SizedBox.shrink();
 
     return Wrap(
-      spacing: 6,
-      runSpacing: 6,
+      spacing: 8,
+      runSpacing: 8,
       alignment: WrapAlignment.center,
       children: [
         for (var i = 0; i < _count; i++)
           Container(
-            width: 62,
-            height: 30,
+            width: 64,
+            height: 32,
             decoration: BoxDecoration(
               //a frosted pill: legible over any photo without hiding it
               color: Colors.white.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(AppRadius.lg),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(color: Colors.white.withValues(alpha: 0.35)),
             ),
           ),
@@ -488,34 +492,34 @@ class _SuperLikeBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context)!;
-    return GestureDetector(
-      //opaque, so the tap-anywhere layer underneath does not also fire
-      behavior: HitTestBehavior.opaque,
-      onTap: () => showAppDialog<void>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: Text(text.superLikedYouTitle(name)),
-          content: Text(text.superLikedYouBody),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: Text(text.close),
-            ),
-          ],
+    return SpringPress(
+      child: GestureDetector(
+        //opaque, so the tap-anywhere layer underneath does not also fire
+        behavior: HitTestBehavior.opaque,
+        onTap: () => showAppDialog<void>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: Text(text.superLikedYouTitle(name)),
+            content: Text(text.superLikedYouBody),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: Text(text.close),
+              ),
+            ],
+          ),
         ),
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          //the same gradient the button uses, so the badge and the thing that
-          //sends it are visibly one idea
-          gradient: AppColors.superLikeGradient,
-          shape: BoxShape.circle,
-          boxShadow: const [
-            BoxShadow(blurRadius: 8, color: Color(0x66000000)),
-          ],
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            //the same gradient the button uses, so the badge and the thing
+            //that sends it are visibly one idea
+            gradient: AppColors.superLikeGradient,
+            shape: BoxShape.circle,
+            boxShadow: AppShadows.card,
+          ),
+          child: const Icon(Icons.star, color: Colors.white, size: 24),
         ),
-        child: const Icon(Icons.star, color: Colors.white, size: 20),
       ),
     );
   }
@@ -544,7 +548,7 @@ class _CardActions extends StatelessWidget {
         SwipeActionButton(
           icon: Icons.close,
           gradient: AppColors.passGradient,
-          size: 58,
+          size: 56,
           onPressed: onPass,
         ),
         SwipeActionButton(
@@ -560,7 +564,7 @@ class _CardActions extends StatelessWidget {
         SwipeActionButton(
           icon: Icons.favorite,
           gradient: AppColors.likeGradient,
-          size: 58,
+          size: 56,
           onPressed: onLike,
         ),
       ],
@@ -586,23 +590,24 @@ class SwipeActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          gradient: gradient,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.25),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+    //null on the cards behind the top one, which must not react to a touch
+    return SpringPress(
+      enabled: onPressed != null,
+      child: GestureDetector(
+        onTap: onPressed,
+        //animated so the star eases to grey when the last one is spent
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 240),
+          curve: Curves.easeOut,
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            gradient: gradient,
+            shape: BoxShape.circle,
+            boxShadow: AppShadows.card,
+          ),
+          child: Icon(icon, color: Colors.white, size: 24),
         ),
-        child: Icon(icon, color: Colors.white, size: size * 0.46),
       ),
     );
   }

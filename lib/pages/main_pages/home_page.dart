@@ -1,8 +1,11 @@
 //The main page of the app where swiping takes place
 //Here the deck of cards shows and the user swipes left(pass), right(like), up(super_like) to other users
 
+import 'dart:ui' show ImageFilter;
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:foitifinder/widgets/profile_photo.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/models/card_data_model.dart';
@@ -532,14 +535,17 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         });
       }
     } catch (e) {
-      //NO setState HERE. _isFetching is not read by build, so rebuilding for
-      //it achieves nothing, and setState after the page is disposed throws.
-      //The generation check is the same one as above: a failed fetch from a
-      //discarded deck must not lower the flag a live one has raised.
+      //NO setState HERE. _DeckPlaceholder notices _isFetching dropping on its
+      //own ticks, so rebuilding for it achieves nothing, and setState after
+      //the page is disposed throws. The generation check is the same one as
+      //above: a failed fetch from a discarded deck must not lower the flag a
+      //live one has raised.
       if (generation != _deckGeneration) return;
     }
     _isFetching = false;
   }
+
+  bool get _hasCardToShow => cards.isNotEmpty && currentIndex < cards.length;
 
   //Main build (UI here)
   @override
@@ -553,7 +559,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         body: Column(
           children: [
             //room between the app bar and the card
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Expanded(
               child: Center(
                 child: FractionallySizedBox(
@@ -563,14 +569,37 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   heightFactor: _kCardHeightFactor,
                   child: KeyedSubtree(
                     key: widget.cardAreaKey,
-                    child: cards.isNotEmpty && currentIndex < cards.length
-                        ? _buildSwipeCards()
-                        : _buildNoMoreCards(),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        //THE DECK IS NEVER KEPT ALIVE TO FADE OUT, which is why
+                        //the two sides are not one AnimatedSwitcher. An
+                        //outgoing deck would rebuild against an emptied list
+                        //and throw on cards[currentIndex], and it would hold a
+                        //second copy of the photo Hero tags.
+                        if (_hasCardToShow)
+                          Entrance(
+                            key: const ValueKey('deck'),
+                            child: _buildSwipeCards(),
+                          ),
+                        Crossfade(
+                          key: const ValueKey('deck-placeholder'),
+                          child: _hasCardToShow
+                              ? const SizedBox.shrink(key: ValueKey('none'))
+                              : _DeckPlaceholder(
+                                  key: const ValueKey('placeholder'),
+                                  isExhausted: () =>
+                                      !_isFetching && !_hasCardToShow,
+                                  empty: _buildNoMoreCards(),
+                                ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
           ],
         ),
       ),
@@ -668,6 +697,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(kCardRadius),
+        boxShadow: AppShadows.card,
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(kCardRadius),
@@ -690,70 +720,54 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             // Swipe indicators (only on top card)
             if (isTop) ...[
               // Like indicator (right swipe)
-              if (_swipeNotifier.value.dx > 50 &&
-                  _swipeNotifier.value.dx.abs() > _swipeNotifier.value.dy.abs())
-                Positioned(
-                  top: 60,
-                  left: 60,
-                  child: Transform.rotate(
-                    angle: -0.3,
-                    child: ShaderMask(
-                      shaderCallback: (bounds) =>
-                          AppColors.likeGradient.createShader(bounds),
-                      blendMode: BlendMode.srcIn,
-                      child: const Icon(
-                        Icons.favorite,
-                        color: Colors.white,
-                        size: 120,
-                      ),
-                    ),
-                  ),
+              Positioned(
+                top: 64,
+                left: 64,
+                child: _SwipeIndicator(
+                  key: ValueKey(card.id),
+                  visible:
+                      _swipeNotifier.value.dx > 50 &&
+                      _swipeNotifier.value.dx.abs() >
+                          _swipeNotifier.value.dy.abs(),
+                  icon: Icons.favorite,
+                  gradient: AppColors.likeGradient,
+                  angle: -0.3,
                 ),
+              ),
 
               // Pass indicator (left swipe)
-              if (_swipeNotifier.value.dx < -50 &&
-                  _swipeNotifier.value.dx.abs() > _swipeNotifier.value.dy.abs())
-                Positioned(
-                  top: 60,
-                  right: 60,
-                  child: Transform.rotate(
-                    angle: 0.3,
-                    child: ShaderMask(
-                      shaderCallback: (bounds) =>
-                          AppColors.passGradient.createShader(bounds),
-                      blendMode: BlendMode.srcIn,
-                      child: const Icon(
-                        Icons.close,
-                        color: Colors.white,
-                        size: 120,
-                      ),
-                    ),
-                  ),
+              Positioned(
+                top: 64,
+                right: 64,
+                child: _SwipeIndicator(
+                  key: ValueKey(card.id),
+                  visible:
+                      _swipeNotifier.value.dx < -50 &&
+                      _swipeNotifier.value.dx.abs() >
+                          _swipeNotifier.value.dy.abs(),
+                  icon: Icons.close,
+                  gradient: AppColors.passGradient,
+                  angle: 0.3,
                 ),
+              ),
 
               // Super like indicator (up swippe)
-              if (_swipeNotifier.value.dy < -50 &&
-                  _swipeNotifier.value.dy.abs() > _swipeNotifier.value.dx.abs())
-                Positioned(
-                  top: 200,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: Transform.rotate(
-                      angle: 0,
-                      child: ShaderMask(
-                        shaderCallback: (bounds) =>
-                            AppColors.superLikeGradient.createShader(bounds),
-                        blendMode: BlendMode.srcIn,
-                        child: const Icon(
-                          Icons.star,
-                          color: Colors.white,
-                          size: 120,
-                        ),
-                      ),
-                    ),
+              Positioned(
+                top: 200,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: _SwipeIndicator(
+                    key: ValueKey(card.id),
+                    visible:
+                        _swipeNotifier.value.dy < -50 &&
+                        _swipeNotifier.value.dy.abs() >
+                            _swipeNotifier.value.dx.abs(),
+                    icon: Icons.star,
+                    gradient: AppColors.superLikeGradient,
                   ),
                 ),
+              ),
             ],
           ],
         ),
@@ -768,31 +782,23 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   //and the two reasons to be here are "you have seen everyone" and "somebody
   //joined a minute after you ran out", which look identical from the sofa.
   Widget _buildNoMoreCards() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.favorite_border, size: 100, color: Colors.grey),
-          const SizedBox(height: 20),
-          Text(
-            text.noMoreProfiles,
-            style: const TextStyle(fontSize: 24, color: Colors.grey),
+    //scrolls only when it has to: large text on a short screen
+    return CustomScrollView(
+      primary: false,
+      slivers: [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: EmptyState(
+            icon: Icons.favorite_border,
+            title: text.noMoreProfiles,
+            message: text.checkLater,
+            actionLabel: text.retry,
+            //_resetDeck, not _fetchMoreCards: the latch has to come down first,
+            //or this button would call a function that returns immediately.
+            onAction: _resetDeck,
           ),
-          const SizedBox(height: 10),
-          Text(
-            text.checkLater,
-            style: const TextStyle(fontSize: 16, color: Colors.grey),
-          ),
-          const SizedBox(height: 24),
-          //_resetDeck, not _fetchMoreCards: the latch has to come down first,
-          //or this button would call a function that returns immediately.
-          TextButton.icon(
-            onPressed: _resetDeck,
-            icon: const Icon(Icons.refresh),
-            label: Text(text.retry),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -850,3 +856,227 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
   }
 }
+
+//A frosted disc over the photo, saying what letting go will do.
+class _SwipeIndicator extends StatelessWidget {
+  const _SwipeIndicator({
+    super.key,
+    required this.visible,
+    required this.icon,
+    required this.gradient,
+    this.angle = 0,
+  });
+
+  final bool visible;
+  final IconData icon;
+  final Gradient gradient;
+  final double angle;
+
+  static const double _size = 120;
+
+  @override
+  Widget build(BuildContext context) {
+    //ALWAYS IN THE TREE so it can fade, and so it must never take a touch:
+    //it sits on top of the card's tap-to-open layer.
+    return IgnorePointer(
+      child: SizedBox.square(
+        dimension: _size,
+        child: TweenAnimationBuilder<double>(
+          tween: Tween<double>(begin: 0, end: visible ? 1 : 0),
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOut,
+          builder: (context, t, _) {
+            if (t == 0) return const SizedBox.shrink();
+            //THE BLUR IS ANIMATED RATHER THAN WRAPPED IN AN Opacity. Inside
+            //an opacity layer a BackdropFilter has no photo to blur.
+            return Transform.rotate(
+              angle: angle,
+              child: Transform.scale(
+                scale: 0.8 + 0.2 * t,
+                child: ClipOval(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(
+                      sigmaX: 10 * t,
+                      sigmaY: 10 * t,
+                    ),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withValues(alpha: 0.16 * t),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.32 * t),
+                        ),
+                      ),
+                      child: Center(
+                        child: Opacity(
+                          opacity: t,
+                          child: ShaderMask(
+                            shaderCallback: gradient.createShader,
+                            blendMode: BlendMode.srcIn,
+                            child: Icon(
+                              icon,
+                              color: Colors.white,
+                              size: 64,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+//What shows while there is no card: the skeleton during a fetch, the empty
+//state once there is nothing left to wait for.
+//
+//IT ASKS RATHER THAN BEING TOLD. _fetchMoreCards deliberately does not rebuild
+//the page when it finishes without cards, so a skeleton that relied on a
+//rebuild would spin forever on an empty feed or a failed request. The shimmer
+//is ticking anyway, so each tick checks whether the wait is over.
+class _DeckPlaceholder extends StatefulWidget {
+  const _DeckPlaceholder({
+    super.key,
+    required this.isExhausted,
+    required this.empty,
+  });
+
+  final bool Function() isExhausted;
+  final Widget empty;
+
+  @override
+  State<_DeckPlaceholder> createState() => _DeckPlaceholderState();
+}
+
+class _DeckPlaceholderState extends State<_DeckPlaceholder>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _sweep;
+  late bool _exhausted;
+
+  @override
+  void initState() {
+    super.initState();
+    _sweep = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1600),
+    )..addListener(_checkExhausted);
+    _exhausted = widget.isExhausted();
+    if (!_exhausted) _sweep.repeat();
+  }
+
+  //a parent rebuild is how a new fetch announces itself, after Retry or a
+  //filter change
+  @override
+  void didUpdateWidget(_DeckPlaceholder oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final bool exhausted = widget.isExhausted();
+    if (exhausted == _exhausted) return;
+    _exhausted = exhausted;
+    if (exhausted) {
+      _sweep.stop();
+    } else {
+      _sweep.repeat();
+    }
+  }
+
+  void _checkExhausted() {
+    if (_exhausted || !widget.isExhausted()) return;
+    _sweep.stop();
+    setState(() => _exhausted = true);
+  }
+
+  @override
+  void dispose() {
+    _sweep.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Crossfade(
+      child: _exhausted
+          ? KeyedSubtree(key: const ValueKey('empty'), child: widget.empty)
+          : _DeckSkeleton(key: const ValueKey('skeleton'), sweep: _sweep),
+    );
+  }
+}
+
+//The shape of a PhotoCard with nothing in it: the photo, the name and subtitle
+//at the top, and the three buttons at the bottom.
+class _DeckSkeleton extends StatelessWidget {
+  const _DeckSkeleton({super.key, required this.sweep});
+
+  final Animation<double> sweep;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = shimmerColors(context);
+    final Color bone = Theme.of(
+      context,
+    ).colorScheme.surface.withValues(alpha: 0.64);
+    final bool still = MediaQuery.disableAnimationsOf(context);
+
+    return RepaintBoundary(
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          AnimatedBuilder(
+            animation: sweep,
+            builder: (context, _) => DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(kCardRadius),
+                boxShadow: AppShadows.card,
+                gradient: LinearGradient(
+                  begin: const Alignment(-1, -0.32),
+                  end: const Alignment(1, 0.32),
+                  stops: const [0.32, 0.5, 0.68],
+                  colors: [colors.base, colors.highlight, colors.base],
+                  //-1 to 1 carries the band fully off both edges
+                  transform: ShimmerSweep(still ? 0 : sweep.value * 2 - 1),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 24,
+            left: 24,
+            child: Entrance(
+              order: 1,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Bone(width: 160, height: 32, color: bone),
+                  const SizedBox(height: 8),
+                  Bone(width: 96, height: 16, color: bone),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            left: kCardSideInset,
+            right: kCardSideInset,
+            bottom: kCardSideInset,
+            child: Entrance(
+              order: 2,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Bone(width: 56, height: 56, color: bone, circle: true),
+                  Bone(width: 48, height: 48, color: bone, circle: true),
+                  Bone(width: 56, height: 56, color: bone, circle: true),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+

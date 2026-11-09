@@ -32,6 +32,8 @@ import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/models/notification_model.dart';
 import 'package:foitifinder/pages/main_pages/match_page.dart';
 import 'package:foitifinder/providers/notifications_provider.dart';
+import 'package:foitifinder/theme/app_colors.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:foitifinder/widgets/profile_photo.dart';
 import 'package:provider/provider.dart';
 
@@ -48,6 +50,9 @@ class NotificationsPage extends StatefulWidget {
 
 class _NotificationsPageState extends State<NotificationsPage> {
   AppLocalizations get text => AppLocalizations.of(context)!;
+
+  //rows that have already played their entrance; see Entrance.shouldPlay
+  final Set<int> _enteredRows = {};
 
   @override
   void initState() {
@@ -98,29 +103,53 @@ class _NotificationsPageState extends State<NotificationsPage> {
     final items = provider.items;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(text.notifications),
-        automaticallyImplyLeading: true,
+      //the list scrolls under the frosted bar
+      extendBodyBehindAppBar: true,
+      appBar: GlassAppBar(
+        child: AppBar(
+          title: Text(text.notifications),
+          automaticallyImplyLeading: true,
+        ),
       ),
       body: RefreshIndicator(
+        edgeOffset: MediaQuery.paddingOf(context).top + kToolbarHeight,
         onRefresh: provider.load,
-        child: items.isEmpty
-            ? _EmptyList(
-                message: text.noNotifications,
-                loading: provider.isLoading,
-              )
-            : ListView.separated(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                itemCount: items.length,
-                separatorBuilder: (_, _) => const Divider(height: 1),
-                itemBuilder: (_, index) {
-                  final note = items[index];
-                  return _NotificationRow(
-                    note: note,
-                    onTap: () => _open(note),
-                  );
-                },
-              ),
+        child: Crossfade(
+          child: items.isEmpty
+              ? _EmptyList(
+                  key: ValueKey(provider.isLoading ? 'loading' : 'empty'),
+                  message: text.noNotifications,
+                  actionLabel: text.retry,
+                  onAction: provider.load,
+                  loading: provider.isLoading,
+                )
+              : CustomScrollView(
+                  key: const ValueKey('list'),
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    const SliverGlassBarInset(),
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                      sliver: SliverList.separated(
+                        itemCount: items.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 8),
+                        itemBuilder: (_, index) {
+                          final note = items[index];
+                          return Entrance(
+                            key: ValueKey(note.id),
+                            order: Entrance.orderFor(index),
+                            shouldPlay: () => _enteredRows.add(note.id),
+                            child: _NotificationRow(
+                              note: note,
+                              onTap: () => _open(note),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+        ),
       ),
     );
   }
@@ -128,29 +157,76 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
 class _EmptyList extends StatelessWidget {
   final String message;
+  final String actionLabel;
+  final VoidCallback onAction;
   final bool loading;
 
-  const _EmptyList({required this.message, required this.loading});
+  const _EmptyList({
+    super.key,
+    required this.message,
+    required this.actionLabel,
+    required this.onAction,
+    required this.loading,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     //still a scroll view, or there is nothing to pull on - and an empty bell
     //is exactly when someone pulls to refresh
-    return ListView(
-      children: [
-        SizedBox(height: MediaQuery.sizeOf(context).height * 0.2),
+    final Widget scroll = CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      slivers: [
+        const SliverGlassBarInset(),
         if (loading)
-          const Center(child: CircularProgressIndicator())
+          const SliverPadding(
+            padding: EdgeInsets.fromLTRB(16, 8, 16, 24),
+            sliver: SliverToBoxAdapter(child: _RowSkeletons()),
+          )
         else
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Text(
-              message,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: EmptyState(
+              icon: Icons.notifications_none,
+              message: message,
+              actionLabel: actionLabel,
+              onAction: onAction,
+            ),
+          ),
+      ],
+    );
+
+    return loading ? Shimmer(child: scroll) : scroll;
+  }
+}
+
+//The shape of a few rows: a face, two lines, and the time at the end.
+class _RowSkeletons extends StatelessWidget {
+  const _RowSkeletons();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        for (var i = 0; i < 6; i++)
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            child: Row(
+              children: [
+                Bone(width: 48, height: 48, circle: true),
+                SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Bone(width: 160, height: 16),
+                      SizedBox(height: 8),
+                      Bone(height: 8),
+                    ],
+                  ),
+                ),
+                SizedBox(width: 16),
+                Bone(width: 24, height: 8),
+              ],
             ),
           ),
       ],
@@ -211,49 +287,74 @@ class _NotificationRow extends StatelessWidget {
     final text = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final (title, body) = _lines(text);
+    final Color muted = theme.colorScheme.onSurface.withValues(alpha: 0.6);
+    final VoidCallback? rowTap = note.canOpen || !note.read ? onTap : null;
 
-    return Opacity(
-      opacity: note.read ? _kReadOpacity : 1,
-      child: ListTile(
-        //SPENT NOTIFICATIONS ARE NOT TAPPABLE. A match already answered, a
-        //declined one, an account that is gone - all of them lead nowhere, so
-        //the row stops behaving like a link. An unread one still takes a tap,
-        //because that is how it gets marked read.
-        onTap: note.canOpen || !note.read ? onTap : null,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: SizedBox(
-          width: 52,
-          height: 52,
-          child: ClipOval(
-            child: PersonPhoto(
-              url: note.otherPhotoUrl,
-              decodeWidth: kThumbDecodeWidth,
-              missingIconSize: 26,
+    //dims when it is read rather than snapping; no begin, so a row that is
+    //already read simply starts dim
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(end: note.read ? _kReadOpacity : 1),
+      duration: const Duration(milliseconds: 240),
+      curve: Curves.easeOut,
+      builder: (context, opacity, child) =>
+          Opacity(opacity: opacity, child: child),
+      child: SpringPress(
+        enabled: rowTap != null,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: AppShadows.card,
+          ),
+          child: Material(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            clipBehavior: Clip.antiAlias,
+            child: ListTile(
+              //SPENT NOTIFICATIONS ARE NOT TAPPABLE. A match already answered,
+              //a declined one, an account that is gone - all of them lead
+              //nowhere, so the row stops behaving like a link. An unread one
+              //still takes a tap, because that is how it gets marked read.
+              onTap: rowTap,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
+              leading: SizedBox(
+                width: 48,
+                height: 48,
+                child: ClipOval(
+                  child: PersonPhoto(
+                    url: note.otherPhotoUrl,
+                    decodeWidth: kThumbDecodeWidth,
+                    missingIconSize: 24,
+                  ),
+                ),
+              ),
+              title: Text(
+                title,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  //unread reads as the thing to look at; read is just history
+                  fontWeight: note.read ? FontWeight.w500 : FontWeight.w700,
+                  letterSpacing: -0.2,
+                ),
+              ),
+              subtitle: Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  body,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(color: muted),
+                ),
+              ),
+              trailing: Text(
+                _age(text),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: muted,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
             ),
-          ),
-        ),
-        title: Text(
-          title,
-          style: theme.textTheme.titleSmall?.copyWith(
-            //unread reads as the thing to look at; read is just history
-            fontWeight: note.read ? FontWeight.w500 : FontWeight.w700,
-          ),
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 2),
-          child: Text(
-            body,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
-        trailing: Text(
-          _age(text),
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
       ),

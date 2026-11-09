@@ -11,6 +11,8 @@ import 'package:foitifinder/pages/profile_pages/date_preferences/date_preference
 import 'package:foitifinder/pages/profile_pages/edit_profile/edit_profile_page.dart';
 import 'package:foitifinder/pages/profile_pages/app_settings/app_settings_page.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/theme/app_colors.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:foitifinder/widgets/pressable.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
@@ -125,7 +127,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
-                        vertical: 14,
+                        vertical: 16,
                       ),
                       child: Text(
                         doc.label,
@@ -186,127 +188,158 @@ class _ProfilePageState extends State<ProfilePage> {
       body: Column(
         children: [
           //Main row (pfp, name, age)
-          Row(
-            children: [
-              //Pfp
-              Padding(
-                padding: EdgeInsets.fromLTRB(20, 20, 15, 15),
-                child: GestureDetector(
-                  onTap: () async {
-                    final result = await profileProvider.updateProfilePicture();
-                    if (!context.mounted) return;
-                    if (result == ProfilePictureUpdate.failed) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(text.errorOccured),
-                          backgroundColor: Colors.red,
-                          duration: const Duration(seconds: 3),
-                        ),
-                      );
-                    }
-                  },
-                  child: CircleAvatar(  
-                    radius: 40,
-                    backgroundColor: Colors.grey[500],
-                    backgroundImage: backgroundImage,
-                  ),
-                ),
-              ),
-              //Username, age
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          Entrance(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
                 children: [
-                  Row(
-                    children: [
-                      //derived, never stored - see utils/age.dart
-                      Builder(
-                        builder: (context) {
-                          final age = ageFromBirthday(
-                            profileProvider.currentUser!.birthday,
-                          );
-                          final name = profileProvider.currentUser!.name;
-                          return Text(
-                            age == null ? name : '$name, $age',
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                  //Pfp
+                  SpringPress(
+                    child: GestureDetector(
+                      onTap: () async {
+                        final result =
+                            await profileProvider.updateProfilePicture();
+                        if (!context.mounted) return;
+                        if (result == ProfilePictureUpdate.failed) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(text.errorOccured),
+                              backgroundColor: Colors.red,
+                              duration: const Duration(seconds: 3),
                             ),
                           );
-                        },
+                        }
+                      },
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: AppShadows.card,
+                        ),
+                        child: CircleAvatar(
+                          radius: 40,
+                          backgroundColor: Colors.grey[500],
+                          backgroundImage: backgroundImage,
+                        ),
                       ),
-                    ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  //Username, age
+                  //derived, never stored - see utils/age.dart
+                  Expanded(
+                    child: Builder(
+                      builder: (context) {
+                        final age = ageFromBirthday(
+                          profileProvider.currentUser!.birthday,
+                        );
+                        final name = profileProvider.currentUser!.name;
+                        return Text(
+                          age == null ? name : '$name, $age',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.5,
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ],
               ),
-            ],
+            ),
           ),
           //Everything the profile page leads to. Scrolls on its own so the
           //header stays put on a short screen.
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.only(top: 8, bottom: 24),
-              children: [
+            child: CustomScrollView(
+              slivers: [
                 //The four destinations, in one card like the settings page.
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
-                  child: Material(
-                    //instant, not lerped - see widgets/nav_row.dart
-                    animationDuration: Duration.zero,
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                    shape: RoundedRectangleBorder(
-                      side: BorderSide.none,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    //so the pressed tint on the first and last rows follows the
-                    //card's rounded corners instead of squaring them off
-                    clipBehavior: Clip.antiAlias,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _NavRow(
-                          icon: Icons.person_outline,
-                          label: text.editProfile,
-                          onTap: () => _push(const EditProfile()),
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                  sliver: SliverToBoxAdapter(
+                    child: Entrance(
+                      order: 1,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: AppShadows.card,
                         ),
-                        _NavRow(
-                          icon: Icons.favorite_outline,
-                          label: text.datePreferences,
-                          onTap: () => _push(const DatePreferencesPage()),
+                        child: Material(
+                          //instant, not lerped - see widgets/nav_row.dart
+                          animationDuration: Duration.zero,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest,
+                          shape: RoundedRectangleBorder(
+                            side: BorderSide.none,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          //so the pressed tint on the first and last rows
+                          //follows the card's rounded corners instead of
+                          //squaring them off
+                          clipBehavior: Clip.antiAlias,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _NavRow(
+                                icon: Icons.person_outline,
+                                label: text.editProfile,
+                                onTap: () => _push(const EditProfile()),
+                              ),
+                              _NavRow(
+                                icon: Icons.favorite_outline,
+                                label: text.datePreferences,
+                                onTap: () => _push(const DatePreferencesPage()),
+                              ),
+                              _NavRow(
+                                icon: Icons.manage_accounts_outlined,
+                                label: text.accountSettings,
+                                onTap: () => _push(const AccountSettingsPage()),
+                              ),
+                              _NavRow(
+                                icon: Icons.settings_outlined,
+                                label: text.appSettings,
+                                onTap: () => _push(const SettingsPage()),
+                              ),
+                            ],
+                          ),
                         ),
-                        _NavRow(
-                          icon: Icons.manage_accounts_outlined,
-                          label: text.accountSettings,
-                          onTap: () => _push(const AccountSettingsPage()),
-                        ),
-                        _NavRow(
-                          icon: Icons.settings_outlined,
-                          label: text.appSettings,
-                          onTap: () => _push(const SettingsPage()),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
 
-                _SectionHeader(text.aboutFoitiFinder),
+                SliverToBoxAdapter(
+                  child: Entrance(
+                    order: 2,
+                    child: _SectionHeader(text.aboutFoitiFinder),
+                  ),
+                ),
                 //Plain rows: no card, no chevron, just hairlines between them.
                 //These are reference documents, not places you go to do
                 //something, so they get less visual weight than the four above.
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _PlainRow(
-                        label: text.policies,
-                        onTap: _showPolicies,
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                  sliver: SliverToBoxAdapter(
+                    child: Entrance(
+                      order: 3,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _PlainRow(
+                            label: text.policies,
+                            onTap: _showPolicies,
+                          ),
+                          const Divider(),
+                          _PlainRow(
+                            label: text.openSourceLicences,
+                            onTap: _openLicences,
+                          ),
+                        ],
                       ),
-                      const Divider(),
-                      _PlainRow(
-                        label: text.openSourceLicences,
-                        onTap: _openLicences,
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ],
@@ -329,12 +362,13 @@ class _SectionHeader extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(15, 28, 15, 4),
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
       child: Text(
         title,
         style: theme.textTheme.titleSmall?.copyWith(
           color: theme.colorScheme.primary,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.2,
         ),
       ),
     );
@@ -357,22 +391,27 @@ class _NavRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Pressable(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        child: Row(
-          children: [
-            Icon(icon, size: 22),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                label,
-                style: theme.textTheme.titleMedium,
+    return SpringPress(
+      child: Pressable(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          child: Row(
+            children: [
+              Icon(icon, size: 24),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  label,
+                  style: theme.textTheme.titleMedium,
+                ),
               ),
-            ),
-            const Icon(Icons.chevron_right),
-          ],
+              Icon(
+                Icons.chevron_right,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -390,16 +429,23 @@ class _PlainRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Pressable(
-      onTap: onTap,
-      //no background wash here: there is no card behind these, so a tint would
-      //draw a box that exists only while the finger is down
-      tintBackground: false,
-      child: SizedBox(
-        width: double.infinity,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Text(label, style: theme.textTheme.bodyLarge),
+    return SpringPress(
+      child: Pressable(
+        onTap: onTap,
+        //no background wash here: there is no card behind these, so a tint
+        //would draw a box that exists only while the finger is down
+        tintBackground: false,
+        child: SizedBox(
+          width: double.infinity,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Text(
+              label,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+              ),
+            ),
+          ),
         ),
       ),
     );

@@ -30,8 +30,10 @@ import 'package:foitifinder/models/public_profile.dart';
 import 'package:foitifinder/pages/main_pages/profile_detail_page.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/services/api_services.dart';
+import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/app_dialog.dart';
 import 'package:foitifinder/widgets/photo_card.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:foitifinder/widgets/profile_photo.dart';
 import 'package:foitifinder/widgets/primary_button.dart';
 import 'package:provider/provider.dart';
@@ -335,32 +337,56 @@ class _MatchPageState extends State<MatchPage> {
                   //waiting and revealed stages the page already ends in a
                   //button that closes it, and the system back works, so a
                   //second exit would just be two ways to do one thing.
-                  if (_stage == _Stage.decide)
-                    SafeArea(
-                      child: Align(
-                        alignment: Alignment.topLeft,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8),
-                          //NOT ARM-GATED, unlike share and decline. The timer
-                          //exists because those are reached with a thumb
-                          //already travelling toward the bottom of the
-                          //screen; this is in the opposite corner and costs
-                          //nothing if pressed by accident.
-                          child: _CircleBackButton(onPressed: _leaveForNow),
-                        ),
-                      ),
+                  Positioned.fill(
+                    child: Crossfade(
+                      child: _stage == _Stage.decide
+                          ? SafeArea(
+                              key: const ValueKey('back'),
+                              child: Align(
+                                alignment: Alignment.topLeft,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8),
+                                  //NOT ARM-GATED, unlike share and decline. The
+                                  //timer exists because those are reached with
+                                  //a thumb already travelling toward the bottom
+                                  //of the screen; this is in the opposite
+                                  //corner and costs nothing if pressed by
+                                  //accident.
+                                  child: _CircleBackButton(
+                                    onPressed: _leaveForNow,
+                                  ),
+                                ),
+                              ),
+                            )
+                          : const SizedBox.shrink(key: ValueKey('no-back')),
                     ),
+                  ),
                 ],
               ),
             ),
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
-                child: switch (_stage) {
-                  _Stage.decide => _buildDecide(theme),
-                  _Stage.waiting => _buildWaiting(theme),
-                  _Stage.revealed => _buildRevealed(theme),
-                },
+              //a sheet pulled up over the photo, as on the profile page
+              child: Transform.translate(
+                offset: const Offset(0, -24),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: theme.scaffoldBackgroundColor,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(24),
+                    ),
+                    boxShadow: AppShadows.card,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                    child: Crossfade(
+                      child: _stageBody(switch (_stage) {
+                        _Stage.decide => _buildDecide(theme),
+                        _Stage.waiting => _buildWaiting(theme),
+                        _Stage.revealed => _buildRevealed(theme),
+                      }),
+                    ),
+                  ),
+                ),
               ),
             ),
           ],
@@ -369,6 +395,23 @@ class _MatchPageState extends State<MatchPage> {
     );
   }
 
+  //SCROLLS ONLY WHEN IT MUST. Large text on a short phone would otherwise push
+  //these buttons off the page, and they are the point of it.
+  Widget _stageBody(Widget column) {
+    return CustomScrollView(
+      key: ValueKey(_stage),
+      primary: false,
+      slivers: [SliverFillRemaining(hasScrollBody: false, child: column)],
+    );
+  }
+
+  TextStyle? _headline(ThemeData theme) => theme.textTheme.headlineSmall
+      ?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.5);
+
+  TextStyle? _muted(ThemeData theme) => theme.textTheme.bodyMedium?.copyWith(
+    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+  );
+
   Widget _buildDecide(ThemeData theme) {
     final name = widget.otherName;
     final who = widget.otherAge == null ? name : '$name, ${widget.otherAge}';
@@ -376,43 +419,68 @@ class _MatchPageState extends State<MatchPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          //arriving from a notification about a match THEY have answered,
-          //the news is their yes; otherwise it is still the match itself
-          widget.fromNotification && widget.theyConfirmed
-              ? text.matchTheirTurn(name)
-              : text.matchTitle,
-          style: theme.textTheme.headlineSmall,
-        ),
-        const SizedBox(height: 4),
-        Text(who, style: theme.textTheme.titleMedium),
-        const SizedBox(height: 16),
-        Text(
-          text.matchHowItWorks(name),
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+        Entrance(
+          child: Text(
+            //arriving from a notification about a match THEY have answered,
+            //the news is their yes; otherwise it is still the match itself
+            widget.fromNotification && widget.theyConfirmed
+                ? text.matchTheirTurn(name)
+                : text.matchTitle,
+            style: _headline(theme),
           ),
+        ),
+        const SizedBox(height: 8),
+        Entrance(
+          order: 1,
+          child: Text(
+            who,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w500,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Entrance(
+          order: 2,
+          child: Text(text.matchHowItWorks(name), style: _muted(theme)),
         ),
         const SizedBox(height: 8),
         //for the side that swiped weeks ago and does not remember this person.
         //Harmless here, essential once the other half of the flow exists.
-        Align(
-          alignment: Alignment.centerLeft,
-          child: TextButton(
-            onPressed: _openProfile,
-            child: Text(text.matchViewProfile),
+        Entrance(
+          order: 3,
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: SpringPress(
+              child: TextButton(
+                onPressed: _openProfile,
+                child: Text(text.matchViewProfile),
+              ),
+            ),
           ),
         ),
         const Spacer(),
-        PrimaryButton(
-          label: text.matchShare,
-          onPressed: (_busy || !_armed) ? null : _share,
+        Entrance(
+          order: 4,
+          child: PrimaryButton(
+            label: text.matchShare,
+            onPressed: (_busy || !_armed) ? null : _share,
+          ),
         ),
-        TextButton(
-          onPressed: (_busy || !_armed) ? null : _decline,
-          child: Text(
-            text.matchDecline,
-            style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+        Entrance(
+          order: 5,
+          child: SpringPress(
+            enabled: !_busy && _armed,
+            child: TextButton(
+              onPressed: (_busy || !_armed) ? null : _decline,
+              child: Text(
+                text.matchDecline,
+                style: TextStyle(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+              ),
+            ),
           ),
         ),
       ],
@@ -423,22 +491,29 @@ class _MatchPageState extends State<MatchPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          text.matchWaitingTitle(widget.otherName),
-          style: theme.textTheme.headlineSmall,
+        Entrance(
+          child: Text(
+            text.matchWaitingTitle(widget.otherName),
+            style: _headline(theme),
+          ),
         ),
-        const SizedBox(height: 12),
-        Text(
-          text.matchWaitingBody(widget.otherName),
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+        const SizedBox(height: 16),
+        Entrance(
+          order: 1,
+          child: Text(
+            text.matchWaitingBody(widget.otherName),
+            style: _muted(theme),
           ),
         ),
         const Spacer(),
-        PrimaryButton(
-          label: text.matchDone,
-          onPressed: () => Navigator.pop(context),
+        Entrance(
+          order: 2,
+          child: PrimaryButton(
+            label: text.matchDone,
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
+        const SizedBox(height: 8),
       ],
     );
   }
@@ -447,38 +522,57 @@ class _MatchPageState extends State<MatchPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(text.matchRevealedTitle, style: theme.textTheme.headlineSmall),
+        Entrance(
+          child: Text(text.matchRevealedTitle, style: _headline(theme)),
+        ),
         const SizedBox(height: 16),
         //big, because people screenshot this
-        SelectableText(
-          '@${_theirHandle ?? ''}',
-          style: theme.textTheme.headlineMedium,
+        Entrance(
+          order: 1,
+          child: SelectableText(
+            '@${_theirHandle ?? ''}',
+            style: theme.textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.5,
+            ),
+          ),
         ),
         const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: _copyHandle,
-                icon: const Icon(Icons.copy_outlined),
-                label: Text(text.matchCopy),
+        Entrance(
+          order: 2,
+          child: Row(
+            children: [
+              Expanded(
+                child: SpringPress(
+                  child: OutlinedButton.icon(
+                    onPressed: _copyHandle,
+                    icon: const Icon(Icons.copy_outlined),
+                    label: Text(text.matchCopy),
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: _openInstagram,
-                icon: const Icon(Icons.open_in_new),
-                label: Text(text.matchOpenInstagram),
+              const SizedBox(width: 8),
+              Expanded(
+                child: SpringPress(
+                  child: OutlinedButton.icon(
+                    onPressed: _openInstagram,
+                    icon: const Icon(Icons.open_in_new),
+                    label: Text(text.matchOpenInstagram),
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         const Spacer(),
-        PrimaryButton(
-          label: text.matchDone,
-          onPressed: () => Navigator.pop(context),
+        Entrance(
+          order: 3,
+          child: PrimaryButton(
+            label: text.matchDone,
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
+        const SizedBox(height: 8),
       ],
     );
   }
@@ -516,15 +610,10 @@ class _CircleBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: const Color(0x66000000),
-      shape: const CircleBorder(),
-      clipBehavior: Clip.antiAlias,
-      child: IconButton(
-        onPressed: onPressed,
-        icon: const Icon(Icons.arrow_back, color: Colors.white),
-        tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-      ),
+    return GlassCircleButton(
+      icon: Icons.arrow_back,
+      onPressed: onPressed,
+      tooltip: MaterialLocalizations.of(context).backButtonTooltip,
     );
   }
 }

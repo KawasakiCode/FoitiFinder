@@ -43,6 +43,7 @@ import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/app_dialog.dart';
 import 'package:foitifinder/widgets/report_sheet.dart';
 import 'package:foitifinder/widgets/photo_card.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:foitifinder/widgets/profile_photo.dart';
 
 //the body's slide, for tests that need to watch it
@@ -296,15 +297,18 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
         elevation: 0,
         //the photo behind is dark enough for white controls, in both themes
         foregroundColor: Colors.white,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+        leading: Center(
+          child: GlassCircleButton(
+            icon: Icons.arrow_back,
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.more_vert),
+          GlassCircleButton(
+            icon: Icons.more_vert,
             onPressed: () => _showReportMenu(context),
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: Stack(
@@ -323,7 +327,7 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
                 //pulled up so the first card crops into the photo, as in the
                 //user's own preview
                 Transform.translate(
-                  offset: const Offset(0, -28),
+                  offset: const Offset(0, -24),
                   //in with the page, and back out the same way on a pop
                   child: FadeTransition(
                     opacity: bodyFade,
@@ -427,6 +431,9 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
     final text = AppLocalizations.of(context)!;
     showModalBottomSheet<void>(
       context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (sheetContext) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -607,7 +614,7 @@ class _DecisionBar extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 18, 24, 24),
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
       decoration: BoxDecoration(
         //fades into the page rather than sitting on a hard edge
         gradient: LinearGradient(
@@ -627,7 +634,7 @@ class _DecisionBar extends StatelessWidget {
             SwipeActionButton(
               icon: Icons.close,
               gradient: AppColors.passGradient,
-              size: 58,
+              size: 56,
               onPressed: () => onDecide(ProfileDecision.pass),
             ),
             if (showSuperLike)
@@ -644,7 +651,7 @@ class _DecisionBar extends StatelessWidget {
             SwipeActionButton(
               icon: Icons.favorite,
               gradient: AppColors.likeGradient,
-              size: 58,
+              size: 56,
               onPressed: () => onDecide(ProfileDecision.like),
             ),
           ],
