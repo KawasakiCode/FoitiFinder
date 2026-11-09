@@ -16,6 +16,8 @@ import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/loading_overlay.dart';
+import 'package:foitifinder/widgets/polish.dart';
+import 'package:foitifinder/widgets/primary_button.dart';
 import 'package:provider/provider.dart';
 import 'package:foitifinder/widgets/app_dialog.dart';
 
@@ -239,135 +241,167 @@ class _VerifyEmailState extends State<VerifyEmail> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return LoadingOverlay(
       isLoading: _isLoading,
-      child: Scaffold(
+      child: GlassScaffold(
         appBar: AppBar(
           automaticallyImplyActions: true,
           title: Text(text.verifyYourEmail),
         ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              //Verify email text
-              Padding(
-                padding: EdgeInsets.only(left: 10, right: 10),
-                child: Text(
-                  _isVerified ? text.mailVerified : text.verifyEmail,
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              SizedBox(height: 5),
-              //User's email text
-              Text(
-                FirebaseAuth.instance.currentUser?.email ?? '',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              ),
-              if (_isEmailSent && !_isVerified)
-                //Confirmation that verification email was sent
-                Padding(
-                  padding: const EdgeInsets.only(top: 10, bottom: 5),
-                  child: Container(
-                    margin: EdgeInsets.symmetric(horizontal: 15),
-                    padding: EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.green[100],
-                      borderRadius: BorderRadius.circular(8),
+        body: CustomScrollView(
+          slivers: [
+            const SliverGlassBarInset(),
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Entrance(
+                      child: Container(
+                        width: 96,
+                        height: 96,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.08),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.mark_email_unread_outlined,
+                          size: 40,
+                          color: AppColors.primary,
+                        ),
+                      ),
                     ),
-                    child: Text(
-                      text.verificationEmailSent,
-                      style: TextStyle(color: Colors.green[800]),
+                    const SizedBox(height: 24),
+                    //Verify email text
+                    Entrance(
+                      order: 1,
+                      child: Text(
+                        _isVerified ? text.mailVerified : text.verifyEmail,
+                        style: headlineText(context),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
-                  ),
-                ),
-              //Sent verification email button — hidden once verified
-              if (!_isVerified)
-              Padding(
-                padding: const EdgeInsets.only(top: 5),
-                child: TextButton(
-                  onPressed: !_canResend
-                      ? null
-                      : () async {
-                          setState(() {
-                            //lock the button so if the user spams it it doesnt sent more emails
-                            _isLoading = true;
-                            _canResend = false;
-                          });
-
-                          try {
-                            await FirebaseAuth.instance.currentUser?.sendEmailVerification();
-
-                            if(!mounted)return;
-                            setState(() {
-                              _isEmailSent = true;
-                            });
-
-                            if (!context.mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(text.snackbarSuccessVerifyEmail),
-                                backgroundColor: Colors.green,
-                                duration: Duration(seconds: 3),
+                    const SizedBox(height: 8),
+                    //User's email text
+                    Entrance(
+                      order: 2,
+                      child: Text(
+                        FirebaseAuth.instance.currentUser?.email ?? '',
+                        textAlign: TextAlign.center,
+                        style: mutedText(context),
+                      ),
+                    ),
+                    //Confirmation that verification email was sent
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 240),
+                      curve: Curves.easeOutCubic,
+                      child: _isEmailSent && !_isVerified
+                          ? Padding(
+                              padding: const EdgeInsets.only(top: 16),
+                              child: Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: AppColors.success.withValues(
+                                    alpha: 0.12,
+                                  ),
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadius.md,
+                                  ),
+                                ),
+                                child: Text(
+                                  text.verificationEmailSent,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: AppColors.success,
+                                  ),
+                                ),
                               ),
-                            );
+                            )
+                          : const SizedBox(width: double.infinity),
+                    ),
+                    const SizedBox(height: 32),
+                    //Sent verification email button — hidden once verified
+                    if (!_isVerified)
+                      Entrance(
+                        order: 3,
+                        child: PrimaryButton(
+                          expand: false,
+                          label: _canResend
+                              ? text.sentVerificationEmail
+                              : "${text.resendIn} ${_countdown}s",
+                          onPressed: !_canResend
+                              ? null
+                              : () async {
+                                  setState(() {
+                                    //lock the button so if the user spams it it doesnt sent more emails
+                                    _isLoading = true;
+                                    _canResend = false;
+                                  });
 
-                            _startTimer();
-                          } catch (e) {
-                            if (!context.mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(text.snackbarFailedVerifyEmail),
-                                backgroundColor: Colors.red,
-                                duration: Duration(seconds: 3),
-                              ),
-                            );
-                            //re-enable the button so the user can retry,
-                            //otherwise it stays disabled with no timer running
-                            setState(() {
-                              _canResend = true;
-                            },);
-                          } finally {
-                            setState(() {
-                              //unlock button
-                              _isLoading = false;
-                            });
-                          }
-                        },
-                  style: TextButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 10,
-                      horizontal: 20,
+                                  try {
+                                    await FirebaseAuth.instance.currentUser?.sendEmailVerification();
+
+                                    if(!mounted)return;
+                                    setState(() {
+                                      _isEmailSent = true;
+                                    });
+
+                                    if (!context.mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(text.snackbarSuccessVerifyEmail),
+                                        backgroundColor: Colors.green,
+                                        duration: Duration(seconds: 3),
+                                      ),
+                                    );
+
+                                    _startTimer();
+                                  } catch (e) {
+                                    if (!context.mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(text.snackbarFailedVerifyEmail),
+                                        backgroundColor: Colors.red,
+                                        duration: Duration(seconds: 3),
+                                      ),
+                                    );
+                                    //re-enable the button so the user can retry,
+                                    //otherwise it stays disabled with no timer running
+                                    setState(() {
+                                      _canResend = true;
+                                    },);
+                                  } finally {
+                                    setState(() {
+                                      //unlock button
+                                      _isLoading = false;
+                                    });
+                                  }
+                                },
+                        ),
+                      ),
+                    const SizedBox(height: 16),
+                    //Escape hatch: signed up with the wrong address — e.g. a
+                    //typo that is actually another student's email. Deleting
+                    //the unverified account frees that address so its real
+                    //owner can sign up, instead of leaving it locked behind an
+                    //account nobody can verify.
+                    Entrance(
+                      order: 4,
+                      child: SpringPress(
+                        child: TextButton(
+                          onPressed: _confirmAndDelete,
+                          style: TextButton.styleFrom(
+                            foregroundColor: mutedInk(context),
+                          ),
+                          child: Text(text.backToLogin),
+                        ),
+                      ),
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text(
-                    _canResend
-                        ? text.sentVerificationEmail
-                        : "${text.resendIn} ${_countdown}s",
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                  ),
+                  ],
                 ),
               ),
-              SizedBox(height: 20),
-              //Escape hatch: signed up with the wrong address — e.g. a typo that
-              //is actually another student's email. Deleting the unverified
-              //account frees that address so its real owner can sign up, instead
-              //of leaving it locked behind an account nobody can verify.
-              TextButton(
-                onPressed: _confirmAndDelete,
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.grey[600],
-                  textStyle: TextStyle(fontSize: 14),
-                ),
-                child: Text(text.backToLogin),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

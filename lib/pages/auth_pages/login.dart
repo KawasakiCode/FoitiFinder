@@ -7,6 +7,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foitifinder/pages/auth_pages/signup.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/pages/auth_pages/auth_parts.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:foitifinder/widgets/primary_button.dart';
 
 class LoginPage extends StatefulWidget {
@@ -181,275 +183,147 @@ class _LoginPageState extends State<LoginPage> {
         //lives in the button itself (PrimaryButton), so there is never a second.
         body: AbsorbPointer(
           absorbing: isLoading,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: MediaQuery.of(context).size.height,
-              ),
-              child: IntrinsicHeight(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: EdgeInsets.only(
-                        bottom: 10,
-                        top: 20,
-                        left: 15,
-                        right: 15,
+          child: AuthScroll(
+            children: [
+              const Entrance(child: AuthBrand()),
+              const SizedBox(height: 32),
+              Entrance(
+                order: 1,
+                child: SurfaceCard(
+                  child: Column(
+                    children: [
+                      //Email TextFormField
+                      TextFormField(
+                        decoration: InputDecoration(hintText: text.email),
+                        controller: _email,
+                        autocorrect: false,
+                        enableSuggestions: false,
+                        keyboardType: TextInputType.emailAddress,
                       ),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey, width: 1),
-                        borderRadius: BorderRadius.all(  
-                          Radius.circular(12)
-                        )
-                      ),
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 25),
-                            child: Text(
-                              'FoitiFinder',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          //Email TextFormField
-                          TextFormField(
+                      const SizedBox(height: 16),
+                      //Password TextFormField
+                      StatefulBuilder(
+                        builder: (context, setState) {
+                          return TextFormField(
                             decoration: InputDecoration(
-                              hintText: text.email,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(12),
-                                ),
+                              hintText: text.password,
+                              suffixIcon: PasswordEye(
+                                visible: _isPasswordVisible,
+                                onTap: () {
+                                  setState(() {
+                                    _isPasswordVisible = !_isPasswordVisible;
+                                  });
+                                },
                               ),
                             ),
-                            controller: _email,
+                            controller: _password,
+                            obscureText: !_isPasswordVisible,
                             autocorrect: false,
                             enableSuggestions: false,
-                            keyboardType: TextInputType.emailAddress,
-                          ),
-                          //Password TextFormField
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8, bottom: 8),
-                            child: StatefulBuilder(
-                              builder: (context, setState) {
-                                return TextFormField(
-                                  decoration: InputDecoration(
-                                    hintText: text.password,
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.all(
-                                        Radius.circular(12),
-                                      ),
-                                    ),
-                                    suffixIcon: Padding(
-                                      padding: EdgeInsets.only(right: 8.0),
-                                      child: Material(
-                                        color: Colors.transparent,
-                                        child: InkWell(
-                                          borderRadius: BorderRadius.circular(
-                                            20,
-                                          ),
-                                          onTap: () {
-                                            setState(() {
-                                              _isPasswordVisible =
-                                                  !_isPasswordVisible;
-                                            });
-                                          },
-                                          child: Padding(
-                                            padding: EdgeInsets.all(8.0),
-                                            child: Image.asset(
-                                              _isPasswordVisible
-                                                  ? 'assets/icons/hide.png'
-                                                  : 'assets/icons/view.png',
-                                              width: 10,
-                                              height: 10,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      //Login button
+                      PrimaryButton(
+                        label: text.login,
+                        onPressed: isLoading ? null : _login,
+                        isLoading: isLoading,
+                      ),
+                      //Or text with dividers
+                      OrDivider(label: text.or),
+                      //Forgot Password button
+                      SpringPress(
+                        child: TextButton(
+                          onPressed: () async {
+                            //validate the email before asking Firebase
+                            //to send a reset, otherwise an empty/invalid
+                            //field just produces a generic error
+                            final resetEmail = _email.text.trim();
+                            final resetEmailRegex = RegExp(
+                              r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                            );
+                            if (resetEmail.isEmpty ||
+                                !resetEmailRegex.hasMatch(resetEmail)) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(text.invalidEmail),
+                                  backgroundColor: Colors.red,
+                                  duration: Duration(seconds: 3),
+                                ),
+                              );
+                              return;
+                            }
+                            setState(() => isLoading = true);
+                            try {
+                              await FirebaseAuth.instance
+                                  .sendPasswordResetEmail(
+                                    email: resetEmail,
+                                  );
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(
+                                context,
+                              ).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    text.passwordResetEmail,
                                   ),
-                                  controller: _password,
-                                  obscureText: !_isPasswordVisible,
-                                  autocorrect: false,
-                                  enableSuggestions: false,
-                                );
-                              },
+                                  backgroundColor: Colors.green,
+                                  duration: Duration(seconds: 3),
+                                ),
+                              );
+                            } catch (e) {
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(
+                                context,
+                              ).showSnackBar(
+                                SnackBar(
+                                  content: Text(text.errorOccured),
+                                  backgroundColor: Colors.red,
+                                  duration: Duration(seconds: 3),
+                                ),
+                              );
+                            } finally {
+                              if (mounted) {
+                                setState(() => isLoading = false);
+                              }
+                            }
+                          },
+                          style: TextButton.styleFrom(
+                            //onSurface, not a hardcoded colour: black
+                            //vanished against the dark background
+                            foregroundColor:
+                                Theme.of(context).colorScheme.onSurface,
+                            textStyle: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
-                          //Login button
-                          PrimaryButton(
-                            label: text.login,
-                            onPressed: isLoading ? null : _login,
-                            isLoading: isLoading,
-                          ),
-                          SizedBox(height: 10),
-                          //Or text with dividers
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Divider(
-                                  thickness: 1,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                  13,
-                                  10,
-                                  13,
-                                  10,
-                                ),
-                                child: Text(
-                                  text.or,
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w400,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: Divider(
-                                  thickness: 1,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
-                          //Forgot Password button
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Align(
-                                alignment: Alignment.center,
-                                child: TextButton(
-                                  onPressed: () async {
-                                    //validate the email before asking Firebase
-                                    //to send a reset, otherwise an empty/invalid
-                                    //field just produces a generic error
-                                    final resetEmail = _email.text.trim();
-                                    final resetEmailRegex = RegExp(
-                                      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-                                    );
-                                    if (resetEmail.isEmpty ||
-                                        !resetEmailRegex.hasMatch(resetEmail)) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text(text.invalidEmail),
-                                          backgroundColor: Colors.red,
-                                          duration: Duration(seconds: 3),
-                                        ),
-                                      );
-                                      return;
-                                    }
-                                    setState(() => isLoading = true);
-                                    try {
-                                      await FirebaseAuth.instance
-                                          .sendPasswordResetEmail(
-                                            email: resetEmail,
-                                          );
-                                      if (!context.mounted) return;
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            text.passwordResetEmail,
-                                          ),
-                                          backgroundColor: Colors.green,
-                                          duration: Duration(seconds: 3),
-                                        ),
-                                      );
-                                    } catch (e) {
-                                      if (!context.mounted) return;
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(text.errorOccured),
-                                          backgroundColor: Colors.red,
-                                          duration: Duration(seconds: 3),
-                                        ),
-                                      );
-                                    } finally {
-                                      if (mounted) {
-                                        setState(() => isLoading = false);
-                                      }
-                                    }
-                                  },
-                                  style: TextButton.styleFrom(
-                                    padding: EdgeInsets.only(bottom: 5, top: 0),
-                                    tapTargetSize:
-                                        MaterialTapTargetSize.shrinkWrap,
-                                    //onSurface, not a hardcoded colour: black
-                                    //vanished against the dark background
-                                    foregroundColor:
-                                        Theme.of(context).colorScheme.onSurface,
-                                    textStyle: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  child: Text(text.forgotPassword),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    //No account Sign up text
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Container(
-                        padding: const EdgeInsets.only(top: 7, bottom: 7),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey, width: 1),
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(12),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(text.noAccount),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => SignUpPage(),
-                                  ),
-                                );
-                              },
-                              style: TextButton.styleFrom(
-                                foregroundColor:
-                                    Theme.of(context).colorScheme.onSurface,
-                                textStyle: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              child: Text(
-                                text.signUp,
-                                style: TextStyle(
-                                  color: const Color.fromARGB(255, 0, 65, 119),
-                                ),
-                              ),
-                            ),
-                          ],
+                          child: Text(text.forgotPassword),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
+              const SizedBox(height: 16),
+              //No account Sign up text
+              Entrance(
+                order: 2,
+                child: AuthSwitchCard(
+                  prompt: text.noAccount,
+                  action: text.signUp,
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SignUpPage(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
         ),
       ),

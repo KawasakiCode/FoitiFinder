@@ -10,6 +10,9 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/pages/auth_pages/auth_parts.dart';
+import 'package:foitifinder/theme/app_colors.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:foitifinder/widgets/primary_button.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -238,232 +241,109 @@ class _SignUpPageState extends State<SignUpPage> {
         //lives in the button itself (PrimaryButton), so there is never a second.
         body: AbsorbPointer(
           absorbing: _isLoading,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: MediaQuery.of(context).size.height,
-              ),
-              child: IntrinsicHeight(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    //main page container (title, TextFormFields)
-                    Container(
-                      padding: EdgeInsets.only(
-                        bottom: 10,
-                        top: 20,
-                        left: 15,
-                        right: 15,
+          child: AuthScroll(
+            children: [
+              const Entrance(child: AuthBrand()),
+              const SizedBox(height: 32),
+              //main page container (title, TextFormFields)
+              Entrance(
+                order: 1,
+                child: SurfaceCard(
+                  child: Column(
+                    children: [
+                      //signUp text
+                      Text(
+                        text.signUpText,
+                        textAlign: TextAlign.center,
+                        style: mutedText(context),
                       ),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey, width: 1),
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(12),
-                        ),
+                      //or text with dividers
+                      OrDivider(label: text.or),
+                      //email field
+                      TextFormField(
+                        decoration: InputDecoration(hintText: text.email),
+                        controller: _email,
+                        keyboardType: TextInputType.emailAddress,
+                        autocorrect: false,
+                        enableSuggestions: false,
                       ),
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 20),
-                            child: Text(
-                              'FoitiFinder',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          //signUp text
-                          Text(
-                            text.signUpText,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey,
-                            ),
-                          ),
-                          //or text with dividers
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Divider(thickness: 1, color: Colors.grey),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                  13,
-                                  10,
-                                  13,
-                                  10,
-                                ),
-                                child: Text(
-                                  text.or,
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w400,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: Divider(thickness: 1, color: Colors.grey),
-                              ),
-                            ],
-                          ),
-                          //email field
-                          TextFormField(
+                      const SizedBox(height: 16),
+                      //password field
+                      StatefulBuilder(
+                        builder: (context, setState) {
+                          return TextFormField(
                             decoration: InputDecoration(
-                              hintText: text.email,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(12),
-                                ),
+                              hintText: text.password,
+                              suffixIcon: PasswordEye(
+                                visible: _isPasswordVisible,
+                                onTap: () {
+                                  setState(() {
+                                    _isPasswordVisible = !_isPasswordVisible;
+                                  });
+                                },
                               ),
                             ),
-                            controller: _email,
-                            keyboardType: TextInputType.emailAddress,
+                            controller: _password,
+                            obscureText: !_isPasswordVisible,
                             autocorrect: false,
                             enableSuggestions: false,
-                          ),
-                          //password field
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8),
-                            child: StatefulBuilder(
-                              builder: (context, setState) {
-                                return TextFormField(
-                                  decoration: InputDecoration(
-                                    hintText: text.password,
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.all(
-                                        Radius.circular(12),
-                                      ),
-                                    ),
-                                    suffixIcon: Padding(
-                                      padding: EdgeInsets.only(right: 8.0),
-                                      child: Material(
-                                        color: Colors.transparent,
-                                        child: InkWell(
-                                          borderRadius: BorderRadius.circular(20),
-                                          onTap: () {
-                                            setState(() {
-                                              _isPasswordVisible =
-                                                  !_isPasswordVisible;
-                                            });
-                                          },
-                                          child: Padding(
-                                            padding: EdgeInsets.all(8.0),
-                                            child: Image.asset(
-                                              _isPasswordVisible
-                                                  ? 'assets/icons/hide.png'
-                                                  : 'assets/icons/view.png',
-                                              width: 10,
-                                              height: 10,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  controller: _password,
-                                  obscureText: !_isPasswordVisible,
-                                  autocorrect: false,
-                                  enableSuggestions: false,
-                                );
-                              },
-                            ),
-                          ),
-                          //name field - the only one. There is no separate
-                          //username: nothing in the app looks anyone up by a
-                          //handle, so it was a second thing to invent for no
-                          //purpose.
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8, bottom: 8),
-                            child: TextFormField(
-                              decoration: InputDecoration(
-                                hintText: text.name,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(12),
-                                  ),
-                                ),
-                              ),
-                              controller: _name,
-                            ),
-                          ),
-                          //sign up long text
-                          RichText(
-                            text: TextSpan(
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Color.fromARGB(255, 94, 94, 94),
-                              ),
-                              children: [
-                                TextSpan(text: text.signUpLongText),
-                                TextSpan(
-                                  text: text.here,
-                                  style: TextStyle(
-                                    color: Colors.blue,
-                                    decoration: TextDecoration.underline,
-                                  ),
-                                  recognizer: _tapGestureRecognizer,
-                                ),
-                              ],
-                            ),
-                          ),
-                          //sign up button
-                          Padding(
-                            padding: const EdgeInsets.only(top: 10),
-                            child: PrimaryButton(
-                              label: text.signUp,
-                              onPressed: _isLoading ? null : signUp,
-                              isLoading: _isLoading,
-                            ),
-                          ),
-                        ],
+                          );
+                        },
                       ),
-                    ),
-                    //Already have account log in Row
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Container(
-                        padding: const EdgeInsets.only(top: 7, bottom: 7),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey, width: 1),
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(12),
+                      const SizedBox(height: 16),
+                      //name field - the only one. There is no separate
+                      //username: nothing in the app looks anyone up by a
+                      //handle, so it was a second thing to invent for no
+                      //purpose.
+                      TextFormField(
+                        decoration: InputDecoration(hintText: text.name),
+                        controller: _name,
+                      ),
+                      const SizedBox(height: 16),
+                      //sign up long text
+                      RichText(
+                        text: TextSpan(
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: mutedInk(context),
                           ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(text.haveAccount),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              style: TextButton.styleFrom(
-                                foregroundColor: Colors.black,
-                                textStyle: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            TextSpan(text: text.signUpLongText),
+                            TextSpan(
+                              text: text.here,
+                              style: const TextStyle(
+                                color: AppColors.primary,
+                                decoration: TextDecoration.underline,
                               ),
-                              child: Text(
-                                text.login,
-                                style: TextStyle(
-                                  color: const Color.fromARGB(255, 0, 65, 119),
-                                ),
-                              ),
+                              recognizer: _tapGestureRecognizer,
                             ),
                           ],
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 16),
+                      //sign up button
+                      PrimaryButton(
+                        label: text.signUp,
+                        onPressed: _isLoading ? null : signUp,
+                        isLoading: _isLoading,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
+              const SizedBox(height: 16),
+              //Already have account log in Row
+              Entrance(
+                order: 2,
+                child: AuthSwitchCard(
+                  prompt: text.haveAccount,
+                  action: text.login,
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ),
+            ],
           ),
         ),
       ),
