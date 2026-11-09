@@ -29,9 +29,17 @@
 # build that branch mode would run never happens and no .nojekyll file is
 # needed. Nothing in site/ starts with an underscore anyway.
 #
-# BEFORE THE FIRST RUN. Settings -> Pages -> Build and deployment -> Source
-# has to be set to "GitHub Actions". Without that the deploy step fails with
-# a 404 on the Pages API, which reads as a permissions problem and is not.
+# ENABLEMENT. configure-pages reads the repository's Pages configuration when
+# the run STARTS, so a run triggered before Settings -> Pages -> Source was
+# set to "GitHub Actions" fails with
+#
+#     Get Pages site failed ... Error: HttpError: Not Found
+#
+# which reads as a permissions problem and is not - it means there was no
+# Pages site to configure yet. `enablement: true` below makes the step create
+# one through the API instead of requiring the setting to have been flipped by
+# hand first, so the workflow is self-contained. It still needs the repository
+# to be eligible for Pages at all: public, or private on a paid plan.
 
 name: pages
 
@@ -107,7 +115,11 @@ jobs:
           fi
           rm -f placeholders.txt
 
+      # enablement: true creates the Pages site if there is not one already -
+      # see the header. Harmless when it exists.
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       # path: site is the whole point of the Actions approach. Everything in
       # that folder is published and nothing outside it is - including
