@@ -81,6 +81,13 @@ them. The sections most worth a lawyer's eye:
   explicit consent at all or needs its own tick box at the point of entry;
 - `privacy.html` §6 and `delete-account.html` — retaining reports against an
   Art. 17 erasure request;
+- `terms.html` §2 — the bullet asking users to declare they have no relevant
+  conviction. It replaced a clause lifted from US dating-app terms that turned
+  on a sex-offender registry Greece does not have. Asking about convictions at
+  all touches GDPR Art. 10, which wants a basis in law rather than consent; the
+  declaration is never stored and there is no field for it anywhere, which is
+  probably what keeps it clear, but it is worth confirming — and if it ever
+  becomes a stored answer it is a different question;
 - `terms.html` §11 — the liability wording against Greek consumer law;
 - `cancellation.html` — rewrite properly if anything is ever sold.
 
@@ -110,6 +117,15 @@ these pages can quietly stop being true.
 - `privacy.html` said the time you were last active was stored in Firestore.
   It moved to Postgres when the feed started ordering on it, and the statement
   now says so and discloses what it is used for.
+- `guidelines.html` told people that a report "works whether or not the match
+  is still in your list". That was true of the endpoint and false of the app:
+  reporting started from a profile, the only profiles reachable for somebody
+  you had matched with were on the matches page, and removing a match took it
+  off that page. So removing somebody destroyed the ability to report them, at
+  the point where the handle is already out and misuse becomes possible. Fixed
+  by building the screen the sentence had been describing rather than by
+  softening the sentence - the row was never deleted and `create_report` never
+  consulted the hidden columns, so nothing had to be retained to do it.
 
 ## Keeping the pages honest
 
@@ -145,4 +161,11 @@ wrong, in both languages:
   analytics" promise false;
 - **adding a report category** — `guidelines.html` names each one;
 - **renaming a page in this folder** — the app builds its URLs from the
-  filenames in `LegalDocument`, and `test/legal_urls_test.dart` pins them.
+  filenames in `LegalDocument`, and `test/legal_urls_test.dart` pins them;
+- **moving or renaming the removed-matches screen** — `guidelines.html` §5 and
+  §6 and `terms.html` §7 all name the path to it (Account settings → Matches
+  you removed) in both languages, because a safety instruction that does not
+  say where to tap is not an instruction. It is
+  `lib/pages/profile_pages/account_settings/removed_matches_page.dart`, reached
+  from `account_settings_page.dart`, and
+  `backend/tests/test_removed_matches.py` holds the rules it depends on.
