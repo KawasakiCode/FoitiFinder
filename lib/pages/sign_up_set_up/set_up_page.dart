@@ -15,11 +15,11 @@ import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/utils/age.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:foitifinder/services/api_services.dart';
-import 'package:foitifinder/widgets/pressable.dart';
+import 'package:foitifinder/widgets/nav_row.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:provider/provider.dart';
 import 'package:foitifinder/widgets/loading_overlay.dart';
 import 'package:foitifinder/widgets/primary_button.dart';
-import 'package:foitifinder/theme/app_colors.dart';
 
 class SetUpPage extends StatefulWidget {
   const SetUpPage({super.key});
@@ -159,50 +159,43 @@ class _SetUpPageState extends State<SetUpPage> {
     final settings = Provider.of<SettingsProvider>(context);
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
-      child: SafeArea(
-        child: Scaffold(
-          appBar: AppBar(
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(text.editProfile, style: TextStyle(fontSize: 20)),
-                TextButton(
-                  onPressed: () => skipSetUp(),
-                  child: Text("Skip", style: TextStyle(fontSize: 20)),
-                ),
-              ],
+      child: GlassScaffold(
+        appBar: AppBar(
+          title: Text(text.editProfile),
+          automaticallyImplyLeading: true,
+          actions: [
+            SpringPress(
+              child: TextButton(
+                onPressed: () => skipSetUp(),
+                child: const Text("Skip"),
+              ),
             ),
-            automaticallyImplyLeading: true,
-          ),
-          body: LoadingOverlay(
-            isLoading: _isLoading,
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 10, left: 15),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    //Age controller
-                    Padding(
-                      padding: const EdgeInsets.only(top: 10, bottom: 7),
-                      child: Text(
-                        text.addAge,
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 10, right: 10),
-                      //a read-only field that opens the picker: typing a date
-                      //invites every ambiguous format there is
+            const SizedBox(width: 8),
+          ],
+        ),
+        body: LoadingOverlay(
+          isLoading: _isLoading,
+          child: GlassScroll(
+            slivers: [
+              SliverStagger(
+                padding: EdgeInsets.zero,
+                children: [
+                  //Age controller
+                  SectionHeader(text.addAge),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    //a read-only field that opens the picker: typing a date
+                    //invites every ambiguous format there is
+                    child: SpringPress(
                       child: InkWell(
                         onTap: _pickBirthday,
                         child: InputDecorator(
                           decoration: InputDecoration(
                             labelText: text.birthday,
-                            suffixIcon: const Icon(Icons.calendar_today, size: 18),
+                            suffixIcon: const Icon(
+                              Icons.calendar_today,
+                              size: 24,
+                            ),
                           ),
                           child: Text(
                             _birthday == null
@@ -212,303 +205,111 @@ class _SetUpPageState extends State<SetUpPage> {
                         ),
                       ),
                     ),
-                    //Bio controller
-                    Padding(
-                      padding: const EdgeInsets.only(top: 10, bottom: 7),
-                      child: Text(
-                        text.addBio,
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w400,
+                  ),
+                  //Bio controller
+                  SectionHeader(text.addBio),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: TextField(
+                      controller: _bioController,
+                      decoration: InputDecoration(labelText: "Bio"),
+                    ),
+                  ),
+                  //Interests
+                  SectionHeader(text.interests),
+                  CardGroup(
+                    dividers: true,
+                    children: [
+                      CheckRow(
+                        label: text.men,
+                        selected: settings.preferredGender.contains("Men"),
+                        onTap: () => settings.addRemovePreferredGender(
+                          "Men",
+                          saveToDb: false,
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 10, right: 10),
-                      child: TextField(
-                        controller: _bioController,
-                        decoration: InputDecoration(labelText: "Bio"),
-                      ),
-                    ),
-                    //Interests
-                    Padding(
-                      padding: const EdgeInsets.only(top: 10),
-                      child: Text(
-                        text.interests,
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w500,
+                      CheckRow(
+                        label: text.women,
+                        selected: settings.preferredGender.contains("Women"),
+                        onTap: () => settings.addRemovePreferredGender(
+                          "Women",
+                          saveToDb: false,
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 15, top: 15),
-                      child: Material(
-                        color: Colors.transparent,
-                        shape: RoundedRectangleBorder(
-                          side: const BorderSide(color: Colors.grey, width: 1),
-                          borderRadius: BorderRadius.circular(10),
+                      CheckRow(
+                        label: text.everybody,
+                        selected: settings.preferredGender.contains("Everyone"),
+                        onTap: () => settings.addRemovePreferredGender(
+                          "Everyone",
+                          saveToDb: false,
                         ),
-                        clipBehavior: Clip.antiAlias,
-                        child: Pressable(
-                          onTap: () => settings.addRemovePreferredGender("Men", saveToDb: false),
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                              top: 8,
-                              bottom: 8,
-                              left: 10,
-                              right: 15,
-                            ),
-                            child: Row(
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  //Age range
+                  CardGroup(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          children: [
+                            Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  text.men,
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                                  text.ageRange,
+                                  style: Theme.of(context).textTheme.titleMedium,
                                 ),
-                                if (settings.preferredGender.contains("Men"))
-                                  Image.asset(
-                                    'assets/icons/check.png',
-                                    width: 20,
-                                    height: 20,
-                                    color: AppColors.primary,
-                                  )
-                                else
-                                  const SizedBox(width: 20, height: 20),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 15, top: 15),
-                      child: Material(
-                        color: Colors.transparent,
-                        shape: RoundedRectangleBorder(
-                          side: const BorderSide(color: Colors.grey, width: 1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: Pressable(
-                          onTap: () => settings.addRemovePreferredGender("Women", saveToDb: false),
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                              top: 8,
-                              bottom: 8,
-                              left: 10,
-                              right: 15,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
                                 Text(
-                                  text.women,
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                                  '${settings.ageRange.start.toInt()} - ${settings.ageRange.end.toInt()}',
+                                  style: mutedText(context),
                                 ),
-                                if (settings.preferredGender.contains("Women"))
-                                  Image.asset(
-                                    'assets/icons/check.png',
-                                    width: 20,
-                                    height: 20,
-                                    color: AppColors.primary,
-                                  )
-                                else
-                                  const SizedBox(width: 20, height: 20),
                               ],
                             ),
-                          ),
+                            RangeSlider(
+                              values: settings.ageRange,
+                              min: 18,
+                              max: 100,
+                              divisions: 82,
+                              onChanged: (v) =>
+                                  settings.saveAgeRange(v, saveToDb: false),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 15, top: 15),
-                      child: Material(
-                        color: Colors.transparent,
-                        shape: RoundedRectangleBorder(
-                          side: const BorderSide(color: Colors.grey, width: 1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: Pressable(
-                          onTap: () => settings.addRemovePreferredGender("Everyone", saveToDb: false),
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                              top: 8,
-                              bottom: 8,
-                              left: 10,
-                              right: 15,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  text.everybody,
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                if (settings.preferredGender.contains("Everyone"))
-                                  Image.asset(
-                                    'assets/icons/check.png',
-                                    width: 20,
-                                    height: 20,
-                                    color: AppColors.primary,
-                                  )
-                                else
-                                  const SizedBox(width: 20, height: 20),
-                              ],
-                            ),
-                          ),
-                        ),
+                    ],
+                  ),
+                  //Gender
+                  SectionHeader(text.addGender),
+                  CardGroup(
+                    dividers: true,
+                    children: [
+                      CheckRow(
+                        label: text.male,
+                        selected: settings.gender == "Male",
+                        onTap: () =>
+                            settings.changeGender("Male", saveToDb: false),
                       ),
-                    ),
-                    //Age range
-                    Padding(
-                      padding: const EdgeInsets.only(top: 20, right: 10),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            text.ageRange,
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          Text(
-                            '${settings.ageRange.start.toInt()} - ${settings.ageRange.end.toInt()}',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
+                      CheckRow(
+                        label: text.female,
+                        selected: settings.gender == "Female",
+                        onTap: () =>
+                            settings.changeGender("Female", saveToDb: false),
                       ),
+                    ],
+                  ),
+                  //Confirm button
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+                    child: PrimaryButton(
+                      label: text.confirm,
+                      onPressed: () => confirmAndExit(),
                     ),
-                    RangeSlider(
-                      values: settings.ageRange,
-                      min: 18,
-                      max: 100,
-                      divisions: 82,
-                      onChanged: (v) => settings.saveAgeRange(v, saveToDb: false),
-                    ),
-                    //Gender
-                    Padding(
-                      padding: const EdgeInsets.only(top: 10),
-                      child: Text(
-                        text.addGender,
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 15, top: 15),
-                      child: Material(
-                        color: Colors.transparent,
-                        shape: RoundedRectangleBorder(
-                          side: const BorderSide(color: Colors.grey, width: 1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: Pressable(
-                          onTap: () => settings.changeGender("Male", saveToDb: false),
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                              top: 8,
-                              bottom: 8,
-                              left: 10,
-                              right: 15,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  text.male,
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                if (settings.gender == "Male")
-                                  Image.asset(
-                                    'assets/icons/check.png',
-                                    width: 20,
-                                    height: 20,
-                                    color: AppColors.primary,
-                                  )
-                                else
-                                  const SizedBox(width: 20, height: 20),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 15, top: 15),
-                      child: Material(
-                        color: Colors.transparent,
-                        shape: RoundedRectangleBorder(
-                          side: const BorderSide(color: Colors.grey, width: 1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: Pressable(
-                          onTap: () => settings.changeGender("Female", saveToDb: false),
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                              top: 8,
-                              bottom: 8,
-                              left: 10,
-                              right: 15,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  text.female,
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                if (settings.gender == "Female")
-                                  Image.asset(
-                                    'assets/icons/check.png',
-                                    width: 20,
-                                    height: 20,
-                                    color: AppColors.primary,
-                                  )
-                                else
-                                  const SizedBox(width: 20, height: 20),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    //Confirm button
-                    Padding(
-                      padding: const EdgeInsets.only(top: 20, right: 15),
-                      child: PrimaryButton(
-                        label: text.confirm,
-                        onPressed: () => confirmAndExit(),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ),
+            ],
           ),
         ),
       ),

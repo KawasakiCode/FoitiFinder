@@ -13,7 +13,9 @@ import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/widgets/photo_card.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:foitifinder/widgets/loading_overlay.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:foitifinder/widgets/primary_button.dart';
+import 'package:foitifinder/theme/app_colors.dart';
 
 class AddPhotos extends StatefulWidget {
   const AddPhotos({super.key});
@@ -34,6 +36,8 @@ class _AddPhotos extends State<AddPhotos> {
   //bool to not allow the user to upload a photo when another
   //one is already uploading
   bool _isUploading = false;
+  //slots that have already played their entrance; see Entrance.shouldPlay
+  final Set<int> _enteredSlots = {};
 
   //Function to add a photo in the list
   Future<void> _pickImage(int index) async {
@@ -189,55 +193,61 @@ class _AddPhotos extends State<AddPhotos> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(text.uploadPhotos),
-          automaticallyImplyLeading: true,
-        ),
-        body: LoadingOverlay(
-          isLoading: _isLoading,
-          child: Column(
-            children: [
-              //Text
-              Padding(
-                padding: EdgeInsets.all(16),
-                child: Text(
+    return GlassScaffold(
+      appBar: AppBar(
+        title: Text(text.uploadPhotos),
+        automaticallyImplyLeading: true,
+      ),
+      body: LoadingOverlay(
+        isLoading: _isLoading,
+        child: GlassScroll(
+          slivers: [
+            //Text
+            SliverStagger(
+              padding: const EdgeInsets.all(16),
+              children: [
+                Text(
                   text.addAtLeastPhotos(kMinPhotos),
-                  style: TextStyle(fontSize: 15),
+                  style: mutedText(context),
                 ),
-              ),
-              //The grid and photo placements
-              Expanded(
-                child: GridView.builder(
-                  padding: const EdgeInsets.all(10),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    childAspectRatio: 0.7,
+              ],
+            ),
+            //The grid and photo placements
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                  childAspectRatio: 0.7,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  childCount: 6,
+                  (context, index) => Entrance(
+                    key: ValueKey(index),
+                    order: Entrance.orderFor(index),
+                    shouldPlay: () => _enteredSlots.add(index),
+                    child: _buildPhotoSlot(index),
                   ),
-                  itemCount: 6,
-                  itemBuilder: (context, index) {
-                    return _buildPhotoSlot(index);
-                  },
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(15),
-                child: PrimaryButton(
-                  label: text.submit,
-                  //greyed out until the minimum is met: a disabled button
-                  //explains the rule better than an error after the tap
-                  onPressed:
-                      _isUploading ||
-                          _photos.whereType<File>().length < kMinPhotos
-                      ? null
-                      : _submitPhotos,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
+        ),
+      ),
+      //the overlay does not reach the bottom bar, so it is held still here
+      bottomBar: IgnorePointer(
+        ignoring: _isLoading,
+        child: PrimaryButton(
+          label: text.submit,
+          //greyed out until the minimum is met: a disabled button
+          //explains the rule better than an error after the tap
+          onPressed:
+              _isUploading ||
+                  _photos.whereType<File>().length < kMinPhotos
+              ? null
+              : _submitPhotos,
         ),
       ),
     );
@@ -248,26 +258,36 @@ class _AddPhotos extends State<AddPhotos> {
     final photo = _photos[index];
 
     return Stack(
-      clipBehavior:
-          Clip.none, // Allows the button to slightly overhang the edge
       children: [
         // 1. The Main Photo Slot
         Positioned.fill(
-          child: GestureDetector(
-            onTap: () => _pickImage(index),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(10),
+          child: SpringPress(
+            child: GestureDetector(
+              onTap: () => _pickImage(index),
+              child: Container(
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  boxShadow: AppShadows.card,
+                ),
+                child: Crossfade(
+                  child: photo != null
+                      ? Image.file(
+                          photo,
+                          key: ValueKey(photo.path),
+                          fit: BoxFit.cover,
+                        )
+                      : Center(
+                          key: const ValueKey('empty'),
+                          child: Icon(
+                            Icons.add,
+                            color: mutedInk(context),
+                            size: 32,
+                          ),
+                        ),
+                ),
               ),
-              child: photo != null
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.file(photo, fit: BoxFit.cover),
-                    )
-                  : const Center(
-                      child: Icon(Icons.add, color: Colors.grey, size: 30),
-                    ),
             ),
           ),
         ),
@@ -275,37 +295,40 @@ class _AddPhotos extends State<AddPhotos> {
         // 2. The Top-Left Remove Button (Only renders if a photo exists)
         if (photo != null)
           Positioned(
-            top: -5,
-            left: -5,
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  // 1. Set the removed photo's slot to null
-                  _photos[index] = null;
+            top: 8,
+            left: 8,
+            child: SpringPress(
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    // 1. Set the removed photo's slot to null
+                    _photos[index] = null;
 
-                  // 2. Gather all the photos that are still left
-                  List<File?> remainingPhotos = _photos
-                      .where((photo) => photo != null)
-                      .toList();
+                    // 2. Gather all the photos that are still left
+                    List<File?> remainingPhotos = _photos
+                        .where((photo) => photo != null)
+                        .toList();
 
-                  // 3. Re-deal them into the fixed array from left to right
-                  for (int i = 0; i < _photos.length; i++) {
-                    if (i < remainingPhotos.length) {
-                      _photos[i] =
-                          remainingPhotos[i]; // Fill with remaining photos
-                    } else {
-                      _photos[i] = null; // Fill the rest with empty slots
+                    // 3. Re-deal them into the fixed array from left to right
+                    for (int i = 0; i < _photos.length; i++) {
+                      if (i < remainingPhotos.length) {
+                        _photos[i] =
+                            remainingPhotos[i]; // Fill with remaining photos
+                      } else {
+                        _photos[i] = null; // Fill the rest with empty slots
+                      }
                     }
-                  }
-                });
-              },
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
+                  });
+                },
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: const BoxDecoration(
+                    color: AppColors.error,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.close, color: Colors.white, size: 16),
                 ),
-                child: const Icon(Icons.close, color: Colors.white, size: 16),
               ),
             ),
           ),

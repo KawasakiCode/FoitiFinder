@@ -28,6 +28,7 @@ import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/utils/instagram_handle.dart';
 import 'package:foitifinder/widgets/loading_overlay.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:foitifinder/widgets/primary_button.dart';
 import 'package:provider/provider.dart';
 
@@ -112,14 +113,11 @@ class _InstagramPageState extends State<InstagramPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final muted = theme.textTheme.bodyMedium?.copyWith(
-      color: theme.colorScheme.onSurfaceVariant,
-    );
+    final muted = mutedText(context);
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
+      child: GlassScaffold(
         appBar: AppBar(
           title: Text(text.instagramTitle),
           //nothing to go back to: this is the first step, and the step before
@@ -128,54 +126,57 @@ class _InstagramPageState extends State<InstagramPage> {
         ),
         body: LoadingOverlay(
           isLoading: _saving,
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-            children: [
-              Text(text.instagramIntro, style: theme.textTheme.bodyLarge),
-              const SizedBox(height: 12),
-              Text(text.instagramPrivacy, style: muted),
-              const SizedBox(height: 28),
+          child: GlassScroll(
+            slivers: [
+              SliverStagger(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                children: [
+                  Text(
+                    text.instagramIntro,
+                    style: headlineText(context).copyWith(fontSize: 20),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(text.instagramPrivacy, style: muted),
+                  const SizedBox(height: 32),
 
-              TextField(
-                controller: _controller,
-                autofocus: true,
-                //a handle has no spaces, no capitals that matter and no
-                //autocorrect worth running on it
-                autocorrect: false,
-                enableSuggestions: false,
-                textCapitalization: TextCapitalization.none,
-                keyboardType: TextInputType.text,
-                textInputAction: TextInputAction.done,
-                //NOT maxLength: a pasted profile URL is legitimate input and
-                //is longer than any handle. The normaliser shortens it.
-                inputFormatters: [FilteringTextInputFormatter.deny(' ')],
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
-                  prefixText: '@',
-                  labelText: text.instagramLabel,
-                  hintText: text.instagramHint,
-                  errorText: _error,
-                  helperText: text.instagramPasteOk,
-                  helperMaxLines: 2,
-                ),
-                onChanged: (_) {
-                  //clear a stale error as soon as they start fixing it
-                  if (_error != null) setState(() => _error = null);
-                },
-                onSubmitted: (_) => _save(),
+                  TextField(
+                    controller: _controller,
+                    autofocus: true,
+                    //a handle has no spaces, no capitals that matter and no
+                    //autocorrect worth running on it
+                    autocorrect: false,
+                    enableSuggestions: false,
+                    textCapitalization: TextCapitalization.none,
+                    keyboardType: TextInputType.text,
+                    textInputAction: TextInputAction.done,
+                    //NOT maxLength: a pasted profile URL is legitimate input
+                    //and is longer than any handle. The normaliser shortens it.
+                    inputFormatters: [FilteringTextInputFormatter.deny(' ')],
+                    decoration: InputDecoration(
+                      prefixText: '@',
+                      labelText: text.instagramLabel,
+                      hintText: text.instagramHint,
+                      errorText: _error,
+                      helperText: text.instagramPasteOk,
+                      helperMaxLines: 2,
+                    ),
+                    onChanged: (_) {
+                      //clear a stale error as soon as they start fixing it
+                      if (_error != null) setState(() => _error = null);
+                    },
+                    onSubmitted: (_) => _save(),
+                  ),
+
+                  const SizedBox(height: 16),
+                  Text(text.instagramRequiredNote, style: muted),
+                ],
               ),
-
-              const SizedBox(height: 16),
-              Text(text.instagramRequiredNote, style: muted),
             ],
           ),
         ),
-        bottomNavigationBar: SafeArea(
-          minimum: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-          child: PrimaryButton(
-            label: text.submit,
-            onPressed: _saving ? null : _save,
-          ),
+        bottomBar: PrimaryButton(
+          label: text.submit,
+          onPressed: _saving ? null : _save,
         ),
       ),
     );

@@ -29,6 +29,7 @@ import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:foitifinder/theme/app_colors.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:foitifinder/widgets/primary_button.dart';
 import 'package:provider/provider.dart';
 
@@ -74,52 +75,89 @@ class _NotificationsPageState extends State<NotificationsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 28),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.notifications_active_outlined,
-                  size: 88, color: AppColors.primary),
-              const SizedBox(height: 28),
-              Text(
-                text.askNotificationsTitle,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
+      body: CustomScrollView(
+        slivers: [
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Entrance(
+                      child: Center(
+                        child: Container(
+                          width: 96,
+                          height: 96,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.08),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.notifications_active_outlined,
+                            size: 40,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Entrance(
+                      order: 1,
+                      child: Text(
+                        text.askNotificationsTitle,
+                        textAlign: TextAlign.center,
+                        style: headlineText(context),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    //SAYS WHAT THE TWO PUSHES ARE, because "allow
+                    //notifications" is a question nobody can answer. These are
+                    //the only two the app sends, and both are about somebody
+                    //waiting on the user.
+                    Entrance(
+                      order: 2,
+                      child: Text(
+                        text.askNotificationsBody,
+                        textAlign: TextAlign.center,
+                        style: mutedText(context),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    Entrance(
+                      order: 3,
+                      child: PrimaryButton(
+                        label: text.askNotificationsAllow,
+                        onPressed: _busy ? null : () => _answer(allow: true),
+                        isLoading: _busy,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    //NOT A BUTTON THAT LOOKS LIKE THE OTHER ONE. Declining is
+                    //a real option here - it can be changed in settings
+                    //afterwards, and a prompt with only one way out is how
+                    //people end up permanently denying it at the OS instead.
+                    Entrance(
+                      order: 4,
+                      child: SpringPress(
+                        enabled: !_busy,
+                        child: TextButton(
+                          onPressed: _busy ? null : () => _answer(allow: false),
+                          child: Text(
+                            text.askNotificationsLater,
+                            style: TextStyle(color: mutedInk(context)),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 14),
-              //SAYS WHAT THE TWO PUSHES ARE, because "allow notifications" is
-              //a question nobody can answer. These are the only two the app
-              //sends, and both are about somebody waiting on the user.
-              Text(
-                text.askNotificationsBody,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 15, color: Colors.grey),
-              ),
-              const SizedBox(height: 32),
-              PrimaryButton(
-                label: text.askNotificationsAllow,
-                onPressed: _busy ? null : () => _answer(allow: true),
-                isLoading: _busy,
-              ),
-              //NOT A BUTTON THAT LOOKS LIKE THE OTHER ONE. Declining is a
-              //real option here - it can be changed in settings afterwards,
-              //and a prompt with only one way out is how people end up
-              //permanently denying it at the OS instead.
-              TextButton(
-                onPressed: _busy ? null : () => _answer(allow: false),
-                child: Text(
-                  text.askNotificationsLater,
-                  style: const TextStyle(color: Colors.grey),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
