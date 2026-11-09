@@ -78,21 +78,66 @@ void main() {
 
   group('an unpublished site', () {
     test('resolves to nothing rather than to a broken URL', () {
-      //THE SHIPPING STATE. The Policies dialog reads an empty string as "not
-      //published yet" and says so; a half-formed URL like '/privacy.html'
-      //would instead open a browser on a page that cannot exist.
+      //NO LONGER THE SHIPPING STATE - the site is up and kLegalBaseUrl points
+      //at it - but still the behaviour a local build gets with the base
+      //cleared, and still what should happen if the site ever comes down. The
+      //Policies dialog reads an empty string as "not published yet" and says
+      //so; a half-formed URL like '/privacy.html' would instead open a browser
+      //on a page that cannot exist.
       for (final document in LegalDocument.values) {
         for (final language in ['en', 'el']) {
           expect(legalUrl(document, language, base: ''), isEmpty);
         }
       }
     });
+  });
 
-    test('which is what the app is built with today', () {
-      //the default argument, not an injected one: this is the assertion that
-      //fails on the day kLegalBaseUrl is filled in, as a reminder that the
-      //store listing's privacy policy link has to match it
-      expect(legalUrl(LegalDocument.privacyStatement, 'en'), isEmpty);
+  group('the site this app actually points at', () {
+    //THE DEFAULT ARGUMENT, not an injected one. This group replaces an
+    //assertion that kLegalBaseUrl was still empty, which was a tripwire for
+    //the day the site went up. It has gone up, so the tripwire is spent and
+    //these take its place: the thing worth guarding now is not that the base
+    //is unset but that it keeps pointing where the pages really are.
+    //
+    //THE STORE LISTING HAS TO MATCH. Play checks the privacy policy URL on the
+    //listing against the one the app opens, so the first URL below is a value
+    //that exists in two places and only one of them is in this repo.
+
+    test('the privacy policy resolves to the published page', () {
+      expect(
+        legalUrl(LegalDocument.privacyStatement, 'en'),
+        'https://kawasakicode.github.io/FoitiFinder/privacy.html',
+      );
+    });
+
+    test('and the Greek one to its translation', () {
+      expect(
+        legalUrl(LegalDocument.privacyStatement, 'el'),
+        'https://kawasakicode.github.io/FoitiFinder/el/privacy.html',
+      );
+    });
+
+    test('the account deletion page is reachable for Play', () {
+      //NOT IN THE POLICIES DIALOG and therefore not covered by any test that
+      //walks the dialog. Play wants a data deletion URL that works for
+      //somebody who has already uninstalled, so this one has to resolve on
+      //its own.
+      expect(
+        legalUrl(LegalDocument.accountDeletion, 'en'),
+        'https://kawasakicode.github.io/FoitiFinder/delete-account.html',
+      );
+    });
+
+    test('every document resolves to something', () {
+      //the guard against a base that is accidentally emptied again: without
+      //this, the "unpublished site" group above would still pass and nothing
+      //would notice that the app had stopped opening its own policies
+      for (final document in LegalDocument.values) {
+        for (final language in ['en', 'el']) {
+          expect(legalUrl(document, language), isNotEmpty,
+              reason: 'kLegalBaseUrl is empty or $document lost its file');
+        }
+      }
     });
   });
 

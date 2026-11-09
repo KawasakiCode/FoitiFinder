@@ -13,14 +13,22 @@
 //(see site/). Five constants also had nowhere to put the SECOND language -
 //they would have had to become ten.
 //
-//EMPTY UNTIL THE SITE IS HOSTED. The Policies dialog treats an empty URL as
-//"not published yet" and says so rather than opening a blank browser tab, so
-//the app ships and behaves correctly before any of this exists.
+//A PROJECT SITE, SO THE PATH IS PART OF THE BASE. kawasakicode.github.io is
+//already a user site and an account gets one, so the pages are served from a
+//sub-path, FoitiFinder, underneath it. That name is case-sensitive in a URL.
+//Published by .github/workflows/pages.yml, which uploads site/ as a Pages
+//artifact.
+//
+//AN EMPTY STRING STILL MEANS "NOT PUBLISHED YET" - legalUrl returns '' for
+//it and the Policies dialog says so rather than opening a blank browser tab.
+//That path is kept because it is what a local build gets when this is pointed
+//somewhere unreachable, and because it is the honest answer if the site ever
+//comes down.
 //
 //Local testing: 'http://10.0.2.2:8000' from the Android emulator, or this
 //machine's LAN address from a real device, with
 //`python -m http.server 8000 --directory site` running. See site/README.md.
-const String kLegalBaseUrl = '';
+const String kLegalBaseUrl = 'https://kawasakicode.github.io/FoitiFinder/';
 
 //THE GREEK PAGES ARE A SUBDIRECTORY, not a query parameter or a separate host,
 //because the site is static files and that is the only thing static files can

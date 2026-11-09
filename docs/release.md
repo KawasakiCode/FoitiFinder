@@ -101,22 +101,56 @@ Things that are true of this repo right now and are not code:
 
 - **The launcher icon is still Flutter's logo.** `assets/brand/README.md` says
   what two files to put there; then `flutter pub run flutter_launcher_icons`.
-- **The five legal URLs in `lib/constants/legal.dart` are empty.** The in-app
-  dialog handles that honestly — it says "not published yet" rather than
-  opening a blank tab — but Play requires a reachable privacy policy URL on the
-  listing itself, and checks it against the one in the app.
+- **Four placeholders are still in the policy pages.** `[[EMAIL]]`,
+  `[[ENTITY]]`, `[[ADDRESS]]` and `[[SENTRY_RETENTION]]` — the controller's
+  identity and contact details, which GDPR Art. 13(1)(a) requires and which
+  cannot be guessed from the repo. The Pages workflow prints the remaining
+  count in each run's summary; `site/README.md` says what each one is for.
 - **`isMinifyEnabled` is false.** Deliberate for a first release: R8 can break
   reflection in ways that only appear in a release build, and you want one
   known-good build before adding that variable. Worth turning on afterwards.
-- **Errors go nowhere.** `error_reporting.dart` is a `debugPrint` and a TODO
-  where Sentry goes, and `debugPrint` is stripped from release builds — so a
-  caught error in the wild is silent.
+  When you do turn it on, `--obfuscate --split-debug-info` and Sentry symbol
+  upload have to arrive together, or every stack trace from the wild becomes
+  unreadable addresses.
 
 ## 7. Building it
 
+**Both `--dart-define`s are mandatory.** They are compiled in, so a bundle
+built without them is wrong in a way no amount of server-side fixing can
+reach — the only cure is a new upload.
+
 ```
-flutter build appbundle --release
+flutter build appbundle --release --dart-define=API_BASE_URL=https://python-backend-cm13.onrender.com --dart-define=SENTRY_DSN=https://...
 ```
+
+`API_BASE_URL` has `http://127.0.0.1:8000` as its default, for the emulator.
+Ship that default and the app points every request at the phone itself. Watch
+how it fails, because it is not the failure you would expect: Firebase Auth
+runs client-side, so **sign-in works**, and then the feed, the profile, swipes
+and matches all fail with connection-refused. It reads as a backend outage,
+and you will go looking at Render while the problem is in the bundle.
+
+`SENTRY_DSN` defaults to empty, which disables Sentry silently — see
+`lib/services/error_reporting.dart`. Forget it and the one build where you
+most need crash reports is the build that sends none. Get the DSN from the
+Sentry project settings; it is not a secret in the sense a key is, but keep it
+out of the repo anyway, and never paste the whole thing into a terminal
+transcript or an issue.
+
+**There is no static check for either of these.** Both values are compiled
+into the AOT snapshot, and the release `libapp.so` is stripped — grepping the
+`.aab` or the native library for the URL finds nothing even when it is
+correctly baked in, so a clean grep proves only that grep does not work here.
+Checked, so you do not have to.
+
+What does prove it is installing the bundle and watching the feed load, which
+is step 1 of the internal testing track anyway. Treat "the feed shows
+somebody" as the gate: that single screen needs the base URL, a reachable
+Render instance, a valid App Check token and a working Firebase sign-in, so
+it passing means the whole chain is intact.
+
+Both defines are easy to forget and silent when wrong, so the build belongs in
+a script rather than in your shell history. There isn't one yet.
 
 An **app bundle**, not an APK: Play requires `.aab` for new apps, and it is
 what lets Play sign and split per device.
