@@ -28,6 +28,7 @@ import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/models/matches_model.dart';
 import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/widgets/nav_row.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:foitifinder/widgets/report_sheet.dart';
 
 class RemovedMatchesPage extends StatefulWidget {
@@ -94,47 +95,59 @@ class _RemovedMatchesPageState extends State<RemovedMatchesPage> {
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
 
-    return Scaffold(
+    return GlassScaffold(
       appBar: AppBar(title: Text(text.removedMatchesTitle)),
-      body: SafeArea(
+      body: Crossfade(
         child: _loading
-            ? const Center(child: CircularProgressIndicator())
-            : ListView(
-                padding: const EdgeInsets.only(top: 15, bottom: 24),
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 4,
-                    ),
-                    child: Text(
-                      text.removedMatchesExplainer,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+            ? const _RemovedSkeleton(key: ValueKey('loading'))
+            : CustomScrollView(
+                key: const ValueKey('content'),
+                slivers: [
+                  const SliverGlassBarInset(),
+                  SliverStagger(
+                    padding: const EdgeInsets.only(top: 8),
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          text.removedMatchesExplainer,
+                          style: mutedText(context),
+                        ),
                       ),
-                    ),
+                      if (!_failed && _removed.isNotEmpty) ...[
+                        const SizedBox(height: 16),
+                        CardGroup(
+                          dividers: true,
+                          children: [
+                            for (final match in _removed)
+                              _RemovedRow(
+                                name: match.otherUserName,
+                                onReport: () => _report(match),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+                    ],
                   ),
-                  const SizedBox(height: 16),
                   if (_failed)
-                    _Message(
-                      text: text.errorOccured,
-                      action: text.retry,
-                      onAction: _load,
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: EmptyState(
+                        icon: Icons.cloud_off_outlined,
+                        message: text.errorOccured,
+                        actionLabel: text.retry,
+                        onAction: _load,
+                      ),
                     )
                   else if (_removed.isEmpty)
-                    _Message(text: text.removedMatchesEmpty)
-                  else
-                    CardGroup(
-                      dividers: true,
-                      children: [
-                        for (final match in _removed)
-                          _RemovedRow(
-                            name: match.otherUserName,
-                            onReport: () => _report(match),
-                          ),
-                      ],
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: EmptyState(
+                        icon: Icons.person_off_outlined,
+                        message: text.removedMatchesEmpty,
+                      ),
                     ),
                 ],
               ),
@@ -161,7 +174,7 @@ class _RemovedRow extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.only(left: 16, right: 8, top: 4, bottom: 4),
+      padding: const EdgeInsets.only(left: 16, right: 8, top: 8, bottom: 8),
       child: Row(
         children: [
           Expanded(
@@ -171,10 +184,12 @@ class _RemovedRow extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          TextButton.icon(
-            onPressed: onReport,
-            icon: const Icon(Icons.flag_outlined, size: 18),
-            label: Text(text.reportUser),
+          SpringPress(
+            child: TextButton.icon(
+              onPressed: onReport,
+              icon: const Icon(Icons.flag_outlined, size: 16),
+              label: Text(text.reportUser),
+            ),
           ),
         ],
       ),
@@ -182,34 +197,42 @@ class _RemovedRow extends StatelessWidget {
   }
 }
 
-//The empty and failed states, which differ only in whether there is anything
-//to press.
-class _Message extends StatelessWidget {
-  final String text;
-  final String? action;
-  final VoidCallback? onAction;
-
-  const _Message({required this.text, this.action, this.onAction});
+//The explainer line and a few rows, before the list has loaded.
+class _RemovedSkeleton extends StatelessWidget {
+  const _RemovedSkeleton({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-      child: Column(
-        children: [
-          Text(
-            text,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+    return Shimmer(
+      child: CustomScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        slivers: [
+          const SliverGlassBarInset(),
+          SliverPadding(
+            padding: const EdgeInsets.all(16),
+            sliver: SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Bone(height: 16),
+                  const SizedBox(height: 8),
+                  const Bone(width: 160, height: 16),
+                  const SizedBox(height: 24),
+                  for (var i = 0; i < 4; i++)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Bone(width: 96, height: 16),
+                          Bone(width: 96, height: 16),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
-          if (action != null) ...[
-            const SizedBox(height: 8),
-            TextButton(onPressed: onAction, child: Text(action!)),
-          ],
         ],
       ),
     );

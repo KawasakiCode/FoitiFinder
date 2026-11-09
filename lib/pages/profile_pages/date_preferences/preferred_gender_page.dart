@@ -3,11 +3,11 @@
 //also stored in the database and Shared Preferences
 
 import 'package:flutter/material.dart';
-import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:provider/provider.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
-import 'package:foitifinder/widgets/pressable.dart';
+import 'package:foitifinder/widgets/nav_row.dart';
+import 'package:foitifinder/widgets/polish.dart';
 
 //Use a set for the interests since no duplicates are allowed
 //and available options are only 3
@@ -37,153 +37,44 @@ class _InterestPageState extends State<InterestPage> {
         if (didPop) return;
           Navigator.pop(context, _selectedInterests);
       },
-      child: Scaffold(
-        appBar: AppBar(title: Text(text.interestedIn),
-        automaticallyImplyLeading: true),
-        body: Column(  
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 15, top: 10),
-              child: Text(text.selectInterests, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+      child: GlassScaffold(
+        appBar: AppBar(
+          title: Text(text.interestedIn),
+          automaticallyImplyLeading: true,
+        ),
+        body: GlassScroll(
+          slivers: [
+            SliverStagger(
+              padding: const EdgeInsets.only(top: 8),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: Text(text.selectInterests, style: mutedText(context)),
+                ),
+                CardGroup(
+                  dividers: true,
+                  children: [
+                    CheckRow(
+                      label: text.men,
+                      selected: settings.preferredGender.contains("Men"),
+                      onTap: () => settings.addRemovePreferredGender("Men"),
+                    ),
+                    CheckRow(
+                      label: text.women,
+                      selected: settings.preferredGender.contains("Women"),
+                      onTap: () => settings.addRemovePreferredGender("Women"),
+                    ),
+                    CheckRow(
+                      label: text.everybody,
+                      selected: settings.preferredGender.contains("Everyone"),
+                      onTap: () => settings.addRemovePreferredGender("Everyone"),
+                    ),
+                  ],
+                ),
+              ],
             ),
-              Padding(
-                padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
-                child: Material(
-                  //instant, not lerped - see widgets/nav_row.dart
-                  animationDuration: Duration.zero,
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  shape: RoundedRectangleBorder(
-                    side: BorderSide.none,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: Pressable(
-                    onTap: () => settings.addRemovePreferredGender("Men"),
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        top: 8,
-                        bottom: 8,
-                        left: 10,
-                        right: 15,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            text.men,
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          if (settings.preferredGender.contains("Men"))
-                                Image.asset(
-                                  'assets/icons/check.png',
-                                  width: 20,
-                                  height: 20,
-                                  color: AppColors.primary,
-                                )
-                          else
-                            const SizedBox(width: 20, height: 20),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
-                child: Material(
-                  //instant, not lerped - see widgets/nav_row.dart
-                  animationDuration: Duration.zero,
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  shape: RoundedRectangleBorder(
-                    side: BorderSide.none,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: Pressable(
-                    onTap: () => settings.addRemovePreferredGender("Women"),
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        top: 8,
-                        bottom: 8,
-                        left: 10,
-                        right: 15,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            text.women,
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          if (settings.preferredGender.contains("Women"))
-                                Image.asset(
-                                  'assets/icons/check.png',
-                                  width: 20,
-                                  height: 20,
-                                  color: AppColors.primary,
-                                )
-                          else
-                            const SizedBox(width: 20, height: 20),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
-                child: Material(
-                  //instant, not lerped - see widgets/nav_row.dart
-                  animationDuration: Duration.zero,
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  shape: RoundedRectangleBorder(
-                    side: BorderSide.none,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: Pressable(
-                    onTap: () => settings.addRemovePreferredGender("Everyone"),
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        top: 8,
-                        bottom: 8,
-                        left: 10,
-                        right: 15,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            text.everybody,
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          if (settings.preferredGender.contains("Everyone"))
-                                Image.asset(
-                                  'assets/icons/check.png',
-                                  width: 20,
-                                  height: 20,
-                                  color: AppColors.primary,
-                                )
-                          else
-                            const SizedBox(width: 20, height: 20),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-          ]
-        )
+          ],
+        ),
       ),
     );
   }

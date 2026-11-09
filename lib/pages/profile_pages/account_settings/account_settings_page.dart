@@ -43,7 +43,9 @@ import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/utils/age.dart';
 import 'package:foitifinder/utils/instagram_handle.dart';
 import 'package:foitifinder/widgets/app_dialog.dart';
+import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/nav_row.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:provider/provider.dart';
 
 //Height is a plain number box instead of a slider, precisely so people outside
@@ -85,166 +87,173 @@ class AccountSettingsPage extends StatelessWidget {
     final birthday = user?.birthday;
     final heightCm = user?.heightCm;
 
-    return Scaffold(
+    return GlassScaffold(
       appBar: AppBar(
         title: Text(text.accountSettings),
         automaticallyImplyLeading: true,
       ),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.only(top: 15, bottom: 24),
-          children: [
-            CardGroup(
-              dividers: true,
-              children: [
-                NavRow(
-                  label: text.name,
-                  trailing: user?.name ?? '',
-                  onTap: () => _editName(context),
-                ),
-                //pushes its own page - more options than a dialog holds
-                NavRow(
-                  label: text.gender,
-                  trailing: genderLabel(text, user?.gender),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const GenderPage()),
+      body: GlassScroll(
+        slivers: [
+          SliverStagger(
+            padding: const EdgeInsets.only(top: 8),
+            children: [
+              CardGroup(
+                dividers: true,
+                children: [
+                  NavRow(
+                    label: text.name,
+                    trailing: user?.name ?? '',
+                    onTap: () => _editName(context),
                   ),
-                ),
-                //Stored as a date rather than an age, so age is derived and
-                //stays correct without anyone editing it on their birthday.
-                NavRow(
-                  label: text.birthday,
-                  trailing: birthday == null
-                      ? ''
-                      : '${birthday.day}/${birthday.month}/${birthday.year}',
-                  onTap: () => _editBirthday(context),
-                ),
-                NavRow(
-                  label: text.height,
-                  trailing: heightCm == null ? '' : '$heightCm ${text.cm}',
-                  onTap: () => _editHeight(context),
-                ),
-                NavRow(
-                  label: text.placeOfResidence,
-                  //stored English, shown in the user's language
-                  trailing: user?.city == null
-                      ? ''
-                      : catalogueLabel(text, user!.city!),
-                  onTap: () => _editCity(context),
-                ),
-                //shown with the @ people read it with, stored without one
-                NavRow(
-                  label: text.instagram,
-                  trailing: user?.instagramHandle == null
-                      ? ''
-                      : '@${user!.instagramHandle!}',
-                  onTap: () => _editInstagram(context),
-                ),
-                //NOT a button: the Firebase account is keyed on this address
-                //and the university domain behind it is what proves the user
-                //is a student, so changing it is not a profile edit.
-                _ReadOnlyRow(
-                  label: text.email,
-                  value: FirebaseAuth.instance.currentUser?.email ?? '',
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 18),
-
-            //ITS OWN CARD, not another row among the identity fields. Nothing
-            //on this page is about other people except this, and it is the
-            //one row somebody arrives looking for rather than scrolling past.
-            //
-            //HERE RATHER THAN ON THE MATCHES PAGE, which is the point of it:
-            //putting removed matches back into the list they were removed
-            //from would undo the only thing removing one does. See
-            //RemovedMatchesPage - a report has to outlive the match on the
-            //list, because the handle does.
-            CardGroup(
-              children: [
-                NavRow(
-                  label: text.removedMatchesTitle,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const RemovedMatchesPage(),
+                  //pushes its own page - more options than a dialog holds
+                  NavRow(
+                    label: text.gender,
+                    trailing: genderLabel(text, user?.gender),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const GenderPage()),
                     ),
                   ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 8),
-
-            //Logout Button
-            //
-            //Align, because a ListView stretches its children to the full width
-            //and the TextButton's tap target ran edge to edge - a destructive
-            //action that reacts to a tap far away from its own label.
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
-                child: TextButton(
-                  onPressed: () async {
-                    await FirebaseAuth.instance.signOut();
-                    await settings.clearData();
-                    if (!context.mounted) return;
-                    await Provider.of<ProfileProvider>(
-                      context,
-                      listen: false,
-                    ).clearData();
-                    if (!context.mounted) return;
-                    //the next account must not inherit this one's bell
-                    Provider.of<NotificationsProvider>(
-                      context,
-                      listen: false,
-                    ).clear();
-                    if (!context.mounted) return;
-                    Navigator.of(
-                      context,
-                    ).pushNamedAndRemoveUntil('/login', (route) => false);
-                  },
-                  child: Text(
-                    text.logout,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: const Color.fromARGB(255, 255, 18, 18),
-                    ),
+                  //Stored as a date rather than an age, so age is derived and
+                  //stays correct without anyone editing it on their birthday.
+                  NavRow(
+                    label: text.birthday,
+                    trailing: birthday == null
+                        ? ''
+                        : '${birthday.day}/${birthday.month}/${birthday.year}',
+                    onTap: () => _editBirthday(context),
                   ),
-                ),
+                  NavRow(
+                    label: text.height,
+                    trailing: heightCm == null ? '' : '$heightCm ${text.cm}',
+                    onTap: () => _editHeight(context),
+                  ),
+                  NavRow(
+                    label: text.placeOfResidence,
+                    //stored English, shown in the user's language
+                    trailing: user?.city == null
+                        ? ''
+                        : catalogueLabel(text, user!.city!),
+                    onTap: () => _editCity(context),
+                  ),
+                  //shown with the @ people read it with, stored without one
+                  NavRow(
+                    label: text.instagram,
+                    trailing: user?.instagramHandle == null
+                        ? ''
+                        : '@${user!.instagramHandle!}',
+                    onTap: () => _editInstagram(context),
+                  ),
+                  //NOT a button: the Firebase account is keyed on this address
+                  //and the university domain behind it is what proves the user
+                  //is a student, so changing it is not a profile edit.
+                  _ReadOnlyRow(
+                    label: text.email,
+                    value: FirebaseAuth.instance.currentUser?.email ?? '',
+                  ),
+                ],
               ),
-            ),
-            //Delete account button
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 15, right: 15, bottom: 15),
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.push(
+
+              const SizedBox(height: 16),
+
+              //ITS OWN CARD, not another row among the identity fields. Nothing
+              //on this page is about other people except this, and it is the
+              //one row somebody arrives looking for rather than scrolling past.
+              //
+              //HERE RATHER THAN ON THE MATCHES PAGE, which is the point of it:
+              //putting removed matches back into the list they were removed
+              //from would undo the only thing removing one does. See
+              //RemovedMatchesPage - a report has to outlive the match on the
+              //list, because the handle does.
+              CardGroup(
+                children: [
+                  NavRow(
+                    label: text.removedMatchesTitle,
+                    onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => DeleteAccountPage(),
+                        builder: (_) => const RemovedMatchesPage(),
                       ),
-                    );
-                  },
-                  child: Text(
-                    text.deleteAccount,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: const Color.fromARGB(255, 255, 18, 18),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              //Logout Button
+              //
+              //Align, because the column stretches its children to the full
+              //width and the TextButton's tap target ran edge to edge - a
+              //destructive action that reacts to a tap far away from its own
+              //label.
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: SpringPress(
+                    child: TextButton(
+                      onPressed: () async {
+                        await FirebaseAuth.instance.signOut();
+                        await settings.clearData();
+                        if (!context.mounted) return;
+                        await Provider.of<ProfileProvider>(
+                          context,
+                          listen: false,
+                        ).clearData();
+                        if (!context.mounted) return;
+                        //the next account must not inherit this one's bell
+                        Provider.of<NotificationsProvider>(
+                          context,
+                          listen: false,
+                        ).clear();
+                        if (!context.mounted) return;
+                        Navigator.of(
+                          context,
+                        ).pushNamedAndRemoveUntil('/login', (route) => false);
+                      },
+                      child: Text(
+                        text.logout,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.error,
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
-        ),
+              //Delete account button
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: SpringPress(
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DeleteAccountPage(),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        text.deleteAccount,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.error,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -641,9 +650,7 @@ class _ReadOnlyRow extends StatelessWidget {
                 value,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.end,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
+                style: mutedText(context),
               ),
             ),
         ],

@@ -13,9 +13,9 @@ import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
 import 'package:provider/provider.dart';
-import 'package:foitifinder/widgets/app_switch.dart';
 import 'package:foitifinder/widgets/app_dialog.dart';
-import 'package:foitifinder/widgets/pressable.dart';
+import 'package:foitifinder/widgets/nav_row.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -58,265 +58,101 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     final settings = Provider.of<SettingsProvider>(context);
 
-    return Scaffold(
+    return GlassScaffold(
       appBar: AppBar(
         title: Text(text.settingsTitle),
         automaticallyImplyLeading: true,
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
+      body: GlassScroll(
+        slivers: [
+          SliverStagger(
+            padding: EdgeInsets.zero,
             children: [
               //Appearance dark mode
-              Padding(
-                padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
-                child: Material(
-                  //instant, not lerped - see widgets/nav_row.dart
-                  animationDuration: Duration.zero,
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  shape: RoundedRectangleBorder(
-                    side: BorderSide.none,
-                    borderRadius: BorderRadius.circular(10),
+              SectionHeader(text.appearance),
+              CardGroup(
+                children: [
+                  SwitchRow(
+                    label: text.darkMode,
+                    value: settings.themeMode == ThemeMode.dark,
+                    onChanged: (bool value) => settings.toggleTheme(value),
                   ),
-                  clipBehavior: Clip.antiAlias,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        top: 10,
-                        left: 10,
-                        right: 10,
-                        bottom: 3,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            text.appearance,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                text.darkMode,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              AppSwitch(
-                                value: settings.themeMode == ThemeMode.dark,
-                                onChanged: (bool value) =>
-                                    settings.toggleTheme(value),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+                ],
               ),
               //Notifications
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 15, top: 10),
-                  child: Text(
-                    text.notifications,
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+              SectionHeader(text.notifications),
+              CardGroup(
+                children: [
+                  SwitchRow(
+                    label: text.matchNotifications,
+                    value: settings.matchNotificationsEnabled,
+                    onChanged: (bool enabled) async {
+                      final ok = await settings
+                          .toggleMatchNotifications(enabled);
+                      //IT CAN ONLY FAIL ONE WAY: the OS refused, and
+                      //after two refusals Android stops asking, so
+                      //the switch alone can never turn it back on.
+                      //Saying so - and offering the one screen that
+                      //can - is the difference between a setting and
+                      //a switch that bounces.
+                      if (!ok && context.mounted) {
+                        await _explainMissingPermission(context);
+                      }
+                    },
                   ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding: const EdgeInsets.only(left: 10, right: 10),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            text.matchNotifications,
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          AppSwitch(
-                            value: settings.matchNotificationsEnabled,
-                            onChanged: (bool enabled) async {
-                              final ok = await settings
-                                  .toggleMatchNotifications(enabled);
-                              //IT CAN ONLY FAIL ONE WAY: the OS refused, and
-                              //after two refusals Android stops asking, so
-                              //the switch alone can never turn it back on.
-                              //Saying so - and offering the one screen that
-                              //can - is the difference between a setting and
-                              //a switch that bounces.
-                              if (!ok && context.mounted) {
-                                await _explainMissingPermission(context);
-                              }
-                            },
-                          ),
-                        ],
-                      ),
-                      if (!settings.osPermission)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 5),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.info_outline,
-                                size: 16,
-                                color: Colors.orange,
-                              ),
-                              Expanded(
-                                child: Text(
-                                  text.notificationsWarning,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w400,
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOutCubic,
+                    alignment: Alignment.topLeft,
+                    child: settings.osPermission
+                        ? const SizedBox(width: double.infinity)
+                        : Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(
+                                  Icons.info_outline,
+                                  size: 16,
+                                  color: AppColors.warning,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    text.notificationsWarning,
+                                    style: mutedText(context),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                    ],
                   ),
-                ),
+                ],
               ),
               //Language
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 15, top: 10),
-                  child: Text(
-                    text.language,
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+              SectionHeader(text.language),
+              CardGroup(
+                dividers: true,
+                children: [
+                  CheckRow(
+                    label: text.greek,
+                    selected: settings.locale == Locale('el'),
+                    onTap: () {
+                      settings.changeLanguage('el');
+                    },
                   ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
-                child: Material(
-                  //instant, not lerped - see widgets/nav_row.dart
-                  animationDuration: Duration.zero,
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  shape: RoundedRectangleBorder(
-                    side: BorderSide.none,
-                    borderRadius: BorderRadius.circular(10),
+                  CheckRow(
+                    label: text.english,
+                    selected: settings.locale == Locale('en'),
+                    onTap: () {
+                      settings.changeLanguage('en');
+                    },
                   ),
-                  clipBehavior: Clip.antiAlias,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Pressable(
-                        onTap: () {
-                          settings.changeLanguage('el');
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                            top: 10,
-                            left: 10,
-                            right: 15,
-                            bottom: 12,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    text.greek,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              if (settings.locale == Locale('el'))
-                                Image.asset(
-                                  'assets/icons/check.png',
-                                  width: 20,
-                                  height: 20,
-                                  color: AppColors.primary,
-                                )
-                              else
-                                const SizedBox(width: 20, height: 20),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Divider(
-                        height: 1,
-                        thickness: 1,
-                        color: Colors.grey.withValues(alpha: 0.35),
-                        indent: MediaQuery.of(context).size.width * 0.10,
-                        endIndent: MediaQuery.of(context).size.width * 0.10,
-                      ),
-                      Pressable(
-                        onTap: () {
-                          settings.changeLanguage('en');
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                            top: 12,
-                            left: 10,
-                            right: 15,
-                            bottom: 8,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    text.english,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              if (settings.locale == Locale('en'))
-                                Image.asset(
-                                  'assets/icons/check.png',
-                                  width: 20,
-                                  height: 20,
-                                  color: AppColors.primary,
-                                )
-                              else
-                                const SizedBox(width: 20, height: 20),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                ],
               ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }

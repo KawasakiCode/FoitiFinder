@@ -31,8 +31,8 @@ import 'package:foitifinder/pages/profile_pages/shared/save_profile_field.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
 import 'package:foitifinder/services/api_services.dart';
 import 'package:foitifinder/providers/settings_providers.dart';
-import 'package:foitifinder/widgets/app_switch.dart';
 import 'package:foitifinder/widgets/nav_row.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:foitifinder/widgets/pressable.dart';
 import 'package:provider/provider.dart';
 
@@ -181,96 +181,70 @@ class _DatePreferencesPageState extends State<DatePreferencesPage> {
         })
         .join(', ');
 
-    return Scaffold(
+    return GlassScaffold(
       appBar: AppBar(
         title: Text(text.datePreferences),
         automaticallyImplyLeading: true,
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 24),
-          child: Column(
+      body: GlassScroll(
+        slivers: [
+          SliverStagger(
+            padding: EdgeInsets.zero,
             children: [
               //Discovery Settings (Interests)
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 15, top: 10),
-                  child: Text(
-                    text.discovery,
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
-                child: Material(
-                  //instant, not lerped - see widgets/nav_row.dart
-                  animationDuration: Duration.zero,
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  shape: RoundedRectangleBorder(
-                    side: BorderSide.none,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: Pressable(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => InterestPage()),
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        top: 10,
-                        left: 10,
-                        right: 10,
-                        bottom: 8,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            text.interests,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          Row(
-                            children: [
-                              //shrinks so the arrow always fits: the Greek
-                              //empty-state text is long enough to overflow
-                              Expanded(
-                                child: Text(
-                                  settings.preferredGender.isEmpty
-                                      ? text.emptyInterests
-                                      : displayInterests,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w500,
+              SectionHeader(text.discovery),
+              CardGroup(
+                children: [
+                  SpringPress(
+                    child: Pressable(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => InterestPage()),
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            //shrinks so the arrow always fits: the Greek
+                            //empty-state text is long enough to overflow
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    text.interests,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleMedium,
                                   ),
-                                ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    settings.preferredGender.isEmpty
+                                        ? text.emptyInterests
+                                        : displayInterests,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: mutedText(context),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 12),
-                              Image.asset(
-                                'assets/icons/right-arrow.png',
-                                width: 10,
-                                height: 10,
-                              ),
-                            ],
-                          ),
-                        ],
+                            ),
+                            const SizedBox(width: 16),
+                            Icon(Icons.chevron_right, color: mutedInk(context)),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
+                ],
               ),
+              const SizedBox(height: 16),
               //The two ranges share ONE card, divided like the habits rows
               //below: they are the same kind of setting answered the same way,
               //and two separate cards made them look unrelated.
-              _RangeGroup(
+              CardGroup(
+                dividers: true,
                 children: [
                   _RangeRow(
                     label: text.ageRange,
@@ -303,62 +277,37 @@ class _DatePreferencesPageState extends State<DatePreferencesPage> {
                   ),
                 ],
               ),
+              const SizedBox(height: 16),
 
               //Languages, in the discovery block: like the two ranges above it
               //decides WHO is shown, not what they are like.
-              Padding(
-                padding: const EdgeInsets.only(top: 20),
-                child: CardGroup(
-                  children: [
-                    NavRow(
-                      label: text.languagesSpoken,
-                      trailing: _user.preferredLanguages.isEmpty
-                          ? ''
-                          : '${_user.preferredLanguages.length}',
-                      onTap: _openPreferredLanguages,
-                    ),
-                  ],
-                ),
+              CardGroup(
+                children: [
+                  NavRow(
+                    label: text.languagesSpoken,
+                    trailing: _user.preferredLanguages.isEmpty
+                        ? ''
+                        : '${_user.preferredLanguages.length}',
+                    onTap: _openPreferredLanguages,
+                  ),
+                ],
               ),
+              const SizedBox(height: 16),
               //Place of residence: a plain yes/no for now. Without coordinates
               //there is no distance to set, only "my prefecture" or not - see
               //constants/greek_prefectures.dart.
-              Padding(
-                padding: const EdgeInsets.only(left: 15, right: 15, top: 20),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(10),
+              CardGroup(
+                children: [
+                  SwitchRow(
+                    label: text.showOutsideResidence,
+                    value: _user.showOutsideResidence,
+                    onChanged: _saveShowOutsideResidence,
                   ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          text.showOutsideResidence,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      AppSwitch(
-                        value: _user.showOutsideResidence,
-                        onChanged: _saveShowOutsideResidence,
-                      ),
-                    ],
-                  ),
-                ),
+                ],
               ),
 
               //Their habits: alcohol and smoking, asked as "what do you want?"
-              Align(
-                alignment: Alignment.centerLeft,
-                child: SectionHeader(text.sectionTheirHabits),
-              ),
+              SectionHeader(text.sectionTheirHabits),
               CardGroup(
                 dividers: true,
                 children: [
@@ -372,10 +321,7 @@ class _DatePreferencesPageState extends State<DatePreferencesPage> {
               ),
 
               //What they want: dating intention and kids
-              Align(
-                alignment: Alignment.centerLeft,
-                child: SectionHeader(text.sectionWhatTheyWant),
-              ),
+              SectionHeader(text.sectionWhatTheyWant),
               CardGroup(
                 dividers: true,
                 children: [
@@ -389,48 +335,15 @@ class _DatePreferencesPageState extends State<DatePreferencesPage> {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-//A label, its current value on the right, and a range slider underneath, in
-//the page's filled card. Shared by the age and height ranges so the two stay
-//visually identical.
-//The card the ranges sit in, with a hairline between them - the same treatment
-//CardGroup gives the rows below.
-class _RangeGroup extends StatelessWidget {
-  final List<Widget> children;
-
-  const _RangeGroup({required this.children});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 15, right: 15, top: 20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (var i = 0; i < children.length; i++) ...[
-              if (i > 0) const Divider(height: 1, indent: 15, endIndent: 15),
-              children[i],
-            ],
-          ],
-        ),
+        ],
       ),
     );
   }
 }
 
 //A label, its current value, and the slider under them. No card of its own -
-//_RangeGroup provides it.
+//the page's CardGroup provides it, so the age and height ranges stay
+//visually identical.
 class _RangeRow extends StatelessWidget {
   final String label;
   final String valueLabel;
@@ -445,7 +358,7 @@ class _RangeRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(15, 10, 15, 6),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       child: Column(
         children: [
           Row(
@@ -457,14 +370,11 @@ class _RangeRow extends StatelessWidget {
                 child: Text(
                   label,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
-              const SizedBox(width: 12),
-              Text(
-                valueLabel,
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
-              ),
+              const SizedBox(width: 16),
+              Text(valueLabel, style: mutedText(context)),
             ],
           ),
           slider,

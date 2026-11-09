@@ -24,7 +24,9 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
+import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/widgets/app_dialog.dart';
+import 'package:foitifinder/widgets/polish.dart';
 
 class DeleteAccountPage extends StatefulWidget {
   const DeleteAccountPage({super.key});
@@ -82,7 +84,7 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
         context: context,
         barrierDismissible: false,
         builder: (context) => Center(
-          child: CircularProgressIndicator(),
+          child: BusyIndicator(),
         ),
       );
 
@@ -173,143 +175,98 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return GlassScaffold(
       appBar: AppBar(
         title: Text(text.deleteAccount),
         automaticallyImplyLeading: true,
       ),
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.only(
-              left: 25,
-              right: 25,
-              top: 120,
-            ),
-            child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey, width: 1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Column(
+        child: GlassScroll(
+          slivers: [
+            SliverStagger(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
               children: [
-                Padding(
-                  padding: EdgeInsets.only(left: 15, right: 15, top: 10),
-                  child: Text(
-                    text.sureDeleteAccount,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                  ),
-                ),
-                Divider(color: Colors.grey, thickness: 0.8),
-                Padding(
-                  padding: EdgeInsets.only(left: 15, right: 15, top: 10),
-                  child: Text(
-                    text.deleteAccountLongText,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                  ),
-                ),
-                //Link text
-                Padding(
-                  padding: EdgeInsets.only(
-                    left: 15,
-                    right: 15,
-                    top: 10,
-                    bottom: 10,
-                  ),
-                  child: Text.rich(
-                    TextSpan(
-                      text: text.readPolicy,
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                      children: [
-                        TextSpan(
-                          text: text.privacyPolicy,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.blue,
-                            decoration: TextDecoration.underline,
-                          ),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () async {
-                              final url = Uri.parse('https://google.com');
-                              if (await canLaunchUrl(url)) {
-                                await launchUrl(url);
-                              }
-                            },
-                        ),
-                      ],
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                //Password field
-                Padding(
-                  padding: EdgeInsets.only(
-                    left: 15,
-                    right: 15,
-                    top: 10,
-                    bottom: 10,
-                  ),
-                  child: TextFormField(
-                    decoration: InputDecoration(
-                      hintText: text.enterPassword,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(12),
-                        ),
+                SurfaceCard(
+                  child: Column(
+                    children: [
+                      Text(
+                        text.sureDeleteAccount,
+                        textAlign: TextAlign.center,
+                        style: headlineText(context).copyWith(fontSize: 20),
                       ),
-                      suffixIcon: Padding(
-                        padding: EdgeInsets.only(right: 8.0),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(20),
+                      const Divider(height: 32),
+                      Text(
+                        text.deleteAccountLongText,
+                        textAlign: TextAlign.center,
+                        style: mutedText(context),
+                      ),
+                      const SizedBox(height: 16),
+                      //Link text
+                      Text.rich(
+                        TextSpan(
+                          text: text.readPolicy,
+                          style: mutedText(context),
+                          children: [
+                            TextSpan(
+                              text: text.privacyPolicy,
+                              style: const TextStyle(
+                                color: AppColors.primary,
+                                decoration: TextDecoration.underline,
+                              ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () async {
+                                  final url = Uri.parse('https://google.com');
+                                  if (await canLaunchUrl(url)) {
+                                    await launchUrl(url);
+                                  }
+                                },
+                            ),
+                          ],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      //Password field
+                      TextFormField(
+                        decoration: InputDecoration(
+                          hintText: text.enterPassword,
+                          suffixIcon: PasswordEye(
+                            visible: _isPasswordVisible,
                             onTap: () {
                               setState(() {
                                 _isPasswordVisible = !_isPasswordVisible;
                               });
                             },
-                            child: Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: Image.asset(
-                                _isPasswordVisible 
-                                  ? 'assets/icons/hide.png'
-                                  : 'assets/icons/view.png',
-                                width: 10,
-                                height: 10,
-                              ),
+                          ),
+                        ),
+                        controller: _passwordController,
+                        obscureText: !_isPasswordVisible,
+                        autocorrect: false,
+                        enableSuggestions: false,
+                      ),
+                      const SizedBox(height: 8),
+                      //Delete button
+                      SpringPress(
+                        child: TextButton(
+                          onPressed: deleteUser,
+                          child: Text(
+                            text.deleteMyAccount,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.error,
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    controller: _passwordController,
-                    obscureText: !_isPasswordVisible,
-                    autocorrect: false,
-                    enableSuggestions: false,
+                    ],
                   ),
                 ),
-                //Delete button
-                Padding(
-                  padding: EdgeInsets.only(
-                    left: 15,
-                    right: 15,
-                    top: 10,
-                    bottom: 10,
-                  ),
-                  child: TextButton(  
-                    onPressed: deleteUser,                      
-                    child: Text(text.deleteMyAccount, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.red)),
-                  ),
-                )
               ],
             ),
-          ),
+          ],
         ),
-      ),
       ),
     );
   }
