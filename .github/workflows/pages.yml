@@ -1,0 +1,124 @@
+# The policy site, published to GitHub Pages.
+#
+# WHY THIS IS A WORKFLOW AND NOT THE "DEPLOY FROM A BRANCH" SETTING. Pages in
+# branch mode serves the repository root or a /docs folder, and nothing else.
+# The pages live in site/. Serving from the root would publish the whole
+# repository - lib/, backend/, docs/, every README - at a public URL, and
+# moving the pages into /docs would rename the folder that the app's links,
+# site/README.md's tripwires and the local
+# `python -m http.server --directory site` all point at. Uploading site/ as an
+# artifact leaves the folder where it is.
+#
+# WHY A PROJECT SITE AND NOT A USER SITE. A GitHub account gets exactly one
+# user site and kawasakicode.github.io is already it. So these pages are
+# served from a sub-path:
+#
+#     https://kawasakicode.github.io/FoitiFinder/
+#
+# The sub-path is the reason every link in site/ is relative and has to stay
+# that way. An href="/privacy.html" resolves against the domain root, which
+# belongs to the other site, and 404s. There is a check below that fails the
+# deploy if a root-relative link appears.
+#
+# WHAT THE APP NEEDS. kLegalBaseUrl in lib/constants.dart is the prefix the
+# in-app links are built from. It is the URL above, trailing slash included.
+# The repository name is case-sensitive in that path: FoitiFinder, not
+# foitifinder.
+#
+# NO JEKYLL. upload-pages-artifact serves the folder as-is, so the Jekyll
+# build that branch mode would run never happens and no .nojekyll file is
+# needed. Nothing in site/ starts with an underscore anyway.
+#
+# BEFORE THE FIRST RUN. Settings -> Pages -> Build and deployment -> Source
+# has to be set to "GitHub Actions". Without that the deploy step fails with
+# a 404 on the Pages API, which reads as a permissions problem and is not.
+
+name: pages
+
+on:
+  # ON DEMAND, from the Actions tab. Useful on its own, and the only way to
+  # re-publish after changing the Pages source setting without inventing a
+  # commit.
+  workflow_dispatch:
+
+  push:
+    branches:
+      - main
+    paths:
+      - 'site/**'
+      - '.github/workflows/pages.yml'
+
+# What deploy-pages needs: pages to publish, id-token for the OIDC exchange it
+# uses to prove the deployment came from this workflow, contents to check out.
+# No write access to the repository itself.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time. cancel-in-progress is deliberately false: a cancelled
+# deploy can leave the site mid-swap, and these pages are linked from inside a
+# shipped app, where a broken privacy link is a store-review problem. Queuing
+# is cheap; a half-published site is not.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Root-relative links break on a project site - see the header. This is
+      # the one site mistake that passes every local check, because
+      # `http.server --directory site` serves site/ AS the root, so /style.css
+      # resolves there and only fails once published.
+      - name: Check for root-relative links
+        run: |
+          if grep -rnE '(href|src)="/[^/]' site/; then
+            echo "::error::A link above starts with a single / - on a project site that resolves to the wrong domain root. Make it relative."
+            exit 1
+          fi
+          echo "All links are relative."
+
+      # Reports the [[TOKEN]] placeholders still unfilled, in the run summary.
+      # Deliberately does not fail the deploy: an unpublished page satisfies
+      # GDPR Art. 13 even less well than one with a token left in it, and the
+      # app's links have to resolve. The count is here so a forgotten token is
+      # noticed on the deploy that carries it, rather than by a user.
+      - name: Report unfilled placeholders
+        run: |
+          echo '## Unfilled placeholders' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          if grep -ohE '\[\[[A-Z_]+\]\]' site/*.html site/el/*.html | sort | uniq -c | sort -rn > placeholders.txt; then
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            cat placeholders.txt >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            echo '' >> "$GITHUB_STEP_SUMMARY"
+            echo 'See site/README.md for what each one is for.' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'None. Every token is filled.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+          rm -f placeholders.txt
+
+      - uses: actions/configure-pages@v5
+
+      # path: site is the whole point of the Actions approach. Everything in
+      # that folder is published and nothing outside it is - including
+      # site/README.md, which is internal notes and is removed here so it does
+      # not become a public page.
+      - name: Drop internal notes from the upload
+        run: rm -f site/README.md
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
