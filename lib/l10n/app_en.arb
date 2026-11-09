@@ -742,7 +742,7 @@
   },
   "removeMatch": "Remove match",
   "removeMatchTitle": "Remove this match?",
-  "removeMatchBody": "This cannot be undone. {name} is not told, and keeps the match on their own list — this only removes it from yours. If you have not saved their Instagram, you will lose it.",
+  "removeMatchBody": "This cannot be undone. {name} is not told, and keeps the match on their own list — this only removes it from yours. If you have not saved their Instagram, you will lose it. You can still report them afterwards, from Matches you removed in Account settings.",
   "@removeMatchBody": {
     "placeholders": {
       "name": {
@@ -751,6 +751,9 @@
     }
   },
   "removeMatchAction": "Remove",
+  "removedMatchesTitle": "Matches you removed",
+  "removedMatchesExplainer": "You removed these matches, so they are no longer in your list. They still have the Instagram handle you shared, and that cannot be taken back. If they misuse it, you can report them here.",
+  "removedMatchesEmpty": "You have not removed any matches.",
   "updateRequiredTitle": "Time to update",
   "updateRequiredBody": "This version of FoitiFinder is no longer supported. Update to the latest one to carry on.",
   "updateRequiredAction": "Update",

@@ -3701,7 +3701,7 @@ abstract class AppLocalizations {
   /// No description provided for @removeMatchBody.
   ///
   /// In en, this message translates to:
-  /// **'This cannot be undone. {name} is not told, and keeps the match on their own list — this only removes it from yours. If you have not saved their Instagram, you will lose it.'**
+  /// **'This cannot be undone. {name} is not told, and keeps the match on their own list — this only removes it from yours. If you have not saved their Instagram, you will lose it. You can still report them afterwards, from Matches you removed in Account settings.'**
   String removeMatchBody(String name);
 
   /// No description provided for @removeMatchAction.
@@ -3709,6 +3709,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove'**
   String get removeMatchAction;
+
+  /// No description provided for @removedMatchesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Matches you removed'**
+  String get removedMatchesTitle;
+
+  /// No description provided for @removedMatchesExplainer.
+  ///
+  /// In en, this message translates to:
+  /// **'You removed these matches, so they are no longer in your list. They still have the Instagram handle you shared, and that cannot be taken back. If they misuse it, you can report them here.'**
+  String get removedMatchesExplainer;
+
+  /// No description provided for @removedMatchesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'You have not removed any matches.'**
+  String get removedMatchesEmpty;
 
   /// No description provided for @updateRequiredTitle.
   ///

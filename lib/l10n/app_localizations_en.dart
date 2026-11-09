@@ -1890,11 +1890,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String removeMatchBody(String name) {
-    return 'This cannot be undone. $name is not told, and keeps the match on their own list — this only removes it from yours. If you have not saved their Instagram, you will lose it.';
+    return 'This cannot be undone. $name is not told, and keeps the match on their own list — this only removes it from yours. If you have not saved their Instagram, you will lose it. You can still report them afterwards, from Matches you removed in Account settings.';
   }
 
   @override
   String get removeMatchAction => 'Remove';
+
+  @override
+  String get removedMatchesTitle => 'Matches you removed';
+
+  @override
+  String get removedMatchesExplainer =>
+      'You removed these matches, so they are no longer in your list. They still have the Instagram handle you shared, and that cannot be taken back. If they misuse it, you can report them here.';
+
+  @override
+  String get removedMatchesEmpty => 'You have not removed any matches.';
 
   @override
   String get updateRequiredTitle => 'Time to update';

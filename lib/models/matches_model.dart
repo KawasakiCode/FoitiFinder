@@ -136,3 +136,32 @@ class MatchSections {
   int get total =>
       yourTurn.length + waitingOnThem.length + connected.length;
 }
+
+//One row of the list of matches you removed.
+//
+//A NAME AND AN ID, AND NOTHING ELSE. This list exists so that somebody who
+//removed a match can still report them, and that is its only purpose - so it
+//carries the least that lets a person pick the right name out of a list, plus
+//the id /reports takes.
+//
+//NO PHOTO, ON PURPOSE. A removed match is somebody a user chose to stop
+//seeing. A screen that hands the faces back is an un-remove nobody asked for,
+//and there is no match id here either: a removed match cannot be confirmed,
+//declined or removed again, so a handle on the row itself would address
+//nothing that can be done to it.
+class RemovedMatch {
+  final int otherUserId;
+  final String otherUserName;
+
+  const RemovedMatch({
+    required this.otherUserId,
+    required this.otherUserName,
+  });
+
+  factory RemovedMatch.fromJson(Map<String, dynamic> json) {
+    return RemovedMatch(
+      otherUserId: json['other_user_id'],
+      otherUserName: json['other_user_name'] ?? '',
+    );
+  }
+}

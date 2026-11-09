@@ -33,6 +33,7 @@ import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/l10n/catalogue_labels.dart';
 import 'package:foitifinder/pages/profile_pages/account_settings/delete_account_page.dart';
 import 'package:foitifinder/pages/profile_pages/account_settings/gender_page.dart';
+import 'package:foitifinder/pages/profile_pages/account_settings/removed_matches_page.dart';
 import 'package:foitifinder/pages/profile_pages/shared/save_profile_field.dart';
 import 'package:foitifinder/providers/notifications_provider.dart';
 import 'package:foitifinder/providers/profile_provider.dart';
@@ -146,6 +147,31 @@ class AccountSettingsPage extends StatelessWidget {
                 _ReadOnlyRow(
                   label: text.email,
                   value: FirebaseAuth.instance.currentUser?.email ?? '',
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 18),
+
+            //ITS OWN CARD, not another row among the identity fields. Nothing
+            //on this page is about other people except this, and it is the
+            //one row somebody arrives looking for rather than scrolling past.
+            //
+            //HERE RATHER THAN ON THE MATCHES PAGE, which is the point of it:
+            //putting removed matches back into the list they were removed
+            //from would undo the only thing removing one does. See
+            //RemovedMatchesPage - a report has to outlive the match on the
+            //list, because the handle does.
+            CardGroup(
+              children: [
+                NavRow(
+                  label: text.removedMatchesTitle,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const RemovedMatchesPage(),
+                    ),
+                  ),
                 ),
               ],
             ),

@@ -1898,11 +1898,21 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String removeMatchBody(String name) {
-    return 'Η ενέργεια δεν αναιρείται. Το $name δεν ενημερώνεται και κρατάει το ματς στη δική του λίστα — αφαιρείται μόνο από τη δική σου. Αν δεν έχεις αποθηκεύσει το Instagram του, θα το χάσεις.';
+    return 'Η ενέργεια δεν αναιρείται. Το $name δεν ενημερώνεται και κρατάει το ματς στη δική του λίστα — αφαιρείται μόνο από τη δική σου. Αν δεν έχεις αποθηκεύσει το Instagram του, θα το χάσεις. Μπορείς να τον αναφέρεις και μετά, από τα Ματς που αφαίρεσες στις Ρυθμίσεις λογαριασμού.';
   }
 
   @override
   String get removeMatchAction => 'Αφαίρεση';
+
+  @override
+  String get removedMatchesTitle => 'Ματς που αφαίρεσες';
+
+  @override
+  String get removedMatchesExplainer =>
+      'Αφαίρεσες αυτά τα ματς, γι\' αυτό δεν είναι πια στη λίστα σου. Έχουν ακόμα το Instagram που τους έδωσες, και αυτό δεν μπορεί να αναιρεθεί. Αν το χρησιμοποιήσουν κακόβουλα, μπορείς να τους αναφέρεις από εδώ.';
+
+  @override
+  String get removedMatchesEmpty => 'Δεν έχεις αφαιρέσει κανένα ματς.';
 
   @override
   String get updateRequiredTitle => 'Ώρα για ενημέρωση';

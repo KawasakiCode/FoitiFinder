@@ -15,7 +15,7 @@ router = APIRouter()
 
 from ages import age_from_birthday
 import match_expiry
-from api_models import MatchResponse
+from api_models import MatchResponse, RemovedMatchResponse
 from app_logging import logger
 #PUSH ONLY, no stored row. The matches page is the record now - it lists every
 #live match and says whose turn each one is - so a notification row about a
@@ -147,6 +147,78 @@ def get_matches(uid: str = Depends(verified_email_uid), db: Session = Depends(ge
         })
 
     return results
+
+#EVERY MATCH THIS USER REMOVED, so that reporting one is still possible.
+#
+#WHY THIS ENDPOINT EXISTS. Removing a match hides your own copy, and the
+#matches page is the only place a report can be started from - so removing
+#somebody used to be the one irreversible way to lose the ability to report
+#them, at exactly the moment you might need it. The handle is already out and
+#cannot be taken back; the report has to outlive the match on the list.
+#
+#THE ROW WAS NEVER DELETED, which is what makes this possible at all: remove
+#sets hidden_by_a_at or hidden_by_b_at and nothing else, and create_report
+#looks a match up without consulting either. The record was always there. The
+#only thing missing was a way to reach it.
+#
+#BOTH SIDES CONFIRMED, which is the condition that matters rather than
+#`revealed`. A hidden row can also be the work of create_report, which hides
+#its reporter's copy of any match - including one with somebody from the deck
+#who never confirmed anything and does not have a handle of yours. Those
+#belong nowhere near a list whose premise is "these people have your
+#Instagram". Both-confirmed is also exactly what remove_match requires, so
+#every row this returns was removed by the button.
+#
+#NOT FILTERED BY WHETHER I ALREADY REPORTED THEM. A second incident deserves
+#a second report, and a reviewer seeing the same pair twice is reading two
+#separate complaints, which is information rather than noise.
+#
+#THEIR REMOVAL IS NOT CONSULTED, the same rule the matches page follows: a
+#list that thinned out when the other person walked away would be a detector
+#for their decision.
+@router.get("/matches/removed", response_model = List[RemovedMatchResponse])
+def get_removed_matches(uid: str = Depends(verified_email_uid),
+                        db: Session = Depends(get_db)):
+    me = db.query(models.User).filter(models.User.firebase_uid == uid).first()
+    if not me:
+        raise HTTPException(status_code=404, detail="Current User not found")
+
+    #NO EXPIRY SWEEP HERE. Nothing this query can return is expirable - an
+    #expired match is one where b_confirmed_at is null, and every row below
+    #has it set - so a sweep would be a write on a read that can never have
+    #anything to do.
+    matches = db.query(models.Matches).filter(
+        models.Matches.a_confirmed_at.isnot(None),
+        models.Matches.b_confirmed_at.isnot(None),
+        or_(
+            and_(models.Matches.user_a_id == me.id,
+                 models.Matches.hidden_by_a_at.isnot(None)),
+            and_(models.Matches.user_b_id == me.id,
+                 models.Matches.hidden_by_b_at.isnot(None)),
+        ),
+    ).order_by(models.Matches.id.desc()).all()
+
+    if not matches:
+        return []
+
+    other_ids = [
+        match.user_b_id if match.user_a_id == me.id else match.user_a_id
+        for match in matches
+    ]
+    names_by_id = {
+        user.id: user.name
+        for user in db.query(models.User.id, models.User.name).filter(
+            models.User.id.in_(other_ids)).all()
+    }
+
+    #A DELETED ACCOUNT IS DROPPED, not shown greyed out. create_report 404s on
+    #a user who is gone, so a row for one would be a button that cannot work -
+    #and there is nobody left to act against anyway.
+    return [
+        {"other_user_id": other_id, "other_user_name": names_by_id[other_id]}
+        for other_id in other_ids
+        if other_id in names_by_id
+    ]
 
 #THE TWO HALVES OF A MATCH. Mutual likes make the row; these decide whether
 #anything is actually exchanged.

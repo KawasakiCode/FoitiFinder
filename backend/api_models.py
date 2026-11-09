@@ -93,6 +93,26 @@ class MatchResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class RemovedMatchResponse(BaseModel):
+    """One row of the list of matches you removed.
+
+    A NAME AND AN ID, AND THAT IS THE WHOLE POINT. This list exists so that a
+    person who removed a match can still report them - nothing else. No photo,
+    no age, no match id: a removed match cannot be confirmed, declined or
+    removed again, so an id for the row itself would address nothing. The user
+    id is here because /reports takes one.
+
+    NO PHOTO ON PURPOSE. A removed match is one somebody chose to stop seeing,
+    and a screen that gives the faces back is a way of un-removing them that
+    nobody asked for. A name is the least that still lets you pick the right
+    person out of a list.
+    """
+    other_user_id: int
+    other_user_name: str
+
+    class Config:
+        from_attributes = True
+
 #Filing a report.
 #
 #THE CODES ARE NOT Literal HERE, unlike SwipeRequest's action. A Literal would

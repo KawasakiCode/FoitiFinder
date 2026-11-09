@@ -662,6 +662,26 @@ class ApiService {
     }
   }
 
+  //Every match this user removed, as names only.
+  //
+  //THE ONLY WAY A REMOVED MATCH CAN STILL BE REPORTED. Reporting starts from
+  //a profile, and the only profiles reachable for somebody you have matched
+  //with are the ones on the matches page - so removing a match used to end
+  //the ability to report that person, at the point where the handle is
+  //already out and misuse becomes possible. The server never deleted the row;
+  //this is the screen that was missing.
+  static Future<List<RemovedMatch>> getRemovedMatches() async {
+    final response = await http.get(
+      Uri.parse("$baseUrl/matches/removed"),
+      headers: await _authHeaders(),
+    ).timeout(kRequestTimeout);
+    if (response.statusCode != 200) {
+      throw Exception("Failed to load removed matches ${response.body}");
+    }
+    final List<dynamic> data = jsonDecode(response.body);
+    return data.map((item) => RemovedMatch.fromJson(item)).toList();
+  }
+
   //Get a single user by id
   //The full profile of another user, for the page behind a swipe card.
   //Everything a stranger may see and nothing else - the endpoint decides that,
