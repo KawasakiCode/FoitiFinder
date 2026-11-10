@@ -11,6 +11,7 @@
 //not others means the tint reappears the moment a new widget is used. This
 //test fails if any of them drifts back toward the seed.
 
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -143,6 +144,48 @@ void main() {
         _level(AppColors.darkElevated),
         greaterThan(_level(AppColors.darkSurface)),
       );
+    });
+
+    //THE SAME COLOUR, DECIDED TWICE. android:windowBackground paints the
+    //window behind the Flutter UI - at launch between the splash handing over
+    //and the first frame, and anywhere Flutter does not paint afterwards. It
+    //is set in XML, which no Dart token can reach, and it was left at
+    //?android:colorBackground: pure #000000 under Theme.Black. So dark mode
+    //had a black sheet under a #121212 UI, and lifting the Dart palette off
+    //black could not touch it.
+    //
+    //Hardcoding the hex there is the only option the platform gives, so the
+    //guard is this: read the XML back and fail if the two ever disagree.
+    group('the Android window behind Flutter', () {
+      String windowBackgroundOf(String dir) {
+        final file =
+            File('android/app/src/main/res/$dir/styles.xml').readAsStringSync();
+        //NormalTheme, not LaunchTheme: the launch one is a gradient drawable
+        //and deliberately not a flat colour
+        final normal = file.substring(file.indexOf('name="NormalTheme"'));
+        final match =
+            RegExp(r'windowBackground">(#[0-9A-Fa-f]{8})<').firstMatch(normal);
+        expect(match, isNotNull,
+            reason: '$dir/styles.xml NormalTheme has no literal '
+                'windowBackground - if it is back to ?android:colorBackground '
+                'it resolves to pure black in dark mode');
+        return match!.group(1)!.toUpperCase();
+      }
+
+      String hex(Color c) =>
+          '#FF${((c.r * 255).round() << 16 | (c.g * 255).round() << 8 | (c.b * 255).round()).toRadixString(16).padLeft(6, '0').toUpperCase()}';
+
+      for (final dir in ['values-night', 'values-night-v31']) {
+        test('$dir matches darkBackground', () {
+          expect(windowBackgroundOf(dir), hex(AppColors.darkBackground));
+        });
+      }
+
+      for (final dir in ['values', 'values-v31']) {
+        test('$dir matches lightBackground', () {
+          expect(windowBackgroundOf(dir), hex(AppColors.lightBackground));
+        });
+      }
     });
 
     //THE RISK THIS CHANGE CARRIED. Lifting the page toward grey reduces its

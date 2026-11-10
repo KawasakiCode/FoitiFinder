@@ -17,6 +17,18 @@
 
          This Theme is only used starting with V2 of Flutter's Android embedding. -->
     <style name="NormalTheme" parent="@android:style/Theme.Black.NoTitleBar">
-        <item name="android:windowBackground">?android:colorBackground</item>
+        <!--
+             THE PAGE COLOUR, NOT colorBackground. This attribute paints the
+             window BEHIND the Flutter UI: at launch between the splash
+             handing over and the first frame, and anywhere Flutter does not
+             paint afterwards. Theme.Black resolves ?android:colorBackground
+             to pure #000000, so dark mode had a black sheet underneath a UI
+             whose own page is #121212 - the one black left in the app after
+             the Dart palette was lifted off it.
+
+             Must match AppColors.darkBackground in lib/theme/app_colors.dart;
+             theme_test.dart reads this file and fails if the two drift.
+        -->
+        <item name="android:windowBackground">#FF121212</item>
     </style>
 </resources>

@@ -479,41 +479,59 @@ class _MainScreenState extends State<MainScreen> {
             children: pages.map((page) => _KeepAlivePage(child: page)).toList(),
           ),
         ),
-        bottomNavigationBar: SafeArea(
-          child: Container(
-            height: 70,
-            decoration: BoxDecoration(
-              //THE SCHEME'S SURFACE, which is white in light mode and the
-              //ramp's card step in dark. It used to name lightSurface and
-              //darkBackground, and those are not the same relationship: in
-              //light mode the bar was a raised surface above an #ECECEF page,
-              //in dark mode it was the page colour exactly, separated from the
-              //content above it by nothing but a 6% hairline. The bar is the
-              //one piece of furniture on every screen, so it being flush in
-              //one theme and raised in the other is felt everywhere.
-              color: Theme.of(context).colorScheme.surface,
-              border: Border(
-                top: BorderSide(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white.withValues(alpha: 0.06)
-                      : Colors.black.withValues(alpha: 0.08),
-                  width: 0.5,
-                ),
+        //THE COLOUR IS OUTSIDE THE SafeArea, THE CONTENT IS INSIDE IT.
+        //
+        //The gesture inset below the bar is painted by whatever is behind it,
+        //which is the Scaffold. So colouring a box INSIDE the SafeArea paints
+        //the row and leaves the strip under it showing the page, and the bar
+        //becomes a band with a different colour above and below it. That only
+        //stayed invisible while the bar was the page colour; the moment it was
+        //not, there were three stripes at the bottom of every screen.
+        //
+        //Painting outside and padding inside means the colour reaches the
+        //screen edge while the icons still clear the gesture bar, so the bar
+        //can be any colour without growing a seam.
+        bottomNavigationBar: DecoratedBox(
+          decoration: BoxDecoration(
+            //THE PAGE COLOUR, NOT A RAISED ONE.
+            //
+            //This briefly used colorScheme.surface, on the argument that light
+            //mode raises the bar above its page so dark mode should too. The
+            //argument was wrong in dark: raising a surface is how light mode
+            //shows a shadow it can actually draw, and dark mode has no shadow
+            //to draw - so a lighter bar there is not elevation, it is just a
+            //slab the same colour as the cards above it, competing with them.
+            //Instagram and Spotify both keep the bar at the page colour and
+            //let a hairline do the separating, which is what this does.
+            color: Theme.of(context).scaffoldBackgroundColor,
+            border: Border(
+              top: BorderSide(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white.withValues(alpha: 0.06)
+                    : Colors.black.withValues(alpha: 0.08),
+                width: 0.5,
               ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Expanded(
-                  child: _buildNavItem(0, 'assets/icons/home_page.png', 'Home'),
-                ),
-                Expanded(
-                  child: _buildNavItem(1, 'assets/icons/like.png', 'Matches'),
-                ),
-                Expanded(
-                  child: _buildNavItem(2, 'assets/icons/user.png', 'Profile'),
-                ),
-              ],
+          ),
+          child: SafeArea(
+            top: false,
+            child: SizedBox(
+              height: 70,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Expanded(
+                    child: _buildNavItem(
+                        0, 'assets/icons/home_page.png', 'Home'),
+                  ),
+                  Expanded(
+                    child: _buildNavItem(1, 'assets/icons/like.png', 'Matches'),
+                  ),
+                  Expanded(
+                    child: _buildNavItem(2, 'assets/icons/user.png', 'Profile'),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

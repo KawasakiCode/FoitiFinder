@@ -33,6 +33,11 @@
          
          This Theme is only used starting with V2 of Flutter's Android embedding. -->
     <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
-        <item name="android:windowBackground">?android:colorBackground</item>
+        <!--
+             THE PAGE COLOUR, NOT colorBackground - see the note in
+             values-night/styles.xml. Must match AppColors.lightBackground in
+             lib/theme/app_colors.dart; theme_test.dart checks both.
+        -->
+        <item name="android:windowBackground">#FFECECEF</item>
     </style>
 </resources>
