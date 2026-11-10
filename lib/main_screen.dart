@@ -483,9 +483,15 @@ class _MainScreenState extends State<MainScreen> {
           child: Container(
             height: 70,
             decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.darkBackground
-                  : AppColors.lightSurface,
+              //THE SCHEME'S SURFACE, which is white in light mode and the
+              //ramp's card step in dark. It used to name lightSurface and
+              //darkBackground, and those are not the same relationship: in
+              //light mode the bar was a raised surface above an #ECECEF page,
+              //in dark mode it was the page colour exactly, separated from the
+              //content above it by nothing but a 6% hairline. The bar is the
+              //one piece of furniture on every screen, so it being flush in
+              //one theme and raised in the other is felt everywhere.
+              color: Theme.of(context).colorScheme.surface,
               border: Border(
                 top: BorderSide(
                   color: Theme.of(context).brightness == Brightness.dark

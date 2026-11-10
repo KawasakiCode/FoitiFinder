@@ -86,11 +86,41 @@ class AppColors {
   //white dimming toward grey has no hue to amplify.
   //
   //Keep these grey. A tint here is a tint that only shows up mid-animation.
-  static const Color darkBackground = Color(0xFF0A0A0A);
-  static const Color darkSurface = Color(0xFF141414);
-  static const Color darkSurfaceVariant = Color(0xFF202020);
-  static const Color darkBorder = Color(0xFF282828);
+  //
+  //NOT BLACK, AND AN EVEN RAMP. This used to start at #0A0A0A and the whole
+  //scale - background, five container steps, border - lived between 10 and 40
+  //of 255. Two problems came out of that, and together they are why dark mode
+  //read as one flat sheet with writing on it.
+  //
+  //First, a near-black screen loses to its own glass. At #0A0A0A the panel
+  //emits less light than the display reflects back in any lit room, so the
+  //reflection is most of what reaches the eye and the steps between surfaces
+  //vanish into it. Starting at #121212 - what Material recommends and what
+  //Spotify, YouTube and Netflix all sit near - puts the base above that floor,
+  //so the differences above it survive being looked at.
+  //
+  //Second, there is no shadow in dark mode. AppShadows paints black at 4%
+  //alpha, which is invisible on a background that is already nearly black, so
+  //the 17 cards using it were flat. Elevation here can only come from a
+  //surface being LIGHTER than what it sits on, which means the ramp has to do
+  //the whole job on its own and its steps have to be big enough to see.
+  //
+  //Hence eight units per step, evenly. A card now sits 14 above the page
+  //rather than 10, which is a bit over twice the luminance - a step you can
+  //see rather than one you can measure. Adding a level means continuing the
+  //pattern, not inventing a value between two others.
+  static const Color darkBackground = Color(0xFF121212); // 18 - the page
+  static const Color darkSurfaceLow = Color(0xFF181818); // 24 - under a card
+  static const Color darkSurface = Color(0xFF202020); // 32 - a card
+  static const Color darkSurfaceHigh = Color(0xFF282828); // 40 - on a card
+  static const Color darkSurfaceVariant = Color(0xFF303030); // 48 - a control
+  static const Color darkElevated = Color(0xFF383838); // 56 - over everything
+  static const Color darkBorder = Color(0xFF404040); // 64 - a drawn edge
   static const Color darkTextPrimary = Color(0xFFFAFAFA);
+  //THE BLUE HERE IS NOT DELIBERATE and breaks the true-neutral rule above by
+  //nine units. Left alone because changing it changes the colour of every
+  //piece of secondary text in the app, which is a look decision rather than a
+  //correctness one. #A1A1A1 is the neutral version of it.
   static const Color darkTextSecondary = Color(0xFFA1A1AA);
 }
 

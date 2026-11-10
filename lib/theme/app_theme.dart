@@ -47,12 +47,19 @@ class AppTheme {
       //BottomSheet uses surfaceContainerLow) renders visibly blue against our
       //neutral cards. They all resolve to the same neutral now, so there is no
       //tinted surface anywhere in the scheme to leak through.
-      surfaceContainerLowest: isDark ? const Color(0xFF101010) : Colors.white,
-      surfaceContainerLow: isDark ? const Color(0xFF141414) : Colors.white,
-      surfaceContainer: isDark ? const Color(0xFF141414) : Colors.white,
-      surfaceContainerHigh: isDark ? const Color(0xFF181818) : Colors.white,
+      //
+      //AND THEY COME FROM THE RAMP, not from hex written here. These were six
+      //literals in this file, which meant the dark scale was defined in two
+      //places and app_colors.dart's "nothing else should hardcode a hex" was
+      //true of the whole app except the file that builds its theme. Lifting
+      //dark mode off black needed edits in both to agree.
+      surfaceContainerLowest:
+          isDark ? AppColors.darkSurfaceLow : Colors.white,
+      surfaceContainerLow: isDark ? AppColors.darkSurface : Colors.white,
+      surfaceContainer: isDark ? AppColors.darkSurface : Colors.white,
+      surfaceContainerHigh: isDark ? AppColors.darkSurfaceHigh : Colors.white,
       surfaceContainerHighest:
-          isDark ? const Color(0xFF181818) : Colors.white,
+          isDark ? AppColors.darkSurfaceHigh : Colors.white,
     );
 
     return ThemeData(
@@ -284,10 +291,11 @@ class AppTheme {
 
       dialogTheme: DialogThemeData(
         //In dark mode the dialog sits ABOVE the cards rather than level with
-        //them (#202020 against their #1a1a1a). With a lighter scrim the cards
-        //do not collapse to black, so the dialog needs its own separation
-        //instead of relying on everything behind it going dark.
-        backgroundColor: isDark ? const Color(0xFF202020) : surface,
+        //them - darkElevated against their darkSurface, two steps up the ramp.
+        //With a lighter scrim the cards do not collapse to black, so the
+        //dialog needs its own separation instead of relying on everything
+        //behind it going dark.
+        backgroundColor: isDark ? AppColors.darkElevated : surface,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.lg),
