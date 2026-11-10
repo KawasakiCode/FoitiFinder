@@ -157,7 +157,7 @@ class _ReportSheetState extends State<_ReportSheet>
   //the very first panel translated a full width off screen - drawn, laid out,
   //and untappable, with nothing on screen to say why.
   late final AnimationController _slide = AnimationController(
-    duration: const Duration(milliseconds: 260),
+    duration: AppMotion.base,
     value: 1,
     vsync: this,
   );
@@ -298,7 +298,7 @@ class _ReportSheetState extends State<_ReportSheet>
   //CLIPPED BY THE CARD ABOVE (Clip.antiAlias on the Container), so a panel
   //sliding out does not paint across the rounded corners or past the edge.
   Widget _slidingBody(ThemeData theme) {
-    final curve = CurvedAnimation(parent: _slide, curve: Curves.easeOutCubic);
+    final curve = CurvedAnimation(parent: _slide, curve: AppMotion.standard);
     //leftwards going forward, rightwards coming back - both panels together
     final direction = _forward ? -1.0 : 1.0;
 
@@ -345,7 +345,7 @@ class _ReportSheetState extends State<_ReportSheet>
             //a glitch, and sliding it would pull it out from between the two
             //icons it is centred against.
             child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 160),
+              duration: AppMotion.fast,
               child: Text(
                 _title(),
                 key: ValueKey(_title()),

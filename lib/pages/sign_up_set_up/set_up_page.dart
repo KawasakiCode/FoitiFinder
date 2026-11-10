@@ -160,9 +160,8 @@ class _SetUpPageState extends State<SetUpPage> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: GlassScaffold(
-        appBar: AppBar(
-          title: Text(text.editProfile),
-          automaticallyImplyLeading: true,
+        appBar: PageAppBar(
+          title: text.editProfile,
           actions: [
             SpringPress(
               child: TextButton(

@@ -62,10 +62,7 @@ class _LanguagesPageState extends State<LanguagesPage> {
   @override
   Widget build(BuildContext context) {
     return GlassScaffold(
-      appBar: AppBar(
-        title: Text(text.languagesSpoken),
-        automaticallyImplyLeading: true,
-      ),
+      appBar: PageAppBar(title: text.languagesSpoken),
       body: GlassScroll(
         slivers: [
           SliverStagger(

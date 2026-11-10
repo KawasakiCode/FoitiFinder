@@ -218,8 +218,8 @@ class CheckRow extends StatelessWidget {
                 ),
                 AnimatedScale(
                   scale: selected ? 1 : 0,
-                  duration: const Duration(milliseconds: 200),
-                  curve: Curves.easeOutBack,
+                  duration: AppMotion.base,
+                  curve: AppMotion.emphasized,
                   child: Image.asset(
                     'assets/icons/check.png',
                     width: 24,

@@ -194,10 +194,7 @@ class _AddPhotos extends State<AddPhotos> {
   @override
   Widget build(BuildContext context) {
     return GlassScaffold(
-      appBar: AppBar(
-        title: Text(text.uploadPhotos),
-        automaticallyImplyLeading: true,
-      ),
+      appBar: PageAppBar(title: text.uploadPhotos),
       body: LoadingOverlay(
         isLoading: _isLoading,
         child: GlassScroll(

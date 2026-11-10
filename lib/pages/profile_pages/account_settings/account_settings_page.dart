@@ -88,10 +88,7 @@ class AccountSettingsPage extends StatelessWidget {
     final heightCm = user?.heightCm;
 
     return GlassScaffold(
-      appBar: AppBar(
-        title: Text(text.accountSettings),
-        automaticallyImplyLeading: true,
-      ),
+      appBar: PageAppBar(title: text.accountSettings),
       body: GlassScroll(
         slivers: [
           SliverStagger(

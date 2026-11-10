@@ -116,10 +116,7 @@ class _GenderPageState extends State<GenderPage> {
   @override
   Widget build(BuildContext context) {
     return GlassScaffold(
-      appBar: AppBar(
-        title: Text(text.gender),
-        automaticallyImplyLeading: true,
-      ),
+      appBar: PageAppBar(title: text.gender),
       body: GlassScroll(
         slivers: [
           SliverStagger(

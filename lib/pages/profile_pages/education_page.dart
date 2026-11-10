@@ -75,10 +75,7 @@ class _EducationPageState extends State<EducationPage> {
           Navigator.pop(context, _result);
         },
         child: GlassScaffold(
-          appBar: AppBar(
-            title: Text(text.education),
-            automaticallyImplyLeading: true,
-          ),
+          appBar: PageAppBar(title: text.education),
           body: GlassScroll(
             slivers: [
               SliverStagger(

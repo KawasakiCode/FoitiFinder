@@ -97,7 +97,7 @@ class _RemovedMatchesPageState extends State<RemovedMatchesPage> {
     final text = AppLocalizations.of(context)!;
 
     return GlassScaffold(
-      appBar: AppBar(title: Text(text.removedMatchesTitle)),
+      appBar: PageAppBar(title: text.removedMatchesTitle),
       body: Crossfade(
         child: _loading
             ? const _RemovedSkeleton(key: ValueKey('loading'))

@@ -182,10 +182,7 @@ class _DatePreferencesPageState extends State<DatePreferencesPage> {
         .join(', ');
 
     return GlassScaffold(
-      appBar: AppBar(
-        title: Text(text.datePreferences),
-        automaticallyImplyLeading: true,
-      ),
+      appBar: PageAppBar(title: text.datePreferences),
       body: GlassScroll(
         slivers: [
           SliverStagger(

@@ -118,11 +118,11 @@ class _InstagramPageState extends State<InstagramPage> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: GlassScaffold(
-        appBar: AppBar(
-          title: Text(text.instagramTitle),
+        appBar: PageAppBar(
+          title: text.instagramTitle,
           //nothing to go back to: this is the first step, and the step before
           //it was verifying an email
-          automaticallyImplyLeading: false,
+          showBack: false,
         ),
         body: LoadingOverlay(
           isLoading: _saving,

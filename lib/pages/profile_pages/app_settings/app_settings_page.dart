@@ -59,10 +59,7 @@ class _SettingsPageState extends State<SettingsPage> {
     final settings = Provider.of<SettingsProvider>(context);
 
     return GlassScaffold(
-      appBar: AppBar(
-        title: Text(text.settingsTitle),
-        automaticallyImplyLeading: true,
-      ),
+      appBar: PageAppBar(title: text.settingsTitle),
       body: GlassScroll(
         slivers: [
           SliverStagger(
@@ -101,8 +98,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     },
                   ),
                   AnimatedSize(
-                    duration: const Duration(milliseconds: 200),
-                    curve: Curves.easeOutCubic,
+                    duration: AppMotion.base,
+                    curve: AppMotion.standard,
                     alignment: Alignment.topLeft,
                     child: settings.osPermission
                         ? const SizedBox(width: double.infinity)

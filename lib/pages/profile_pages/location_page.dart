@@ -52,10 +52,7 @@ class _LocationPageState extends State<LocationPage> {
           Navigator.pop(context, _result);
         },
         child: GlassScaffold(
-          appBar: AppBar(
-            title: Text(text.location),
-            automaticallyImplyLeading: true,
-          ),
+          appBar: PageAppBar(title: text.location),
           body: GlassScroll(
             slivers: [
               SliverStagger(

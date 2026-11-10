@@ -105,12 +105,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
     return Scaffold(
       //the list scrolls under the frosted bar
       extendBodyBehindAppBar: true,
-      appBar: GlassAppBar(
-        child: AppBar(
-          title: Text(text.notifications),
-          automaticallyImplyLeading: true,
-        ),
-      ),
+      //GlassAppBar by hand rather than GlassScaffold, because the body is a
+      //RefreshIndicator that needs the bar's height for its edgeOffset
+      appBar: GlassAppBar(child: PageAppBar(title: text.notifications)),
       body: RefreshIndicator(
         edgeOffset: MediaQuery.paddingOf(context).top + kToolbarHeight,
         onRefresh: provider.load,
@@ -294,8 +291,8 @@ class _NotificationRow extends StatelessWidget {
     //already read simply starts dim
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(end: note.read ? _kReadOpacity : 1),
-      duration: const Duration(milliseconds: 240),
-      curve: Curves.easeOut,
+      duration: AppMotion.base,
+      curve: AppMotion.standard,
       builder: (context, opacity, child) =>
           Opacity(opacity: opacity, child: child),
       child: SpringPress(

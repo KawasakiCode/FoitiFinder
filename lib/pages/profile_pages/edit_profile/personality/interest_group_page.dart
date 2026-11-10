@@ -134,9 +134,8 @@ class _InterestGroupPageState extends State<InterestGroupPage> {
         Navigator.pop(context, _result);
       },
       child: GlassScaffold(
-        appBar: AppBar(
-          title: Text(catalogueLabel(text, widget.group.title)),
-          automaticallyImplyLeading: true,
+        appBar: PageAppBar(
+          title: catalogueLabel(text, widget.group.title),
           actions: [
             //the shared budget lives in the app bar: it belongs to the group as
             //a whole, and no single section owns it

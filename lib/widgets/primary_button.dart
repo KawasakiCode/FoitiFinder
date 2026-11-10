@@ -56,8 +56,8 @@ class PrimaryButton extends StatelessWidget {
 
     return AnimatedOpacity(
       opacity: enabled ? 1.0 : 0.6,
-      duration: const Duration(milliseconds: 240),
-      curve: Curves.easeOut,
+      duration: AppMotion.base,
+      curve: AppMotion.standard,
       child: SpringPress(
         enabled: enabled,
         child: Semantics(
@@ -80,7 +80,7 @@ class PrimaryButton extends StatelessWidget {
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: expand ? 16 : 32),
                   child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 200),
+                    duration: AppMotion.base,
                     child: isLoading
                         ? Shimmer(
                             key: const ValueKey('loading'),

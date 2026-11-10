@@ -26,7 +26,7 @@ import 'package:foitifinder/theme/app_colors.dart';
 //HOW LONG IT STAYS. Long enough to read a line and decide to tap it, short
 //enough that it is gone before it becomes part of the furniture.
 const Duration kTopBannerVisible = Duration(seconds: 4);
-const Duration kTopBannerSlide = Duration(milliseconds: 260);
+const Duration kTopBannerSlide = AppMotion.base;
 
 //the entry currently on screen, so a second call can take its place
 OverlayEntry? _current;
@@ -131,7 +131,7 @@ class _TopBannerState extends State<_TopBanner>
           begin: const Offset(0, -1),
           end: Offset.zero,
         ).animate(
-          CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+          CurvedAnimation(parent: _controller, curve: AppMotion.standard),
         ),
         child: SafeArea(
           //the status bar is not ours to draw over

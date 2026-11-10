@@ -158,7 +158,7 @@ HeroFlightShuttleBuilder photoHeroShuttle({
     final Animation<double> fade = Tween<double>(begin: 1, end: 0).animate(
       CurvedAnimation(
         parent: animation,
-        curve: const Interval(0, kCardFurnitureFadeEnd, curve: Curves.easeOut),
+        curve: const Interval(0, kCardFurnitureFadeEnd, curve: AppMotion.standard),
       ),
     );
 
@@ -597,8 +597,8 @@ class SwipeActionButton extends StatelessWidget {
         onTap: onPressed,
         //animated so the star eases to grey when the last one is spent
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 240),
-          curve: Curves.easeOut,
+          duration: AppMotion.base,
+          curve: AppMotion.standard,
           width: size,
           height: size,
           decoration: BoxDecoration(

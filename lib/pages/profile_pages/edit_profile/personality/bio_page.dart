@@ -110,10 +110,7 @@ class _BioPageState extends State<BioPage> {
         child: LoadingOverlay(
           isLoading: _isSaving,
           child: GlassScaffold(
-            appBar: AppBar(
-              title: Text(text.bioTitle),
-              automaticallyImplyLeading: true,
-            ),
+            appBar: PageAppBar(title: text.bioTitle),
             body: GlassScroll(
               slivers: [
                 SliverStagger(

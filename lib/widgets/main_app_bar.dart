@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/pages/main_pages/notifications_page.dart';
 import 'package:foitifinder/providers/notifications_provider.dart';
+import 'package:foitifinder/widgets/polish.dart';
 import 'package:provider/provider.dart';
 
 //past this it is "lots", and three digits do not fit a bell
@@ -32,13 +33,15 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppBar(
-      titleSpacing: 2,
-      automaticallyImplyLeading: showBack,
-      title: Padding(
-        padding: const EdgeInsets.only(left: 10),
-        child: Text(title),
-      ),
+    //THE BELL IS THE ONLY THING THIS ADDS over the bar every other page wears.
+    //It used to build its own AppBar with titleSpacing 2 and a 10px padding
+    //inside the title - twelve points in two numbers, where every pushed page
+    //sat at the default sixteen. So a tab's title and a sub-page's title began
+    //at different places, and walking from one to the other nudged the heading
+    //sideways. Going through PageAppBar is what stops that.
+    return PageAppBar(
+      title: title,
+      showBack: showBack,
       actions: const [NotificationsBell(), SizedBox(width: 4)],
     );
   }

@@ -18,6 +18,7 @@
 //Pops with the new value ('' when cleared), or null if nothing changed.
 
 import 'package:flutter/material.dart';
+import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/constants/profile_options.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/l10n/catalogue_labels.dart';
@@ -76,9 +77,8 @@ class _PronounsPageState extends State<PronounsPage> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: GlassScaffold(
-        appBar: AppBar(
-          title: Text(catalogueLabel(text, kChoicePronouns.title)),
-          automaticallyImplyLeading: true,
+        appBar: PageAppBar(
+          title: catalogueLabel(text, kChoicePronouns.title),
           actions: [
             //the only way back to "no answer" - and what unlocks the text field
             AppBarAction(
@@ -135,7 +135,7 @@ class _PronounsPageState extends State<PronounsPage> {
                     ignoring: locked,
                     child: AnimatedOpacity(
                       opacity: locked ? 0.4 : 1,
-                      duration: const Duration(milliseconds: 150),
+                      duration: AppMotion.fast,
                       child: TextField(
                         controller: _custom,
                         maxLength: kPronounsMaxLength,
@@ -150,8 +150,8 @@ class _PronounsPageState extends State<PronounsPage> {
                   ),
                 ),
                 AnimatedSize(
-                  duration: const Duration(milliseconds: 200),
-                  curve: Curves.easeOutCubic,
+                  duration: AppMotion.base,
+                  curve: AppMotion.standard,
                   alignment: Alignment.topLeft,
                   child: locked
                       ? Padding(

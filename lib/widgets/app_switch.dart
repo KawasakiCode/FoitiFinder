@@ -9,6 +9,7 @@
 //theme and dark mode keeps working without a second set of constants.
 
 import 'package:flutter/material.dart';
+import 'package:foitifinder/theme/app_colors.dart';
 
 class AppSwitch extends StatelessWidget {
   final bool value;
@@ -22,7 +23,7 @@ class AppSwitch extends StatelessWidget {
     super.key,
     required this.value,
     required this.onChanged,
-    this.duration = const Duration(milliseconds: 300),
+    this.duration = AppMotion.slow,
   });
 
   //M3 metrics, so it sits the same as a real Switch next to a row of text
@@ -78,7 +79,7 @@ class AppSwitch extends StatelessWidget {
             opacity: enabled ? 1 : 0.5,
             child: AnimatedContainer(
               duration: duration,
-              curve: Curves.easeInOutCubic,
+              curve: AppMotion.standard,
               width: _trackWidth,
               height: _trackHeight,
               padding: const EdgeInsets.all(_trackPadding),
@@ -88,11 +89,11 @@ class AppSwitch extends StatelessWidget {
               ),
               child: AnimatedAlign(
                 duration: duration,
-                curve: Curves.easeInOutCubic,
+                curve: AppMotion.standard,
                 alignment: value ? Alignment.centerRight : Alignment.centerLeft,
                 child: AnimatedContainer(
                   duration: duration,
-                  curve: Curves.easeInOutCubic,
+                  curve: AppMotion.standard,
                   width: thumbSize,
                   height: thumbSize,
                   decoration: BoxDecoration(

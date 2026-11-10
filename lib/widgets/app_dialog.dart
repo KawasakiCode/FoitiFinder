@@ -12,11 +12,12 @@
 //animation.
 
 import 'package:flutter/material.dart';
+import 'package:foitifinder/theme/app_colors.dart';
 
 //Forward is slower than reverse on purpose: an entrance wants to be watched,
 //a dismissal wants to be over. Matching them makes closing feel sluggish.
-const Duration _kEnterDuration = Duration(milliseconds: 300);
-const Duration _kExitDuration = Duration(milliseconds: 180);
+const Duration _kEnterDuration = AppMotion.slow;
+const Duration _kExitDuration = AppMotion.fast;
 
 //THE SCRIM IS LIGHTER IN DARK MODE, and it has to be.
 //
@@ -104,14 +105,14 @@ Widget _buildTransition(
     parent: animation,
     //a little overshoot past full size, so it lands with some weight instead
     //of easing to a stop
-    curve: closing ? Curves.easeIn : Curves.easeOutBack,
+    curve: closing ? AppMotion.exit : AppMotion.emphasized,
   );
 
   //Fade finishes in the first half of the scale. The dialog is legible well
   //before it stops growing, which is what stops 300ms feeling slow.
   final Animation<double> fade = CurvedAnimation(
     parent: animation,
-    curve: const Interval(0, 0.5, curve: Curves.easeOut),
+    curve: const Interval(0, 0.5, curve: AppMotion.standard),
   );
 
   return FadeTransition(

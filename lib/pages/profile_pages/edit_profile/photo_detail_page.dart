@@ -31,6 +31,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:flutter/material.dart';
+import 'package:foitifinder/theme/app_colors.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/models/photos_model.dart';
 import 'package:foitifinder/pages/profile_pages/edit_profile/story_dialog.dart';
@@ -66,7 +67,7 @@ Route<File> photoDetailRoute({
         parent: animation,
         //in over the first half, so the page has settled well before the
         //photo finishes landing
-        curve: const Interval(0, 0.5, curve: Curves.easeOut),
+        curve: const Interval(0, 0.5, curve: AppMotion.standard),
       ),
       child: child,
     ),
@@ -276,7 +277,7 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 200),
+                        duration: AppMotion.base,
                         child: _loadingStory
                             ? const Shimmer(
                                 key: ValueKey('loading'),

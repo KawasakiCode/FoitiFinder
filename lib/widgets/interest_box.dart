@@ -40,8 +40,8 @@ class InterestBox extends StatelessWidget {
     return AnimatedOpacity(
       //only the unpickable ones fade, so a full section still reads clearly
       opacity: dimmed ? 0.4 : 1,
-      duration: const Duration(milliseconds: 150),
-      curve: Curves.easeOut,
+      duration: AppMotion.fast,
+      curve: AppMotion.standard,
       child: SpringPress(
         child: Material(
           color: Colors.transparent,
@@ -49,8 +49,8 @@ class InterestBox extends StatelessWidget {
             onTap: onTap,
             borderRadius: BorderRadius.circular(AppRadius.lg),
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              curve: Curves.easeOut,
+              duration: AppMotion.fast,
+              curve: AppMotion.standard,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: selected ? selectedFill : idleFill,

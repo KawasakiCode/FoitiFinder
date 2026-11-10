@@ -365,8 +365,8 @@ class _MainScreenState extends State<MainScreen> {
     if (_selectedIndex == index) return;
     _pageController.animateToPage(
       index,
-      duration: const Duration(milliseconds: 280),
-      curve: Curves.easeInOut,
+      duration: AppMotion.slow,
+      curve: AppMotion.standard,
     );
   }
 
@@ -400,8 +400,8 @@ class _MainScreenState extends State<MainScreen> {
       behavior: HitTestBehavior.opaque,
 
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOut,
+        duration: AppMotion.base,
+        curve: AppMotion.standard,
         transform: Matrix4.translationValues(0, isSelected ? -6.0 : 0.0, 0),
 
         child: Column(
@@ -416,7 +416,7 @@ class _MainScreenState extends State<MainScreen> {
             ),
             const SizedBox(height: 4),
             AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 200),
+              duration: AppMotion.base,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
@@ -447,8 +447,8 @@ class _MainScreenState extends State<MainScreen> {
         if (didPop) return;
         _pageController.animateToPage(
           0,
-          duration: const Duration(milliseconds: 280),
-          curve: Curves.easeInOut,
+          duration: AppMotion.slow,
+          curve: AppMotion.standard,
         );
       },
       child: Scaffold(

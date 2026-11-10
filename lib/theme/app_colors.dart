@@ -94,6 +94,52 @@ class AppColors {
   static const Color darkTextSecondary = Color(0xFFA1A1AA);
 }
 
+//How long things take, and how they ease.
+//
+//WHY A SCALE AND NOT A NUMBER AT EACH CALL SITE. This app had 19 distinct
+//durations and 7 curves in it. None was wrong on its own, and that was exactly
+//the problem: two things animating beside each other at 160ms/easeOut and
+//240ms/easeOutCubic do not read as two decisions, they read as something
+//slightly broken. The eye notices the mismatch without being able to name it,
+//which is the hardest kind of wrong to find by looking.
+//
+//FOUR DURATIONS AND THREE CURVES is enough for every transition here. Anything
+//that wants a fifth needs a reason that can be written down.
+//
+//PRESS IS NOT REALLY ON THE SCALE. 90ms is below the point where a duration
+//reads as motion at all - it is the delay that makes a finger feel answered,
+//and stretching it to fast would feel like lag.
+//
+//WHAT IS DELIBERATELY NOT HERE. The photo flight in profile_detail_page and
+//photo_detail_page sets its own duration from how far the card has to travel,
+//because a flight that took the same time regardless of distance would move at
+//a different speed every time - see _kFlightShortest and _kFlightLongest, and
+//the test in test/profile_flight_duration_test.dart. The shimmer's 1600ms is a
+//loop period, not a transition. Route transitions belong to
+//pageTransitionsTheme. None of those three are inconsistencies to fix.
+class AppMotion {
+  AppMotion._();
+
+  //a finger being answered, not a thing moving
+  static const Duration press = Duration(milliseconds: 90);
+  //small state: a tick appearing, a label swapping, a colour settling
+  static const Duration fast = Duration(milliseconds: 160);
+  //THE DEFAULT. With no reason to choose another, choose this one.
+  static const Duration base = Duration(milliseconds: 240);
+  //whole surfaces: a sheet, a dialog, a tab sliding across
+  static const Duration slow = Duration(milliseconds: 320);
+
+  //DECELERATING, so a thing arrives under its own weight and settles instead
+  //of stopping dead. This is the one to reach for.
+  static const Curve standard = Curves.easeOutCubic;
+  //overshoots a little, for something that should feel picked up rather than
+  //placed - a selection indicator, a dialog arriving
+  static const Curve emphasized = Curves.easeOutBack;
+  //LEAVING SHOULD NOT DECELERATE. Something on its way out wants to be out of
+  //the way, so it accelerates instead of easing to a stop.
+  static const Curve exit = Curves.easeIn;
+}
+
 //Corner radius scale, keep these consistent everywhere.
 class AppRadius {
   AppRadius._();

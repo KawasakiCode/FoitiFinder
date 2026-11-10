@@ -42,8 +42,14 @@ class Entrance extends StatefulWidget {
 }
 
 class _EntranceState extends State<Entrance> {
+  //HOW FAR APART two neighbours arrive. Not on the motion scale because it is
+  //not a duration - it is the offset between two of them, and the thing it has
+  //to stay smaller than is the travel, or the first row has landed before the
+  //second has started and the stagger reads as a queue rather than a group.
   static const int _stepMs = 80;
-  static const int _travelMs = 400;
+  //ONE ROW'S OWN TRAVEL, from the shared scale: an entrance is the largest
+  //move a screen makes, so it takes the longest step on it.
+  static final int _travelMs = AppMotion.slow.inMilliseconds;
 
   late final bool _play = widget.shouldPlay?.call() ?? true;
 
@@ -57,7 +63,7 @@ class _EntranceState extends State<Entrance> {
       duration: !_play || MediaQuery.disableAnimationsOf(context)
           ? Duration.zero
           : Duration(milliseconds: totalMs),
-      curve: Interval(delayMs / totalMs, 1, curve: Curves.easeOutCubic),
+      curve: Interval(delayMs / totalMs, 1, curve: AppMotion.standard),
       child: widget.child,
       builder: (context, t, child) => Opacity(
         opacity: t,
@@ -80,9 +86,9 @@ class Crossfade extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 320),
-      switchInCurve: Curves.easeOut,
-      switchOutCurve: Curves.easeIn,
+      duration: AppMotion.slow,
+      switchInCurve: AppMotion.standard,
+      switchOutCurve: AppMotion.exit,
       layoutBuilder: (current, previous) => Stack(
         fit: StackFit.expand,
         children: [...previous, ?current],
@@ -411,6 +417,53 @@ class EmptyState extends StatelessWidget {
   }
 }
 
+//The bar every pushed page wears.
+//
+//WHY A WIDGET AND NOT TWENTY-ONE COPIES. Every page below the three tabs wrote
+//out the same AppBar by hand, and they had quietly drifted apart: most passed
+//`automaticallyImplyLeading: true`, two left it off, and one passed
+//`automaticallyImplyActions: true` instead. All three of those are AppBar's
+//own defaults, so every one of them was a no-op and all 21 pages looked
+//identical anyway - which is exactly why nobody noticed they had stopped
+//matching. The next page to be added would have copied whichever neighbour it
+//was pasted from.
+//
+//IT TAKES A STRING, NOT A WIDGET. A page title is a line of text on every
+//screen in this app; accepting a Widget would invite one page to put something
+//else up there, and then the bar is 21 copies again.
+//
+//THE FROSTING IS NOT HERE, it is in GlassAppBar, which GlassScaffold wraps
+//this in. A bar that frosted itself could not be used by a page that does not
+//scroll underneath one.
+class PageAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const PageAppBar({
+    super.key,
+    required this.title,
+    this.actions,
+    this.showBack = true,
+  });
+
+  final String title;
+  final List<Widget>? actions;
+  //THE ONE PAGE THAT REALLY DIFFERS. The first step of setup has nothing
+  //behind it - the step before it was verifying an email, outside this stack -
+  //so a back arrow there would either do nothing or leave the account
+  //half-made. Everything else is pushed onto something.
+  final bool showBack;
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      title: Text(title),
+      automaticallyImplyLeading: showBack,
+      actions: actions,
+    );
+  }
+}
+
 //Frosts any app bar, for a page whose content scrolls underneath it. The
 //Scaffold needs extendBodyBehindAppBar, and the scroll view SliverGlassBarInset
 //as its first sliver so the content starts below the bar.
@@ -640,7 +693,7 @@ class PasswordEye extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 160),
+            duration: AppMotion.fast,
             child: Image.asset(
               visible ? 'assets/icons/hide.png' : 'assets/icons/view.png',
               key: ValueKey(visible),
@@ -672,7 +725,7 @@ class AppBarAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 200),
+      duration: AppMotion.base,
       child: visible
           ? SpringPress(
               key: const ValueKey('shown'),

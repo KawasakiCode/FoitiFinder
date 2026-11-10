@@ -81,7 +81,7 @@ class _EditProfileState extends State<EditProfile> {
   static const double _gridSpacing = 8;
   //width / height of a tile
   static const double _tileAspect = 0.75;
-  static const Duration _reflowDuration = Duration(milliseconds: 220);
+  static const Duration _reflowDuration = AppMotion.base;
 
   //index in _photos of the photo being dragged, null when not dragging
   int? _dragFrom;
@@ -99,7 +99,7 @@ class _EditProfileState extends State<EditProfile> {
   //Edit and View are the two pages of this controller. The app bar sits
   //OUTSIDE it, so switching slides the body and nothing else.
   final PageController _pages = PageController();
-  static const Duration _tabSlide = Duration(milliseconds: 320);
+  static const Duration _tabSlide = AppMotion.slow;
 
   //the signed-in user, read fresh each time so a save that just landed (or
   //was reverted) is what the rows show
@@ -266,7 +266,7 @@ class _EditProfileState extends State<EditProfile> {
     _pages.animateToPage(
       index,
       duration: _tabSlide,
-      curve: Curves.easeOutCubic,
+      curve: AppMotion.standard,
     );
   }
 
@@ -996,7 +996,7 @@ class _EditProfileState extends State<EditProfile> {
             AnimatedPositioned(
               key: ObjectKey(_photos[i]),
               duration: isDragged ? Duration.zero : _reflowDuration,
-              curve: Curves.easeOutCubic,
+              curve: AppMotion.standard,
               left: origin.dx,
               top: origin.dy,
               width: cell.width,
@@ -1224,7 +1224,7 @@ class _Wiggle extends StatefulWidget {
 class _WiggleState extends State<_Wiggle> with SingleTickerProviderStateMixin {
   //one full left-right-left cycle. Fast enough to read as a vibration rather
   //than as the photo swaying.
-  static const Duration _period = Duration(milliseconds: 260);
+  static const Duration _period = AppMotion.base;
   //how far it travels each way, in logical pixels
   static const double _amplitude = 2;
   //and how far it tilts each way, in radians (about 1.5 degrees)

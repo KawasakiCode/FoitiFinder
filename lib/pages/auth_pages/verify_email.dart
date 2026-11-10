@@ -239,10 +239,7 @@ class _VerifyEmailState extends State<VerifyEmail> with WidgetsBindingObserver {
     return LoadingOverlay(
       isLoading: _isLoading,
       child: GlassScaffold(
-        appBar: AppBar(
-          automaticallyImplyActions: true,
-          title: Text(text.verifyYourEmail),
-        ),
+        appBar: PageAppBar(title: text.verifyYourEmail),
         body: CustomScrollView(
           slivers: [
             const SliverGlassBarInset(),
@@ -290,8 +287,8 @@ class _VerifyEmailState extends State<VerifyEmail> with WidgetsBindingObserver {
                     ),
                     //Confirmation that verification email was sent
                     AnimatedSize(
-                      duration: const Duration(milliseconds: 240),
-                      curve: Curves.easeOutCubic,
+                      duration: AppMotion.base,
+                      curve: AppMotion.standard,
                       child: _isEmailSent && !_isVerified
                           ? Padding(
                               padding: const EdgeInsets.only(top: 16),

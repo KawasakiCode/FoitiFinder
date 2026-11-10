@@ -80,9 +80,8 @@ class _ChoicePageState extends State<ChoicePage> {
         Navigator.pop(context, List<String>.unmodifiable(_selected));
       },
       child: GlassScaffold(
-        appBar: AppBar(
-          title: Text(catalogueLabel(text, choice.title)),
-          automaticallyImplyLeading: true,
+        appBar: PageAppBar(
+          title: catalogueLabel(text, choice.title),
           actions: [
             //the only way to go back to "no answer" on a radio list
             AppBarAction(

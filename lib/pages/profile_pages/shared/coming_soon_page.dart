@@ -18,7 +18,7 @@ class ComingSoonPage extends StatelessWidget {
     final text = AppLocalizations.of(context)!;
 
     return GlassScaffold(
-      appBar: AppBar(title: Text(title), automaticallyImplyLeading: true),
+      appBar: PageAppBar(title: title),
       body: CustomScrollView(
         slivers: [
           const SliverGlassBarInset(),

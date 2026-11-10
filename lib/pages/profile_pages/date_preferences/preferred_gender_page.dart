@@ -38,10 +38,7 @@ class _InterestPageState extends State<InterestPage> {
           Navigator.pop(context, _selectedInterests);
       },
       child: GlassScaffold(
-        appBar: AppBar(
-          title: Text(text.interestedIn),
-          automaticallyImplyLeading: true,
-        ),
+        appBar: PageAppBar(title: text.interestedIn),
         body: GlassScroll(
           slivers: [
             SliverStagger(

@@ -177,10 +177,7 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
   @override
   Widget build(BuildContext context) {
     return GlassScaffold(
-      appBar: AppBar(
-        title: Text(text.deleteAccount),
-        automaticallyImplyLeading: true,
-      ),
+      appBar: PageAppBar(title: text.deleteAccount),
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: GlassScroll(

@@ -13,6 +13,7 @@
 //onTap fires on release, so a drag off the row cancels it like any button.
 
 import 'package:flutter/material.dart';
+import 'package:foitifinder/theme/app_colors.dart';
 
 class Pressable extends StatefulWidget {
   final Widget child;
@@ -63,15 +64,15 @@ class _PressableState extends State<Pressable> {
       onTapCancel: () => _set(false),
       onTap: widget.onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 90),
-        curve: Curves.easeOut,
+        duration: AppMotion.press,
+        curve: AppMotion.standard,
         decoration: BoxDecoration(
           color: _down && widget.tintBackground ? tint : Colors.transparent,
           borderRadius: widget.borderRadius,
         ),
         child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 90),
-          curve: Curves.easeOut,
+          duration: AppMotion.press,
+          curve: AppMotion.standard,
           opacity: _down ? widget.pressedOpacity : 1,
           child: widget.child,
         ),

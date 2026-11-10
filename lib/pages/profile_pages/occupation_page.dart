@@ -62,10 +62,7 @@ class _OccupationPageState extends State<OccupationPage> {
           Navigator.pop(context, _result);
         },
         child: GlassScaffold(
-          appBar: AppBar(
-            title: Text(text.occupation),
-            automaticallyImplyLeading: true,
-          ),
+          appBar: PageAppBar(title: text.occupation),
           body: GlassScroll(
             slivers: [
               SliverStagger(

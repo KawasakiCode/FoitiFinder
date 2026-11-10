@@ -4,6 +4,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:foitifinder/theme/app_colors.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:foitifinder/models/settings_model.dart';
 import 'package:foitifinder/models/user_model.dart';
@@ -305,7 +306,7 @@ class SettingsProvider extends ChangeNotifier {
   //A curtain rather than an AnimatedSwitcher on the whole app: switching a
   //keyed subtree at the root would rebuild the Navigator and throw away the
   //navigation stack, dumping the user out of Settings.
-  static const Duration localeFadeDuration = Duration(milliseconds: 160);
+  static const Duration localeFadeDuration = AppMotion.fast;
 
   Future<void> changeLanguage(String languageCode) async {
     //already in this language: a full app rebuild and an API call for nothing

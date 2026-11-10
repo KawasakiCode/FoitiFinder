@@ -126,7 +126,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     });
 
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
+      duration: AppMotion.slow,
       vsync: this,
     );
   }
@@ -389,7 +389,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
 
     final animation = Tween<Offset>(begin: startOffset, end: endOffset).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+      CurvedAnimation(parent: _animationController, curve: AppMotion.standard),
     );
 
     void listener() {
@@ -432,7 +432,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         .animate(
           CurvedAnimation(
             parent: _animationController,
-            curve: Curves.easeOutBack,
+            curve: AppMotion.emphasized,
           ),
         );
 
@@ -883,8 +883,8 @@ class _SwipeIndicator extends StatelessWidget {
         dimension: _size,
         child: TweenAnimationBuilder<double>(
           tween: Tween<double>(begin: 0, end: visible ? 1 : 0),
-          duration: const Duration(milliseconds: 160),
-          curve: Curves.easeOut,
+          duration: AppMotion.fast,
+          curve: AppMotion.standard,
           builder: (context, t, _) {
             if (t == 0) return const SizedBox.shrink();
             //THE BLUR IS ANIMATED RATHER THAN WRAPPED IN AN Opacity. Inside

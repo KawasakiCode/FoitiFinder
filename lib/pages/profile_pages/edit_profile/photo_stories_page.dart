@@ -122,7 +122,7 @@ class _PhotoStoriesPageState extends State<PhotoStoriesPage> {
   @override
   Widget build(BuildContext context) {
     return GlassScaffold(
-      appBar: AppBar(title: Text(text.photoStories)),
+      appBar: PageAppBar(title: text.photoStories),
       body: Crossfade(child: _body()),
     );
   }

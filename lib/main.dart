@@ -6,6 +6,7 @@
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:foitifinder/theme/app_colors.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/pages/auth_pages/login.dart';
@@ -130,7 +131,7 @@ class FoitiFinder extends StatelessWidget {
                   child: AnimatedOpacity(
                     opacity: settings.localeSwitching ? 1 : 0,
                     duration: SettingsProvider.localeFadeDuration,
-                    curve: Curves.easeOut,
+                    curve: AppMotion.standard,
                     child: ColoredBox(
                       //the app's own background, so it reads as the screen
                       //settling rather than a black flash
