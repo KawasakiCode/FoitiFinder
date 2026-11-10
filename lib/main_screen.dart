@@ -250,9 +250,9 @@ class _MainScreenState extends State<MainScreen> {
     }
     if (!mounted) return;
 
-    //JUMPED, NOT SLID. The slide is for somebody choosing a tab; arriving
-    //here was decided by tapping a banner, and animating it only delays the
-    //thing they asked for.
+    //JUMPED, NOT SLID - which is now how every tab change behaves, not just
+    //this one. Arriving here was decided by tapping a banner, and animating it
+    //would only delay the thing that was asked for. See _onItemTapped.
     if (_pageController.hasClients) {
       _pageController.jumpToPage(_kMatchesTab);
     }
@@ -360,14 +360,28 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
-  //bottom nav tap -> slide the PageView there (onPageChanged syncs the index)
+  //A NAV TAP JUMPS. ONLY A SWIPE SLIDES.
+  //
+  //Sliding here was wrong in two ways at once. It travelled through whatever
+  //sat between: tapping Profile from Home scrolled the Matches page across the
+  //screen, a page nobody asked for, announcing itself and leaving. And a fixed
+  //duration over a variable distance means the further the tap goes the faster
+  //the content has to move, so the two-tab jump was the most violent one.
+  //
+  //The slide belongs to the swipe, where the page is already following a
+  //finger - there the movement IS the gesture, and it ends where the finger
+  //decided. A tap is not a journey, it is a choice of destination, so the
+  //destination is simply what is there afterwards. Instagram, Spotify and
+  //Breeze all behave this way.
+  //
+  //THE JUMP STILL REPORTS ITSELF. PageController.jumpToPage dispatches the
+  //scroll notification PageView turns into onPageChanged, so the nav bar still
+  //syncs and the matches tab still refreshes on arrival - do not be tempted to
+  //set _selectedIndex here as well, because _onPageChanged returns early when
+  //the index already matches and the refresh would be skipped with it.
   void _onItemTapped(int index) {
     if (_selectedIndex == index) return;
-    _pageController.animateToPage(
-      index,
-      duration: AppMotion.slow,
-      curve: AppMotion.standard,
-    );
+    _pageController.jumpToPage(index);
   }
 
   //fired when the page settles (from a swipe OR a nav tap) -> sync the nav bar
@@ -445,11 +459,9 @@ class _MainScreenState extends State<MainScreen> {
       canPop: _selectedIndex == 0,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        _pageController.animateToPage(
-          0,
-          duration: AppMotion.slow,
-          curve: AppMotion.standard,
-        );
+        //jumped for the same reason a nav tap is: a back press from Profile
+        //would otherwise drag Matches across the screen on the way home
+        _pageController.jumpToPage(0);
       },
       child: Scaffold(
         //Listener (passive, doesn't claim gestures) lets us see where each touch
