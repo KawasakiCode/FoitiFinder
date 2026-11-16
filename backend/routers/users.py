@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+import rate_limit
 from auth import current_uid, verified_claims, verified_email_uid
 from database import models, schemas
 from database.database import get_db
@@ -22,6 +23,11 @@ from university_domains import is_university_email, university_name_for_email
 @router.post("/users/", response_model=schemas.User)
 def create_user(
     user: schemas.UserCreate,
+    #BY ADDRESS, NOT BY UID. The abuse here is making MANY accounts, and each
+    #one arrives with a uid of its own, so keying on it would give every
+    #attempt a fresh allowance. The real gate is still a verified university
+    #address - this is what stops somebody who has one from scripting rows.
+    _: None = Depends(rate_limit.per_ip("signup", 5, window_seconds=3600)),
     uid: str = Depends(current_uid),
     claims: dict = Depends(verified_claims),
     db: Session = Depends(get_db),
@@ -253,7 +259,10 @@ def update_user(user_update: schemas.UserUpdate, uid: str = Depends(verified_ema
                 "preferred_languages"):
         if key in updated_data and updated_data[key] is None:
             updated_data[key] = []
-    for key in ("name", "has_finished_set_up", "has_photos", "show_outside_residence"):
+    #has_photos is deliberately absent: UserUpdate no longer declares it, so
+    #pydantic drops it before this runs and a client sending one is ignored
+    #rather than obeyed. The photo endpoints set it. See schemas.UserUpdate.
+    for key in ("name", "has_finished_set_up", "show_outside_residence"):
         if key in updated_data and updated_data[key] is None:
             del updated_data[key]
 

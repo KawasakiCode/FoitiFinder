@@ -19,6 +19,15 @@ run in fifty is worse than no test.
 
 
 def feed_ids(as_user, viewer):
+    #THE RATE LIMIT IS CLEARED FIRST, and only here. These tests measure the
+    #ORDER the deck comes out in, which needs the same request made 32 times
+    #to see a probability at all - a thing no user does and the feed's limit
+    #is right to refuse. Resetting per draw keeps the limit honest in
+    #production rather than loosening it to fit a sampling loop; the other
+    #feed tests make one request each and never reach it.
+    import rate_limit
+
+    rate_limit.reset()
     return [card["id"] for card in as_user(viewer).get("/users/feed").json()]
 
 

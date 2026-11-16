@@ -106,6 +106,17 @@ Things that are true of this repo right now and are not code:
   identity and contact details, which GDPR Art. 13(1)(a) requires and which
   cannot be guessed from the repo. The Pages workflow prints the remaining
   count in each run's summary; `site/README.md` says what each one is for.
+- **`API_DOCS` must stay unset on Render.** The backend serves `/docs`,
+  `/redoc` and `/openapi.json` only when that variable is set to `on`, because
+  unauthenticated interactive docs describe every endpoint and field of an API
+  that answers questions about students' religion and sexual orientation. Set
+  it in a local shell when you want them; if it ever appears on the Render
+  dashboard, the start-up log says so in a warning.
+- **Rate limits are per worker.** `backend/rate_limit.py` keeps its counters in
+  process memory because there is no Redis, so the real ceiling is the written
+  limit multiplied by the gunicorn worker count, and a deploy resets them. They
+  are an upper bound on abuse rather than a quota. The day a shared store
+  exists, that is the one thing worth moving.
 - **`isMinifyEnabled` is false.** Deliberate for a first release: R8 can break
   reflection in ways that only appear in a release build, and you want one
   known-good build before adding that variable. Worth turning on afterwards.

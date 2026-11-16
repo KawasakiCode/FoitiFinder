@@ -20,6 +20,7 @@ request for your own row becomes a lookup for a user called "me".
 """
 
 import logging  # noqa: F401  (kept so `uvicorn main:app --log-level` is unsurprising)
+import os
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request, status
@@ -53,7 +54,32 @@ load_dotenv()
 #See error_reporting for what it refuses to send.
 error_reporting.install()
 
-app = FastAPI()
+#THE INTERACTIVE DOCS ARE OFF UNLESS SOMEBODY ASKS FOR THEM.
+#
+#FastAPI() serves /docs, /redoc and /openapi.json to anybody, with no auth, and
+#they describe every endpoint, every field name and every shape this API
+#accepts. That is not a vulnerability by itself - nothing there is secret, and
+#an attacker can find endpoints by trying - but it is the difference between
+#reading the map and drawing it, and this API answers questions about students'
+#religion and sexual orientation.
+#
+#AN ENV VAR AND NOT kDebugMode's EQUIVALENT, because "is this production" is
+#not a thing the process knows: the same image runs on Render and on a laptop,
+#and guessing from DATABASE_URL or a missing .env would be a rule that breaks
+#the first time somebody points a local run at a real database. Set
+#API_DOCS=on in the shell to get them back; Render simply never sets it.
+_docs_enabled = os.getenv("API_DOCS", "").lower() in {"1", "on", "true", "yes"}
+
+app = FastAPI(
+    docs_url="/docs" if _docs_enabled else None,
+    redoc_url="/redoc" if _docs_enabled else None,
+    openapi_url="/openapi.json" if _docs_enabled else None,
+)
+
+if _docs_enabled:
+    #LOUD, because the one way this goes wrong is somebody setting it on the
+    #Render dashboard to debug something at two in the morning and leaving it
+    logger.warning("API_DOCS is on: /docs and /openapi.json are being served")
 
 
 #SAYS WHICH DATABASE on every start, because the answer is invisible otherwise

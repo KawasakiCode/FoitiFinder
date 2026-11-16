@@ -338,6 +338,27 @@ def swipe(db):
 
 
 @pytest.fixture(autouse=True)
+def _fresh_rate_limits():
+    """Every test starts with every rate limit counter empty.
+
+    AUTOUSE AND NOT OPT-IN, because the failure is action at a distance: the
+    counters live in module state for the whole process, so without this a
+    test fails because of how many users some EARLIER test happened to create.
+    That is the worst kind of flake - order dependent, invisible in the test
+    that fails, and it arrived the moment limits were added, turning 58 tests
+    red at once for reasons none of them were about.
+
+    THE SIGNUP LIMIT IS WHY IT BITES HARDEST: it is keyed by address, and
+    every request in the suite comes from the same TestClient.
+    """
+    import rate_limit
+
+    rate_limit.reset()
+    yield
+    rate_limit.reset()
+
+
+@pytest.fixture(autouse=True)
 def _assert_test_database(db):
     """Belt and braces: every test asserts, once, that it is not on the real
     database. Cheap, and the one mistake here is unrecoverable.

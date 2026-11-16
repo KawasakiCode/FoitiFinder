@@ -151,7 +151,9 @@ class _AddPhotos extends State<AddPhotos> {
         return; //finally resets the loading flags
       }
 
-      await ApiService.updateUserData(uid: uid, hasPhotos: true);
+      //has_photos is NOT sent any more: POST /photos sets it from the rows
+      //it just wrote, because a client asserting it could claim photos it
+      //did not have and land in every deck as a blank card.
 
       //some (but not all) photos failed: let them continue but warn
       if (succeeded < results.length && mounted) {

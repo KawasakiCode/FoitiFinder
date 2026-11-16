@@ -3,7 +3,6 @@
 
 import 'dart:convert';
 import 'package:foitifinder/models/card_data_model.dart';
-import 'package:foitifinder/models/liker_model.dart';
 import 'package:foitifinder/models/matches_model.dart';
 import 'package:foitifinder/models/match_models.dart';
 import 'package:foitifinder/models/notification_model.dart';
@@ -136,7 +135,6 @@ class ApiService {
     int? minAgeRange,
     int? maxAgeRange,
     String? preferredGender,
-    bool? hasPhotos
   }) async {
     final Map<String, dynamic> data = {};
 
@@ -154,7 +152,6 @@ class ApiService {
     if (minAgeRange != null) data['min_age_range'] = minAgeRange;
     if (maxAgeRange != null) data['max_age_range'] = maxAgeRange;
     if (preferredGender != null) data['preferred_gender'] = preferredGender;
-    if (hasPhotos != null) data['has_photos'] = hasPhotos;
 
     await patchUser(data);
   }
@@ -359,25 +356,6 @@ class ApiService {
       }
       else  {
         throw Exception("Failed to register like ${response.body}");
-      }
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  //Get all likes
-  static Future<List<LikerModel>> getLikes(String uid) async {
-    final url = Uri.parse("$baseUrl/likes");
-
-    try {
-      final response = await http.get(url, headers: await _authHeaders()).timeout(kRequestTimeout);
-
-      if(response.statusCode == 200) {
-        List<dynamic> data = jsonDecode(response.body);
-        return data.map((json) => LikerModel.fromJson(json)).toList();
-      }
-      else {
-        throw Exception("Failed to get messages ${response.statusCode}");
       }
     } catch (e) {
       rethrow;
@@ -695,24 +673,5 @@ class ApiService {
       throw Exception('Failed to load profile: ${response.body}');
     }
     return PublicProfile.fromJson(jsonDecode(response.body));
-  }
-
-  static Future<CardData> getSingleUser(int userId) async {
-    final url = Uri.parse("$baseUrl/single/user/$userId");
-
-    try {
-      final response = await http.get(url, headers: await _authHeaders()).timeout(kRequestTimeout);
-
-      if(response.statusCode == 200) {
-        Map<String, dynamic> data = jsonDecode(response.body);
-        CardData user = CardData.fromPostgresRow(data);
-        return user;
-      }
-      else {
-        throw Exception("Failed to grab user ${response.statusCode}");
-      }
-    } catch (e) {
-      rethrow;
-    }
   }
 }

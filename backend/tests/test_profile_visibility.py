@@ -169,18 +169,6 @@ class TestSomebodyIAmMatchedWith:
         assert profile(as_user, me, them.id).status_code == 404
 
 
-class TestTheOtherEndpoint:
-    def test_single_user_is_gated_the_same_way(self, as_user, make_user):
-        #NOTHING IN THE APP CALLS /single/user, which is why it was worth
-        #checking: an endpoint no client reaches is one nobody notices is open.
-        me = make_user(name="Me", gender="Male", preferred_gender="Women")
-        him = make_user(name="Him", gender="Male")
-        her = make_user(name="Her", gender="Female")
-
-        assert as_user(me).get(f"/single/user/{him.id}").status_code == 404
-        assert as_user(me).get(f"/single/user/{her.id}").status_code == 200
-
-
 class TestYourself:
     def test_your_own_profile_is_not_a_refusal(self, as_user, make_user):
         #/users/me is the endpoint for this, but a viewer asking for their own

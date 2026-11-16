@@ -65,8 +65,22 @@ class UserUpdate(BaseModel):
     min_height_preference: int | None = None
     max_height_preference: int | None = None
     preferred_gender: str | None = None
+    #THE DECK READS BOTH OF THESE, so between them they decide whether an
+    #account is shown to anybody - which is why has_photos is no longer one of
+    #them. It was a boolean the client asserted, so a patched build could claim
+    #photos it did not have and appear in every deck as a grey rectangle with a
+    #name on it. It is set now by the endpoints that write the photo rows
+    #themselves - POST /photos and PUT /photos/sync - where the truth is
+    #already in hand and nothing has to be taken on trust.
+    #
+    #has_finished_set_up STAYS, because nothing on the server knows when setup
+    #is finished: it is the last page of a flow rather than a property of the
+    #row, and inferring it from which columns are non-null would be a second,
+    #silent definition of "finished" drifting from the one the app walks people
+    #through. Lying about it now only puts a sparse profile in the deck, which
+    #an honestly unfinished one does too and on purpose - the blank-card
+    #outcome needed has_photos, and that can no longer be forged.
     has_finished_set_up: bool | None = False
-    has_photos: bool | None = False
 
     #---- profile: single-answer categories ----
     #named after the `key` in the app's constants/profile_options.dart

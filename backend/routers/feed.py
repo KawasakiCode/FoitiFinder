@@ -5,6 +5,7 @@ from sqlalchemy import any_, case, extract, func, literal, or_
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+import rate_limit
 from auth import current_uid, verified_claims, verified_email_uid
 from database import models, schemas
 from database.database import get_db
@@ -193,7 +194,9 @@ def get_swipe_feed(
     #land inside it and add nobody. Offline, that is reachable in about forty
     #swipes. See the test.
     exclude: str = "",
-    uid: str = Depends(verified_email_uid),
+    #a page is 20-ish cards and the deck refills when it runs low, so a user
+    #swiping hard still asks for only a handful a minute
+    uid: str = Depends(rate_limit.per_user("feed", 30)),
     db: Session = Depends(get_db),
 ):
     #first get the current user id to exclude it

@@ -7,6 +7,7 @@ from sqlalchemy import and_, or_
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+import rate_limit
 from auth import current_uid, verified_claims, verified_email_uid
 from database import models, schemas
 from database.database import get_db
@@ -60,7 +61,15 @@ def super_likes_left(uid: str = Depends(verified_email_uid),
 
 #register a swipe
 @router.post("/swipes")
-def record_swipe(swipe: SwipeRequest, uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
+def record_swipe(
+    swipe: SwipeRequest,
+    #GENEROUS ON PURPOSE. SwipeQueue flushes everything it held offline in one
+    #burst, so a real user can legitimately arrive with dozens at once - a
+    #limit that caught that would drop swipes, which is the one failure this
+    #whole queue exists to prevent.
+    uid: str = Depends(rate_limit.per_user("swipes", 120)),
+    db: Session = Depends(get_db),
+):
     me = db.query(models.User).filter(models.User.firebase_uid == uid).first()
     if not me:
        raise HTTPException(status_code=404, detail="Current User not found")

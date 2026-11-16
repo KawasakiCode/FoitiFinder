@@ -5,6 +5,7 @@ from sqlalchemy.orm import selectinload
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+import rate_limit
 from auth import current_uid, verified_claims, verified_email_uid
 from database import models, schemas
 from database.database import get_db
@@ -59,7 +60,15 @@ def _visible_or_404(user_id: int, uid: str, db: Session) -> models.User:
 #careful work above decided which FIELDS were private and never asked who was
 #reading them.
 @router.get("/users/{user_id}/profile")
-def get_user_profile(user_id: int, uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
+def get_user_profile(
+    user_id: int,
+    #THE TIGHTEST LIMIT IN THE APP, because this is the endpoint somebody
+    #would walk. Opening cards at human speed is a few a minute; 40 leaves
+    #that untouched and makes collecting a few thousand profiles take days
+    #rather than minutes, even before the visibility rule refuses most of them.
+    uid: str = Depends(rate_limit.per_user("profile", 40)),
+    db: Session = Depends(get_db),
+):
     user = _visible_or_404(user_id, uid, db)
 
     sorted_photos = sorted(user.photos, key=lambda p: p.display_order)
@@ -93,25 +102,4 @@ def get_user_profile(user_id: int, uid: str = Depends(verified_email_uid), db: S
         "political_view": user.political_view,
         "sexual_orientation": user.sexual_orientation,
         "pronouns": user.pronouns,
-    }
-
-#THE SAME GATE, THOUGH NOTHING IN THE APP CALLS THIS. ApiService.getSingleUser
-#has no caller - it belongs to the likes page, which is not built - so this is
-#an endpoint the client never reaches and an attacker still can. It is gated
-#rather than left open until somebody decides whether it and /likes should
-#exist at all.
-@router.get("/single/user/{user_id}")
-def get_single_user(user_id: int, uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
-    user = _visible_or_404(user_id, uid, db)
-
-    sorted_photos = sorted(user.photos, key = lambda x: x.display_order)
-    photos_urls = [p.photo_url for p in sorted_photos]
-
-    return {
-        "id": user.id,
-        "name": user.name,
-        "age": age_from_birthday(user.birthday),
-        "job": user.job,
-        "bio": user.bio,
-        "photos": photos_urls,
     }

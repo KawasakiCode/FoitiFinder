@@ -10,6 +10,26 @@ from database.database import get_db
 router = APIRouter()
 
 from api_models import PhotoStory, PhotoSync, UserPhotos
+from photo_urls import reject_foreign
+
+
+def _check_urls(urls, uid: str) -> None:
+    """Refuse anything that is not this caller's own Storage object.
+
+    A URL here is stored and then served to everybody who sees the profile,
+    and it is fetched on THEIR devices - so an address on somebody else's host
+    is a tracking pixel collecting the IP of every viewer, and a path under
+    another user's uid is their photographs on your profile. See photo_urls.
+    """
+    foreign = reject_foreign(urls, uid)
+    if foreign is not None:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            #THE URL IS NOT ECHOED BACK. It came from the caller, so they have
+            #it already, and a 422 carrying an arbitrary attacker-chosen
+            #string is a reflection waiting to be useful to somebody.
+            detail="Photo URLs must be uploads belonging to this account",
+        )
 
 #get users photos
 @router.get("/photos")
@@ -31,6 +51,8 @@ def upload_photo(user_photos: UserPhotos, uid: str = Depends(verified_email_uid)
     if not me:
         raise HTTPException(status_code=404, detail="Current User not found")
     
+    _check_urls([user_photos.photo_url], uid)
+
     new_photo = models.Photos(  
         user_id = me.id,
         photo_url = user_photos.photo_url,
@@ -38,6 +60,12 @@ def upload_photo(user_photos: UserPhotos, uid: str = Depends(verified_email_uid)
     ) 
 
     db.add(new_photo)
+    #DERIVED HERE, NOT SENT. has_photos decides whether the deck shows this
+    #account, and it used to be a field the client could PATCH - so a patched
+    #build could claim photos it did not have and appear as a blank card. The
+    #row it is about is being written on the line above; nothing else needs to
+    #be believed. /photos/sync has always done this.
+    me.has_photos = True
     db.commit()
     db.refresh(new_photo)
 
@@ -82,6 +110,10 @@ def sync_photos(payload: PhotoSync, uid: str = Depends(verified_email_uid), db: 
             status_code=400,
             detail=f"At most {MAX_PHOTOS} photos are allowed",
         )
+
+    #BEFORE THE DELETE BELOW, not after. This endpoint replaces the whole set,
+    #so a refusal halfway through would leave an account with no photos at all.
+    _check_urls(payload.photo_urls, uid)
 
     #This endpoint wipes and re-inserts, so a photo's story would be destroyed
     #every time the user merely REORDERED their photos. Remember the stories by

@@ -158,23 +158,15 @@ class TestAnotherPersonsProfile:
     def test_a_missing_user_is_a_404(self, as_user, make_user):
         assert as_user(make_user(name="Me")).get("/users/999999/profile").status_code == 404
 
-    def test_the_single_user_endpoint_works_for_the_likes_page(
-        self, as_user, make_user
-    ):
-        me, other = make_user(name="Me"), make_user(name="Other")
-        body = as_user(me).get(f"/single/user/{other.id}").json()
-        assert body["name"] == "Other"
-
     def test_neither_leaks_private_fields(self, as_user, make_user):
         me = make_user(name="Me")
         other = make_user(name="Other", handle="their_secret")
 
-        for path in (f"/users/{other.id}/profile", f"/single/user/{other.id}"):
-            body = as_user(me).get(path).text
-            assert "their_secret" not in body
-            #who they want to see is their business, and the uid is a key
-            assert "preferred_gender" not in body
-            assert "firebase_uid" not in body
+        body = as_user(me).get(f"/users/{other.id}/profile").text
+        assert "their_secret" not in body
+        #who they want to see is their business, and the uid is a key
+        assert "preferred_gender" not in body
+        assert "firebase_uid" not in body
 
 
 class TestTheFullStory:

@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 import report_reasons
 from api_models import ReportRequest
 from app_logging import logger
+import rate_limit
 from auth import verified_email_uid
 from database import models
 from database.database import get_db
@@ -18,7 +19,11 @@ router = APIRouter()
 
 @router.post("/reports", status_code=status.HTTP_201_CREATED)
 def create_report(report: ReportRequest,
-                  uid: str = Depends(verified_email_uid),
+                  #A REPORT IS READ BY A PERSON, so volume is the abuse: ten
+                  #an hour is far past anything an honest user does in one
+                  #sitting and still lets somebody work through a bad evening.
+                  uid: str = Depends(
+                      rate_limit.per_user("reports", 10, window_seconds=3600)),
                   db: Session = Depends(get_db)):
     """File a report, drop the person from the deck, and leave their match.
 
