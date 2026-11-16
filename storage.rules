@@ -1,0 +1,65 @@
+rules_version = '2';
+
+// Who may touch the photo files.
+//
+// THESE RULES ARE THE ONLY THING GUARDING STORAGE. The app uploads straight
+// from the device - see ApiService.uploadToFirebase - so no FastAPI endpoint
+// is in the way and nothing in auth.py applies. Google evaluates this file,
+// and it is the whole of the access control.
+//
+// WHAT THEY USED TO SAY:
+//
+//     match /{allPaths=**} { allow read, write: if request.auth != null; }
+//
+// which is every path in the bucket, readable and writable by anybody holding
+// any account in this project. It reads like a lock because it mentions auth,
+// and it is not one: the uid of the person a file belongs to is PUBLIC. Photo
+// paths are users/<uid>/gallery/..., getDownloadURL() encodes that path into
+// the URL it returns, and those URLs go out with every card in the feed. So
+// the uid needed to overwrite somebody's photographs arrives with their
+// profile, and the whole bucket was writable by anyone who had seen one.
+//
+// THE PATH IS NOW THE RULE. Matching only users/<uid>/gallery means every
+// other path in the bucket is denied by default - the version above also made
+// the bucket free file hosting for anything anybody cared to put in it.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /users/{uid}/gallery/{photo} {
+
+      // READ IS NOT THE INTERESTING HALF. A download URL carries its own
+      // access token and bypasses these rules entirely, which is how a viewer
+      // sees somebody else's photo at all - so tightening this further would
+      // change nothing about who can see what, and would break getDownloadURL
+      // for the uploader. Who may OBTAIN a URL is decided in visibility.py.
+      allow read: if request.auth != null;
+
+      // AND WRITE IS. uid here is the path segment; request.auth.uid is the
+      // caller. Requiring them to be equal is the single line that was
+      // missing, and it is what stops one account editing another's gallery.
+      //
+      // request.resource IS NULL ON A DELETE, so the size and type checks
+      // have to be skipped for one or deleting a photo becomes impossible.
+      // Cloud Storage has no create/update/delete split to express that with
+      // - unlike Firestore below - so it is written out.
+      //
+      // EMAIL VERIFICATION, matching the API. Every photo endpoint depends on
+      // verified_email_uid, so an unverified account cannot register a photo
+      // row anyway; without this it could still fill the bucket with files
+      // nothing points at. Verification happens before setup reaches the
+      // photo page, so this does not block signup - but if uploads ever start
+      // failing during onboarding, this is the line to suspect first.
+      allow write: if request.auth != null
+                   && request.auth.uid == uid
+                   && request.auth.token.email_verified == true
+                   && (
+                        request.resource == null
+                        || (
+                             // a phone photo at full resolution is a few MB;
+                             // the app already downscales before upload
+                             request.resource.size < 10 * 1024 * 1024
+                             && request.resource.contentType.matches('image/.*')
+                           )
+                      );
+    }
+  }
+}

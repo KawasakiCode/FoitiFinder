@@ -1,0 +1,59 @@
+rules_version = '2';
+
+// Who may touch the Firestore documents.
+//
+// WHAT IS IN HERE AT ALL: one document per user, holding the FCM token and
+// the match-notification toggle. That is all Firestore is used for - the
+// profile, the swipes and the matches are in Postgres. See the note in
+// main_screen.dart about what the backend reads out of it to send a push.
+//
+// WHAT THEY USED TO SAY:
+//
+//     match /{document=**} { allow read, write: if request.auth != null; }
+//
+// Every document in the project, readable and writable by anybody with any
+// account. In a database whose only contents are push tokens that meant
+// anyone could read another user's token, or overwrite it with rubbish so
+// their match notifications stopped arriving - silently, since nothing tells
+// a phone its token was replaced. It also allowed writing arbitrary
+// collections, which Firestore bills by the operation.
+//
+// THE BACKEND IS NOT AFFECTED BY ANY OF THIS. firebase_admin uses a service
+// account, and the Admin SDK bypasses rules completely - so notifications.py
+// and account_deletion.py keep working however strict this gets.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid} {
+
+      // YOUR OWN DOCUMENT AND NOBODY ELSE'S. The uid in the path against the
+      // uid in the verified token, which is the line the old rule was missing.
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+
+      // AND ONLY THE TWO FIELDS THAT BELONG HERE. Without this a user could
+      // not read anyone else's document but could still pack megabytes into
+      // their own, which Firestore charges for by document size and read.
+      // Naming the keys also means a third field appearing is a deliberate
+      // act: somebody has to come here and add it, which is the moment to ask
+      // whether the client should be writing it at all.
+      //
+      // CREATE AND UPDATE ARE SEPARATE because resource.data does not exist
+      // yet on a create, so diff() against it would fail on the very first
+      // write a new account makes - which is the one in main_screen.dart that
+      // registers the token after sign-in.
+      allow create: if request.auth != null
+                    && request.auth.uid == uid
+                    && request.resource.data.keys()
+                         .hasOnly(['fcm_token', 'match_notifications']);
+
+      allow update: if request.auth != null
+                    && request.auth.uid == uid
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['fcm_token', 'match_notifications']);
+    }
+
+    // EVERYTHING ELSE IS DENIED by having no rule. Firestore's default is to
+    // refuse what no match allows, so this comment is the only thing standing
+    // where a collection somebody adds later would otherwise quietly inherit
+    // the wide-open rule this file replaced.
+  }
+}
