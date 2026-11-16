@@ -8,10 +8,39 @@ from sqlalchemy.orm import Session
 from auth import current_uid, verified_claims, verified_email_uid
 from database import models, schemas
 from database.database import get_db
+from visibility import may_view_profile
 
 router = APIRouter()
 
 from ages import age_from_birthday
+
+
+def _visible_or_404(user_id: int, uid: str, db: Session) -> models.User:
+    """The user behind `user_id`, if this caller is allowed to see them.
+
+    404 AND NOT 403, FOR BOTH REFUSALS. A 403 would confirm the account
+    exists, which hands back exactly the thing the check is here to withhold:
+    walking 1..N and recording which ids answer differently rebuilds the list
+    of real users, and if a report produced its own status code it would also
+    tell somebody they had been reported. One answer for "no such user" and
+    "not for you" means the ids give nothing away.
+
+    THE QUERY IS NOT NARROWED BY THE RULE. The user is loaded first and judged
+    second, because may_view_profile has to compare two people and one of the
+    reasons to allow (a match) is not a property of the row at all.
+    """
+    me = db.query(models.User).filter(models.User.firebase_uid == uid).first()
+    if not me:
+        raise HTTPException(status_code=404, detail="Current User not found")
+
+    user = db.query(models.User).options(
+        selectinload(models.User.photos)
+    ).filter(models.User.id == user_id).first()
+
+    if not user or not may_view_profile(me, user.id, db):
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return user
 
 #get single user by id
 #this one legitimately looks up ANOTHER user, but still requires a valid token so
@@ -22,14 +51,16 @@ from ages import age_from_birthday
 #preferences (who they want to see is their business), and NO instagram_handle -
 #that is handed over on a confirmed match and nowhere else. A field added to
 #the model does not appear here unless someone adds it below on purpose.
+#
+#AND WHO MAY ASK MATTERS AS MUCH AS BOTH. Until visibility.py existed this
+#took any integer from anybody signed in, so one verified account could walk
+#the sequential ids and collect every profile in the database - religion,
+#political view and sexual orientation among them, which is Art. 9 data. The
+#careful work above decided which FIELDS were private and never asked who was
+#reading them.
 @router.get("/users/{user_id}/profile")
 def get_user_profile(user_id: int, uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
-    user = db.query(models.User).options(
-        selectinload(models.User.photos)
-    ).filter(models.User.id == user_id).first()
-
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+    user = _visible_or_404(user_id, uid, db)
 
     sorted_photos = sorted(user.photos, key=lambda p: p.display_order)
 
@@ -64,13 +95,15 @@ def get_user_profile(user_id: int, uid: str = Depends(verified_email_uid), db: S
         "pronouns": user.pronouns,
     }
 
+#THE SAME GATE, THOUGH NOTHING IN THE APP CALLS THIS. ApiService.getSingleUser
+#has no caller - it belongs to the likes page, which is not built - so this is
+#an endpoint the client never reaches and an attacker still can. It is gated
+#rather than left open until somebody decides whether it and /likes should
+#exist at all.
 @router.get("/single/user/{user_id}")
 def get_single_user(user_id: int, uid: str = Depends(verified_email_uid), db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.id == user_id).first()
+    user = _visible_or_404(user_id, uid, db)
 
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
     sorted_photos = sorted(user.photos, key = lambda x: x.display_order)
     photos_urls = [p.photo_url for p in sorted_photos]
 

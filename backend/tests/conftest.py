@@ -285,13 +285,18 @@ def make_user(db):
         #override - and the feed now scores a shared university, so "two
         #people at different ones" is a case tests have to be able to build.
         extra.setdefault("university", "University of Macedonia")
+        #OUT OF THE CONSTRUCTOR FOR THE SAME REASON, and the reason recurred:
+        #the profile visibility rule hides unfinished profiles, so "somebody
+        #who never finished setting up" became a case worth building, and
+        #make_user(has_finished_set_up=False) was a TypeError rather than an
+        #override. Anything hardcoded below is a test nobody can write.
+        extra.setdefault("has_finished_set_up", True)
         user = models.User(
             firebase_uid=f"uid-test-{index}",
             name=name,
             gender=gender,
             birthday=datetime.date.today() - datetime.timedelta(days=age * 365 + 10),
             preferred_gender=preferred_gender,
-            has_finished_set_up=True,
             has_photos=photos > 0,
             instagram_handle=handle,
             **extra,
