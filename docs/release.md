@@ -101,11 +101,15 @@ Things that are true of this repo right now and are not code:
 
 - **The launcher icon is still Flutter's logo.** `assets/brand/README.md` says
   what two files to put there; then `flutter pub run flutter_launcher_icons`.
-- **Four placeholders are still in the policy pages.** `[[EMAIL]]`,
-  `[[ENTITY]]`, `[[ADDRESS]]` and `[[SENTRY_RETENTION]]` — the controller's
-  identity and contact details, which GDPR Art. 13(1)(a) requires and which
-  cannot be guessed from the repo. The Pages workflow prints the remaining
-  count in each run's summary; `site/README.md` says what each one is for.
+- **The policy pages now name you personally.** GDPR Art. 13(1)(a) wants an
+  identity and a reachable postal address for the controller, and a natural
+  person was the only one available — so the published pages carry your name,
+  a Thessaloniki postcode and `foitifinder@gmail.com`. Two consequences worth
+  knowing before upload: that email address is on a public page and will be
+  scraped, and forming a company later is an edit to fourteen files, three of
+  which carry Greek masculine articles («ο», «τον») that a company name would
+  need turned back to feminine. The Pages workflow still counts `[[TOKEN]]`s in
+  each run's summary; that count should stay at zero.
 - **`API_DOCS` must stay unset on Render.** The backend serves `/docs`,
   `/redoc` and `/openapi.json` only when that variable is set to `on`, because
   unauthenticated interactive docs describe every endpoint and field of an API

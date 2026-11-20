@@ -42,29 +42,37 @@ folder — and `kLegalBaseUrl` set to it.
 
 ## Before any of this goes live
 
-### 1. Fill in the placeholders
+### 1. The placeholders are filled
 
-Every unfilled value renders as a loud yellow `[[TOKEN]]`, because a legal page
-that goes live saying `[[ENTITY]]` is worse than one that is late. Four
-tokens, in both languages:
+All of them, in both languages, and the Pages workflow prints what is left in
+every run's summary. The table stays because each value is a decision rather
+than a fact, and because changing one is an edit to fourteen files.
 
-| Token | What it is |
+| Token | What it says now |
 | --- | --- |
-| `[[ENTITY]]` | Who operates the app — your name, or a company if you form one |
-| `[[ADDRESS]]` | A postal address. Mandatory under GDPR Art. 13; a city and postcode is enough, it does not have to be your flat |
-| `[[EMAIL]]` | One contact address, for privacy requests, appeals and complaints |
-| `[[HOSTING]]`, `[[DATABASE]]` | Two sub-processors, with their legal entity names — e.g. "Render Services, Inc." and "Neon Inc." |
-| `[[SENTRY_ENTITY]]` | The Sentry legal entity on your DPA — "Functional Software, Inc." for the US entity, or the Irish entity if you signed with that one |
-| `[[SENTRY_REGION]]` | One sentence on where the data goes. If your Sentry project is in the **EU** region, say so and the transfer paragraph below does not apply to it. If it is in the US, say that instead and leave it covered by the SCC/DPF sentence |
-| `[[SENTRY_RETENTION]]` | How long your plan keeps events — check it in the project settings rather than trusting a blog post; the free-tier figure is reported inconsistently |
+| `[[ENTITY]]` | Pantelis Remvos — a natural person, not a company |
+| `[[ADDRESS]]` | Thessaloniki, 56430. Mandatory under GDPR Art. 13; a city and postcode is enough and it does not have to be your flat |
+| `[[EMAIL]]` | foitifinder@gmail.com. On a public page, therefore scraped — do not wire it into anything that matters |
+| `[[HOSTING]]`, `[[DATABASE]]` | Render Services, Inc. and Neon Inc. |
+| `[[SENTRY_ENTITY]]` | Functional Software, Inc. dba Sentry |
+| `[[SENTRY_REGION]]` | The EU region, which is why §9's transfer paragraph is explicitly disapplied to it |
+| `[[SENTRY_RETENTION]]` | Thirty days. Spelled out rather than "30" because it opens its sentence |
 
-Fill one in across both languages:
+**Replacing one is two edits, not one.** Every token shipped wrapped in
+`<span class="todo">`, which renders it in loud yellow so an unfilled page is
+impossible to miss. Substituting the token alone leaves the wrapper behind, and
+the real name and address then render highlighted as though still outstanding
+— so the span comes off as the value goes in. `style.css` is the one file to
+leave alone: its comment contains a literal `[[ENTITY]]` to explain what the
+class is for, and a blanket replace rewrites the explanation into nonsense.
 
-```powershell
-Get-ChildItem site/*.html, site/el/*.html | ForEach-Object { (Get-Content $_ -Raw) -replace '\[\[EMAIL\]\]','hello@foitifinder.app' | Set-Content $_ -NoNewline }
-```
+**If the entity ever changes, three Greek articles change with it.** The
+translation was written expecting «η εταιρεία», so a person's name arrives
+behind feminine articles. `el/privacy.html` and `el/terms.html` now read
+«είναι ο» and `el/index.html` «από τον»; a company name needs them put back.
+Nothing that counts tokens catches this.
 
-Then check nothing is left:
+The count, any time:
 
 ```powershell
 Select-String -Path site/*.html, site/el/*.html -Pattern '\[\['
