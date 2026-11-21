@@ -88,7 +88,10 @@ flutter_launcher_icons:
   ios: false
   #the square legacy icon, used below Android 8
   image_path: "assets/brand/icon.png"
-  adaptive_icon_background: "#FFFFFF"
+  #violet-950. Deliberately far from AppColors.primary (#7C3AED), which is
+  #where the glyph's gradient starts - a background near it would swallow
+  #the purple half of the mark.
+  adaptive_icon_background: "#2E1065"
   adaptive_icon_foreground: "assets/brand/icon_foreground.png"
   #a monochrome layer makes the themed icons on Android 13+ use the app's
   #shape instead of a generic placeholder
