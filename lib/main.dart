@@ -6,6 +6,7 @@
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:foitifinder/theme/app_colors.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
@@ -33,6 +34,7 @@ Future<void> main() async {
   //draws a frame. Without a DSN this just runs the callback.
   await runWithErrorReporting(() async {
     WidgetsFlutterBinding.ensureInitialized();
+    _registerFontLicences();
     //THE BUILD NUMBER, so an error can be attributed to a release. Read here
     //rather than inside the reporter because package_info is async and the
     //reporter has to be usable from a synchronous catch block.
@@ -41,6 +43,21 @@ Future<void> main() async {
       (scope) => scope.setTag('build', info.buildNumber),
     );
     await _startApp();
+  });
+}
+
+//THE OFL REQUIRES THE LICENCE TO SHIP WITH THE FONT, and a .ttf inside an APK
+//is a distribution like any other. Flutter gathers licences from packages by
+//itself, but a font dropped into assets/ is invisible to that - so this hands
+//it to the same registry, and it appears on the licence screen the profile
+//page already opens.
+//
+//Inter is bundled the same way and is also OFL. Its licence text is not in the
+//repo, so it is not registered here; that is a gap rather than a decision.
+void _registerFontLicences() {
+  LicenseRegistry.addLicense(() async* {
+    final String text = await rootBundle.loadString('assets/fonts/OFL-Gluten.txt');
+    yield LicenseEntryWithLineBreaks(const <String>['GlutenWordmark'], text);
   });
 }
 

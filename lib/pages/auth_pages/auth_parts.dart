@@ -33,22 +33,61 @@ class AuthScroll extends StatelessWidget {
   }
 }
 
+//THE LOGO. Set in GlutenWordmark, a subset of Gluten carrying the eight
+//distinct letters of this name and nothing else - 4.5 KB instead of 342 KB.
+//See scripts/make_wordmark_font.py.
+//
+//TWO COLOURS, NOT THE GRADIENT IT USED TO BE. The policy site splits the name
+//the same way, Foiti in the body colour and Finder in the accent, and the two
+//have to look like one brand to somebody who has just come back from reading
+//the privacy statement. A ShaderMask also flattened the whole thing into one
+//ramp, which is a different mark rather than a recoloured one.
+//
+//NOT LOCALISED, DELIBERATELY. It is a name, so it is the same string in both
+//languages - and the font has no Greek in it at all. Text.rich concatenates
+//the spans for screen readers, so this is still announced as "FoitiFinder".
 class AuthBrand extends StatelessWidget {
   const AuthBrand({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ShaderMask(
-      blendMode: BlendMode.srcIn,
-      shaderCallback: AppColors.brandGradient.createShader,
-      child: const Text(
-        'FoitiFinder',
+    final bool dark = Theme.of(context).brightness == Brightness.dark;
+
+    return FittedBox(
+      //A logo is the one thing that must not wrap or clip, and at the larger
+      //accessibility text sizes 40pt of a wide face stops fitting a narrow
+      //phone. Scaling down is the one legible way to lose that argument.
+      fit: BoxFit.scaleDown,
+      child: Text.rich(
+        TextSpan(
+          children: [
+            TextSpan(
+              text: 'Foiti',
+              style: TextStyle(
+                color: dark ? AppColors.darkWordmarkInk : AppColors.wordmarkInk,
+              ),
+            ),
+            TextSpan(
+              text: 'Finder',
+              style: TextStyle(
+                color: dark
+                    ? AppColors.darkWordmarkAccent
+                    : AppColors.wordmarkAccent,
+              ),
+            ),
+          ],
+        ),
         textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 32,
-          fontWeight: FontWeight.w800,
-          letterSpacing: -0.5,
-          color: Colors.white,
+        //-2.1 IS 0.0525 OF THE 40pt SIZE, the same fraction of the em that
+        //TRACKING takes out of the images in scripts/make_icon.py. Gluten
+        //sets this name loosely and it reads as a word rather than a mark;
+        //this closes the gaps to almost nothing without letting the tight
+        //pairs ("nd", "de") touch. Keep the two in step - the login screen
+        //and every picture of the logo are supposed to be one thing.
+        style: const TextStyle(
+          fontFamily: 'GlutenWordmark',
+          fontSize: 40,
+          letterSpacing: -2.1,
         ),
       ),
     );

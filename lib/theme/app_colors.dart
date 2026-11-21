@@ -16,6 +16,21 @@ class AppColors {
   static const Color primaryDeep = Color(0xFF5B21B6);
   static const Color onPrimary = Color(0xFFFFFFFF);
 
+  // ---- The wordmark ----
+  //
+  //THESE ARE THE POLICY SITE'S COLOURS, not the app's. site/style.css sets the
+  //logo as Foiti in --text and Finder in --accent, and the two have to agree:
+  //somebody arriving from a policy page should see the same logo they just
+  //left. That is also why the accent here is 6C3FD4 and not `primary` - they
+  //are different violets, and matching the site is the point.
+  //
+  //The dark pair is the same stylesheet's prefers-color-scheme block. Without
+  //it the ink is near-black on a near-black scaffold.
+  static const Color wordmarkInk = Color(0xFF1B1725); // --text
+  static const Color wordmarkAccent = Color(0xFF6C3FD4); // --accent
+  static const Color darkWordmarkInk = Color(0xFFECE8F4); // --text, dark
+  static const Color darkWordmarkAccent = Color(0xFFB79BFF); // --accent, dark
+
   // Signature gradient for primary CTAs (violet -> fuchsia/pink).
   static const Color gradientStart = Color(0xFF7C3AED);
   static const Color gradientEnd = Color(0xFFDB2777); // pink-600
