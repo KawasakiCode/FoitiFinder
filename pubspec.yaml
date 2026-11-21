@@ -86,12 +86,25 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: false
+  #THE F, AND THE WHOLE NAME WAS TRIED RATHER THAN ASSUMED. icon_wordmark.png
+  #and icon_wordmark_foreground.png are still generated every run, and these
+  #three paths pointed at them. On a phone the lettering came out about 5px
+  #tall - the word is 7.5 times wider than it is tall and a launcher icon is
+  #square, so fitting all of it in leaves nothing. Nothing was cropped and it
+  #still could not be read. Pointing this block back at that pair is all it
+  #takes to see it again.
   #the square legacy icon, used below Android 8
   image_path: "assets/brand/icon.png"
-  #violet-950. Deliberately far from AppColors.primary (#7C3AED), which is
-  #where the glyph's gradient starts - a background near it would swallow
-  #the purple half of the mark.
-  adaptive_icon_background: "#2E1065"
+  #A DEEP NAVY, AND IT USED TO BE VIOLET-950 (#2E1065). That was the bug:
+  #the old background sat at hue 261 and the gradient's violet end at hue 262,
+  #one degree apart, so half the F dissolved into the field and the pink half
+  #stood out - the mark read lopsided. This navy is 33 degrees off that violet
+  #and very dark, so both ends separate by about the same amount.
+  #
+  #KEEP THIS IN STEP WITH ICON_BG in scripts/make_icon.py. The script paints
+  #the legacy icon's background; this paints the adaptive one's. Change one
+  #and the two icons disagree, which only shows up on old Android.
+  adaptive_icon_background: "#0B1026"
   adaptive_icon_foreground: "assets/brand/icon_foreground.png"
   #a monochrome layer makes the themed icons on Android 13+ use the app's
   #shape instead of a generic placeholder
@@ -111,6 +124,9 @@ flutter:
   assets:
     - assets/icons/
     - assets/images/
+    #NOT CODE AND NOT DECORATION. The OFL requires the licence to ship with the
+    #font, so it is bundled and handed to showLicensePage from main.dart.
+    - assets/fonts/OFL-Gluten.txt
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -132,6 +148,14 @@ flutter:
     - family: Inter
       fonts:
         - asset: assets/fonts/Inter.ttf
+    #THE LOGO AND NOTHING ELSE. A subset of Gluten holding the eight letters of
+    #"FoitiFinder" and no others - 4.5 KB rather than the 342 KB the whole
+    #family would cost for one string. Set any other text in it and you get
+    #blanks, which is why it is not called "Gluten".
+    #Rebuild with: python scripts\make_wordmark_font.py
+    - family: GlutenWordmark
+      fonts:
+        - asset: assets/fonts/GlutenWordmark.ttf
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
