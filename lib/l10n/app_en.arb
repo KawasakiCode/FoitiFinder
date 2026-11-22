@@ -9,6 +9,8 @@
   "ageRange": "Age Range",
   "appearance": "Appearance",
   "darkMode": "Dark Mode",
+  "playfulFont": "Playful font",
+  "playfulFontHint": "A look at the app in the font the logo is set in. This one is not saved: it lasts until you close the app.",
   "notifications": "Notifications",
   "language": "Language",
   "greek": "Greek",

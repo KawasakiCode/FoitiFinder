@@ -60,7 +60,7 @@ void main() {
   //cards flash blue behind a dialog barrier.
   const int maxChroma = 0;
 
-  for (final entry in {'light': AppTheme.light, 'dark': AppTheme.dark}.entries) {
+  for (final entry in {'light': AppTheme.light(), 'dark': AppTheme.dark()}.entries) {
     group('${entry.key} theme', () {
       final scheme = entry.value.colorScheme;
 

@@ -39,6 +39,13 @@ class AppLocalizationsEl extends AppLocalizations {
   String get darkMode => 'Σκοτεινή Λειτουργία';
 
   @override
+  String get playfulFont => 'Παιχνιδιάρικη γραμματοσειρά';
+
+  @override
+  String get playfulFontHint =>
+      'Δες την εφαρμογή στη γραμματοσειρά του λογοτύπου. Αυτό δεν αποθηκεύεται: κρατάει μέχρι να κλείσεις την εφαρμογή.';
+
+  @override
   String get notifications => 'Ειδοποιήσεις';
 
   @override

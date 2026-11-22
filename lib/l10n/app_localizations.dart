@@ -158,6 +158,18 @@ abstract class AppLocalizations {
   /// **'Dark Mode'**
   String get darkMode;
 
+  /// No description provided for @playfulFont.
+  ///
+  /// In en, this message translates to:
+  /// **'Playful font'**
+  String get playfulFont;
+
+  /// No description provided for @playfulFontHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A look at the app in the font the logo is set in. This one is not saved: it lasts until you close the app.'**
+  String get playfulFontHint;
+
   /// No description provided for @notifications.
   ///
   /// In en, this message translates to:

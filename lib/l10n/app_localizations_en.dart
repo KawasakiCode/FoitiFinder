@@ -39,6 +39,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get darkMode => 'Dark Mode';
 
   @override
+  String get playfulFont => 'Playful font';
+
+  @override
+  String get playfulFontHint =>
+      'A look at the app in the font the logo is set in. This one is not saved: it lasts until you close the app.';
+
+  @override
   String get notifications => 'Notifications';
 
   @override

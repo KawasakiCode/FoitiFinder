@@ -115,8 +115,10 @@ class FoitiFinder extends StatelessWidget {
         '/login': (context) => const LoginPage(),
       },
       //visual styling lives in lib/theme/ (tokens + AppTheme)
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
+      //the face comes from the provider so the settings switch can change it
+      //without anything being saved - see SettingsProvider.playfulFont
+      theme: AppTheme.light(font: settings.fontFamily),
+      darkTheme: AppTheme.dark(font: settings.fontFamily),
       themeMode: settings.themeMode,
       locale: settings.locale,
       localizationsDelegates: const [
@@ -153,8 +155,8 @@ class FoitiFinder extends StatelessWidget {
                       //the app's own background, so it reads as the screen
                       //settling rather than a black flash
                       color: (settings.themeMode == ThemeMode.dark
-                              ? AppTheme.dark
-                              : AppTheme.light)
+                              ? AppTheme.dark()
+                              : AppTheme.light())
                           .scaffoldBackgroundColor,
                       child: const SizedBox.expand(),
                     ),

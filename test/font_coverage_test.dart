@@ -21,6 +21,12 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 
+//INTER IS NO LONGER THE FACE THE APP IS SET IN - Gluten is, see
+//AppTheme.fontFamily - but it is still the font this has to check. Gluten
+//has no Greek, so it sits in AppTheme.fontFamilyFallback as the LAST link in
+//the chain, and the last link is the one that decides whether a character
+//reaches a bundled font or falls through to the phone's own. Checking Gluten
+//here instead would fail on every Greek string by design and prove nothing.
 const String _fontPath = 'assets/fonts/Inter.ttf';
 const String _wordmarkFontPath = 'assets/fonts/GlutenWordmark.ttf';
 //the logo, as auth_parts.dart sets it

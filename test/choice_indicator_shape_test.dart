@@ -40,7 +40,7 @@ Future<void> _openDialog(
 }
 
 void main() {
-  for (final entry in {'light': AppTheme.light, 'dark': AppTheme.dark}.entries) {
+  for (final entry in {'light': AppTheme.light(), 'dark': AppTheme.dark()}.entries) {
     group('${entry.key} theme', () {
       test('checkboxes are round', () {
         expect(entry.value.checkboxTheme.shape, isA<CircleBorder>());

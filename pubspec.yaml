@@ -154,6 +154,29 @@ flutter:
     - family: Inter
       fonts:
         - asset: assets/fonts/Inter.ttf
+    #THE WHOLE UI, AS AN EXPERIMENT. AppTheme.fontFamily points here; set it
+    #back to 'Inter' and these five files stop being used (delete them and
+    #this block to reclaim 488 KB).
+    #
+    #ONE FILE PER WEIGHT. Gluten ships as a variable font whose default
+    #instance is Thin, and Flutter does not drive the wght axis from
+    #TextStyle.fontWeight - declaring the variable file would set the entire
+    #app in weight 100. Rebuild with: python scripts\make_app_font.py
+    #
+    #GLUTEN HAS NO GREEK, so AppTheme falls back to Inter, which is why Inter
+    #stays bundled above rather than being replaced.
+    - family: Gluten
+      fonts:
+        - asset: assets/fonts/Gluten-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Gluten-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Gluten-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Gluten-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Gluten-ExtraBold.ttf
+          weight: 800
     #THE LOGO AND NOTHING ELSE. A subset of Gluten holding the eight letters of
     #"FoitiFinder" and no others - 4.5 KB rather than the 342 KB the whole
     #family would cost for one string. Set any other text in it and you get
