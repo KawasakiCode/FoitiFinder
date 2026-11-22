@@ -439,11 +439,18 @@ class PageAppBar extends StatelessWidget implements PreferredSizeWidget {
   const PageAppBar({
     super.key,
     required this.title,
+    this.titleWidget,
     this.actions,
     this.showBack = true,
   });
 
   final String title;
+  //DRAWS THE TITLE DIFFERENTLY; IT DOES NOT SAY SOMETHING ELSE. `title` stays
+  //required even when this is set, because a picture of a word is not a word:
+  //it is what a screen reader is given, and what every page that does not set
+  //this still shows. A caller setting this to something that reads
+  //differently from `title` would make the two disagree.
+  final Widget? titleWidget;
   final List<Widget>? actions;
   //THE ONE PAGE THAT REALLY DIFFERS. The first step of setup has nothing
   //behind it - the step before it was verifying an email, outside this stack -
@@ -457,7 +464,7 @@ class PageAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: Text(title),
+      title: titleWidget ?? Text(title),
       automaticallyImplyLeading: showBack,
       actions: actions,
     );

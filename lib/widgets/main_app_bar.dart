@@ -41,8 +41,59 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
     //sideways. Going through PageAppBar is what stops that.
     return PageAppBar(
       title: title,
+      titleWidget: AppBarWordmark(label: title),
       showBack: showBack,
       actions: const [NotificationsBell(), SizedBox(width: 4)],
+    );
+  }
+}
+
+//THE APP'S NAME AS A PICTURE, where the three main tabs used to set it in
+//Inter. Every pushed page still uses text, because those titles are words
+//rather than a mark - this is the brand, and it is the same artwork the login
+//screen and the policy site draw.
+//
+//TWO FILES, PICKED BY THEME. The ink is near-black in one and near-white in
+//the other; a single image would vanish against one of the two app bars. They
+//are named for the background they sit on, not for the colour they are.
+class AppBarWordmark extends StatelessWidget {
+  const AppBarWordmark({super.key, required this.label});
+
+  //what a screen reader says, since an image has no words in it
+  final String label;
+
+  //SIZED BY ITS INK AND NOT BY ITS BOX, which are different numbers here.
+  //
+  //The file carries 18% padding above and below the lettering, so most of its
+  //height is empty. Setting the image height to 20 to match the theme's
+  //appBarTheme fontSize - the obvious move - draws the word 6% smaller than
+  //the text it replaced, because a font size is not an ink height.
+  //
+  //Measured instead: Inter at w700 and size 20 puts down 15.67px of ink for
+  //this string, and the image reaches that at a height of 21.36.
+  //
+  //MEASURE INK AT HALF COVERAGE, not at "any pixel that is not empty". Both
+  //the text and the resized image carry a soft antialiased edge, and counting
+  //it reverses the answer - by that rule this image looks 3% TALLER than the
+  //text rather than 3% shorter, and the correction goes the wrong way.
+  //
+  //If the padding in make_icon.py or the title size in app_theme.dart
+  //changes, this is wrong and has to be measured again.
+  static const double _inkMatchedHeight = 21.36;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool dark = Theme.of(context).brightness == Brightness.dark;
+
+    return Image.asset(
+      dark
+          ? 'assets/brand/wordmark_on_dark.png'
+          : 'assets/brand/wordmark_on_light.png',
+      height: _inkMatchedHeight,
+      //the source is far larger than this draws it, so the downscale is what
+      //decides whether the logo looks crisp or furry
+      filterQuality: FilterQuality.medium,
+      semanticLabel: label,
     );
   }
 }

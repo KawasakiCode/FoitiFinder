@@ -127,6 +127,12 @@ flutter:
     #NOT CODE AND NOT DECORATION. The OFL requires the licence to ship with the
     #font, so it is bundled and handed to showLicensePage from main.dart.
     - assets/fonts/OFL-Gluten.txt
+    #THE LOGO IN THE APP BAR, as a picture. These two FILES and not the
+    #assets/brand/ FOLDER: that folder also holds four 1024x1024 icon sources
+    #which the Android build consumes from outside the APK, and listing the
+    #directory would ship about 113 KB of them to every phone for nothing.
+    - assets/brand/wordmark_on_light.png
+    - assets/brand/wordmark_on_dark.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
