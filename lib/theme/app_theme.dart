@@ -251,7 +251,7 @@ class AppTheme {
           if (states.contains(WidgetState.selected)) return AppColors.primary;
           return isDark
               ? AppColors.darkSurfaceVariant
-              : const Color(0xFFD4D4D8);
+              : AppColors.lightSwitchTrack;
         }),
         trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
       ),
@@ -268,7 +268,7 @@ class AppTheme {
       sliderTheme: SliderThemeData(
         activeTrackColor: AppColors.primary,
         inactiveTrackColor:
-            isDark ? AppColors.darkSurfaceVariant : const Color(0xFFE4E4E7),
+            isDark ? AppColors.darkSurfaceVariant : AppColors.lightSliderTrack,
         thumbColor: AppColors.primary,
         overlayColor: AppColors.primary.withValues(alpha: 0.12),
       ),
@@ -305,7 +305,7 @@ class AppTheme {
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor:
-            isDark ? AppColors.darkSurfaceVariant : const Color(0xFF26262B),
+            isDark ? AppColors.darkSurfaceVariant : AppColors.lightSnackBackground,
         contentTextStyle: TextStyle(
           fontFamily: font,
           fontFamilyFallback: fontFamilyFallback,

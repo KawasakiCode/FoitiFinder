@@ -89,6 +89,27 @@ class AppColors {
   static const Color lightTextPrimary = Color(0xFF2A2A30); // dark gray, softer than pure black
   static const Color lightTextSecondary = Color(0xFF6B6B74);
 
+  // ---- Light controls ----
+  //
+  //A CONTROL IS NOT A SURFACE. The dark ramp has a step for this -
+  //darkSurfaceVariant, "a control" - and the light ramp does not, so these
+  //three are it. Each is the light half of an `isDark ? ... : ...` in
+  //app_theme.dart, and each was written there as a bare hex, which left part
+  //of the light palette defined in the file that says it takes its colours
+  //from this one.
+  //
+  //That is the reason they are here rather than the colours being wrong: a
+  //value with no name records no intent, and a second near-copy of it
+  //somewhere else is impossible to spot.
+  static const Color lightSwitchTrack = Color(0xFFD4D4D8); // off, behind the thumb
+  static const Color lightSliderTrack = Color(0xFFE4E4E7); // the unfilled part
+
+  //DARK ON PURPOSE, AND IN THE LIGHT THEME. A snackbar is a message laid over
+  //the page rather than part of it, so it inverts to read as separate. Anyone
+  //scanning the light palette finds a near-black here and reasonably assumes
+  //a mistake; it is the one light-theme colour that is meant to be dark.
+  static const Color lightSnackBackground = Color(0xFF26262B);
+
   // ---- Dark neutrals ----
   //
   //TRUE NEUTRAL (R == G == B), not "tuned". A few units of blue bias

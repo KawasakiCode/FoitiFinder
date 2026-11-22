@@ -17,6 +17,16 @@
 import 'package:flutter/material.dart';
 
 //THE SAME THREE STOPS AS launch_background.xml, in the same order.
+//
+//THE MIDDLE ONE IS NOT AppColors.primary, THOUGH IT IS THE SAME VALUE.
+//Writing it as the token looks like removing a duplicate and is the wrong
+//way round: these three answer to the Android drawable, which the OS reads
+//before any Dart exists and which cannot import anything. Point this at the
+//palette and the day somebody retunes the brand violet, the Flutter half of
+//the launch screen moves and the native half does not - which is the seam
+//this file exists to hide. launch_screen_test.dart pins all three to the XML
+//and would fail, but it would fail somewhere that reads like the test is
+//wrong.
 const Color kLaunchGradientStart = Color(0xFFC084FC);
 const Color kLaunchGradientMiddle = Color(0xFF7C3AED);
 const Color kLaunchGradientEnd = Color(0xFF312E81);

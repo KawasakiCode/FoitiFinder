@@ -219,4 +219,27 @@ void main() {
       });
     });
   });
+
+  //ONE FILE HOLDS THE COLOURS, AND THIS IS WHAT KEEPS IT TRUE.
+  //
+  //app_theme.dart's own header says it builds the themes from the tokens in
+  //app_colors.dart, and for a while it did not: three light-mode values were
+  //written into it as bare hexes, so half of a palette lived in the file that
+  //claimed to be reading one. Nothing failed - the app looked right - which
+  //is exactly why it went unnoticed.
+  //
+  //A raw literal is quicker than naming a token, so this will be tempting
+  //again. The failure it prevents is not a wrong colour; it is a second,
+  //slightly different copy of a colour that nobody can find.
+  test('the theme names its colours and does not spell them out', () {
+    final String source =
+        File('lib/theme/app_theme.dart').readAsStringSync();
+    final Iterable<String> literals = RegExp(r'Color\(0x[0-9A-Fa-f]{8}\)')
+        .allMatches(source)
+        .map((m) => m.group(0)!);
+
+    expect(literals, isEmpty,
+        reason: 'app_theme.dart should take colours from AppColors rather '
+            'than writing them out: ${literals.join(', ')}');
+  });
 }
