@@ -1309,15 +1309,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addStoryToPhoto => 'Add a story to a photo';
 
   @override
-  String get sectionMyMusicTaste => 'My music taste';
-
-  @override
-  String get myTune => 'My tune';
-
-  @override
-  String get favouriteArtists => 'Favourite artists';
-
-  @override
   String get languagesSpoken => 'Languages';
 
   @override

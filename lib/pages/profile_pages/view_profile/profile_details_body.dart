@@ -9,13 +9,11 @@
 //
 //ORDER, top to bottom:
 //  card    name, age and height, bio
-//  card    favourite song                   (empty, Spotify later)
 //  lines   job, studies, place, languages
 //  pills   dating intention, kids, alcohol, smoking, religion, political view
 //  card    photo 1 + its story
 //  pills   hobbies and interests
 //  card    photo 2 + its story
-//  card    favourite artists                (empty, Spotify later)
 //  pills   traits
 //
 //Every block disappears when it has nothing to show, so a half-finished
@@ -60,10 +58,6 @@ class ProfileDetailsBody extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _HeaderCard(user: profile),
-        const SizedBox(height: 16),
-        //Spotify's API is not wired up yet, so this is the shape of the answer
-        //with nothing in it
-        _SoonCard(title: text.myTune),
         const SizedBox(height: 24),
         _Facts(user: profile),
         _Pills(user: profile),
@@ -85,11 +79,6 @@ class ProfileDetailsBody extends StatelessWidget {
         //pictures in it; past that there is nothing left to space them with.
         for (final photo in photos.skip(3))
           _PhotoCard(url: photo.url, story: photo.story),
-
-        //ALWAYS LAST, under the final photo, however many there are - so a
-        //profile ends in the same place whether it has three photos or six
-        const SizedBox(height: 16),
-        _SoonCard(title: text.favouriteArtists),
       ],
     );
   }
@@ -179,47 +168,6 @@ class _HeaderCard extends StatelessWidget {
             const SizedBox(height: 16),
             Text(bio, style: theme.textTheme.bodyLarge),
           ],
-        ],
-      ),
-    );
-  }
-}
-
-//One of the two Spotify blocks: the title, and a line saying it is not here
-//yet. Deliberately the same card as the rest, so when the real content lands
-//nothing around it has to move.
-class _SoonCard extends StatelessWidget {
-  final String title;
-
-  const _SoonCard({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    final text = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-
-    return _Card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.music_note_outlined,
-                size: 16,
-                color: mutedInk(context),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                title,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(text.comingSoon, style: mutedText(context)),
         ],
       ),
     );

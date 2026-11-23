@@ -2648,24 +2648,6 @@ abstract class AppLocalizations {
   /// **'Add a story to a photo'**
   String get addStoryToPhoto;
 
-  /// No description provided for @sectionMyMusicTaste.
-  ///
-  /// In en, this message translates to:
-  /// **'My music taste'**
-  String get sectionMyMusicTaste;
-
-  /// No description provided for @myTune.
-  ///
-  /// In en, this message translates to:
-  /// **'My tune'**
-  String get myTune;
-
-  /// No description provided for @favouriteArtists.
-  ///
-  /// In en, this message translates to:
-  /// **'Favourite artists'**
-  String get favouriteArtists;
-
   /// No description provided for @languagesSpoken.
   ///
   /// In en, this message translates to:

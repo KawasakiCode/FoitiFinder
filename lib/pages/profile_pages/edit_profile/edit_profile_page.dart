@@ -24,7 +24,6 @@ import 'package:foitifinder/pages/profile_pages/occupation_page.dart';
 import 'package:foitifinder/pages/profile_pages/pronouns_page.dart';
 import 'package:foitifinder/pages/profile_pages/shared/choice_dialog.dart';
 import 'package:foitifinder/pages/profile_pages/shared/choice_page.dart';
-import 'package:foitifinder/pages/profile_pages/shared/coming_soon_page.dart';
 import 'package:foitifinder/pages/profile_pages/shared/profile_tabs.dart';
 import 'package:foitifinder/pages/profile_pages/shared/save_profile_field.dart';
 import 'package:foitifinder/pages/profile_pages/view_profile/view_profile_body.dart';
@@ -702,27 +701,6 @@ class _EditProfileState extends State<EditProfile> {
                               NavRow(
                                 label: catalogueLabel(text, kGroupBio),
                                 onTap: () => _openGroup(kGroupBio),
-                              ),
-                            ],
-                          ),
-
-                          //======================= MY MUSIC TASTE =======================
-                          SectionHeader(text.sectionMyMusicTaste),
-                          CardGroup(
-                            dividers: true,
-                            children: [
-                              //both need the Spotify API, so both are stubs until
-                              //that is wired up
-                              NavRow(
-                                label: text.myTune,
-                                onTap: () =>
-                                    _push(ComingSoonPage(title: text.myTune)),
-                              ),
-                              NavRow(
-                                label: text.favouriteArtists,
-                                onTap: () => _push(
-                                  ComingSoonPage(title: text.favouriteArtists),
-                                ),
                               ),
                             ],
                           ),

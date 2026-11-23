@@ -1315,15 +1315,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get addStoryToPhoto => 'Πρόσθεσε ιστορία σε φωτογραφία';
 
   @override
-  String get sectionMyMusicTaste => 'Οι μουσικές μου προτιμήσεις';
-
-  @override
-  String get myTune => 'Το τραγούδι μου';
-
-  @override
-  String get favouriteArtists => 'Αγαπημένοι καλλιτέχνες';
-
-  @override
   String get languagesSpoken => 'Γλώσσες';
 
   @override

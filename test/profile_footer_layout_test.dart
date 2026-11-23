@@ -54,7 +54,23 @@ Future<void> openProfile(
                     id: 1,
                     name: 'Maria',
                     age: 21,
-                    bio: 'Probably at the library. Probably not studying.',
+                    //LONG ON PURPOSE, AND THE TEST NEEDS IT TO STAY LONG.
+                    //The scroll view is a non-positioned child of the page's
+                    //Stack, so it is sized by its content, and "the scroll
+                    //area reaches the bottom of the screen" can only be
+                    //measured on a profile tall enough to fill it. This bio
+                    //is what does that. It used to be one line, and the
+                    //profile overflowed anyway because two placeholder cards
+                    //sat in the body - so the test passed on content it was
+                    //never trying to measure, and broke when those cards
+                    //were removed.
+                    bio: 'Probably at the library. Probably not studying. '
+                        'Third year, somewhere between applied informatics '
+                        'and the coffee machine on the second floor, which '
+                        'is closer to the truth than the timetable is. I '
+                        'cook badly and often, I will walk an hour to avoid '
+                        'one bus, and I have opinions about which reading '
+                        'room is the quiet one. Ask me about either.',
                   ),
                 ),
               ),
