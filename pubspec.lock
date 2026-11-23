@@ -33,14 +33,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.13.0"
-  auto_size_text:
-    dependency: "direct main"
-    description:
-      name: auto_size_text
-      sha256: "3f5261cd3fb5f2a9ab4e2fc3fba84fd9fcaac8821f20a1d4e71f557521b22599"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.0.0"
   boolean_selector:
     dependency: transitive
     description:
@@ -177,14 +169,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.7"
-  cupertino_icons:
-    dependency: "direct main"
-    description:
-      name: cupertino_icons
-      sha256: ba631d1c7f7bef6b729a622b7b752645a2d076dba9976925b8f25725a30e1ee6
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.8"
   dbus:
     dependency: transitive
     description:
@@ -419,14 +403,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.33"
-  flutter_staggered_grid_view:
-    dependency: "direct main"
-    description:
-      name: flutter_staggered_grid_view
-      sha256: "19e7abb550c96fbfeb546b23f3ff356ee7c59a019a651f8f102a4ba9b7349395"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.7.0"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -477,30 +453,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.8.0"
-  image_cropper:
-    dependency: "direct main"
-    description:
-      name: image_cropper
-      sha256: "46c8f9aae51c8350b2a2982462f85a129e77b04675d35b09db5499437d7a996b"
-      url: "https://pub.dev"
-    source: hosted
-    version: "11.0.0"
-  image_cropper_for_web:
-    dependency: transitive
-    description:
-      name: image_cropper_for_web
-      sha256: e09749714bc24c4e3b31fbafa2e5b7229b0ff23e8b14d4ba44bd723b77611a0f
-      url: "https://pub.dev"
-    source: hosted
-    version: "7.0.0"
-  image_cropper_platform_interface:
-    dependency: transitive
-    description:
-      name: image_cropper_platform_interface
-      sha256: "886a30ec199362cdcc2fbb053b8e53347fbfb9dbbdaa94f9ff85622609f5e7ff"
-      url: "https://pub.dev"
-    source: hosted
-    version: "8.0.0"
   image_picker:
     dependency: "direct main"
     description:
@@ -710,7 +662,7 @@ packages:
     source: hosted
     version: "3.2.1"
   path:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: path
       sha256: "75cca69d1490965be98c73ceaea117e8a04dd21217b37b292c9ddbec0d955bc5"
@@ -718,7 +670,7 @@ packages:
     source: hosted
     version: "1.9.1"
   path_provider:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: path_provider
       sha256: "50c5dd5b6e1aaf6fb3a78b33f6aa3afca52bf903a8a5298f53101fdaee55bbcd"
