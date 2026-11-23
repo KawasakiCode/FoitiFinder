@@ -187,11 +187,21 @@ past about 0.065 em they touch and the word becomes one joined shape.
 Change one and change the other, or the login screen stops matching every
 picture of the logo.
 
-**In the app, do not use these.** `AuthBrand` sets the logo as live text in a
-4.5 KB subset of the font — see `scripts/make_wordmark_font.py`. That stays
-sharp at any size and follows the theme; a bitmap would need two files and
-would still be wrong at the third size somebody uses it at. These images are
-for everywhere that cannot run Flutter.
+**In the app, these are the logo.** `AuthBrand` on the login screen and
+`AppBarWordmark` on the three main tabs both draw `wordmark_on_light.png` /
+`wordmark_on_dark.png` through `BrandWordmark`, which is the only thing that
+knows which file goes on which background.
+
+It used to be live text in a 4.5 KB subset of Gluten, which stayed sharp at
+any size and followed the theme by recolouring two `TextSpan`s. That font is
+gone and these two files replaced it: a fixed pair of bitmaps, in exchange for
+having one logo rather than two things that had to be kept in step.
+
+**Size them by their ink, not by their box.** The lettering is 0.7370 of the
+file's height — `BrandWordmark.inkFraction`, measured at half coverage — so
+matching one to text means dividing that text's ink height by the fraction.
+Setting the image height to the font size it replaced draws it about 10% too
+large, from a change that looks like a no-op.
 
 ## Generating
 

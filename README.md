@@ -119,13 +119,12 @@ Age is **derived, never stored** — `birthday` is the column, and the feed's ag
 | `POST /users/` | create an account — re-checks the university domain server side |
 | `GET` `PATCH` `DELETE /users/me` | own row; `PATCH` treats `""` as "clear this" and `null` as "leave alone" |
 | `GET` `PATCH /users/settings` | app settings |
-| `GET /users/feed` | the deck: excludes self, everyone already swiped, and everyone who liked you |
+| `GET /users/feed` | the deck: excludes self and everyone already swiped. People who liked you ARE offered, with nothing on the card to say so |
 | `GET /users/{id}/profile` · `GET /single/user/{id}` | another user, field by field, without the handle |
 | `GET` `POST /photos` · `PUT /photos/sync` · `PUT /photos/story` | photo rows; `sync` replaces the set and enforces 3–6 |
 | `POST /swipes` | records a swipe, creates the match when it completes one, idempotent |
-| `GET /likes` | who liked you, including anyone whose like is newer than your pass |
 | `GET /matches` · `POST /matches/{id}/confirm` · `POST /matches/{id}/decline` | the exchange; `confirm` is idempotent, `decline` is 409 once revealed |
-| `GET /notifications` · `POST /notifications/{id}/read` | the bell |
+| `GET /notifications` · `POST /notifications/{id}/read` | the bell: match kinds, plus a `report_received` acknowledgement with no person and nothing to open |
 | `GET /health` | keep-alive; touches nothing |
 
 `main.py` includes the routers in a load-bearing order: FastAPI matches routes in registration order, so `/users/me` must be registered before `/users/{user_id}/profile`, or "me" is read as a user id.
