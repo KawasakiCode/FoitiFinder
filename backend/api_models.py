@@ -16,22 +16,6 @@ from typing import List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
-#class that handles the like data we need to sent
-#we dont return likes but data from the users that liked the currentuser
-class LikerProfile(BaseModel):
-    id: int
-    name: str
-    age: Optional[int] = None
-    #OPTIONAL, AND THAT IS A BUG FIX. The photo is an OUTER join, so a liker
-    #with no photo 0 arrives as None - and a required str here made FastAPI
-    #raise a ResponseValidationError, which is a 500 for the WHOLE likes page
-    #because of one half-finished account. The app draws its own placeholder.
-    image_url: Optional[str] = None
-
-    class Config:
-        #this ensures that pydantic can read sqlalchemy objects
-        from_attributes = True
-
 #class that handles sending back users photos
 #NOTE: no firebase_uid — the owner is taken from the verified ID token
 class UserPhotos(BaseModel):

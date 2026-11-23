@@ -16,6 +16,7 @@ import 'package:foitifinder/l10n/app_localizations.dart';
 import 'package:foitifinder/models/notification_model.dart';
 import 'package:foitifinder/pages/main_pages/notifications_page.dart';
 import 'package:foitifinder/providers/notifications_provider.dart';
+import 'package:foitifinder/widgets/profile_photo.dart';
 import 'package:provider/provider.dart';
 
 class FakeNotifications extends NotificationsProvider {
@@ -183,6 +184,61 @@ void main() {
       //silent gap in the list
       await pumpPage(tester, [note(otherName: null)]);
       expect(find.textContaining('Someone'), findsWidgets);
+    });
+
+    group('a received report', () {
+      //THE ONLY KIND THAT IS ABOUT NOBODY, which is most of what is worth
+      //testing about it: every other row carries a person, and the three
+      //places that assume one are the title, the body and the avatar.
+      List<AppNotification> reportRow() => [
+            note(
+              kind: NotificationKind.reportReceived,
+              matchId: null,
+              otherUserId: null,
+              otherName: null,
+              actionable: false,
+              otherConfirmed: false,
+            ),
+          ];
+
+      testWidgets('thanks you and says it will come back to you',
+          (tester) async {
+        await pumpPage(tester, reportRow());
+        expect(find.text('Thanks for reporting'), findsOneWidget);
+        expect(find.textContaining('looking at it'), findsOneWidget);
+      });
+
+      testWidgets('never falls back to "Someone"', (tester) async {
+        //THE BUG THIS CATCHES. _lines computes `name` for every kind before
+        //it branches, so a case that forgot to leave it out would print
+        //"Someone" on a notification about the reader's own action - which
+        //reads as a notification about a person whose name failed to load.
+        await pumpPage(tester, reportRow());
+        expect(find.textContaining('Someone'), findsNothing);
+      });
+
+      testWidgets('shows a mark rather than an empty face', (tester) async {
+        //A person-outline avatar here would say "this is about somebody" and
+        //invite a tap that goes nowhere. PersonPhoto draws exactly that for a
+        //null url, so the row has to opt out of it rather than pass null in.
+        await pumpPage(tester, reportRow());
+        expect(find.byIcon(Icons.shield_outlined), findsOneWidget);
+        expect(find.byType(PersonPhoto), findsNothing);
+      });
+
+      testWidgets('leads nowhere, but a tap still marks it read',
+          (tester) async {
+        final provider = await pumpPage(tester, reportRow());
+
+        expect(tileFor(tester, 'Thanks for reporting').onTap, isNotNull,
+            reason: 'an unread row has to be tappable to become read');
+        await tester.tap(find.text('Thanks for reporting'));
+        await tester.pumpAndSettle();
+
+        expect(provider.readCalls, [1]);
+        //and now there is nothing left for it to do
+        expect(tileFor(tester, 'Thanks for reporting').onTap, isNull);
+      });
     });
   });
 

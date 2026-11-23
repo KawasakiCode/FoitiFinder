@@ -228,9 +228,10 @@ class Notifications(Base):
     This is also the "is anything waiting for me?" check: push is a nudge, and
     this is the delivery.
 
-    LIKES ARE NOT IN HERE. They have their own page and their own badge; a bell
-    that fills up with "someone liked you" is a bell nobody reads. Only things
-    that need an answer, or carry the answer to one.
+    LIKES ARE NOT IN HERE, and there is no page left that could show them
+    anyway: a bell that fills up with "someone liked you" is a bell nobody
+    reads. Only things that need an answer, carry the answer to one, or - in
+    the case of a filed report - confirm that something was received.
     """
     __tablename__ = "notifications"
 
@@ -238,8 +239,14 @@ class Notifications(Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable = False, index = True)
 
     #'match' (someone is waiting on your answer), 'match_revealed' (you both
-    #said yes), 'match_declined' (the person you were waiting on said no).
+    #said yes), 'match_declined' (the person you were waiting on said no),
+    #'report_received' (we have your report).
     #The same strings the FCM payload uses, so one vocabulary covers both.
+    #
+    #THE LAST ONE IS ABOUT NOBODY ELSE. match_id and other_user_id are both
+    #null for it - it is the app answering the user rather than telling them
+    #about another person - so anything reading these rows has to cope with a
+    #notification that names no one and opens nothing.
     kind = Column(String, nullable = False)
 
     #What to open. SET NULL, NOT CASCADE: a declined match is deleted and this

@@ -33,7 +33,6 @@ import error_reporting
 from app_logging import logger
 from routers import (
     feed,
-    likes,
     matches,
     notifications,
     photos,
@@ -117,7 +116,6 @@ app.include_router(users.router, tags=["users"])
 app.include_router(feed.router, tags=["feed"])
 app.include_router(photos.router, tags=["photos"])
 app.include_router(swipes.router, tags=["swipes"])
-app.include_router(likes.router, tags=["likes"])
 app.include_router(matches.router, tags=["matches"])
 app.include_router(notifications.router, tags=["notifications"])
 app.include_router(reports.router, tags=["reports"])

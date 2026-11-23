@@ -74,22 +74,6 @@ class _SettingsPageState extends State<SettingsPage> {
                     value: settings.themeMode == ThemeMode.dark,
                     onChanged: (bool value) => settings.toggleTheme(value),
                   ),
-                  //THE ONE SWITCH ON THIS PAGE THAT SAVES NOTHING. Every other
-                  //row here outlives the app; this one is gone on the next
-                  //launch, which is a surprise unless it is said out loud -
-                  //hence the line under it rather than a bare switch.
-                  SwitchRow(
-                    label: text.playfulFont,
-                    value: settings.playfulFont,
-                    onChanged: settings.togglePlayfulFont,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    child: Text(
-                      text.playfulFontHint,
-                      style: mutedText(context),
-                    ),
-                  ),
                 ],
               ),
               //Notifications

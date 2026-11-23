@@ -39,13 +39,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get darkMode => 'Dark Mode';
 
   @override
-  String get playfulFont => 'Playful font';
-
-  @override
-  String get playfulFontHint =>
-      'A look at the app in the font the logo is set in. This one is not saved: it lasts until you close the app.';
-
-  @override
   String get notifications => 'Notifications';
 
   @override
@@ -1793,6 +1786,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get notifMatchDeclinedBody =>
       'Nothing was shared. Plenty more out there.';
+
+  @override
+  String get notifReportReceivedTitle => 'Thanks for reporting';
+
+  @override
+  String get notifReportReceivedBody =>
+      'We have your report and we\'re looking at it. We\'ll let you know here if there is anything to tell you.';
 
   @override
   String get notifSomeone => 'Someone';

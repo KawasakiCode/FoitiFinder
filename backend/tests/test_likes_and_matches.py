@@ -1,10 +1,9 @@
-"""The likes page, the matches list, and one profile seen by another user.
+"""The matches list, one profile seen by another user, and the bell.
 
-THE LIKES QUERY IS THE HARDEST THING IN THE SCHEMA, and the only one whose
-answer depends on WHICH OF TWO SWIPES HAPPENED FIRST. It shows people who
-liked you and whom you have not answered - plus people who liked you AFTER you
-passed on them, which is the second chance that makes a stale pass forgivable.
-Both halves are one SQL condition and neither is visible when it breaks.
+THE LIKES PAGE USED TO BE THE FIRST THIRD OF THIS FILE. /likes is gone - the
+app never called it, and likers go back into the deck unannounced instead -
+so the class that tested the hardest query in the schema went with it. What
+is left is the match flow, which is where every like now ends up.
 """
 
 import datetime
@@ -12,73 +11,6 @@ import datetime
 
 def days_ago(n: int) -> datetime.datetime:
     return datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=n)
-
-
-class TestTheLikesPage:
-    def test_an_unanswered_like_is_shown(self, as_user, make_user, swipe):
-        me, admirer = make_user(name="Me"), make_user(name="Admirer")
-        swipe(admirer, me, "like", at=days_ago(1))
-
-        assert [row["id"] for row in as_user(me).get("/likes").json()] == [admirer.id]
-
-    def test_a_like_you_already_returned_is_not_shown(
-        self, as_user, make_user, swipe
-    ):
-        #you matched; it belongs to the match flow now, not to this page
-        me, admirer = make_user(name="Me"), make_user(name="Admirer")
-        swipe(admirer, me, "like", at=days_ago(2))
-        swipe(me, admirer, "like", at=days_ago(1))
-
-        assert as_user(me).get("/likes").json() == []
-
-    def test_a_like_you_passed_on_is_not_shown(self, as_user, make_user, swipe):
-        me, admirer = make_user(name="Me"), make_user(name="Admirer")
-        swipe(admirer, me, "like", at=days_ago(2))
-        swipe(me, admirer, "pass", at=days_ago(1))
-
-        assert as_user(me).get("/likes").json() == []
-
-    def test_liking_you_again_after_a_pass_brings_them_back(
-        self, as_user, make_user, swipe
-    ):
-        #THE SECOND CHANCE. You passed on them months ago in the deck; they
-        #have since liked you. The pass was about a profile, the like is about
-        #you, and the newer one wins.
-        me, admirer = make_user(name="Me"), make_user(name="Admirer")
-        swipe(me, admirer, "pass", at=days_ago(30))
-        swipe(admirer, me, "like", at=days_ago(1))
-
-        assert [row["id"] for row in as_user(me).get("/likes").json()] == [admirer.id]
-
-    def test_a_super_like_shows_up_too(self, as_user, make_user, swipe):
-        me, admirer = make_user(name="Me"), make_user(name="Admirer")
-        swipe(admirer, me, "super_like", at=days_ago(1))
-
-        assert [row["id"] for row in as_user(me).get("/likes").json()] == [admirer.id]
-
-    def test_somebody_who_passed_on_you_is_not_a_like(
-        self, as_user, make_user, swipe
-    ):
-        me, other = make_user(name="Me"), make_user(name="Other")
-        swipe(other, me, "pass", at=days_ago(1))
-
-        assert as_user(me).get("/likes").json() == []
-
-    def test_a_liker_with_no_photo_still_appears(self, as_user, make_user, swipe):
-        #the photo is an outer join: a half-finished account must not silently
-        #vanish from a page that is about who liked you
-        me = make_user(name="Me")
-        admirer = make_user(name="Admirer", photos=0)
-        swipe(admirer, me, "like", at=days_ago(1))
-
-        assert [row["id"] for row in as_user(me).get("/likes").json()] == [admirer.id]
-
-    def test_an_age_comes_back_with_each_liker(self, as_user, make_user, swipe):
-        me = make_user(name="Me")
-        admirer = make_user(name="Admirer", age=23)
-        swipe(admirer, me, "like", at=days_ago(1))
-
-        assert as_user(me).get("/likes").json()[0]["age"] == 23
 
 
 class TestTheMatchesList:
@@ -187,8 +119,11 @@ class TestTheFullStory:
         a, b = self.setup_match(as_user, make_user, swipe)
         assert as_user(a).get("/matches").json() == []
         assert as_user(a).get("/notifications").json() == []
-        #B sees a like waiting
-        assert [row["id"] for row in as_user(b).get("/likes").json()] == [a.id]
+        #AND B IS NOT TOLD EITHER. There is no "someone liked you" anywhere in
+        #the app: A simply goes back into B's deck, so the only thing that can
+        #happen next is B swiping on them without knowing.
+        assert as_user(b).get("/matches").json() == []
+        assert as_user(b).get("/notifications").json() == []
 
     def test_b_likes_back_and_only_b_is_asked(
         self, as_user, make_user, swipe, pushes
@@ -222,8 +157,16 @@ class TestTheFullStory:
         assert db.query(models.Matches).count() == 0
         assert as_user(a).get("/notifications").json() == []
         assert not [p for p in pushes if p[0] == a.firebase_uid]
-        #B's like became a pass, so A does not resurface on B's likes page
-        assert as_user(b).get("/likes").json() == []
+        #B'S LIKE BECAME A PASS, which is the part of declining that is easy
+        #to lose: deleting the match alone would leave B's like standing, and
+        #the next time either of them swiped the match would be rebuilt. Read
+        #off the swipe row rather than through a page, because the page that
+        #used to show it (/likes) no longer exists.
+        withdrawn = db.query(models.UserSwipes).filter(
+            models.UserSwipes.user_id == b.id,
+            models.UserSwipes.target_id == a.id,
+        ).one()
+        assert withdrawn.action == "pass"
 
     def test_b_accepts_and_now_it_is_as_turn(
         self, as_user, make_user, swipe, pushes

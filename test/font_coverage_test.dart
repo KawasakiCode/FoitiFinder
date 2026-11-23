@@ -21,16 +21,12 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 
-//INTER IS NO LONGER THE FACE THE APP IS SET IN - Gluten is, see
-//AppTheme.fontFamily - but it is still the font this has to check. Gluten
-//has no Greek, so it sits in AppTheme.fontFamilyFallback as the LAST link in
-//the chain, and the last link is the one that decides whether a character
-//reaches a bundled font or falls through to the phone's own. Checking Gluten
-//here instead would fail on every Greek string by design and prove nothing.
+//INTER IS THE ONLY FACE IN THE APP AND HAS NO FALLBACK BEHIND IT, which is
+//what makes this test the whole of the guarantee. There used to be a second
+//bundled font (Gluten, for a look) with Inter underneath it as the last link
+//in the chain; now there is one link, and if a string needs a glyph this file
+//does not carry, the phone's own fonts are what draw it.
 const String _fontPath = 'assets/fonts/Inter.ttf';
-const String _wordmarkFontPath = 'assets/fonts/GlutenWordmark.ttf';
-//the logo, as auth_parts.dart sets it
-const String _wordmark = 'FoitiFinder';
 const List<String> _arbFiles = ['lib/l10n/app_en.arb', 'lib/l10n/app_el.arb'];
 
 void main() {
@@ -88,51 +84,6 @@ void main() {
     });
   }
 
-  //THE LOGO HAS ITS OWN FONT, and it is a subset - eight letters, built by
-  //scripts/make_wordmark_font.py. That makes it the one font in here that can
-  //plausibly lose a character: regenerate it with a mistyped WORDMARK and the
-  //missing letters do not throw, they come out as whatever the OS substitutes
-  //or as nothing at all, on the very first screen of the app.
-  group('the wordmark font', () {
-    late Set<int> wordmarkCovered;
-
-    setUpAll(() {
-      wordmarkCovered = _codepointsIn(
-        File(_wordmarkFontPath).readAsBytesSync(),
-      );
-    });
-
-    test('exists', () {
-      expect(
-        File(_wordmarkFontPath).existsSync(),
-        isTrue,
-        reason: '$_wordmarkFontPath is gone; run make_wordmark_font.py',
-      );
-    });
-
-    test('draws every letter of the wordmark', () {
-      final missing = _wordmark.runes
-          .where((r) => !wordmarkCovered.contains(r))
-          .map(String.fromCharCode)
-          .toSet();
-      expect(
-        missing,
-        isEmpty,
-        reason: '$_wordmarkFontPath cannot draw: ${missing.join()}',
-      );
-    });
-
-    test('is still a subset and not the whole family', () {
-      //IF THIS FAILS THE APP GOT BIGGER. Somebody has swapped the full 342 KB
-      //Gluten in for the 4.5 KB cut of it, for one string on one screen.
-      expect(
-        wordmarkCovered.length,
-        lessThan(40),
-        reason: 'the wordmark font covers ${wordmarkCovered.length} characters, '
-            'which means it is no longer a subset',
-      );
-    });
-  });
 }
 
 //Every codepoint the font can draw, read out of its `cmap` table.

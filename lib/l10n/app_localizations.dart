@@ -158,18 +158,6 @@ abstract class AppLocalizations {
   /// **'Dark Mode'**
   String get darkMode;
 
-  /// No description provided for @playfulFont.
-  ///
-  /// In en, this message translates to:
-  /// **'Playful font'**
-  String get playfulFont;
-
-  /// No description provided for @playfulFontHint.
-  ///
-  /// In en, this message translates to:
-  /// **'A look at the app in the font the logo is set in. This one is not saved: it lasts until you close the app.'**
-  String get playfulFontHint;
-
   /// No description provided for @notifications.
   ///
   /// In en, this message translates to:
@@ -3547,6 +3535,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Nothing was shared. Plenty more out there.'**
   String get notifMatchDeclinedBody;
+
+  /// No description provided for @notifReportReceivedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks for reporting'**
+  String get notifReportReceivedTitle;
+
+  /// No description provided for @notifReportReceivedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We have your report and we\'re looking at it. We\'ll let you know here if there is anything to tell you.'**
+  String get notifReportReceivedBody;
 
   /// No description provided for @notifSomeone.
   ///

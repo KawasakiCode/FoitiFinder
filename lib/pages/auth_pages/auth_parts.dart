@@ -3,7 +3,7 @@
 //the card that sends you to the other form.
 
 import 'package:flutter/material.dart';
-import 'package:foitifinder/theme/app_colors.dart';
+import 'package:foitifinder/widgets/brand_wordmark.dart';
 import 'package:foitifinder/widgets/polish.dart';
 
 class AuthScroll extends StatelessWidget {
@@ -33,63 +33,35 @@ class AuthScroll extends StatelessWidget {
   }
 }
 
-//THE LOGO. Set in GlutenWordmark, a subset of Gluten carrying the eight
-//distinct letters of this name and nothing else - 4.5 KB instead of 342 KB.
-//See scripts/make_wordmark_font.py.
-//
-//TWO COLOURS, NOT THE GRADIENT IT USED TO BE. The policy site splits the name
-//the same way, Foiti in the body colour and Finder in the accent, and the two
-//have to look like one brand to somebody who has just come back from reading
-//the privacy statement. A ShaderMask also flattened the whole thing into one
-//ramp, which is a different mark rather than a recoloured one.
+//THE LOGO, as artwork rather than as text - see widgets/brand_wordmark.dart
+//for why the font it used to be set in is gone.
 //
 //NOT LOCALISED, DELIBERATELY. It is a name, so it is the same string in both
-//languages - and the font has no Greek in it at all. Text.rich concatenates
-//the spans for screen readers, so this is still announced as "FoitiFinder".
+//languages; the label below is only what a screen reader announces.
 class AuthBrand extends StatelessWidget {
   const AuthBrand({super.key});
 
+  //THE HEIGHT THAT MATCHES THE 40pt TEXT THIS REPLACED, measured rather than
+  //guessed. Gluten at weight 500 and size 40 puts down 26.70px of ink for
+  //this string, and the ink is 0.7370 of the image's height, so the image
+  //reaches the same lettering at 36.23.
+  //
+  //Setting this to 40 - the obvious move, matching the old fontSize - would
+  //draw the logo 10% larger than it used to be, because a font size is not an
+  //ink height.
+  static const double _inkMatchedHeight = 36.23;
+
   @override
   Widget build(BuildContext context) {
-    final bool dark = Theme.of(context).brightness == Brightness.dark;
-
-    return FittedBox(
-      //A logo is the one thing that must not wrap or clip, and at the larger
-      //accessibility text sizes 40pt of a wide face stops fitting a narrow
-      //phone. Scaling down is the one legible way to lose that argument.
-      fit: BoxFit.scaleDown,
-      child: Text.rich(
-        TextSpan(
-          children: [
-            TextSpan(
-              text: 'Foiti',
-              style: TextStyle(
-                color: dark ? AppColors.darkWordmarkInk : AppColors.wordmarkInk,
-              ),
-            ),
-            TextSpan(
-              text: 'Finder',
-              style: TextStyle(
-                color: dark
-                    ? AppColors.darkWordmarkAccent
-                    : AppColors.wordmarkAccent,
-              ),
-            ),
-          ],
-        ),
-        textAlign: TextAlign.center,
-        //-2.1 IS 0.0525 OF THE 40pt SIZE, the same fraction of the em that
-        //TRACKING takes out of the images in scripts/make_icon.py. Gluten
-        //sets this name loosely and it reads as a word rather than a mark;
-        //this closes the gaps to almost nothing without letting the tight
-        //pairs ("nd", "de") touch. Keep the two in step - the login screen
-        //and every picture of the logo are supposed to be one thing.
-        style: const TextStyle(
-          fontFamily: 'GlutenWordmark',
-          fontSize: 40,
-          letterSpacing: -2.1,
-        ),
-      ),
+    //NO LONGER SCALES WITH THE ACCESSIBILITY TEXT SIZE, which the Text it
+    //replaced did. That is a real difference and an acceptable one: the
+    //reason the old version needed a FittedBox was that 40pt of a wide face
+    //at a 3x text scale wanted 1322 logical pixels and ate the login form.
+    //An image at a fixed height cannot do that, and the name is a mark rather
+    //than something anybody reads for information.
+    return const BrandWordmark(
+      height: _inkMatchedHeight,
+      label: 'FoitiFinder',
     );
   }
 }

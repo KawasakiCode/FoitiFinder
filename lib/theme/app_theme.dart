@@ -7,34 +7,16 @@ import 'app_colors.dart';
 class AppTheme {
   AppTheme._();
 
-  //THE FACE THE APP IS SET IN BY DEFAULT.
+  //THE FACE THE APP IS SET IN. One font, bundled, no fallback chain: see
+  //test/font_coverage_test.dart, which checks this file can actually draw
+  //every string in both .arb files so nothing is ever left to whatever
+  //typeface the phone happens to own.
   static const String fontFamily = 'Inter';
 
-  //THE OTHER ONE, OFFERED AS A SWITCH IN SETTINGS AND NOTHING MORE. Gluten is
-  //a rounded display face - the one the logo is drawn in - and it is here to
-  //be looked at on a real screen rather than guessed at. It is not a stored
-  //preference: see SettingsProvider.playfulFont for why.
-  static const String playfulFontFamily = 'Gluten';
+  static ThemeData light() => _build(Brightness.light);
+  static ThemeData dark() => _build(Brightness.dark);
 
-  //GLUTEN HAS NO GREEK. It covers every character in app_en.arb and misses 63
-  //of the 121 in app_el.arb - the whole alphabet. Without this the Greek UI
-  //is drawn by whatever font the phone happens to own, which differs per
-  //device and is the exact failure test/font_coverage_test.dart was written
-  //to stop. Named here so the fallback is bundled and predictable.
-  //
-  //It has to be repeated on every TextStyle below. A style that sets
-  //fontFamily without it loses the chain, and only Greek shows the loss.
-  static const List<String> fontFamilyFallback = <String>['Inter'];
-
-  //THE FONT IS AN ARGUMENT AND NOT A CONSTANT, because it can change while
-  //the app is running. Both default to the normal face, so a caller that does
-  //not care about the switch - a test, a one-off - reads the same as before.
-  static ThemeData light({String font = fontFamily}) =>
-      _build(Brightness.light, font);
-  static ThemeData dark({String font = fontFamily}) =>
-      _build(Brightness.dark, font);
-
-  static ThemeData _build(Brightness brightness, String font) {
+  static ThemeData _build(Brightness brightness) {
     final bool isDark = brightness == Brightness.dark;
 
     final Color background =
@@ -87,11 +69,10 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
-      fontFamily: font,
-      fontFamilyFallback: fontFamilyFallback,
+      fontFamily: fontFamily,
       scaffoldBackgroundColor: background,
       colorScheme: scheme,
-      textTheme: _textTheme(textPrimary, textSecondary, font),
+      textTheme: _textTheme(textPrimary, textSecondary),
       dividerTheme: DividerThemeData(color: border, thickness: 1, space: 1),
 
       //NO INK RIPPLES ANYWHERE.
@@ -132,8 +113,7 @@ class AppTheme {
         centerTitle: false,
         foregroundColor: textPrimary,
         titleTextStyle: TextStyle(
-          fontFamily: font,
-          fontFamilyFallback: fontFamilyFallback,
+          fontFamily: fontFamily,
           fontSize: 20,
           fontWeight: FontWeight.w700,
           letterSpacing: -0.3,
@@ -162,8 +142,7 @@ class AppTheme {
             borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           textStyle: TextStyle(
-            fontFamily: font,
-            fontFamilyFallback: fontFamilyFallback,
+            fontFamily: fontFamily,
             fontSize: 16,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.2,
@@ -179,8 +158,7 @@ class AppTheme {
             borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           textStyle: TextStyle(
-            fontFamily: font,
-            fontFamilyFallback: fontFamilyFallback,
+            fontFamily: fontFamily,
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -190,8 +168,7 @@ class AppTheme {
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primary,
           textStyle: TextStyle(
-            fontFamily: font,
-            fontFamilyFallback: fontFamilyFallback,
+            fontFamily: fontFamily,
             fontSize: 15,
             fontWeight: FontWeight.w600,
           ),
@@ -206,8 +183,7 @@ class AppTheme {
             borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           textStyle: TextStyle(
-            fontFamily: font,
-            fontFamilyFallback: fontFamilyFallback,
+            fontFamily: fontFamily,
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -307,8 +283,7 @@ class AppTheme {
         backgroundColor:
             isDark ? AppColors.darkSurfaceVariant : AppColors.lightSnackBackground,
         contentTextStyle: TextStyle(
-          fontFamily: font,
-          fontFamilyFallback: fontFamilyFallback,
+          fontFamily: fontFamily,
           color: Colors.white,
           fontWeight: FontWeight.w500,
         ),
@@ -330,15 +305,13 @@ class AppTheme {
           borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
         titleTextStyle: TextStyle(
-          fontFamily: font,
-          fontFamilyFallback: fontFamilyFallback,
+          fontFamily: fontFamily,
           fontSize: 18,
           fontWeight: FontWeight.w700,
           color: textPrimary,
         ),
         contentTextStyle: TextStyle(
-          fontFamily: font,
-          fontFamilyFallback: fontFamilyFallback,
+          fontFamily: fontFamily,
           fontSize: 15,
           color: textSecondary,
         ),
@@ -355,7 +328,7 @@ class AppTheme {
     );
   }
 
-  static TextTheme _textTheme(Color primary, Color secondary, String font) {
+  static TextTheme _textTheme(Color primary, Color secondary) {
     return TextTheme(
       headlineLarge:
           TextStyle(fontWeight: FontWeight.w800, letterSpacing: -0.5, color: primary),
@@ -372,8 +345,7 @@ class AppTheme {
       labelLarge:
           TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.2, color: primary),
     ).apply(
-      fontFamily: font,
-      fontFamilyFallback: fontFamilyFallback,
+      fontFamily: fontFamily,
     );
   }
 }

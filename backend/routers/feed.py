@@ -223,7 +223,8 @@ def get_swipe_feed(
     #
     #Their interest stays hidden, which is the point: it is what keeps a right
     #swipe honest, and it is the shape a "see who liked you" tier is sold on
-    #later. /likes still works and still has its tests.
+    #later. There is nowhere left that discloses it - /likes is gone too - so
+    #this is the whole of the rule rather than half of it.
 
     #WHO SUPER LIKED ME, which is the only interest the deck discloses. Reads
     #straight off ix_user_swipes_target_action - (target_id, action) is

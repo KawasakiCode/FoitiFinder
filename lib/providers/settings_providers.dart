@@ -9,7 +9,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:foitifinder/models/settings_model.dart';
 import 'package:foitifinder/models/user_model.dart';
 import 'package:foitifinder/services/api_services.dart';
-import 'package:foitifinder/theme/app_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -32,16 +31,6 @@ class SettingsProvider extends ChangeNotifier {
   bool _localeSwitching = false;
   bool _osPermission = false;
   String _gender = "";
-  //SESSION ONLY, AND THAT IS THE WHOLE POINT. Every other setting in this
-  //class is written to SharedPreferences, and most of them to Postgres as
-  //well. This one is deliberately written NOWHERE: it is a way to look at the
-  //app in the other face, and it is gone on the next launch.
-  //
-  //So do not add it to _loadDefaults, to fetchSettingsFromApi, or to the
-  //settings the API sends back. A reader who sees every neighbour persisted
-  //will assume this one was forgotten.
-  bool _playfulFont = false;
-
   //Getters
   ThemeMode get themeMode => _themeMode;
   bool get matchNotificationsEnabled => _matchNotificationsEnabled;
@@ -63,19 +52,6 @@ class SettingsProvider extends ChangeNotifier {
   bool get hasBeenAskedAboutNotifications =>
       _prefs.getBool('notifications_asked') ?? false;
   String get gender => _gender;
-  bool get playfulFont => _playfulFont;
-
-  //What the themes are actually built with. Keeping the mapping here rather
-  //than at the three call sites in main.dart means the switch cannot be half
-  //applied - a light theme in one face and a dark theme in the other.
-  String get fontFamily =>
-      _playfulFont ? AppTheme.playfulFontFamily : AppTheme.fontFamily;
-
-  //NO await AND NO _prefs.set HERE, unlike every other setter in this class.
-  void togglePlayfulFont(bool on) {
-    _playfulFont = on;
-    notifyListeners();
-  }
 
   void _loadDefaults() {
     //isDark==true means DARK (matches toggleTheme + fetchSettingsFromApi);

@@ -6,7 +6,6 @@
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:foitifinder/theme/app_colors.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
@@ -34,7 +33,6 @@ Future<void> main() async {
   //draws a frame. Without a DSN this just runs the callback.
   await runWithErrorReporting(() async {
     WidgetsFlutterBinding.ensureInitialized();
-    _registerFontLicences();
     //THE BUILD NUMBER, so an error can be attributed to a release. Read here
     //rather than inside the reporter because package_info is async and the
     //reporter has to be usable from a synchronous catch block.
@@ -46,20 +44,16 @@ Future<void> main() async {
   });
 }
 
-//THE OFL REQUIRES THE LICENCE TO SHIP WITH THE FONT, and a .ttf inside an APK
-//is a distribution like any other. Flutter gathers licences from packages by
-//itself, but a font dropped into assets/ is invisible to that - so this hands
-//it to the same registry, and it appears on the licence screen the profile
-//page already opens.
+//NO FONT LICENCE IS REGISTERED HERE, AND ONE SHOULD BE. Inter is bundled
+//from assets/ and is under the SIL OFL, which requires the licence text to
+//travel with the binary - and a .ttf inside an APK is a distribution like any
+//other. Flutter collects licences from PACKAGES by itself; a font dropped
+//into assets/ is invisible to that, so nothing on the licence screen the
+//profile page opens mentions Inter at all.
 //
-//Inter is bundled the same way and is also OFL. Its licence text is not in the
-//repo, so it is not registered here; that is a gap rather than a decision.
-void _registerFontLicences() {
-  LicenseRegistry.addLicense(() async* {
-    final String text = await rootBundle.loadString('assets/fonts/OFL-Gluten.txt');
-    yield LicenseEntryWithLineBreaks(const <String>['GlutenWordmark'], text);
-  });
-}
+//What used to be here registered Gluten's OFL, which left with the font. The
+//fix is assets/fonts/OFL-Inter.txt plus a LicenseRegistry.addLicense for the
+//'Inter' family; the text is simply not in the repo yet.
 
 Future<void> _startApp() async {
   // Initialize Firebase and Shared Preferences together to reduce wait time
@@ -115,10 +109,8 @@ class FoitiFinder extends StatelessWidget {
         '/login': (context) => const LoginPage(),
       },
       //visual styling lives in lib/theme/ (tokens + AppTheme)
-      //the face comes from the provider so the settings switch can change it
-      //without anything being saved - see SettingsProvider.playfulFont
-      theme: AppTheme.light(font: settings.fontFamily),
-      darkTheme: AppTheme.dark(font: settings.fontFamily),
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
       themeMode: settings.themeMode,
       locale: settings.locale,
       localizationsDelegates: const [

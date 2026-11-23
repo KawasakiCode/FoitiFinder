@@ -265,6 +265,14 @@ class _NotificationRow extends StatelessWidget {
         text.notifMatchDeclinedTitle(name),
         text.notifMatchDeclinedBody,
       ),
+      //NO NAME IN EITHER LINE, and that is the whole point of it. The report
+      //is anonymous to the person reported, and naming them back to the
+      //reporter in a list they might hand somebody their phone to look at
+      //would be the one place this app said out loud who was reported.
+      NotificationKind.reportReceived => (
+        text.notifReportReceivedTitle,
+        text.notifReportReceivedBody,
+      ),
       //written by a newer backend: say who it was about and nothing more,
       //rather than dropping the row and leaving a gap in the list
       NotificationKind.unknown => (name, ''),
@@ -316,16 +324,34 @@ class _NotificationRow extends StatelessWidget {
                 horizontal: 16,
                 vertical: 8,
               ),
+              //A FACE, OR A MARK WHEN THERE IS NO FACE TO SHOW. Every other
+              //kind is about another person, so PersonPhoto's own
+              //missing-photo outline is the right fallback there. A received
+              //report is about nobody, and that outline would read as a
+              //notification about a person whose picture failed to load -
+              //which is worse than no picture, because it invites a tap.
               leading: SizedBox(
                 width: 48,
                 height: 48,
-                child: ClipOval(
-                  child: PersonPhoto(
-                    url: note.otherPhotoUrl,
-                    decodeWidth: kThumbDecodeWidth,
-                    missingIconSize: 24,
-                  ),
-                ),
+                child: note.kind == NotificationKind.reportReceived
+                    ? DecoratedBox(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: theme.colorScheme.surfaceContainerHighest,
+                        ),
+                        child: Icon(
+                          Icons.shield_outlined,
+                          size: 24,
+                          color: muted,
+                        ),
+                      )
+                    : ClipOval(
+                        child: PersonPhoto(
+                          url: note.otherPhotoUrl,
+                          decodeWidth: kThumbDecodeWidth,
+                          missingIconSize: 24,
+                        ),
+                      ),
               ),
               title: Text(
                 title,

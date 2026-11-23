@@ -13,6 +13,7 @@ import rate_limit
 from auth import verified_email_uid
 from database import models
 from database.database import get_db
+from notifications import notify
 
 router = APIRouter()
 
@@ -123,6 +124,30 @@ def create_report(report: ReportRequest,
             match.hidden_by_a_at = match.hidden_by_a_at or now
         else:
             match.hidden_by_b_at = match.hidden_by_b_at or now
+
+    #AN ACKNOWLEDGEMENT THEY CAN GO BACK AND FIND.
+    #
+    #The snackbar on the report sheet already says thank you, and a snackbar
+    #is gone in four seconds and cannot be scrolled back to. Reporting
+    #somebody is the one thing in this app a user does and then wonders about
+    #afterwards - whether it arrived, whether anything is happening - and
+    #until there is a reviewer writing outcomes back, this row is the entire
+    #answer to that.
+    #
+    #BEFORE THE COMMIT, SO IT IS PART OF THE SAME TRANSACTION. notify() adds
+    #to this session rather than opening its own, which is the point: a report
+    #cannot be stored without its acknowledgement, or the acknowledgement
+    #without the report.
+    #
+    #NO PUSH, AND NOT BECAUSE IT IS HARD. They are holding the phone, looking
+    #at the screen they just submitted from; a banner about their own action a
+    #second later is noise, and the one notification toggle this app has would
+    #be what they reach for.
+    #
+    #NOT once=True EITHER. That only deduplicates per match, and two reports
+    #are two separate things that each got filed - telling somebody their
+    #second report landed is not repeating yourself.
+    notify(db, me, 'report_received', push=False)
 
     db.commit()
 

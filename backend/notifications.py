@@ -12,6 +12,14 @@
 #recipient anything to do, and the matches page already says what happened by
 #not listing it - a declined match is deleted and so is an expired one. A
 #notification about a non-event is worse than silence.
+#
+#A FILED REPORT IS THE ONE THING THAT GETS A ROW AND NO PUSH. routers/reports
+#calls notify(..., push=False): the reporter wants to be able to find the
+#acknowledgement again later, which a row gives them, but they were looking at
+#the screen when they filed it, so a banner would only be the app telling them
+#what they just did. 'report_received' is therefore deliberately absent from
+#the gate in send_smart_notification below, and would be dropped if anything
+#ever did try to push it.
 
 from firebase_admin import messaging, firestore
 

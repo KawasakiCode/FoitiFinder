@@ -11,6 +11,10 @@ enum NotificationKind {
   matchRevealed,
   //the person you were waiting on said no
   matchDeclined,
+  //YOUR OWN REPORT WAS RECEIVED - the only kind that is about nobody else.
+  //matchId and otherUserId are both null for it, so it names no one, shows no
+  //face and opens nothing.
+  reportReceived,
   //a kind written by a newer backend than this build: shown as a plain line
   //rather than hidden, so the list is never silently short
   unknown,
@@ -20,6 +24,7 @@ NotificationKind _kindFromJson(String? raw) => switch (raw) {
   'match' => NotificationKind.matchWaiting,
   'match_revealed' => NotificationKind.matchRevealed,
   'match_declined' => NotificationKind.matchDeclined,
+  'report_received' => NotificationKind.reportReceived,
   _ => NotificationKind.unknown,
 };
 

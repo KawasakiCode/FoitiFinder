@@ -52,8 +52,8 @@ class TestWhoIsInTheDeck:
     ):
         #THE HIDING IS THE PRODUCT. A card that announced "they like you" would
         #turn every such swipe into a formality, and it is the thing a "see who
-        #liked you" tier would be sold on later. /likes still knows; the deck
-        #must not say.
+        #liked you" tier would be sold on later. Nothing in the app knows it
+        #now - there is no page left that could - and the deck must not say.
         viewer = make_user(name="Viewer", preferred_gender="Everyone")
         admirer = make_user(name="Admirer")
         swipe(admirer, viewer, "like")
@@ -123,23 +123,6 @@ class TestWhoIsInTheDeck:
         assert man.id not in offered
 
 
-class TestTheLikesPage:
-    def test_it_shows_someone_who_liked_you(self, as_user, make_user, swipe):
-        viewer = make_user(name="Viewer")
-        admirer = make_user(name="Admirer")
-        swipe(admirer, viewer, "like")
-
-        likes = as_user(viewer).get("/likes").json()
-        assert [like["id"] for like in likes] == [admirer.id]
-
-    def test_a_pass_is_not_a_like(self, as_user, make_user, swipe):
-        viewer = make_user(name="Viewer")
-        indifferent = make_user(name="Indifferent")
-        swipe(indifferent, viewer, "pass")
-
-        assert as_user(viewer).get("/likes").json() == []
-
-
 class TestWhatOthersCanSee:
     def test_a_profile_never_carries_an_instagram_handle(
         self, as_user, make_user
@@ -156,13 +139,6 @@ class TestWhatOthersCanSee:
         make_user(name="Other", handle="secret_handle")
 
         assert "secret_handle" not in as_user(viewer).get("/users/feed").text
-
-    def test_the_likes_page_does_not_leak_one(self, as_user, make_user, swipe):
-        viewer = make_user(name="Viewer")
-        admirer = make_user(name="Admirer", handle="secret_handle")
-        swipe(admirer, viewer, "like")
-
-        assert "secret_handle" not in as_user(viewer).get("/likes").text
 
     def test_your_own_handle_comes_back_to_you(self, as_user, make_user):
         #it has to: the match page names it in the confirm dialog
@@ -222,13 +198,6 @@ class TestAConsideredNo:
             "/swipes",
             json={"target_id": bob.id, "action": "not_interested"}).json()
         assert body["match_id"] is None
-
-    def test_nor_show_up_as_a_like(self, as_user, make_user):
-        alice, bob = make_user(name="Alice"), make_user(name="Bob")
-        as_user(bob).post(
-            "/swipes", json={"target_id": alice.id, "action": "not_interested"})
-
-        assert as_user(alice).get("/likes").json() == []
 
 
 class TestTheSwipeItself:

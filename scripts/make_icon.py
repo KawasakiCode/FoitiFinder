@@ -25,9 +25,10 @@ carries the policy site's flat pair instead - Foiti in --text, Finder in
 it in the app. Changing one to match the other would make the logo disagree
 with itself in two places in order to agree in one.
 
-Gluten is a Google font under the OFL. This script only renders pixels, but
-the app does bundle a subset of the font - see scripts/make_wordmark_font.py
-and the licence that ships beside it.
+Gluten is a Google font under the OFL. This script only renders pixels, and
+the app no longer bundles the font in any form: these images ARE the logo now
+(see assets/brand/README.md), so nothing under assets/fonts/ is Gluten and
+there is no font licence to ship on its account.
 """
 
 import math

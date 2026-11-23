@@ -124,10 +124,8 @@ flutter:
   assets:
     - assets/icons/
     - assets/images/
-    #NOT CODE AND NOT DECORATION. The OFL requires the licence to ship with the
-    #font, so it is bundled and handed to showLicensePage from main.dart.
-    - assets/fonts/OFL-Gluten.txt
-    #THE LOGO IN THE APP BAR, as a picture. These two FILES and not the
+    #THE LOGO, as a picture - on the login screen and in the three main app
+    #bars. These two FILES and not the
     #assets/brand/ FOLDER: that folder also holds four 1024x1024 icon sources
     #which the Android build consumes from outside the APK, and listing the
     #directory would ship about 113 KB of them to every phone for nothing.
@@ -151,40 +149,17 @@ flutter:
   # test/font_coverage_test.dart fails if a string needs a glyph this file
   # does not have.
   fonts:
+    #THE ONLY FACE IN THE APP, and the only one bundled. Gluten used to be
+    #here too - the whole UI as an experiment, plus a 4.5 KB subset the logo
+    #was set in - and both are gone: the logo is artwork now (assets/brand/,
+    #drawn by scripts/make_icon.py) and nothing else wanted a second face.
+    #
+    #THERE IS NO FALLBACK CHAIN BEHIND THIS. Inter covers both languages and
+    #test/font_coverage_test.dart holds it to that, so a missing glyph is a
+    #failing test rather than a character drawn in whatever the phone owns.
     - family: Inter
       fonts:
         - asset: assets/fonts/Inter.ttf
-    #THE WHOLE UI, AS AN EXPERIMENT. AppTheme.fontFamily points here; set it
-    #back to 'Inter' and these five files stop being used (delete them and
-    #this block to reclaim 488 KB).
-    #
-    #ONE FILE PER WEIGHT. Gluten ships as a variable font whose default
-    #instance is Thin, and Flutter does not drive the wght axis from
-    #TextStyle.fontWeight - declaring the variable file would set the entire
-    #app in weight 100. Rebuild with: python scripts\make_app_font.py
-    #
-    #GLUTEN HAS NO GREEK, so AppTheme falls back to Inter, which is why Inter
-    #stays bundled above rather than being replaced.
-    - family: Gluten
-      fonts:
-        - asset: assets/fonts/Gluten-Regular.ttf
-          weight: 400
-        - asset: assets/fonts/Gluten-Medium.ttf
-          weight: 500
-        - asset: assets/fonts/Gluten-SemiBold.ttf
-          weight: 600
-        - asset: assets/fonts/Gluten-Bold.ttf
-          weight: 700
-        - asset: assets/fonts/Gluten-ExtraBold.ttf
-          weight: 800
-    #THE LOGO AND NOTHING ELSE. A subset of Gluten holding the eight letters of
-    #"FoitiFinder" and no others - 4.5 KB rather than the 342 KB the whole
-    #family would cost for one string. Set any other text in it and you get
-    #blanks, which is why it is not called "Gluten".
-    #Rebuild with: python scripts\make_wordmark_font.py
-    - family: GlutenWordmark
-      fonts:
-        - asset: assets/fonts/GlutenWordmark.ttf
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package

@@ -9,8 +9,6 @@
   "ageRange": "Age Range",
   "appearance": "Appearance",
   "darkMode": "Dark Mode",
-  "playfulFont": "Playful font",
-  "playfulFontHint": "A look at the app in the font the logo is set in. This one is not saved: it lasts until you close the app.",
   "notifications": "Notifications",
   "language": "Language",
   "greek": "Greek",
@@ -657,6 +655,8 @@
     }
   },
   "notifMatchDeclinedBody": "Nothing was shared. Plenty more out there.",
+  "notifReportReceivedTitle": "Thanks for reporting",
+  "notifReportReceivedBody": "We have your report and we're looking at it. We'll let you know here if there is anything to tell you.",
   "notifSomeone": "Someone",
   "notifJustNow": "Just now",
   "notifMinutesAgo": "{count}m ago",

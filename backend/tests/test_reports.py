@@ -146,6 +146,9 @@ class TestWhatItAlsoDoes:
     def test_and_nobody_is_pushed_anything(
         self, as_user, make_user, swipe, pushes
     ):
+        #INCLUDING THE REPORTER, who does get a bell row out of this - see
+        #TestTheAcknowledgement. The row and the push are separate decisions
+        #and this is the one that stays no.
         alice, bob = make_user(name="Alice"), make_user(name="Bob")
         matched(as_user, swipe, alice, bob)
 
@@ -153,6 +156,81 @@ class TestWhatItAlsoDoes:
         report(as_user, alice, bob, category="harassment",
                subcategory="abusive_messages")
         assert pushes == []
+
+
+class TestTheAcknowledgement:
+    """Filing a report puts a row in the reporter's own bell.
+
+    WHY IT IS NOT JUST THE SNACKBAR. The app says "Report sent. Thank you."
+    and that is gone in four seconds with no way back to it. Reporting is the
+    one thing somebody does in this app and then wonders about afterwards, so
+    the answer has to be somewhere they can return to.
+
+    IT IS THE FIRST NOTIFICATION THAT IS ABOUT NOBODY. Every other kind
+    carries a match and a person; this one carries neither, and the tests
+    below are mostly about that being true rather than null-by-accident.
+    """
+
+    def test_the_reporter_gets_one(self, as_user, make_user):
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        report(as_user, alice, bob)
+
+        rows = as_user(alice).get("/notifications").json()
+        assert [row["kind"] for row in rows] == ["report_received"]
+
+    def test_the_reported_person_gets_nothing(self, as_user, make_user):
+        #THE WHOLE FLOW DEPENDS ON THIS. A notification on their side would
+        #tell them they had been reported, and - with no other candidate -
+        #by whom.
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        report(as_user, alice, bob)
+
+        assert as_user(bob).get("/notifications").json() == []
+
+    def test_it_names_nobody_and_opens_nothing(self, as_user, make_user):
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        report(as_user, alice, bob)
+
+        row = as_user(alice).get("/notifications").json()[0]
+        #not Bob's id, not Bob's name, not Bob's face: the report is anonymous
+        #to him, and this list is not the place it leaks back the other way
+        assert row["other_user_id"] is None
+        assert row["other_name"] is None
+        assert row["other_photo_url"] is None
+        assert row["match_id"] is None
+        #nothing to tap through to, so the app must not offer it
+        assert row["actionable"] is False
+        assert row["other_confirmed"] is False
+
+    def test_a_second_report_is_a_second_row(self, as_user, make_user):
+        #NOT DEDUPLICATED. Two reports are two things that each got filed, and
+        #somebody who reports a second person is owed the same answer twice.
+        alice = make_user(name="Alice")
+        report(as_user, alice, make_user(name="Bob"))
+        report(as_user, alice, make_user(name="Carol"))
+
+        rows = as_user(alice).get("/notifications").json()
+        assert [row["kind"] for row in rows] == ["report_received"] * 2
+
+    def test_a_refused_report_leaves_no_row(self, as_user, make_user):
+        #ONE TRANSACTION, AND THIS IS THE HALF THAT IS EASY TO GET WRONG.
+        #notify() writes on the caller's session, so an acknowledgement
+        #committed for a report that was then rejected would be the app
+        #thanking somebody for nothing.
+        alice = make_user(name="Alice")
+        refused = report(as_user, alice, make_user(name="Bob"),
+                         category="harassment",
+                         subcategory="threats_or_stalking")
+        assert refused.status_code == 409
+
+        assert as_user(alice).get("/notifications").json() == []
+
+    def test_it_starts_unread(self, as_user, make_user):
+        #the bell badge is what makes it findable at all
+        alice, bob = make_user(name="Alice"), make_user(name="Bob")
+        report(as_user, alice, bob)
+
+        assert as_user(alice).get("/notifications").json()[0]["read"] is False
 
     def test_the_row_survives_the_reported_account_being_deleted(
         self, db, as_user, make_user
