@@ -86,13 +86,15 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: false
-  #THE F, AND THE WHOLE NAME WAS TRIED RATHER THAN ASSUMED. icon_wordmark.png
-  #and icon_wordmark_foreground.png are still generated every run, and these
-  #three paths pointed at them. On a phone the lettering came out about 5px
-  #tall - the word is 7.5 times wider than it is tall and a launcher icon is
-  #square, so fitting all of it in leaves nothing. Nothing was cropped and it
-  #still could not be read. Pointing this block back at that pair is all it
-  #takes to see it again.
+  #THE F, AND THE WHOLE NAME WAS TRIED RATHER THAN ASSUMED. These three paths
+  #pointed at icon_wordmark.png and icon_wordmark_foreground.png. On a phone
+  #the lettering came out about 5px tall - the word is 7.5 times wider than it
+  #is tall and a launcher icon is square, so fitting all of it in leaves
+  #nothing. Nothing was cropped and it still could not be read.
+  #
+  #THAT PAIR IS NO LONGER COMMITTED, because nothing read it. To see it on a
+  #phone again: `python scripts\make_icon.py --extras`, then point these
+  #paths at the two icon_wordmark files.
   #the square legacy icon, used below Android 8
   image_path: "assets/brand/icon.png"
   #A DEEP NAVY, AND IT USED TO BE VIOLET-950 (#2E1065). That was the bug:

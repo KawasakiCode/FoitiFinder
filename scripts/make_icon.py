@@ -334,6 +334,21 @@ def wordmark_icon(background):
     return out, height
 
 
+#THE THREE IMAGES NOTHING CONSUMES, written only when asked for.
+#
+#wordmark_violet is a lockup for places with no background of their own, and
+#the icon_wordmark pair is the whole-name icon that was tried and rejected -
+#the lettering came out about 5px tall on a launcher. None of the three is in
+#pubspec.yaml, in any Dart file or in the site, so they were 140 KB of repo
+#that every run rewrote and nothing read.
+#
+#STILL GENERATED ON DEMAND, because the reason to keep them was never the
+#files - it was being able to look at the alternative again without
+#reconstructing how it was drawn. `--extras` is that, and the pair it writes
+#is what pubspec.yaml's icon block would point at.
+EXTRAS = "--extras" in sys.argv
+
+
 def main():
     mask = glyph_mask()
     fits = largest_height_inside(mask, SAFE_D)
@@ -353,38 +368,46 @@ def main():
     print(f"  wrote {foreground}")
     print(f"  wrote {legacy}")
 
-    #THREE, BECAUSE A LOGO HAS TO LAND ON SOMETHING. The transparent pair is
-    #the same word in the two colour schemes the site defines; which one you
-    #want depends entirely on what is behind it, and getting that wrong is how
-    #a logo ends up invisible in a README on a dark theme. The third is the
-    #lockup: the dark pair on the brand violet, for when there is no
-    #background to sit on and the logo has to bring its own.
-    for name, ink, accent, bg, pad in (
-            ("wordmark_on_light", INK_FOR_LIGHT, ACCENT_FOR_LIGHT, None, 0.18),
-            ("wordmark_on_dark", INK_FOR_DARK, ACCENT_FOR_DARK, None, 0.18),
-            ("wordmark_violet", INK_FOR_DARK, ACCENT_FOR_DARK, BRAND_VIOLET, 0.45),
-    ):
+    #A PAIR, BECAUSE A LOGO HAS TO LAND ON SOMETHING. The same word in the two
+    #colour schemes the site defines; which one you want depends entirely on
+    #what is behind it, and getting that wrong is how a logo ends up invisible
+    #in a README on a dark theme. BrandWordmark picks between exactly these
+    #two at runtime.
+    wordmarks = [
+        ("wordmark_on_light", INK_FOR_LIGHT, ACCENT_FOR_LIGHT, None, 0.18),
+        ("wordmark_on_dark", INK_FOR_DARK, ACCENT_FOR_DARK, None, 0.18),
+    ]
+    if EXTRAS:
+        #the lockup: the dark pair on the brand violet, for when there is no
+        #background to sit on and the logo has to bring its own
+        wordmarks.append(
+            ("wordmark_violet", INK_FOR_DARK, ACCENT_FOR_DARK, BRAND_VIOLET, 0.45))
+
+    for name, ink, accent, bg, pad in wordmarks:
         path = os.path.join(OUT_DIR, f"{name}.png")
         image = wordmark(ink, accent, bg, pad)
         (image.convert("RGB") if bg else image).save(path)
         print(f"wordmark: wrote {path}  {image.width}x{image.height}")
 
-    #THE WHOLE NAME AS THE ICON, the alternative to the F. Both sets are kept
-    #so the choice is a two line edit in pubspec.yaml rather than a rerun with
-    #different constants.
-    for name, bg in (("icon_wordmark_foreground", None),
-                     ("icon_wordmark", ICON_BG)):
-        path = os.path.join(OUT_DIR, f"{name}.png")
-        image, letters = wordmark_icon(bg)
-        (image.convert("RGB") if bg else image).save(path)
-        if bg is None:
-            #what the ink measures on a 48px launcher, which is the number
-            #that decides whether this is readable
-            on_screen = (letters * INSET_SCALE
-                         / (CANVAS * VISIBLE_FRACTION) * 48)
-            print(f"wordmark icon: lettering {letters}px of {CANVAS} "
-                  f"- about {on_screen:.1f}px tall on a 48px launcher")
-        print(f"  wrote {path}")
+    #THE WHOLE NAME AS THE ICON, the alternative to the F, and only with
+    #--extras. Pointing pubspec.yaml's icon block at this pair is what it
+    #takes to see it on a phone again.
+    if EXTRAS:
+        for name, bg in (("icon_wordmark_foreground", None),
+                         ("icon_wordmark", ICON_BG)):
+            path = os.path.join(OUT_DIR, f"{name}.png")
+            image, letters = wordmark_icon(bg)
+            (image.convert("RGB") if bg else image).save(path)
+            if bg is None:
+                #what the ink measures on a 48px launcher, which is the number
+                #that decides whether this is readable
+                on_screen = (letters * INSET_SCALE
+                             / (CANVAS * VISIBLE_FRACTION) * 48)
+                print(f"wordmark icon: lettering {letters}px of {CANVAS} "
+                      f"- about {on_screen:.1f}px tall on a 48px launcher")
+            print(f"  wrote {path}")
+    else:
+        print("skipped the three --extras images (nothing reads them)")
 
     print("now run: flutter pub run flutter_launcher_icons")
 

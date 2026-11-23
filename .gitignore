@@ -96,3 +96,11 @@ sentry-wizard*
 
 #Claude MD
 CLAUDE.md
+
+# The three brand images that only `make_icon.py --extras` writes. Nothing in
+# the app, the build or the site reads them - they are there to look at the
+# whole-name icon again, and committing them puts 140 KB back that every run
+# rewrites and nothing opens. See assets/brand/README.md.
+assets/brand/icon_wordmark.png
+assets/brand/icon_wordmark_foreground.png
+assets/brand/wordmark_violet.png

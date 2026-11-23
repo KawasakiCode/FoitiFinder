@@ -13,15 +13,19 @@ at icon size. See "The word as the icon" below.
 |---|---|---|
 | `icon.png` | 1024×1024 | the whole icon, edge to edge. Used on Android 7 and below, where there is no adaptive mask. |
 | `icon_foreground.png` | 1024×1024 | the artwork **only**, transparent around it. |
-| `icon_wordmark.png` | 1024×1024 | the whole name as a square icon. The legacy half of the pair. |
-| `icon_wordmark_foreground.png` | 1024×1024 | the same, transparent, for the adaptive layer. |
 | `wordmark_on_light.png` | 1676×289 | the logo for a light background. Transparent. |
 | `wordmark_on_dark.png` | 1676×289 | the same logo for a dark background. Transparent. |
-| `wordmark_violet.png` | 1792×405 | the logo on the brand violet, for when there is no background to sit on. Opaque. |
 
-All seven are drawn by `scripts/make_icon.py` rather than by hand, so do not
+All four are drawn by `scripts/make_icon.py` rather than by hand, so do not
 edit them in an image editor — the next run overwrites whatever you did. Change
 the constants at the top of that script instead.
+
+**Three more exist only on demand**, behind `--extras`, and are not committed:
+`icon_wordmark.png` and `icon_wordmark_foreground.png` (the whole name as the
+icon — see below for why it is not used) and `wordmark_violet.png` (the logo on
+the brand violet, for a place with no background of its own). Nothing in the
+app, the build or the site reads any of the three, so they were 140 KB that
+every run rewrote and nothing opened.
 
 **The two transparent files are named for what goes behind them, not for the
 colour of the ink.** `wordmark_on_light` is the near-black one. Picking by the
@@ -121,8 +125,10 @@ icons cannot drift apart by someone adjusting one of them.
 ## The word as the icon
 
 `pubspec.yaml` pointed the build at `icon_wordmark*.png` — the whole name
-rather than the F — and it was tried on a phone and rejected. The files are
-still generated, and this is the record of why they are not used.
+rather than the F — and it was tried on a phone and rejected. This is the
+record of why. The files are no longer committed; `python scripts\make_icon.py
+--extras` writes them, and pointing the icon block in `pubspec.yaml` at the
+pair is the rest of it.
 
 **What it costs.** The word is **7.5 times wider than it is tall**. A launcher
 icon is square and the usable part of it is a circle, so fitting all of the
@@ -210,13 +216,13 @@ python scripts\make_icon.py
 flutter pub run flutter_launcher_icons
 ```
 
-The first writes all seven images here. The second turns whichever icon pair
-`pubspec.yaml` names into every `mipmap-*` and `drawable-*` density, the
-adaptive XML, and `values/colors.xml` holding the background colour. It reads
-only those two files, so skip it when the change was to the other icon or to
-the three `wordmark_on_*`/`wordmark_violet` pictures, which no build step
-consumes. Commit what it produces — the generated files are what the build
-uses, and regenerating is not part of the build.
+The first writes the four committed images here — add `--extras` for the three
+that are not. The second turns whichever icon pair `pubspec.yaml` names into
+every `mipmap-*` and `drawable-*` density, the adaptive XML, and
+`values/colors.xml` holding the background colour. It reads only those two
+files, so skip it when the change was to the `wordmark_on_*` pair, which no
+build step consumes. Commit what it produces — the generated files are what
+the build uses, and regenerating is not part of the build.
 
 ## Checking it
 
