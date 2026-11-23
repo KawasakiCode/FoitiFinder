@@ -5,5 +5,8 @@
 #the runner
 pytest==9.0.3
 
-#fastapi's TestClient is built on it, so the suite does not run without it
-httpx==0.28.1
+#HTTPX IS NOT HERE, AND THAT IS NOT AN OVERSIGHT. fastapi's TestClient is
+#built on it, so the suite genuinely needs it - but firebase_admin requires
+#`httpx[http2]==0.28.1` outright, so it is a production dependency and is
+#pinned in requirements.txt instead. Listing it here as well would say it was
+#test-only, which is the thing that was wrong before.
