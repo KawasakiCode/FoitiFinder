@@ -84,6 +84,55 @@ void main() {
     });
   }
 
+  //THE LICENCE HAS TO SHIP WITH THE FONT.
+  //
+  //Inter is under the SIL OFL, whose clause 2 lets it be "bundled,
+  //redistributed and/or sold with any software, provided that each copy
+  //contains the above copyright notice and this license". The 874 KB .ttf
+  //inside the APK is such a copy, so the text has to be in there too.
+  //
+  //ALL THREE WAYS THIS BREAKS ARE SILENT. The asset path in main.dart is a
+  //string; the pubspec entry is a separate string; and the licence screen is
+  //a place nobody looks. Delete the file, drop the pubspec line, or typo
+  //either, and the app builds, runs, and quietly distributes the font with no
+  //licence attached.
+  group('the font licence', () {
+    const String licencePath = 'assets/fonts/OFL-Inter.txt';
+
+    test('ships beside the font', () {
+      expect(File(licencePath).existsSync(), isTrue,
+          reason: '$licencePath is gone, and $_fontPath is still bundled');
+    });
+
+    test('is the OFL, naming Inter as the copyright holder', () {
+      final String text = File(licencePath).readAsStringSync();
+      //the notice clause 2 requires, not just any licence text
+      expect(text, contains('Copyright'));
+      expect(text, contains('The Inter Project Authors'));
+      expect(text, contains('SIL OPEN FONT LICENSE Version 1.1'));
+      //the operative clause itself, so a truncated file fails here
+      expect(text, contains('PERMISSION AND CONDITIONS'));
+      expect(text, contains('DISCLAIMER'));
+    });
+
+    test('is bundled by pubspec.yaml', () {
+      //being on disk is not being in the APK: an asset Flutter was never told
+      //about is not shipped, and rootBundle.loadString then throws at runtime
+      //on the licence screen only.
+      expect(File('pubspec.yaml').readAsStringSync(), contains(licencePath));
+    });
+
+    test('and main.dart registers it against the family it covers', () {
+      //LicenseRegistry entries are keyed by family name, and 'Inter' is what
+      //AppTheme.fontFamily sets. Registering it under any other string files
+      //the licence against a font the app does not use.
+      final String main = File('lib/main.dart').readAsStringSync();
+      expect(main, contains(licencePath),
+          reason: 'main.dart no longer loads the licence text');
+      expect(main, contains("<String>['Inter']"),
+          reason: 'the licence is not registered against the Inter family');
+    });
+  });
 }
 
 //Every codepoint the font can draw, read out of its `cmap` table.

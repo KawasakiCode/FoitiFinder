@@ -118,6 +118,9 @@ flutter:
   assets:
     - assets/icons/
     - assets/images/
+    #NOT CODE AND NOT DECORATION. The OFL requires the licence to ship with
+    #the font, so it is bundled and handed to showLicensePage from main.dart.
+    - assets/fonts/OFL-Inter.txt
     #THE LOGO, as a picture - on the login screen and in the three main app
     #bars. These two FILES and not the
     #assets/brand/ FOLDER: that folder also holds four 1024x1024 icon sources

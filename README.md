@@ -4,7 +4,7 @@
 
 It has **no chat**. A mutual like opens a one-time exchange: both sides confirm, and only then does each receive the other's Instagram handle. That single decision shapes most of the system — there is no inbox to find a connection in later, so every path that hands a handle over, or that could destroy the only record of one, is guarded on the server rather than in the UI.
 
-A Flutter app (`lib/`), a FastAPI + PostgreSQL backend (`backend/`), and Firebase for identity, photo storage and push. 251 tests (152 backend, 99 widget/unit).
+A Flutter app (`lib/`), a FastAPI + PostgreSQL backend (`backend/`), and Firebase for identity, photo storage and push. 652 tests (391 backend, 261 widget/unit).
 
 ### 🎥 Demo
 
@@ -47,11 +47,11 @@ A Flutter app (`lib/`), a FastAPI + PostgreSQL backend (`backend/`), and Firebas
 Flutter app                      FastAPI backend                 Managed services
 -----------                      ---------------                 ----------------
 pages/      screens              auth.py      who is calling --> Firebase Auth
-widgets/    shared UI            routers/     20 endpoints        (ID token verify)
+widgets/    shared UI            routers/     25 endpoints        (ID token verify)
 providers/  Provider state       database/    SQLAlchemy models
 services/   api + swipe queue    notifications.py  push+record -> FCM / Firestore
 models/     json <-> dart                                         Firebase Storage
-                                 alembic/     19 migrations   --> PostgreSQL
+                                 alembic/     5 migrations    --> PostgreSQL
     |                                   ^                          (Neon in prod)
     |   https, Bearer <firebase id token>|
     +------------------------------------+
@@ -71,13 +71,13 @@ These are the ones where the obvious implementation was wrong, and the code says
 
 **A swipe is delivered, not just sent.** The deck animates first and registers after, which is right (a card must never wait on the network) but means a failed request has no card left to put back; by the time a timeout returns, the user has swiped past two more people. So `SwipeQueue` retries, and the retry policy is three rules rather than a count: only retry what retrying can fix (network, timeout, 5xx, 429, 401 — any other 4xx is a refusal that will not change), two quick retries before it stops blocking, then park it on disk and retry on *events* (launch, resume, any successful swipe) rather than on a timer, giving up by age rather than by attempt count. This is only safe because `POST /swipes` reads the existing row and writes only when the action changed, so the same swipe sent ten times is one row — and the notifications it can produce are guarded the same way. Without that, a retry queue is a duplicate-match generator.
 
-**Whoever liked you is not in your deck.** Not to preserve a surprise: a card in the deck can be passed with a flick, and that pass is written with a newer timestamp than their like, which is exactly what stops the likes query from ever surfacing them again. The deck could silently consume a guaranteed match the user was never told was on offer. Two composite indexes on `user_swipes` — `(user_id, target_id)` for "what have I done" and `(target_id, action)` for "who liked me" — carry the exclusion; the table previously had an index on `id` only, which nothing filters on.
+**Whoever liked you IS in your deck, and the card does not say so.** This is the reverse of what the app used to do, and the reverse of what this paragraph used to claim. Holding likers back protected a guaranteed match from being thrown away with a flick — but every match then arrived on a separate likes page, which left the deck, the app's main screen, unable to produce the thing the app is for. There is no likes page now and no `/likes` endpoint, so nobody is ever told a like is waiting; a pass on somebody whose interest you did not know about is simply a pass. The hiding is the product: a card that announced "they like you" would turn every such swipe into a formality, and it is what a "see who liked you" tier would be sold on later. A super like is the single exception, because the sender spent one of two a week to waive their own privacy. Two composite indexes on `user_swipes` carry it — `(user_id, target_id)` for "what have I done" and `(target_id, action)` for "who super liked me"; the table previously had an index on `id` only, which nothing filters on.
 
-**Notifications are a table, because a push is only a nudge.** Most of the bell is derivable from `matches` — one side confirmed is "your turn", both confirmed is "you are connected". A *decline* is not: it deletes the match, so the only record that it happened would be a push that may never arrive and can be swiped away. Stored, the app can be told the truth on next launch whatever FCM did. Likes deliberately stay out of the bell (they have their own page and badge); only things that need an answer, or carry the answer to one.
+**Notifications are a table, because a push is only a nudge.** Most of the bell is derivable from `matches` — one side confirmed is "your turn", both confirmed is "you are connected". A *decline* is not: it deletes the match, so the only record that it happened would be a push that may never arrive and can be swiped away. Stored, the app can be told the truth on next launch whatever FCM did. Likes are not in the bell either — there is no page left that could show them, and a bell filling up with "someone liked you" is a bell nobody reads. The one entry that is about nobody else is `report_received`: it carries no match and no person, opens nothing, and exists because the snackbar that thanks you for a report is gone in four seconds and reporting is the one thing somebody does here and then wonders about afterwards.
 
 **A completed match cannot be undone.** Once both sides have confirmed, the handles have been read, and nothing can take back something somebody has already seen — so `POST /matches/{id}/decline` answers 409 on a revealed match instead of deleting the row. This was a real bug: reopening an already-answered notification put a decline button in front of the user and destroyed a finished match. The fix is in three places at once, which is the point — the server refuses it, the server computes an `actionable` flag so the client knows the row is no longer a link, and a widget test pins the flag's effect.
 
-**Declining tells exactly one person.** Declining as the side that *completed* the match tells the other side nothing: they were never informed a match existed, so "someone matched with you and then changed their mind" would be news of a rejection they could not have seen coming. Declining when the other side is already waiting on an answer is different — they get told, and the notification deliberately carries no `match_id`, because the row it would point at has just been deleted.
+**Declining tells nobody.** Not even the side that was waiting on the answer, which is what this paragraph used to claim happened. A push there would say only that somebody said no, with nothing to do about it; the match simply leaves their list, which is also how an expired one goes. Declining as the side that *completed* the match is silent for a stronger reason: they were never informed a match existed, so "someone matched with you and then changed their mind" would be news of a rejection they could not have seen coming. The `match_declined` notification kind still exists in the schema and the app still renders it correctly, carrying no `match_id` because the row it would point at has just been deleted — nothing writes one.
 
 **What a profile endpoint leaves out.** `GET /users/{id}/profile` builds its response field by field rather than serialising the model: no email, no `firebase_uid`, no preferences, and no `instagram_handle`. A column added to `User` cannot leak through it by default — somebody has to add a line. The handle crosses between two users in `confirm_match` and nowhere else, and only when both of them have asked for it.
 
@@ -89,7 +89,7 @@ These are the ones where the obvious implementation was wrong, and the code says
 
 ## The data model
 
-Six tables. The migration history was squashed into a single baseline: the
+Seven tables. The migration history was squashed into a single baseline: the
 first twenty could not build a database from nothing, because the chain's base
 altered a `photos` table no migration ever created — the original schema came
 from `create_all` and Alembic was adopted afterwards with no baseline. The
@@ -101,10 +101,11 @@ schema the tests rely on.
 | --- | --- |
 | `users` | profile, preferences, `firebase_uid`, `instagram_handle`, `university` (derived from the verified email, not client-writable) |
 | `photos` | one row per photo with `display_order` (0 is the profile picture) and an optional story caption |
-| `user_swipes` | `(user_id, target_id, action, timestamp)` — the deck's exclusion list, the likes page, and the match check, all from one table |
+| `user_swipes` | `(user_id, target_id, action, timestamp)` — the deck's exclusion list, the super-like badge, and the match check, all from one table |
 | `matches` | the two participants plus `a_confirmed_at` / `b_confirmed_at`: mutual likes make the row, these two columns decide whether anything is exchanged |
 | `notifications` | what the bell shows; `match_id` is `ON DELETE SET NULL` so a notification outlives the match it pointed at |
 | `settings` | per-user app settings |
+| `reports` | who reported whom, the category/subcategory pair, and the free text; `reported_user_id` is `ON DELETE SET NULL` so the row outlives an account that leaves |
 
 Age is **derived, never stored** — `birthday` is the column, and the feed's age filter is expressed as birthday cutoffs rather than age comparisons, so the comparison stays index-usable and nobody's age goes stale.
 
@@ -112,20 +113,27 @@ Age is **derived, never stored** — `birthday` is the column, and the feed's ag
 
 ## API surface
 
-20 endpoints plus `/health`. Every one of the 20 takes identity from the token; none takes a uid as a parameter.
+25 endpoints. **23 take identity from the verified token and none takes a uid as a parameter**; the two that take no authentication at all are `/health` and `/app/minimum-build`, both deliberately — a build old enough to be refused may also be old enough to get signing in wrong, so an update wall behind a login is a wall with a door beside it.
 
 | endpoint | what it does |
 | --- | --- |
 | `POST /users/` | create an account — re-checks the university domain server side |
 | `GET` `PATCH` `DELETE /users/me` | own row; `PATCH` treats `""` as "clear this" and `null` as "leave alone" |
+| `POST /users/me/active` | last-seen, so the feed can rank a dormant account down |
 | `GET` `PATCH /users/settings` | app settings |
 | `GET /users/feed` | the deck: excludes self and everyone already swiped. People who liked you ARE offered, with nothing on the card to say so |
-| `GET /users/{id}/profile` · `GET /single/user/{id}` | another user, field by field, without the handle |
+| `GET /users/{id}/profile` | another user, field by field, without the handle |
 | `GET` `POST /photos` · `PUT /photos/sync` · `PUT /photos/story` | photo rows; `sync` replaces the set and enforces 3–6 |
 | `POST /swipes` | records a swipe, creates the match when it completes one, idempotent |
+| `GET /swipes/super-likes` | how many of the week's two are left |
 | `GET /matches` · `POST /matches/{id}/confirm` · `POST /matches/{id}/decline` | the exchange; `confirm` is idempotent, `decline` is 409 once revealed |
-| `GET /notifications` · `POST /notifications/{id}/read` | the bell: match kinds, plus a `report_received` acknowledgement with no person and nothing to open |
-| `GET /health` | keep-alive; touches nothing |
+| `GET /matches/removed` · `DELETE /matches/{id}` | hiding a finished match from your own list only, and reading back what you hid |
+| `POST /reports` | files a report, drops the person from your deck, hides your side of the match, and puts a `report_received` row in your own bell — one transaction |
+| `GET /notifications` · `POST /notifications/{id}/read` | the bell: the match kinds, plus that acknowledgement, which names nobody and opens nothing |
+| `GET /health` | keep-alive; touches nothing, including the database |
+| `GET /app/minimum-build` | the oldest build this API will talk to; no auth, no database |
+
+There is no `/likes`. It existed, was never called by the app once the likes page was removed, and went with it.
 
 `main.py` includes the routers in a load-bearing order: FastAPI matches routes in registration order, so `/users/me` must be registered before `/users/{user_id}/profile`, or "me" is read as a user id.
 
@@ -133,7 +141,7 @@ Age is **derived, never stored** — `birthday` is the column, and the feed's ag
 
 ## Testing
 
-**152 backend tests** (`backend/tests/`) run against a **real PostgreSQL**, not SQLite — the models use Postgres arrays and a migration calls `array_replace`, and a test that passes against a different engine than production is worse than no test. Each test runs on a connection inside an outer transaction with a `join_transaction_mode="create_savepoint"` session, rolled back afterwards: endpoints call `db.commit()` as normal, that commits a savepoint, and the rollback takes it with it. The database is therefore empty between tests and nothing is ever written.
+**391 backend tests** (`backend/tests/`) run against a **real PostgreSQL**, not SQLite — the models use Postgres arrays and a migration calls `array_replace`, and a test that passes against a different engine than production is worse than no test. Each test runs on a connection inside an outer transaction with a `join_transaction_mode="create_savepoint"` session, rolled back afterwards: endpoints call `db.commit()` as normal, that commits a savepoint, and the rollback takes it with it. The database is therefore empty between tests and nothing is ever written.
 
 **No Firebase is needed at all**, because identity is a dependency and a dependency can be replaced:
 
@@ -145,7 +153,7 @@ Tests act as a user by swapping that uid — no token, no network, no key file. 
 
 The suites cover the full permutation matrix of two people deciding about each other — A likes B, B likes back, who confirms first, who declines when, what each side is told and what they are deliberately not told — plus privacy (what each endpoint refuses to return), the photo count rules, and the 422/403/404/409 paths.
 
-**99 Flutter tests** (`test/`) cover the swipe queue's retry and give-up rules, the image cache-key identity, the profile slide transition, the match page's one-way-door guards (dead buttons for the first instant, two-tap share, the dialog naming the handle, cancel sending nothing, back blocked for the side that just swiped) and the notification list's per-kind wording and tappability.
+**261 Flutter tests** (`test/`) cover the swipe queue's retry and give-up rules, the image cache-key identity, the profile slide transition, the match page's one-way-door guards (dead buttons for the first instant, two-tap share, the dialog naming the handle, cancel sending nothing, back blocked for the side that just swiped) and the notification list's per-kind wording and tappability.
 
 ```bash
 flutter test                                    # 99
@@ -167,7 +175,7 @@ cd backend && python -m pytest                  # 152
 * **Hosting:** Render
 * **Local storage:** `SharedPreferences`
 
-**Notable packages:** `provider`, `firebase_auth` / `firebase_core` / `firebase_app_check` / `firebase_messaging` / `firebase_storage` / `cloud_firestore`, `cached_network_image`, `image_picker` + `image_cropper`, `connectivity_plus`, `flutter_localizations`, `auto_size_text`, `flutter_staggered_grid_view`, `permission_handler`.
+**Notable packages:** `provider`, `firebase_auth` / `firebase_core` / `firebase_app_check` / `firebase_messaging` / `firebase_storage` / `cloud_firestore`, `cached_network_image`, `image_picker`, `connectivity_plus`, `flutter_localizations`, `permission_handler`, `sentry_flutter`, `url_launcher`, `package_info_plus`.
 
 ---
 
@@ -191,7 +199,7 @@ backend/
   notifications.py  send a push AND record the row
   database/         models, schemas, engine
   alembic/          migrations
-  tests/            152 tests + conftest
+  tests/            391 tests + conftest
   tools/            seed_local.py, simulate_match.py
 test/               flutter tests
 ```

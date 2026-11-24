@@ -6,6 +6,7 @@
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:foitifinder/theme/app_colors.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:foitifinder/l10n/app_localizations.dart';
@@ -33,6 +34,7 @@ Future<void> main() async {
   //draws a frame. Without a DSN this just runs the callback.
   await runWithErrorReporting(() async {
     WidgetsFlutterBinding.ensureInitialized();
+    _registerFontLicences();
     //THE BUILD NUMBER, so an error can be attributed to a release. Read here
     //rather than inside the reporter because package_info is async and the
     //reporter has to be usable from a synchronous catch block.
@@ -44,16 +46,32 @@ Future<void> main() async {
   });
 }
 
-//NO FONT LICENCE IS REGISTERED HERE, AND ONE SHOULD BE. Inter is bundled
-//from assets/ and is under the SIL OFL, which requires the licence text to
-//travel with the binary - and a .ttf inside an APK is a distribution like any
-//other. Flutter collects licences from PACKAGES by itself; a font dropped
-//into assets/ is invisible to that, so nothing on the licence screen the
-//profile page opens mentions Inter at all.
+//THE OFL REQUIRES THE LICENCE TO SHIP WITH THE FONT, and a .ttf inside an APK
+//is a distribution like any other. Flutter collects licences from PACKAGES by
+//itself; a font dropped into assets/ is invisible to that, so without this
+//nothing on the licence screen the profile page opens would mention Inter at
+//all - while the APK carried 874 KB of it.
 //
-//What used to be here registered Gluten's OFL, which left with the font. The
-//fix is assets/fonts/OFL-Inter.txt plus a LicenseRegistry.addLicense for the
-//'Inter' family; the text is simply not in the repo yet.
+//Clause 2 is the one being satisfied: a redistributed copy "must contain the
+//above copyright notice and this license", as "stand-alone text files,
+//human-readable headers or in the appropriate machine-readable metadata
+//fields". The text file is bundled and handed to the same registry
+//showLicensePage reads, which makes it all three.
+//
+//ONE FAMILY, BECAUSE THERE IS NOW ONLY ONE FONT. This used to register
+//Gluten's OFL against 'GlutenWordmark' as well; that font is gone and the
+//logo is artwork. If a second face is ever bundled, it needs its own entry -
+//Flutter will not find it on its own.
+//
+//ASYNC AND LAZY: addLicense takes a generator, and nothing reads it until the
+//user opens the licence screen, so this costs nothing at startup.
+void _registerFontLicences() {
+  LicenseRegistry.addLicense(() async* {
+    final String text =
+        await rootBundle.loadString('assets/fonts/OFL-Inter.txt');
+    yield LicenseEntryWithLineBreaks(const <String>['Inter'], text);
+  });
+}
 
 Future<void> _startApp() async {
   // Initialize Firebase and Shared Preferences together to reduce wait time
