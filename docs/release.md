@@ -129,6 +129,31 @@ Things that are true of this repo right now and are not code:
   which carry Greek masculine articles («ο», «τον») that a company name would
   need turned back to feminine. The Pages workflow still counts `[[TOKEN]]`s in
   each run's summary; that count should stay at zero.
+- **The backend needs its Firebase key on Render, and the failure is a liar.**
+  `backend/serviceAccountKey.json` is gitignored, so on Render it has to be a
+  **Secret File**. Render puts those at `/etc/secrets/<filename>` and, for
+  non-Docker services, in the *service's root directory* — a dashboard
+  setting. Leave that blank and the file lands at the repository root while
+  `firebase_app.py` looks in `backend/`, so the key is uploaded, correct and
+  unreachable. `firebase_app.py` now also checks
+  `/etc/secrets/serviceAccountKey.json`, which is right whatever the root
+  directory says, and `GOOGLE_APPLICATION_CREDENTIALS` ahead of both.
+
+  **What it looks like when it is wrong:** no key means no initialised Admin
+  SDK, which means `verify_id_token` raises, which means **401 "Invalid or
+  expired token" on every endpoint for every user — a brand-new account
+  included.** That last part is what makes it costly: a clean signup failing
+  reads as a bug in the signup flow, and the search starts in the wrong half
+  of the project. A 403 "Email not verified" is the opposite situation and
+  means the key is fine.
+
+  **The second way it fails is invisible to a file check.** `verify_id_token`
+  validates a token's issuer and audience against the service account's own
+  project, so an app built from one Firebase project and a backend holding
+  another project's key rejects every token with the same 401. The boot log
+  now prints `firebase: project <id>, key from <path>` for exactly this —
+  compare that id against `projectId` in `lib/firebase_options.dart`.
+
 - **`API_DOCS` must stay unset on Render.** The backend serves `/docs`,
   `/redoc` and `/openapi.json` only when that variable is set to `on`, because
   unauthenticated interactive docs describe every endpoint and field of an API

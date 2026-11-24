@@ -1,0 +1,130 @@
+# Keeps the Render backend from spinning down.
+#
+# WHAT IT IS FOR. Render spins a free web service down after 15 minutes with
+# no inbound traffic, and the first request after that waits about a minute
+# for the instance to come back. The app's own request timeout is 30 seconds
+# (ApiService.kRequestTimeout), so that first request does not merely feel
+# slow - it fails. For an app whose first screen is a feed, somebody opening
+# it after a quiet hour sees an error.
+#
+# RENDER'S OWN HEALTH CHECKS DO NOT COUNT. /health is the service's configured
+# health check path, so Render polls it every few seconds forever - and the
+# service still sleeps. Render's docs do not spell out the interaction, but
+# the probes go to "each running web service", and if ticking a box in the
+# dashboard defeated spin-down the free tier would cost Render 744 hours per
+# service instead of nearly none. The traffic has to come from outside.
+#
+# IT MUST NOT BE A SELF-PING. A request the service makes to itself does not
+# traverse Render's public router, so it never resets the idle timer.
+#
+# AND IT MUST HIT A PATH THE APP ACTUALLY SERVES. While a service is spun
+# down Render's router answers some paths itself (robots.txt among them), so a
+# monitor pointed at one of those reports a healthy service that is in fact
+# asleep. /health is served by main.py and is the right target - it also
+# touches no database, which is the whole reason it is safe to call this often
+# (see the note on it in backend/main.py: a ping that opened a connection
+# would hold Neon's compute awake and burn its monthly allowance instead).
+#
+# ---------------------------------------------------------------------------
+#
+# THE COST, WHICH IS THE PART TO UNDERSTAND BEFORE ENABLING THIS.
+#
+# Render grants 750 free instance hours per month to the WORKSPACE, and a
+# spun-down service consumes none of them. Keeping one awake around the clock
+# costs 744 hours in a 31-day month - seven months of the year - leaving six
+# hours of margin, not thirty. That is fine for ONE service and breaks the day
+# there are two: two always-on free services burn ~1488 hours against the 750
+# cap and Render suspends BOTH, roughly halfway through the month.
+#
+# So: while this workflow is enabled, this workspace has room for exactly one
+# free web service. Put any second one in a different workspace.
+#
+# ---------------------------------------------------------------------------
+#
+# TWO WAYS THIS STOPS SILENTLY, both specific to GitHub's scheduler:
+#
+#   - SCHEDULED WORKFLOWS ARE DELAYED UNDER LOAD. GitHub does not promise
+#     punctuality, and a */10 cron can drift well past 15 minutes at busy
+#     times, which is long enough for the service to sleep anyway. The cron
+#     below is every 10 minutes rather than every 14 to leave room for that
+#     drift; it is still best-effort.
+#   - GITHUB DISABLES SCHEDULED WORKFLOWS IN A PUBLIC REPOSITORY AFTER 60 DAYS
+#     WITHOUT COMMITS. Stop pushing for two months and this quietly stops,
+#     with nothing to say so.
+#
+# An external cron service (cron-job.org, UptimeRobot) has neither problem and
+# is what backend/main.py suggests. This exists because it lives in the repo,
+# is reviewed like everything else, and needs no third-party account. If the
+# cold start matters more than that, use both.
+
+name: keep-warm
+
+on:
+  schedule:
+    # every 10 minutes, to leave slack inside the 15-minute window for
+    # GitHub's scheduler running late
+    - cron: '*/10 * * * *'
+
+  # ON DEMAND TOO, so the service can be warmed deliberately - before a demo,
+  # or to check this workflow still works without waiting for the next tick.
+  workflow_dispatch:
+
+# ONE AT A TIME, AND LET THE OLDER ONE GO. If a run is somehow still going
+# when the next tick fires, the new one is the one worth having: the point is
+# a recent request, not a complete history of them.
+concurrency:
+  group: keep-warm
+  cancel-in-progress: true
+
+# READ-ONLY. It sends one GET to a public URL and needs nothing from the
+# repository, so it gets nothing.
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    # a cold start is about a minute; three attempts plus backoff fits well
+    # inside this, and the cap stops a hung curl occupying a runner
+    timeout-minutes: 5
+
+    steps:
+      # NO CHECKOUT. The URL is the only input and it is written here, so
+      # cloning the repository would be work that buys nothing.
+      #
+      # THE URL IS NOT A SECRET and is already in docs/release.md in this
+      # public repository, so a repository variable would hide nothing. It is
+      # written in full because a workflow whose target is indirected through
+      # a setting is a workflow nobody can read.
+      - name: wake the backend
+        run: |
+          URL="https://python-backend-cm13.onrender.com/health"
+
+          # RETRIES, BECAUSE THE FIRST ATTEMPT IS THE ONE THAT WAKES IT. If
+          # the service was asleep, this request is what starts it, and it can
+          # take most of a minute to answer - longer than one curl should wait
+          # before something is treated as broken. Three tries with backoff
+          # tells a cold start apart from a dead service.
+          for attempt in 1 2 3; do
+            echo "attempt $attempt: GET $URL"
+
+            # -f so an HTTP error is a failure rather than a body to print,
+            # -sS so the output is quiet but errors still appear,
+            # --max-time 90 to outlast a cold start.
+            if curl -fsS --max-time 90 "$URL"; then
+              echo
+              echo "awake (attempt $attempt)"
+              exit 0
+            fi
+
+            echo "attempt $attempt failed"
+            [ "$attempt" -lt 3 ] && sleep 15
+          done
+
+          # FAILING IS THE POINT HERE, not a nuisance. Three failed attempts
+          # over 90 seconds each is not a cold start - it is a backend that is
+          # down, out of free instance hours, or deploying badly. A red run
+          # (and the email GitHub sends for a failed scheduled workflow) is
+          # the only monitoring this project has.
+          echo "::error::no answer from /health after 3 attempts - the service may be down or out of free instance hours"
+          exit 1

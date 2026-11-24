@@ -128,9 +128,15 @@ app.include_router(profiles.router, tags=["profiles"])
 #alive. The access log lines it produces are filtered out in
 #app_logging.py; a non-200 from here still gets logged.
 #
-#Also the keep-alive target for an external pinger (UptimeRobot /
-#cron-job.org) if one is needed, hit every ~10 minutes so Render never
-#reaches its 15-minute spin-down and users stop paying the ~60s cold start.
+#ALSO THE KEEP-ALIVE TARGET, and something does hit it:
+#.github/workflows/keep-warm.yml asks for this path every ~10 minutes so
+#Render never reaches its 15-minute spin-down and nobody pays the ~60s cold
+#start. Render's own health-check polling does NOT prevent that spin-down -
+#the traffic has to come from outside - and a request the service made to
+#itself would not either, since it never traverses Render's public router.
+#That workflow's header has the cost: keeping one service awake spends 744 of
+#the workspace's 750 free instance hours in a 31-day month, so there is room
+#for exactly one.
 #
 #IT MUST NOT TOUCH THE DATABASE. No Depends(get_db), no query, nothing. Neon's
 #free plan allows ~400 compute hours a month and suspends after 5 minutes of
