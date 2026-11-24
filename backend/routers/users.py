@@ -94,7 +94,19 @@ def create_user(
             user_id=new_user.id,
             is_dark_mode=True,
             is_match_notifications_on=False,
-            language='el'
+            #ENGLISH, NOT GREEK. The audience is not only Greek students - the
+            #recommender page is aimed at recruiters too - and somebody opening
+            #the app for the first time is likelier to read English than Greek.
+            #It is not symmetric: a Greek speaker changes this once in Settings,
+            #while somebody dropped into Greek has to find that setting while
+            #every label around it is in Greek.
+            #
+            #MUST AGREE WITH models.Settings.language's column default, which
+            #already said "en" while this said "el". Nothing noticed, because
+            #this is the only code path that creates a Settings row, so the
+            #column default never fires - it is documentation that was quietly
+            #false. Pinned in tests/test_users.py so they cannot drift again.
+            language='en',
         )
 
         db.add(new_settings)

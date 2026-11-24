@@ -153,6 +153,23 @@ class TestSettings:
         body = as_signup("uid-new", "someone@uom.edu.gr").get("/users/settings").json()
         assert "is_dark_mode" in body
 
+    def test_a_new_account_starts_in_english(self, as_signup):
+        #THE DEFAULT IS A PRODUCT DECISION, so it gets a test rather than
+        #living only in a keyword argument. FoitiFinder is shown to recruiters
+        #as well as to Greek students, and a first launch in Greek is one a
+        #non-Greek reader cannot navigate out of - the setting that would fix
+        #it is itself labelled in Greek.
+        #
+        #AND IT GUARDS A DISAGREEMENT THAT ALREADY EXISTED: models.Settings
+        #declares default="en" on the column while routers/users.py passed
+        #'el' explicitly. Only the explicit one ever ran, so the column default
+        #was false documentation nobody could see. This asserts the value a
+        #real signup actually receives, which is the only one that matters.
+        client = as_signup("uid-new", "someone@uom.edu.gr")
+        client.post("/users/", json={"name": "Someone"})
+
+        assert client.get("/users/settings").json()["language"] == "en"
+
     def test_one_can_be_changed(self, as_signup):
         client = as_signup("uid-new", "someone@uom.edu.gr")
         client.post("/users/", json={"name": "Someone"})

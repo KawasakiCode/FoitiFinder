@@ -27,7 +27,9 @@ class SettingsProvider extends ChangeNotifier {
   bool _matchNotificationsEnabled = false;
   Set<String> _preferredGender = {};
   RangeValues _ageRange = RangeValues(0, 0);
-  Locale _locale = const Locale('el');
+  //ENGLISH BY DEFAULT - the reasoning is in _loadDefaults below, and the
+  //backend hands a new account the same language (routers/users.py).
+  Locale _locale = const Locale('en');
   bool _localeSwitching = false;
   bool _osPermission = false;
   String _gender = "";
@@ -60,11 +62,17 @@ class SettingsProvider extends ChangeNotifier {
     _matchNotificationsEnabled = (_prefs.getBool('match_notifications_enabled') ?? false) ? true : false;
     //KEY NAME MATTERS: changeLanguage() and fetchSettingsFromApi() both write
     //'language_code'. Reading 'language' here meant this lookup ALWAYS missed,
-    //so every launch started in Greek and then visibly flipped to the real
-    //language once fetchSettingsFromApi returned.
-    _locale = _prefs.getString('language_code') == 'en'
-        ? const Locale('en')
-        : const Locale('el');
+    //so every launch started in the fallback language and then visibly flipped
+    //to the real one once fetchSettingsFromApi returned.
+    //
+    //ENGLISH IS THAT FALLBACK, and the comparison is against 'el' rather than
+    //'en' so that ANYTHING unrecognised - nothing on disk yet, a cleared pref,
+    //a language a later build stops shipping - lands in English rather than
+    //Greek. The app is shown to recruiters as well as to Greek students, and
+    //English is the one a stranger can navigate out of.
+    _locale = _prefs.getString('language_code') == 'el'
+        ? const Locale('el')
+        : const Locale('en');
     _ageRange = RangeValues(18, 30);
     _preferredGender = {};
     _gender = "";

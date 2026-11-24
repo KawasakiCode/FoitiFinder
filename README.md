@@ -4,7 +4,7 @@
 
 It has **no chat**. A mutual like opens a one-time exchange: both sides confirm, and only then does each receive the other's Instagram handle. That single decision shapes most of the system — there is no inbox to find a connection in later, so every path that hands a handle over, or that could destroy the only record of one, is guarded on the server rather than in the UI.
 
-A Flutter app (`lib/`), a FastAPI + PostgreSQL backend (`backend/`), and Firebase for identity, photo storage and push. 662 tests (401 backend, 261 widget/unit).
+A Flutter app (`lib/`), a FastAPI + PostgreSQL backend (`backend/`), and Firebase for identity, photo storage and push. 669 tests (402 backend, 267 widget/unit).
 
 ### 🎥 Demo
 
@@ -141,7 +141,7 @@ There is no `/likes`. It existed, was never called by the app once the likes pag
 
 ## Testing
 
-**401 backend tests** (`backend/tests/`) run against a **real PostgreSQL**, not SQLite — the models use Postgres arrays and a migration calls `array_replace`, and a test that passes against a different engine than production is worse than no test. Each test runs on a connection inside an outer transaction with a `join_transaction_mode="create_savepoint"` session, rolled back afterwards: endpoints call `db.commit()` as normal, that commits a savepoint, and the rollback takes it with it. The database is therefore empty between tests and nothing is ever written.
+**402 backend tests** (`backend/tests/`) run against a **real PostgreSQL**, not SQLite — the models use Postgres arrays and a migration calls `array_replace`, and a test that passes against a different engine than production is worse than no test. Each test runs on a connection inside an outer transaction with a `join_transaction_mode="create_savepoint"` session, rolled back afterwards: endpoints call `db.commit()` as normal, that commits a savepoint, and the rollback takes it with it. The database is therefore empty between tests and nothing is ever written.
 
 **No Firebase is needed at all**, because identity is a dependency and a dependency can be replaced:
 
@@ -153,7 +153,7 @@ Tests act as a user by swapping that uid — no token, no network, no key file. 
 
 The suites cover the full permutation matrix of two people deciding about each other — A likes B, B likes back, who confirms first, who declines when, what each side is told and what they are deliberately not told — plus privacy (what each endpoint refuses to return), the photo count rules, and the 422/403/404/409 paths.
 
-**261 Flutter tests** (`test/`) cover the swipe queue's retry and give-up rules, the image cache-key identity, the profile slide transition, the match page's one-way-door guards (dead buttons for the first instant, two-tap share, the dialog naming the handle, cancel sending nothing, back blocked for the side that just swiped) and the notification list's per-kind wording and tappability.
+**267 Flutter tests** (`test/`) cover the swipe queue's retry and give-up rules, the image cache-key identity, the profile slide transition, the match page's one-way-door guards (dead buttons for the first instant, two-tap share, the dialog naming the handle, cancel sending nothing, back blocked for the side that just swiped) the notification list's per-kind wording and tappability, and which language the app starts in before anybody has chosen one.
 
 ```bash
 flutter test                                    # 99
@@ -199,7 +199,7 @@ backend/
   notifications.py  send a push AND record the row
   database/         models, schemas, engine
   alembic/          migrations
-  tests/            401 tests + conftest
+  tests/            402 tests + conftest
   tools/            seed_local.py, simulate_match.py
 test/               flutter tests
 ```
